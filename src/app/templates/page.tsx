@@ -17,7 +17,7 @@ export default async function TemplatesPage() {
   });
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Message templates"
         subtitle="Save the messages you send all day. Use them from the follow-up screen."

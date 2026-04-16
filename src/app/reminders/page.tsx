@@ -34,7 +34,7 @@ export default async function RemindersPage() {
   };
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Reminders"
         subtitle="Automatic follow-up schedules for your debts. Send them one tap at a time."

@@ -15,7 +15,7 @@ export default async function EditPaymentPage({ params }: { params: { id: string
   if (!payment) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit payment" backHref="/payments" />
       <div className="card p-5">
         <PaymentForm

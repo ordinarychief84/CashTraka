@@ -62,7 +62,7 @@ export default async function ExpensesPage({
   for (const e of expenses) byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.amount);
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Expenses"
         subtitle="Track what you spend — so you know what you actually make."

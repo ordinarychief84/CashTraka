@@ -15,7 +15,7 @@ export default async function EditProductPage({ params }: { params: { id: string
   if (!product) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit product" backHref="/products" />
       <div className="card p-5">
         <ProductForm

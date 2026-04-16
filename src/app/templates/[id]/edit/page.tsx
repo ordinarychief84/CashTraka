@@ -15,7 +15,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
   if (!template) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit template" backHref="/templates" />
       <div className="card p-5">
         <TemplateForm

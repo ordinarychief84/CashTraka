@@ -22,7 +22,7 @@ export default async function NewTenantPage({ searchParams }: { searchParams: SP
   const backHref = propertyId ? `/properties/${propertyId}` : '/properties';
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Add tenant" backHref={backHref} />
       <TenantForm propertyId={propertyId} properties={properties} />
     </AppShell>

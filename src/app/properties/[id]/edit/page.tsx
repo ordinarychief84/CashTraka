@@ -16,7 +16,7 @@ export default async function EditPropertyPage({ params }: { params: { id: strin
   if (!property) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit property" backHref={`/properties/${property.id}`} />
       <PropertyForm
         initial={{

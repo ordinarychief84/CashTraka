@@ -49,7 +49,7 @@ export default async function PropertiesPage() {
   const collectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Properties"
         subtitle="Manage your rental properties."

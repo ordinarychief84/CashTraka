@@ -25,7 +25,7 @@ export default async function TenantsPage({ searchParams }: { searchParams: { st
   });
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Tenants"
         subtitle="All tenants across your properties."

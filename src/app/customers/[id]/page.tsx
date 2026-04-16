@@ -57,7 +57,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   ].sort((a, b) => b.at.getTime() - a.at.getTime());
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title={customer.name}
         subtitle={displayPhone(customer.phone)}

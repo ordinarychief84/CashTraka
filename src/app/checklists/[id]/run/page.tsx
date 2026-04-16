@@ -65,7 +65,7 @@ export default async function ChecklistRunPage({ params, searchParams }: Props) 
   }));
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title={checklist.name} subtitle="Tap each item as you complete it." backHref="/checklists" />
       <div className="card p-5">
         <ChecklistRunner

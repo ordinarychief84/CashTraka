@@ -40,7 +40,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
   const waUrl = waLink(tenant.phone, reminderMsg);
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title={tenant.name}
         subtitle={`${tenant.property.name}${tenant.unitLabel ? ' · ' + tenant.unitLabel : ''}`}

@@ -20,7 +20,7 @@ export default async function EditDebtPage({ params }: { params: { id: string } 
     : '';
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit debt" backHref="/debts" />
       {debt.amountPaid > 0 && (
         <div className="card mb-4 p-4 text-sm text-slate-600">

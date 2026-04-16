@@ -49,7 +49,7 @@ export default async function ChecklistsPage() {
   ]);
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Checklists"
         subtitle="Reusable step-by-step lists for daily operations."

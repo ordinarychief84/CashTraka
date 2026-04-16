@@ -82,7 +82,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
       });
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Rent"
         subtitle={`${new Date(currentPeriod + '-01').toLocaleDateString('en-NG', { month: 'long', year: 'numeric' })} overview`}

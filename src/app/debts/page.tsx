@@ -76,7 +76,7 @@ export default async function DebtsPage({ searchParams }: { searchParams: SP }) 
   const overdueCount = overdueAgg._count;
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Debts"
         subtitle="People who owe you money."

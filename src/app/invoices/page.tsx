@@ -28,7 +28,7 @@ export default async function InvoicesPage() {
   });
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Invoices"
         subtitle="Generate, send and track invoices for your sales."

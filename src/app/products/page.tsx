@@ -23,10 +23,10 @@ export default async function ProductsPage() {
   );
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Products"
-        subtitle="Your catalog, with live stock. Attach items to payments to auto-decrement."
+        subtitle="Track what you sell and what's left in stock. Attach items to payments to auto-decrement inventory."
         action={
           <Link href="/products/new" className="btn-primary">
             <Plus size={18} />
@@ -57,9 +57,9 @@ export default async function ProductsPage() {
         <EmptyState
           icon={Package}
           title="No products yet"
-          description="Add your first product. You can attach it to payments to auto-track stock."
+          description="Add items you sell so you can track stock, attach them to payments, and see real profit in your reports."
           actionHref="/products/new"
-          actionLabel="Add product"
+          actionLabel="Add your first product"
         />
       ) : (
         <ul className="space-y-2">

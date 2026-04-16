@@ -206,7 +206,7 @@ export default async function ReportsPage() {
   const revenueChartTitle = isPm ? 'Rent collected by month' : 'Revenue by month';
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Reports"
         subtitle={

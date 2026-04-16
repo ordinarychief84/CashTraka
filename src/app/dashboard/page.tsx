@@ -313,7 +313,7 @@ export default async function DashboardPage({
   }
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       {/* ───────── Welcome row ───────── */}
       <div className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">

@@ -9,7 +9,7 @@ export default async function NewPropertyPage() {
   const user = await guard();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Add property" backHref="/properties" />
       <PropertyForm />
     </AppShell>

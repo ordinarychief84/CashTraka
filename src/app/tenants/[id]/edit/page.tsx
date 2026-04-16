@@ -17,7 +17,7 @@ export default async function EditTenantPage({ params }: { params: { id: string 
   if (!tenant) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit tenant" backHref={`/tenants/${tenant.id}`} />
       <TenantForm
         initial={{

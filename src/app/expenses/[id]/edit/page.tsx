@@ -15,7 +15,7 @@ export default async function EditExpensePage({ params }: { params: { id: string
   if (!expense) notFound();
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit expense" backHref="/expenses" />
       <div className="card p-5">
         <ExpenseForm

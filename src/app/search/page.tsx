@@ -18,7 +18,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
 
   if (!q) {
     return (
-      <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+      <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
         <PageHeader
           title="Search"
           subtitle={
@@ -95,7 +95,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   const totalHits = customers.length + tenants.length + payments.length + debts.length;
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title={`Results for “${q}”`}
         subtitle={`${totalHits} ${totalHits === 1 ? 'result' : 'results'}`}

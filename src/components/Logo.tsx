@@ -42,21 +42,34 @@ export function LogoIcon({
   );
 }
 
-/** Full logo: icon + "CashTraka" wordmark. */
+/**
+ * Full logo: icon + "CashTraka" wordmark.
+ *
+ * `variant="light"` flips the wordmark to white so the logo stays readable
+ * on dark surfaces (e.g. the admin sidebar on `bg-slate-900`).
+ */
 export function Logo({
   size = 'md',
   className,
   href,
+  variant = 'default',
 }: {
   size?: Size;
   className?: string;
   /** Optional — if passed, the root becomes an <a>. Normally you'd wrap with Link yourself. */
   href?: string;
+  variant?: 'default' | 'light';
 }) {
   const content = (
     <>
       <LogoIcon size={size} />
-      <span className={cn('font-bold tracking-tight text-ink', wordmark[size])}>
+      <span
+        className={cn(
+          'font-bold tracking-tight',
+          variant === 'light' ? 'text-white' : 'text-ink',
+          wordmark[size],
+        )}
+      >
         CashTraka
       </span>
     </>

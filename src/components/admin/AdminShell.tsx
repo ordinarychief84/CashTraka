@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { LayoutDashboard, Users2, BarChart3, LogOut, ArrowLeft } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Users2,
+  BarChart3,
+  LogOut,
+  ArrowLeft,
+  ShieldCheck,
+} from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
 type Props = {
@@ -10,19 +17,24 @@ type Props = {
 
 /**
  * Admin layout shell. Visually distinct from the seller app (dark sidebar,
- * lime accent) so it's obvious you're in the privileged area.
+ * lime accent) so it's obvious you're in the privileged area. Uses the new
+ * light-wordmark Logo variant so the brand stays readable on `bg-slate-900`.
  */
 export function AdminShell({ children, adminName }: Props) {
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* ── Desktop sidebar ── */}
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-slate-800 bg-slate-900 text-slate-200 md:flex">
-        <div className="flex h-16 items-center px-6 border-b border-slate-800">
-          <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
-            <Logo size="md" />
-            <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
-              ADMIN
-            </span>
+        <div className="flex h-16 items-center justify-between border-b border-slate-800 px-5">
+          <Link
+            href="/admin/dashboard"
+            className="inline-flex items-center gap-2"
+          >
+            <Logo size="md" variant="light" />
           </Link>
+          <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
+            ADMIN
+          </span>
         </div>
         <nav className="flex flex-1 flex-col gap-0.5 p-4 text-sm">
           <Side href="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
@@ -31,13 +43,17 @@ export function AdminShell({ children, adminName }: Props) {
         </nav>
         <div className="border-t border-slate-800 p-4">
           {adminName && (
-            <div className="mb-3 truncate text-xs text-slate-400">
-              Signed in as {adminName}
+            <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-slate-200">
+              <ShieldCheck size={12} className="text-lime-400" />
+              {adminName}
             </div>
           )}
+          <div className="mb-3 text-[10px] uppercase tracking-wider text-slate-500">
+            Platform operator
+          </div>
           <Link
             href="/dashboard"
-            className="mb-2 flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            className="mb-2 flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100"
           >
             <ArrowLeft size={14} />
             Back to seller view
@@ -45,7 +61,7 @@ export function AdminShell({ children, adminName }: Props) {
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100"
             >
               <LogOut size={14} />
               Log out
@@ -54,6 +70,7 @@ export function AdminShell({ children, adminName }: Props) {
         </div>
       </aside>
 
+      {/* ── Mobile top bar ── */}
       <header className="sticky top-0 z-20 border-b border-border bg-white md:hidden">
         <div className="container-app flex h-14 items-center justify-between">
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
@@ -93,7 +110,7 @@ function Side({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
+      className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
     >
       <Icon size={18} />
       {label}

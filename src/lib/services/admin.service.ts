@@ -9,12 +9,20 @@ import type { Prisma } from '@prisma/client';
  * Callers must have already checked `requireAdmin()` in the route handler.
  */
 
+/**
+ * Coerce "" → undefined so HTML <select> controls with a blank default
+ * option (which submit as empty strings) don't trip `z.enum()` validation.
+ * We can't use `.optional()` alone because Zod treats "" as present.
+ */
+const emptyAsUndefined = <T extends z.ZodTypeAny>(inner: T) =>
+  z.preprocess((v) => (v === '' ? undefined : v), inner.optional());
+
 const filterSchema = z.object({
   q: z.string().trim().optional(),
-  role: z.enum(['USER', 'ADMIN']).optional(),
-  businessType: z.enum(['seller', 'property_manager']).optional(),
-  isSuspended: z.enum(['yes', 'no']).optional(),
-  hasActivity: z.enum(['yes', 'no']).optional(),
+  role: emptyAsUndefined(z.enum(['USER', 'ADMIN'])),
+  businessType: emptyAsUndefined(z.enum(['seller', 'property_manager'])),
+  isSuspended: emptyAsUndefined(z.enum(['yes', 'no'])),
+  hasActivity: emptyAsUndefined(z.enum(['yes', 'no'])),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(100).default(25),
 });

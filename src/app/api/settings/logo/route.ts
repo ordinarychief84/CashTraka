@@ -2,6 +2,7 @@ import { requireUser } from '@/lib/auth';
 import { userService } from '@/lib/services/user.service';
 import { uploadLogo } from '@/lib/cloudinary/upload';
 import { handled, ok, fail } from '@/lib/api-response';
+import { requireFeature } from '@/lib/gate';
 
 export const runtime = 'nodejs';
 
@@ -17,6 +18,9 @@ const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp']);
 export const POST = (req: Request) =>
   handled(async () => {
     const user = await requireUser();
+    // Custom branding (logo on receipts/invoices) is a Plus-tier feature.
+    const feature = requireFeature(user, 'customBranding');
+    if (feature) return feature;
     const form = await req.formData();
     const file = form.get('file');
     if (!(file instanceof File)) return fail('Missing file', 400);

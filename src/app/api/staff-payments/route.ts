@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requirePermission } from '@/lib/auth';
+import { requireFeature } from '@/lib/gate';
 
 function authFail(e: unknown): NextResponse | null {
   const err = e as { code?: string; message?: string };
@@ -49,6 +50,10 @@ export async function POST(req: Request) {
     if (r) return r;
     throw e;
   }
+
+  // Plan gate: payroll (logging staff payments) is a paid-plan feature.
+  const feature = requireFeature(user, 'payroll');
+  if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);

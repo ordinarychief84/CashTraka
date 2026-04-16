@@ -8,7 +8,7 @@ import {
   Users2,
   Building2,
 } from 'lucide-react';
-import { guard } from '@/lib/guard';
+import { guardWithFeature } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -20,7 +20,7 @@ import { isPropertyManager } from '@/lib/business-type';
 export const dynamic = 'force-dynamic';
 
 export default async function ReportsPage() {
-  const user = await guard();
+  const user = await guardWithFeature('reports');
   const isPm = isPropertyManager(user.businessType);
 
   // Last 6 months (including this month).

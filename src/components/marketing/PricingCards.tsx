@@ -49,6 +49,7 @@ const SELLER_PLANS: Plan[] = [
       'Up to 50 payments / month',
       'Up to 20 active debts',
       'Up to 50 customers',
+      'Bank-alert payment verification',
       'WhatsApp follow-ups',
       '3 saved message templates',
     ],

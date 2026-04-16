@@ -49,6 +49,12 @@ export type Limits = {
   csvExport: boolean;
   checklists: boolean;
   tasks: boolean;
+  /** Mark daily attendance per staff. Paid feature. */
+  attendance: boolean;
+  /** Log staff payments (salary / advance / bonus / etc). Paid feature. */
+  payroll: boolean;
+  /** Custom receipt branding (logo, footer) — Plus-tier only. */
+  customBranding: boolean;
   prioritySupport: boolean;
 };
 
@@ -68,6 +74,9 @@ const FREE: Limits = {
   csvExport: false,
   checklists: false,
   tasks: false,
+  attendance: false,
+  payroll: false,
+  customBranding: false,
   prioritySupport: false,
 };
 
@@ -87,12 +96,16 @@ const BUSINESS: Limits = {
   csvExport: true,
   checklists: true,
   tasks: true,
+  attendance: true,
+  payroll: true,
+  customBranding: false,
   prioritySupport: false,
 };
 
 const BUSINESS_PLUS: Limits = {
   ...BUSINESS,
   teamMembers: null,
+  customBranding: true,
   prioritySupport: true,
 };
 
@@ -108,6 +121,12 @@ const LANDLORD: Limits = {
 const ESTATE_MANAGER: Limits = {
   ...LANDLORD,
   teamMembers: null,
+  // Estate Manager pricing advertises "Tasks & inspection checklists" — turn
+  // both back on (Landlord had checklists off because a solo landlord has no
+  // inspections to run).
+  checklists: true,
+  tasks: true,
+  customBranding: true,
   prioritySupport: true,
 };
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { requireFeature } from '@/lib/gate';
 
 const createSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -15,6 +16,10 @@ const createSchema = z.object({
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Plan feature gate — tasks are a Business+ feature.
+  const feature = requireFeature(user, 'tasks');
+  if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);

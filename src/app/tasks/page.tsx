@@ -8,7 +8,7 @@ import {
   Calendar,
   User2,
 } from 'lucide-react';
-import { guard } from '@/lib/guard';
+import { guardWithFeature } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -66,7 +66,7 @@ type SP = {
  * or 'me', ?overdue=1 for overdue-only.
  */
 export default async function TasksPage({ searchParams }: { searchParams: SP }) {
-  const user = await guard();
+  const user = await guardWithFeature('tasks');
 
   const view = searchParams.view === 'board' ? 'board' : 'list';
   const filter = searchParams.filter || 'all';

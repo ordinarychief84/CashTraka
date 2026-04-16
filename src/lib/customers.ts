@@ -1,7 +1,19 @@
 import { prisma } from './prisma';
 import { normalizeNigerianPhone } from './whatsapp';
+import { Err } from './errors';
+import { limitsFor, effectivePlan } from './plan-limits';
 
-/** Upsert a customer by (userId, normalized phone). Returns the customer. */
+/**
+ * Upsert a customer by (userId, normalized phone). Returns the customer.
+ *
+ * Enforces the owner's customer-count cap on CREATE. Existing customers are
+ * never blocked — the cap is about "how many unique customers have you
+ * accumulated", so an update is always free.
+ *
+ * We fetch the owner's plan inside this helper (instead of asking callers to
+ * pass it) because customers are upserted from many places — payments, debts,
+ * invoices — and threading `user` through every one would be noisy.
+ */
 export async function upsertCustomer(
   userId: string,
   name: string,
@@ -21,6 +33,34 @@ export async function upsertCustomer(
         lastActivityAt: new Date(),
       },
     });
+  }
+
+  // About to create a brand-new customer — cap check applies.
+  const owner = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      plan: true,
+      subscriptionStatus: true,
+      trialEndsAt: true,
+      currentPeriodEnd: true,
+    },
+  });
+  if (owner) {
+    const eff = effectivePlan({
+      plan: owner.plan,
+      subscriptionStatus: owner.subscriptionStatus,
+      trialEndsAt: owner.trialEndsAt,
+      currentPeriodEnd: owner.currentPeriodEnd,
+    });
+    const limits = limitsFor(eff.plan);
+    if (limits.customers !== null) {
+      const currentCount = await prisma.customer.count({ where: { userId } });
+      if (currentCount >= limits.customers) {
+        throw Err.paymentRequired(
+          `Your plan is capped at ${limits.customers} customers. Upgrade to add more.`,
+        );
+      }
+    }
   }
 
   return prisma.customer.create({

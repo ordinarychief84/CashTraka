@@ -45,6 +45,20 @@ model User {
   /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
   logoUrl              String?
 
+  /// Billing state. `plan` (above) is the *tier name*; these fields describe
+  /// the subscription lifecycle around that tier.
+  /// "free" | "trialing" | "active" | "past_due" | "cancelled"
+  subscriptionStatus       String    @default("free")
+  /// End of the 14-day trial, if we started one. null if never trialled.
+  trialEndsAt              DateTime?
+  /// End of the current paid period (renewal date, or cancelled-grace boundary).
+  currentPeriodEnd         DateTime?
+  /// Paystack identifiers (stored once on first successful charge).
+  paystackCustomerCode     String?
+  paystackSubscriptionCode String?
+  /// The plan the user picked at checkout; cleared when the webhook confirms.
+  pendingPlan              String?
+
   onboardingCompleted  Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -62,13 +76,15 @@ model User {
   tenants              Tenant[]
   rentPayments         RentPayment[]
   staffMembers         StaffMember[]
-  clockEntries         ClockEntry[]
+  attendance           Attendance[]
+  staffPayments        StaffPayment[]
   tasks                Task[]
   checklists           Checklist[]
   checklistRuns        ChecklistRun[]
   receipts             Receipt[]
   adminNotesAuthored   AdminNote[]       @relation("AdminNoteAuthor")
   adminNotesReceived   AdminNote[]       @relation("AdminNoteTarget")
+  paymentAttempts      PaymentAttempt[]
 
   @@index([role])
   @@index([businessType])
@@ -378,7 +394,14 @@ model RentPayment {
   @@index([userId, period])
 }
 
-// ---------- TEAM & TIME CLOCK ----------
+// ---------- TEAM, ATTENDANCE & PAYROLL ----------
+//
+// Nigerian SMB payroll realities shape this model:
+//   - Staff are paid on fixed cycles (monthly for shop attendants, daily for
+//     casual labour, per-task for tailors/drivers) — NOT hourly.
+//   - Attendance is day-level: "did they show up?", not minute-level tracking.
+//   - Salary advances mid-cycle are extremely common.
+//   - Employers collect next-of-kin + bank details at hire.
 
 /// A staff member / helper who works for the seller.
 model StaffMember {
@@ -386,36 +409,104 @@ model StaffMember {
   userId      String
   name        String
   phone       String?
+  /// 4-6 digit PIN — optional, for situations where staff self-mark attendance on a shared device.
   pin         String?
+  /// Human-readable job title ("Shop attendant", "Cashier", "Delivery").
   role        String?
-  hourlyRate  Int?
-  dailyRate   Int?
+
+  /// ── Login + RBAC ─────────────────────────────────────────────────────
+  /// Unique email staff uses to log in. Optional — staff without login
+  /// are just payroll records (the original behaviour). Unique per OWNER;
+  /// different owners can have staff with the same email.
+  email                String?
+  /// Bcrypt hash. Null until staff accepts their invite.
+  passwordHash         String?
+  /// In-app permission level: "NONE" | "MANAGER" | "CASHIER" | "VIEWER".
+  /// NONE means the staff cannot log in at all — they're just a payroll record.
+  accessRole           String    @default("NONE")
+  /// URL-safe random token the owner sends to the staff. Staff clicks it
+  /// to set their password. Null after acceptance.
+  inviteToken          String?   @unique
+  inviteExpiresAt      DateTime?
+  lastLoginAt          DateTime?
+
+  /// Pay cycle: "monthly" | "weekly" | "daily" | "per_task"
+  payType     String    @default("monthly")
+  /// Pay amount in naira (whole numbers, matching the rest of the app).
+  payAmount   Int       @default(0)
+
+  /// When this person joined. Drives tenure + prorated first-month salary.
+  startDate   DateTime?
+
+  /// Bank details for salary transfer (optional).
+  bankName             String?
+  bankAccountNumber    String?
+  bankAccountName      String?
+
+  /// Next-of-kin details — standard Nigerian employment practice.
+  nextOfKinName        String?
+  nextOfKinPhone       String?
+
+  /// Free-form notes (ID card no., referee, guarantor, etc.).
+  notes       String?
+
+  /// "active" | "inactive" (terminated, left).
   status      String    @default("active")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clockEntries ClockEntry[]
-  tasks        Task[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attendance    Attendance[]
+  staffPayments StaffPayment[]
+  tasks         Task[]
 
+  @@unique([userId, email])
   @@index([userId, status])
+  @@index([email])
 }
 
-/// A clock-in / clock-out record for a staff member.
-model ClockEntry {
-  id          String    @id @default(cuid())
-  userId      String
-  staffId     String
-  clockIn     DateTime  @default(now())
-  clockOut    DateTime?
-  hoursWorked Float?
-  note        String?
-  createdAt   DateTime  @default(now())
+/// One row per (staff, date). Lets the owner mark whether someone turned up
+/// that day. For daily-wage staff this is what payroll multiplies by.
+model Attendance {
+  id        String   @id @default(cuid())
+  userId    String
+  staffId   String
+  /// Normalised to midnight UTC so uniqueness works cleanly.
+  date      DateTime
+  /// "present" | "absent" | "half_day" | "leave"
+  status    String   @default("present")
+  note      String?
+  createdAt DateTime @default(now())
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  staff       StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staff StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
-  @@index([userId, staffId])
+  @@unique([staffId, date])
+  @@index([userId, date])
+}
+
+/// Every payment the owner makes to a staff member. Salary is the big one,
+/// but advances / bonuses / commissions / reimbursements are all first-class.
+model StaffPayment {
+  id           String    @id @default(cuid())
+  userId       String
+  staffId      String
+  /// "salary" | "advance" | "bonus" | "commission" | "reimbursement"
+  kind         String
+  /// Amount in naira.
+  amount       Int
+  /// Pay period this payment covers (optional — used for salary).
+  periodStart  DateTime?
+  periodEnd    DateTime?
+  note         String?
+  paidAt       DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staff StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([userId, paidAt])
+  @@index([staffId, paidAt])
 }
 
 // ---------- TASK MANAGEMENT ----------
@@ -558,4 +649,39 @@ model SystemSetting {
   value      String
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
+}
+
+// ────────────────────────── BILLING ──────────────────────────
+
+/// One row per Paystack checkout attempt. We create it in `pending` state when
+/// the user clicks Upgrade, then mark `success`/`failed`/`abandoned` when the
+/// outcome is known (via webhook or /api/billing/verify).
+model PaymentAttempt {
+  id                String   @id @default(cuid())
+  userId            String
+  targetPlan        String
+  /// Amount charged, in kobo (100 kobo = 1 NGN).
+  amount            Int
+  currency          String   @default("NGN")
+  /// Our generated reference sent to Paystack — unique across users.
+  paystackReference String   @unique
+  /// "pending" | "success" | "failed" | "abandoned"
+  status            String   @default("pending")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+/// Raw Paystack webhook events, stored for audit and deduplication. The unique
+/// constraint on `paystackEventId` means replays are no-ops.
+model BillingEvent {
+  id              String   @id @default(cuid())
+  paystackEventId String   @unique
+  eventType       String
+  payloadJson     String
+  processedAt     DateTime @default(now())
 }

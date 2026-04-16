@@ -105,6 +105,138 @@ export const emailService = {
     });
   },
 
+  async sendTrialStarted(args: {
+    to: string;
+    name: string;
+    plan: string;
+    trialEndsAt: Date;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const endsOn = new Date(args.trialEndsAt).toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const html = `
+<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,sans-serif;margin:0;padding:24px;background:#F7F9F8;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E5E7EB;border-radius:16px;padding:24px;">
+    <div style="font-size:20px;font-weight:800;">Hi ${escape(args.name)}, your ${escape(args.plan)} trial just started 🎉</div>
+    <p style="color:#475569;font-size:14px;margin:16px 0;">
+      You've got <strong>14 days</strong> to try every premium feature — unlimited
+      payments, invoices, bank verification, reports, and more. No payment needed
+      yet.
+    </p>
+    <p style="color:#475569;font-size:14px;margin:16px 0;">
+      Your trial ends on <strong>${endsOn}</strong>. We'll remind you a few days before
+      so you can choose to upgrade or let it expire.
+    </p>
+    <p><a href="${escape(appUrl)}/dashboard" style="display:inline-block;padding:12px 20px;background:#0F6F4F;color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Open your dashboard</a></p>
+  </div>
+</body></html>`;
+    return send({
+      to: args.to,
+      subject: `Your ${args.plan} trial is active until ${endsOn}`,
+      html,
+    });
+  },
+
+  async sendPaymentSucceeded(args: {
+    to: string;
+    name: string;
+    plan: string;
+    amountKobo: number;
+    currentPeriodEnd: Date;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const amount = '₦' + Math.round(args.amountKobo / 100).toLocaleString('en-NG');
+    const renews = new Date(args.currentPeriodEnd).toLocaleDateString('en-NG', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const html = `
+<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,sans-serif;margin:0;padding:24px;background:#F7F9F8;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E5E7EB;border-radius:16px;padding:24px;">
+    <div style="font-size:20px;font-weight:800;">Payment received — thank you, ${escape(args.name)} 🙏</div>
+    <div style="margin:16px 0;padding:16px;background:#F1F5F9;border-radius:12px;">
+      <div style="font-size:12px;color:#64748B;">Plan</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1A1A;">${escape(args.plan)}</div>
+      <div style="font-size:12px;color:#64748B;margin-top:8px;">Amount</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1A1A;">${amount}</div>
+      <div style="font-size:12px;color:#64748B;margin-top:8px;">Access until</div>
+      <div style="font-size:16px;font-weight:700;color:#1A1A1A;">${renews}</div>
+    </div>
+    <p><a href="${escape(appUrl)}/settings" style="display:inline-block;padding:12px 20px;background:#0F6F4F;color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Manage subscription</a></p>
+  </div>
+</body></html>`;
+    return send({
+      to: args.to,
+      subject: `Payment received — ${args.plan} is active`,
+      html,
+    });
+  },
+
+  async sendPaymentFailed(args: {
+    to: string;
+    name: string;
+    plan: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const html = `
+<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,sans-serif;margin:0;padding:24px;background:#F7F9F8;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E5E7EB;border-radius:16px;padding:24px;">
+    <div style="font-size:20px;font-weight:800;color:#B91C1C;">Your ${escape(args.plan)} payment failed</div>
+    <p style="color:#475569;font-size:14px;margin:16px 0;">
+      Hi ${escape(args.name)}, we weren't able to charge your card for this
+      renewal. Your access has been paused until you retry.
+    </p>
+    <p><a href="${escape(appUrl)}/settings?billing=retry" style="display:inline-block;padding:12px 20px;background:#0F6F4F;color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Retry payment</a></p>
+  </div>
+</body></html>`;
+    return send({
+      to: args.to,
+      subject: `${args.plan} renewal failed — action needed`,
+      html,
+    });
+  },
+
+  async sendSubscriptionCancelled(args: {
+    to: string;
+    name: string;
+    plan: string;
+    accessUntil: Date | null;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const until = args.accessUntil
+      ? new Date(args.accessUntil).toLocaleDateString('en-NG', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : 'now';
+    const html = `
+<!doctype html>
+<html><body style="font-family:system-ui,-apple-system,sans-serif;margin:0;padding:24px;background:#F7F9F8;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E5E7EB;border-radius:16px;padding:24px;">
+    <div style="font-size:20px;font-weight:800;">Subscription cancelled</div>
+    <p style="color:#475569;font-size:14px;margin:16px 0;">
+      Hi ${escape(args.name)}, we've cancelled your ${escape(args.plan)} subscription.
+      You'll keep premium access until <strong>${until}</strong>, then your account
+      will switch back to Free. Your data stays safe either way.
+    </p>
+    <p><a href="${escape(appUrl)}/settings" style="display:inline-block;padding:12px 20px;background:#0F6F4F;color:white;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Change your mind?</a></p>
+  </div>
+</body></html>`;
+    return send({
+      to: args.to,
+      subject: `Your ${args.plan} subscription was cancelled`,
+      html,
+    });
+  },
+
   async sendWelcome(args: { to: string; name: string }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || '';
     const html = `

@@ -336,7 +336,81 @@ npm run dev                   # http://localhost:3000
 
 ---
 
-## 10. Security notes
+## 10. Billing (Paystack)
+
+Paid plans are powered by Paystack hosted checkout plus a signed webhook. The
+flow is deliberately layered so every path is idempotent and the app keeps
+working even when Paystack keys are missing.
+
+### Data model
+- `User.plan` — tier key (`free`, `business`, `business_plus`, `landlord`,
+  `estate_manager`).
+- `User.subscriptionStatus` — lifecycle state:
+  `free | trialing | active | past_due | cancelled`.
+- `User.trialEndsAt` / `User.currentPeriodEnd` — time boundaries consulted by
+  `effectivePlan(user)` in `src/lib/plan-limits.ts`.
+- `PaymentAttempt` — one row per Paystack transaction (pending → success/failed).
+- `BillingEvent` — dedupe log of processed webhook deliveries (unique
+  `paystackEventId` makes replays a no-op).
+
+### Services
+- `src/lib/services/paystack.service.ts` — thin REST wrapper around
+  `/transaction/initialize`, `/transaction/verify`, and HMAC-SHA512 webhook
+  signature verification. Returns `{ ok: false, error: 'not_configured' }` when
+  keys are missing so callers can degrade gracefully.
+- `src/lib/services/billing.service.ts` — orchestration. `startTrial`,
+  `initUpgrade`, `completeUpgrade`, `markPastDue`, `cancel`,
+  `expireTrialIfNeeded`, `status`, `adminSetPlan`.
+
+### Routes
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/billing/subscribe` | Creates a Paystack transaction; returns `authorizationUrl` |
+| POST | `/api/billing/trial` | Starts a 14-day trial on a paid plan |
+| POST | `/api/billing/cancel` | User-initiated cancel (keeps grace until `currentPeriodEnd`) |
+| GET | `/api/billing/status` | Current billing snapshot for the Settings card |
+| GET | `/api/billing/verify?reference=` | Idempotent finaliser called by `/billing/callback` |
+| POST | `/api/billing/webhook` | Paystack webhook; HMAC-verified & deduped |
+| PATCH | `/api/admin/users/[id]/plan` | Admin override; logs an AdminNote |
+
+### Enforcement
+`src/lib/gate.ts` routes every quota/feature check through
+`effectivePlan(user)`. Trials and active subscriptions get their paid
+tier's limits; `past_due` and expired subscriptions silently fall back to
+Free. `isSubscriptionLapsed()` surfaces a distinct "Subscription lapsed"
+error so the UI can offer a retry path.
+
+### Env
+Required to flip the paid path on (see `.env.example`):
+```
+PAYSTACK_SECRET_KEY=
+PAYSTACK_PUBLIC_KEY=
+PAYSTACK_WEBHOOK_SECRET=
+BILLING_REDIRECT_URL=http://localhost:3000/billing/callback
+```
+Without these the app still runs — trial start still works; paid checkout
+surfaces "Billing not configured" to the user.
+
+### Local testing
+1. Sign up a new seller → `/settings?upgrade=business`.
+2. Click **Start 14-day free trial** → plan flips to `business`, the
+   `/settings` billing card shows "Trial — 14 days left".
+3. To test paid flow, use Paystack test card `4084 0840 8408 4081` (CVV
+   `408`, any future expiry). Use ngrok to expose `/api/billing/webhook`
+   and set the URL in the Paystack dashboard.
+4. Fire the same webhook twice via `curl` — the second delivery is a no-op
+   because of the unique `paystackEventId` on `BillingEvent`.
+5. Admin can force any state in `/admin/users/[id]` → Plan & billing
+   override card. Every change writes an AdminNote for audit.
+
+### Out of scope
+- Paystack recurring subscriptions (we use one-off charges + renewal prompts).
+- Prorated mid-cycle upgrades.
+- Refunds (manual via admin + Paystack dashboard).
+
+---
+
+## 11. Security notes
 
 - Passwords hashed with bcrypt (10 rounds).
 - Session tokens signed with HS256, 30-day expiry, HttpOnly cookies.

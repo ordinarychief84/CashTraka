@@ -1,19 +1,41 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check, Store, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PLAN_PRICING, formatPriceNaira, type PaidPlanKey } from '@/lib/billing/pricing';
+
+/**
+ * Marketing pricing cards.
+ *
+ * Prices for paid tiers come from `PLAN_PRICING` (single source of truth, kept
+ * in kobo so the billing service and Paystack always agree).
+ *
+ * CTAs are smart:
+ * - Logged-out users are sent to /signup?type=<ic>&plan=<plan> so we can kick
+ *   off the upgrade flow the moment their account exists.
+ * - Logged-in users are sent straight to /settings?upgrade=<plan> which opens
+ *   the upgrade modal.
+ *
+ * We probe /api/auth/me once on mount to resolve state; until it answers, we
+ * default to the logged-out link so SSR matches and nothing feels janky.
+ */
 
 type Plan = {
   name: string;
+  /** paid-plan key — omitted for Free. */
+  planKey?: PaidPlanKey;
   price: string;
   cadence: string;
   tagline: string;
   features: string[];
-  cta: { label: string; href: string };
+  ctaLabel: string;
+  /** Fallback URL for the CTA. Overridden when logged-in + paid plan. */
+  ctaFallbackHref: string;
   highlight?: boolean;
   badge?: string;
+  isPaid: boolean;
 };
 
 const SELLER_PLANS: Plan[] = [
@@ -30,11 +52,14 @@ const SELLER_PLANS: Plan[] = [
       'WhatsApp follow-ups',
       '3 saved message templates',
     ],
-    cta: { label: 'Start free', href: '/signup?type=seller' },
+    ctaLabel: 'Start free',
+    ctaFallbackHref: '/signup?type=seller',
+    isPaid: false,
   },
   {
-    name: 'Business',
-    price: '₦7,500',
+    name: PLAN_PRICING.business.label,
+    planKey: 'business',
+    price: formatPriceNaira(PLAN_PRICING.business.amountKobo),
     cadence: '/month',
     tagline: 'The full business OS for serious sellers.',
     badge: 'Most popular',
@@ -44,16 +69,19 @@ const SELLER_PLANS: Plan[] = [
       'Professional invoices & auto receipts',
       'Product catalog + live inventory',
       'Expenses & real profit reports',
-      'Team (up to 3) + time clock',
+      'Team (up to 3) + attendance & payroll',
       'Tasks & checklists',
       'CSV export',
     ],
-    cta: { label: 'Start 14-day trial', href: '/signup?type=seller' },
+    ctaLabel: 'Start 14-day trial',
+    ctaFallbackHref: '/signup?type=seller&plan=business',
     highlight: true,
+    isPaid: true,
   },
   {
-    name: 'Business Plus',
-    price: '₦15,000',
+    name: PLAN_PRICING.business_plus.label,
+    planKey: 'business_plus',
+    price: formatPriceNaira(PLAN_PRICING.business_plus.amountKobo),
     cadence: '/month',
     tagline: 'Scale without limits.',
     features: [
@@ -63,7 +91,9 @@ const SELLER_PLANS: Plan[] = [
       'Priority WhatsApp support',
       'Priority feature updates',
     ],
-    cta: { label: 'Choose Plus', href: '/signup?type=seller' },
+    ctaLabel: 'Choose Plus',
+    ctaFallbackHref: '/signup?type=seller&plan=business_plus',
+    isPaid: true,
   },
 ];
 
@@ -80,11 +110,14 @@ const PROPMGR_PLANS: Plan[] = [
       'Overdue rent reminders',
       'WhatsApp tenant messaging',
     ],
-    cta: { label: 'Start free', href: '/signup?type=property_manager' },
+    ctaLabel: 'Start free',
+    ctaFallbackHref: '/signup?type=property_manager',
+    isPaid: false,
   },
   {
-    name: 'Landlord',
-    price: '₦8,500',
+    name: PLAN_PRICING.landlord.label,
+    planKey: 'landlord',
+    price: formatPriceNaira(PLAN_PRICING.landlord.amountKobo),
     cadence: '/month',
     tagline: 'For landlords with multiple tenants.',
     badge: 'Most popular',
@@ -97,12 +130,15 @@ const PROPMGR_PLANS: Plan[] = [
       'Expenses & net profit per property',
       'CSV export',
     ],
-    cta: { label: 'Start 14-day trial', href: '/signup?type=property_manager' },
+    ctaLabel: 'Start 14-day trial',
+    ctaFallbackHref: '/signup?type=property_manager&plan=landlord',
     highlight: true,
+    isPaid: true,
   },
   {
-    name: 'Estate Manager',
-    price: '₦18,000',
+    name: PLAN_PRICING.estate_manager.label,
+    planKey: 'estate_manager',
+    price: formatPriceNaira(PLAN_PRICING.estate_manager.amountKobo),
     cadence: '/month',
     tagline: 'For agents and managers with portfolios.',
     features: [
@@ -112,7 +148,9 @@ const PROPMGR_PLANS: Plan[] = [
       'Priority WhatsApp support',
       'White-glove onboarding',
     ],
-    cta: { label: 'Choose Plus', href: '/signup?type=property_manager' },
+    ctaLabel: 'Choose Plus',
+    ctaFallbackHref: '/signup?type=property_manager&plan=estate_manager',
+    isPaid: true,
   },
 ];
 
@@ -120,7 +158,31 @@ type IC = 'seller' | 'property_manager';
 
 export function PricingCards() {
   const [ic, setIc] = useState<IC>('seller');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const plans = ic === 'seller' ? SELLER_PLANS : PROPMGR_PLANS;
+
+  // Cheap probe — no body, just a status. Route is public, but auth cookie
+  // resolves against a real user. Anonymous callers get 401 which we read as
+  // "not logged in".
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => !cancelled && setIsLoggedIn(r.ok))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function hrefFor(plan: Plan): string {
+    if (isLoggedIn && plan.isPaid && plan.planKey) {
+      return `/settings?upgrade=${plan.planKey}`;
+    }
+    if (isLoggedIn && !plan.isPaid) {
+      return '/dashboard';
+    }
+    return plan.ctaFallbackHref;
+  }
 
   return (
     <div>
@@ -198,10 +260,10 @@ export function PricingCards() {
             </ul>
             <div className="mt-auto pt-6">
               <Link
-                href={plan.cta.href}
+                href={hrefFor(plan)}
                 className={plan.highlight ? 'btn-primary w-full' : 'btn-secondary w-full'}
               >
-                {plan.cta.label}
+                {plan.ctaLabel}
               </Link>
             </div>
           </div>

@@ -7,6 +7,16 @@
  *
  * This file is the single source of truth. If a limit needs adjusting for
  * billing, change it here.
+ *
+ * `User.plan` stores the tier (e.g. "business"); `User.subscriptionStatus`
+ * stores the lifecycle state (e.g. "trialing", "past_due"). The product has
+ * access when lifecycle is one of:
+ *
+ *   "trialing"  → full access to their plan's features (trial not expired)
+ *   "active"    → full access; currentPeriodEnd > now
+ *   "cancelled" → full access until currentPeriodEnd, then downgrade to Free
+ *   "past_due"  → DOWNGRADE to Free (writes freeze, data intact)
+ *   "free"      → Free limits
  */
 
 export type PlanName =
@@ -15,6 +25,13 @@ export type PlanName =
   | 'business_plus'
   | 'landlord'
   | 'estate_manager';
+
+export type SubscriptionStatus =
+  | 'free'
+  | 'trialing'
+  | 'active'
+  | 'past_due'
+  | 'cancelled';
 
 export type Limits = {
   paymentsPerMonth: number | null;
@@ -120,4 +137,72 @@ export function suggestUpgrade(plan: string, businessType: string): PlanName {
     return plan === 'free' ? 'landlord' : 'estate_manager';
   }
   return plan === 'free' ? 'business' : 'business_plus';
+}
+
+// ───────────────────────── effective plan ─────────────────────────
+
+type UserLike = {
+  plan: string;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: Date | null;
+  currentPeriodEnd?: Date | null;
+};
+
+/**
+ * Resolve the paying state of a user to the plan name we should use when
+ * consulting `limitsFor()`. This is the only place that knows the rules:
+ *
+ *   trialing  + trial still valid  → the user's plan
+ *   trialing  + trial expired       → free
+ *   active    + period still valid  → the user's plan
+ *   active    + period expired      → free (silent grace ends)
+ *   cancelled + still in grace      → the user's plan
+ *   cancelled + grace expired       → free
+ *   past_due                        → free
+ *   anything else / no status       → the user's plan (legacy Free)
+ */
+export function effectivePlan(user: UserLike): {
+  plan: string;
+  status: SubscriptionStatus;
+  expired: boolean;
+} {
+  const now = Date.now();
+  const status = (user.subscriptionStatus ??
+    (user.plan === 'free' ? 'free' : 'active')) as SubscriptionStatus;
+
+  if (status === 'past_due') {
+    return { plan: 'free', status, expired: true };
+  }
+  if (status === 'trialing') {
+    const expired =
+      !user.trialEndsAt || user.trialEndsAt.getTime() <= now;
+    return {
+      plan: expired ? 'free' : user.plan,
+      status,
+      expired,
+    };
+  }
+  if (status === 'active' || status === 'cancelled') {
+    const expired =
+      !user.currentPeriodEnd || user.currentPeriodEnd.getTime() <= now;
+    return {
+      plan: expired ? 'free' : user.plan,
+      status,
+      expired,
+    };
+  }
+  // Default / "free" branch.
+  return { plan: user.plan, status: 'free', expired: false };
+}
+
+/**
+ * Returns true if the user is on a paid plan that has lapsed (past_due, or
+ * cancelled+grace-expired). Used by API handlers to surface a distinct
+ * "Subscription lapsed" message rather than a generic quota error.
+ */
+export function isSubscriptionLapsed(user: UserLike): boolean {
+  const { status, expired } = effectivePlan(user);
+  if (status === 'past_due') return true;
+  if ((status === 'active' || status === 'cancelled') && expired) return true;
+  return false;
 }

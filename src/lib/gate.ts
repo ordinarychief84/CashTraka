@@ -1,16 +1,64 @@
 import { NextResponse } from 'next/server';
 import { prisma } from './prisma';
-import { limitsFor, PLAN_LABELS, suggestUpgrade, type Limits } from './plan-limits';
+import {
+  limitsFor,
+  PLAN_LABELS,
+  suggestUpgrade,
+  effectivePlan,
+  isSubscriptionLapsed,
+  type Limits,
+} from './plan-limits';
 
 /**
- * Ensures the user can perform an action based on their plan's quota.
- * Returns a NextResponse 402 ("Payment Required") when the limit is hit,
- * or `null` when the action is allowed.
+ * Feature/quota enforcement. All checks route through `effectivePlan()` so
+ * subscription lifecycle (trial expiry, past-due, cancelled-grace) is
+ * respected in one place.
  *
- * Counts are fetched inline — keep them narrow so the API stays fast.
+ * Returns a NextResponse (402 for quota, 403 for feature) if the action is
+ * blocked, or null if it's allowed.
  */
+
+type GateUser = {
+  id: string;
+  plan: string;
+  businessType: string;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: Date | null;
+  currentPeriodEnd?: Date | null;
+};
+
+function denyQuota(
+  user: GateUser,
+  message: string,
+  status = 402,
+): NextResponse {
+  const upgradeTo = suggestUpgrade(user.plan, user.businessType);
+  const lapsed = isSubscriptionLapsed(user);
+  return NextResponse.json(
+    {
+      error: lapsed
+        ? 'Your subscription has lapsed. Renew to keep creating records.'
+        : message,
+      upgrade: {
+        currentPlan:
+          PLAN_LABELS[user.plan as keyof typeof PLAN_LABELS] ?? user.plan,
+        suggestedPlan: PLAN_LABELS[upgradeTo],
+        upgradeHref: '/settings?upgrade=' + upgradeTo,
+        reason: lapsed ? 'lapsed' : 'quota',
+      },
+    },
+    { status },
+  );
+}
+
+/** Effective limits + whether a previously-paid subscription has lapsed. */
+function resolveLimits(user: GateUser): { limits: Limits } {
+  const eff = effectivePlan(user);
+  return { limits: limitsFor(eff.plan) };
+}
+
 export async function enforceQuota(
-  user: { id: string; plan: string; businessType: string },
+  user: GateUser,
   action:
     | 'create_payment'
     | 'create_debt'
@@ -20,22 +68,7 @@ export async function enforceQuota(
     | 'create_tenant'
     | 'create_staff',
 ): Promise<NextResponse | null> {
-  const limits = limitsFor(user.plan);
-  const upgradeTo = suggestUpgrade(user.plan, user.businessType);
-
-  function deny(message: string) {
-    return NextResponse.json(
-      {
-        error: message,
-        upgrade: {
-          currentPlan: PLAN_LABELS[user.plan as keyof typeof PLAN_LABELS] ?? user.plan,
-          suggestedPlan: PLAN_LABELS[upgradeTo],
-          upgradeHref: '/settings?upgrade=1',
-        },
-      },
-      { status: 402 },
-    );
-  }
+  const { limits } = resolveLimits(user);
 
   switch (action) {
     case 'create_payment': {
@@ -47,7 +80,8 @@ export async function enforceQuota(
         where: { userId: user.id, createdAt: { gte: start } },
       });
       if (count >= limits.paymentsPerMonth) {
-        return deny(
+        return denyQuota(
+          user,
           `Free plan is capped at ${limits.paymentsPerMonth} payments per month. Upgrade for unlimited.`,
         );
       }
@@ -59,7 +93,8 @@ export async function enforceQuota(
         where: { userId: user.id, status: 'OPEN' },
       });
       if (count >= limits.activeDebts) {
-        return deny(
+        return denyQuota(
+          user,
           `Free plan is capped at ${limits.activeDebts} active debts. Close some or upgrade.`,
         );
       }
@@ -69,7 +104,8 @@ export async function enforceQuota(
       if (limits.customers === null) return null;
       const count = await prisma.customer.count({ where: { userId: user.id } });
       if (count >= limits.customers) {
-        return deny(
+        return denyQuota(
+          user,
           `Free plan is capped at ${limits.customers} customers. Upgrade for unlimited.`,
         );
       }
@@ -77,9 +113,12 @@ export async function enforceQuota(
     }
     case 'create_template': {
       if (limits.templates === null) return null;
-      const count = await prisma.messageTemplate.count({ where: { userId: user.id } });
+      const count = await prisma.messageTemplate.count({
+        where: { userId: user.id },
+      });
       if (count >= limits.templates) {
-        return deny(
+        return denyQuota(
+          user,
           `Free plan is capped at ${limits.templates} message templates. Upgrade for unlimited.`,
         );
       }
@@ -89,8 +128,11 @@ export async function enforceQuota(
       if (limits.properties === null) return null;
       const count = await prisma.property.count({ where: { userId: user.id } });
       if (count >= limits.properties) {
-        return deny(
-          `Your plan is capped at ${limits.properties} ${limits.properties === 1 ? 'property' : 'properties'}. Upgrade to manage more.`,
+        return denyQuota(
+          user,
+          `Your plan is capped at ${limits.properties} ${
+            limits.properties === 1 ? 'property' : 'properties'
+          }. Upgrade to manage more.`,
         );
       }
       return null;
@@ -101,7 +143,8 @@ export async function enforceQuota(
         where: { userId: user.id, status: 'active' },
       });
       if (count >= limits.tenants) {
-        return deny(
+        return denyQuota(
+          user,
           `Your plan is capped at ${limits.tenants} active tenants. Upgrade to add more.`,
         );
       }
@@ -113,8 +156,11 @@ export async function enforceQuota(
         where: { userId: user.id, status: 'active' },
       });
       if (count >= limits.teamMembers) {
-        return deny(
-          `Your plan is capped at ${limits.teamMembers} active team ${limits.teamMembers === 1 ? 'member' : 'members'}. Upgrade for unlimited.`,
+        return denyQuota(
+          user,
+          `Your plan is capped at ${limits.teamMembers} active team ${
+            limits.teamMembers === 1 ? 'member' : 'members'
+          }. Upgrade for unlimited.`,
         );
       }
       return null;
@@ -124,22 +170,22 @@ export async function enforceQuota(
 }
 
 /**
- * Gate a feature entirely — returns 403 when the user's plan doesn't include it.
+ * Feature flag check.
+ *
+ * Returns:
+ *   - 402 if the user *had* access but their subscription lapsed (so the UI
+ *     can prompt them to retry payment — not a permanent block)
+ *   - 403 if the feature is simply not in their current plan (upgrade path)
  */
 export function requireFeature(
-  user: { plan: string },
+  user: GateUser,
   feature: keyof Limits,
 ): NextResponse | null {
-  const limits = limitsFor(user.plan);
+  const { limits } = resolveLimits(user);
   const allowed = limits[feature];
   if (typeof allowed === 'boolean' && !allowed) {
-    return NextResponse.json(
-      {
-        error: `This feature requires a paid plan.`,
-        upgrade: { upgradeHref: '/settings?upgrade=1' },
-      },
-      { status: 403 },
-    );
+    const status = isSubscriptionLapsed(user) ? 402 : 403;
+    return denyQuota(user, 'This feature requires a paid plan.', status);
   }
   return null;
 }

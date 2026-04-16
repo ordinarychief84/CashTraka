@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { SuspendButton } from '@/components/admin/SuspendButton';
 import { AddNoteForm } from '@/components/admin/AddNoteForm';
+import { PlanOverride } from '@/components/admin/PlanOverride';
 import { adminService } from '@/lib/services/admin.service';
 import { StatCard } from '@/components/StatCard';
 import { formatNaira, formatDate, timeAgo } from '@/lib/format';
@@ -76,6 +77,29 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
         <Meta label="Last login" value={user.lastLoginAt ? timeAgo(user.lastLoginAt) : 'Never'} />
         <Meta label="Onboarding" value={user.onboardingCompleted ? 'Completed' : 'Incomplete'} />
         <Meta label="WhatsApp" value={user.whatsappNumber || '—'} />
+      </div>
+
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 text-xs">
+        <Meta label="Subscription" value={(user.subscriptionStatus ?? 'free').replace('_', ' ')} />
+        <Meta
+          label="Trial ends"
+          value={user.trialEndsAt ? formatDate(user.trialEndsAt) : '—'}
+        />
+        <Meta
+          label="Period ends"
+          value={user.currentPeriodEnd ? formatDate(user.currentPeriodEnd) : '—'}
+        />
+        <Meta label="Pending plan" value={user.pendingPlan || '—'} />
+      </div>
+
+      <div className="mb-6">
+        {user.role !== 'ADMIN' && (
+          <PlanOverride
+            userId={user.id}
+            currentPlan={user.plan}
+            currentStatus={user.subscriptionStatus ?? 'free'}
+          />
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

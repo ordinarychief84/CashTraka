@@ -8,11 +8,21 @@ import { cn } from '@/lib/utils';
 import { QuickAddSheet } from './QuickAddSheet';
 import { MoreSheet } from './MoreSheet';
 
+import type { AccessRole } from '@/lib/rbac';
+import { can } from '@/lib/rbac';
+
 type Props = {
   isPropManager?: boolean;
+  /** Role of the logged-in principal. Used to hide the Quick-Add FAB when
+   *  the principal can't actually create anything. */
+  accessRole?: AccessRole;
 };
 
-export function BottomNav({ isPropManager }: Props) {
+export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
+  const canCreate =
+    can(accessRole, 'payments.write') ||
+    can(accessRole, 'debts.write') ||
+    can(accessRole, 'customers.write');
   const pathname = usePathname();
   const [addOpen, setAddOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -29,16 +39,20 @@ export function BottomNav({ isPropManager }: Props) {
           <NavItem href="/dashboard" icon={Home} label="Home" active={isActive('/dashboard')} />
           <NavItem href="/payments" icon={Wallet} label="Payments" active={isActive('/payments')} />
 
-          {/* Center FAB — Add button */}
+          {/* Center FAB — Add button (hidden for read-only roles) */}
           <div className="flex items-center justify-center">
-            <button
-              type="button"
-              onClick={() => setAddOpen(true)}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-md transition active:scale-95"
-              aria-label="Quick add"
-            >
-              <Plus size={24} strokeWidth={2.5} />
-            </button>
+            {canCreate ? (
+              <button
+                type="button"
+                onClick={() => setAddOpen(true)}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-md transition active:scale-95"
+                aria-label="Quick add"
+              >
+                <Plus size={24} strokeWidth={2.5} />
+              </button>
+            ) : (
+              <div className="h-12 w-12" aria-hidden />
+            )}
           </div>
 
           <NavItem href="/debts" icon={Clock3} label="Owed" active={isActive('/debts')} />

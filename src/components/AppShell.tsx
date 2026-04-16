@@ -19,19 +19,49 @@ import {
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
+import { UpgradeBanner } from './UpgradeBanner';
+import { can, type AccessRole, ROLE_LABELS } from '@/lib/rbac';
 
 type Props = {
   children: ReactNode;
   businessName?: string | null;
   userName?: string;
   businessType?: string | null;
+  accessRole?: AccessRole;
+  /** Name of the actual principal — might be the staff's name, not the owner's. */
+  principalName?: string;
 };
 
-export function AppShell({ children, businessName, userName, businessType }: Props) {
+export function AppShell({
+  children,
+  businessName,
+  userName,
+  businessType,
+  accessRole = 'OWNER',
+  principalName,
+}: Props) {
   const isPropManager = businessType === 'property_manager';
+
+  // RBAC-aware visibility. Owners see everything; each other role gets a
+  // trimmed nav that matches what their permissions actually let them do.
+  const show = {
+    payments: can(accessRole, 'payments.read'),
+    debts: can(accessRole, 'debts.read'),
+    customers: can(accessRole, 'customers.read'),
+    products: can(accessRole, 'products.read') && !isPropManager,
+    expenses: can(accessRole, 'expenses.read'),
+    team: can(accessRole, 'team.read'),
+    properties: can(accessRole, 'products.read') && isPropManager, // PM uses products perm bucket
+    tasks: can(accessRole, 'tasks.read'),
+    checklists: can(accessRole, 'checklists.read') && !isPropManager,
+    reports: can(accessRole, 'reports.read'),
+    settings: can(accessRole, 'settings.read'),
+  };
 
   return (
     <div className="min-h-screen">
+      {/* Billing status banner — shows only when attention is needed */}
+      <UpgradeBanner />
       {/* ─── Desktop sidebar ─── */}
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col border-r border-border bg-white md:flex">
         <div className="flex h-16 items-center px-5 border-b border-border">
@@ -43,22 +73,36 @@ export function AppShell({ children, businessName, userName, businessType }: Pro
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
           {/* Daily */}
           <SideLink href="/dashboard" icon={Home} label="Dashboard" />
-          <SideLink href="/payments" icon={Wallet} label={isPropManager ? 'Rent Payments' : 'Payments'} />
-          <SideLink href="/debts" icon={Clock3} label={isPropManager ? 'Unpaid Rent' : 'Money Owed'} />
-          <SideLink
-            href={isPropManager ? '/tenants' : '/customers'}
-            icon={Users}
-            label={isPropManager ? 'Tenants' : 'Customers'}
-          />
+          {show.payments && (
+            <SideLink
+              href="/payments"
+              icon={Wallet}
+              label={isPropManager ? 'Rent Payments' : 'Payments'}
+            />
+          )}
+          {show.debts && (
+            <SideLink
+              href="/debts"
+              icon={Clock3}
+              label={isPropManager ? 'Unpaid Rent' : 'Money Owed'}
+            />
+          )}
+          {show.customers && (
+            <SideLink
+              href={isPropManager ? '/tenants' : '/customers'}
+              icon={Users}
+              label={isPropManager ? 'Tenants' : 'Customers'}
+            />
+          )}
 
           {/* Business */}
-          <GroupLabel>Business</GroupLabel>
-          {!isPropManager && <SideLink href="/products" icon={Package} label="Products" />}
-          <SideLink href="/expenses" icon={Receipt} label="Expenses" />
-          <SideLink href="/team" icon={Users2} label="Team" />
+          {(show.products || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
+          {show.products && <SideLink href="/products" icon={Package} label="Products" />}
+          {show.expenses && <SideLink href="/expenses" icon={Receipt} label="Expenses" />}
+          {show.team && <SideLink href="/team" icon={Users2} label="Team" />}
 
           {/* Property (conditional) */}
-          {isPropManager && (
+          {isPropManager && show.properties && (
             <>
               <GroupLabel>Property</GroupLabel>
               <SideLink href="/properties" icon={Building2} label="Properties" />
@@ -67,24 +111,31 @@ export function AppShell({ children, businessName, userName, businessType }: Pro
           )}
 
           {/* Operations */}
-          <GroupLabel>Operations</GroupLabel>
-          <SideLink href="/tasks" icon={ListTodo} label="Tasks" />
-          {!isPropManager && (
+          {(show.tasks || show.checklists) && <GroupLabel>Operations</GroupLabel>}
+          {show.tasks && <SideLink href="/tasks" icon={ListTodo} label="Tasks" />}
+          {show.checklists && (
             <SideLink href="/checklists" icon={ClipboardList} label="Checklists" />
           )}
 
           {/* Bottom items */}
           <div className="mt-auto" />
-          <SideLink href="/reports" icon={BarChart3} label="Reports" />
-          <SideLink href="/settings" icon={SettingsIcon} label="Settings" />
+          {show.reports && <SideLink href="/reports" icon={BarChart3} label="Reports" />}
+          {show.settings && <SideLink href="/settings" icon={SettingsIcon} label="Settings" />}
         </nav>
 
         <div className="border-t border-border p-4">
           {businessName && (
             <div className="mb-1 truncate text-xs font-medium text-slate-700">{businessName}</div>
           )}
-          {userName && (
-            <div className="mb-3 truncate text-xs text-slate-500">Signed in as {userName}</div>
+          {(principalName || userName) && (
+            <div className="mb-1 truncate text-xs text-slate-500">
+              Signed in as {principalName ?? userName}
+            </div>
+          )}
+          {accessRole !== 'OWNER' && (
+            <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+              {ROLE_LABELS[accessRole]}
+            </div>
           )}
           <form action="/api/auth/logout" method="post">
             <button
@@ -112,13 +163,15 @@ export function AppShell({ children, businessName, userName, businessType }: Pro
             <Logo size="sm" />
           </Link>
           <div className="flex items-center gap-1">
-            <Link
-              href="/settings"
-              aria-label="Settings"
-              className="flex h-9 w-9 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
-            >
-              <SettingsIcon size={20} />
-            </Link>
+            {show.settings && (
+              <Link
+                href="/settings"
+                aria-label="Settings"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-slate-600 hover:bg-slate-100"
+              >
+                <SettingsIcon size={20} />
+              </Link>
+            )}
             <form action="/api/auth/logout" method="post">
               <button
                 type="submit"
@@ -139,7 +192,7 @@ export function AppShell({ children, businessName, userName, businessType }: Pro
         <div className="container-app py-5 md:py-8">{children}</div>
       </main>
 
-      <BottomNav isPropManager={isPropManager} />
+      <BottomNav isPropManager={isPropManager} accessRole={accessRole} />
     </div>
   );
 }

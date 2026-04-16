@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser, requireUser } from '@/lib/auth';
+import { getCurrentUser, requireUser, requirePermission } from '@/lib/auth';
 import { settingsSchema } from '@/lib/validators';
 import { isValidSlug, normalizeSlug } from '@/lib/slug';
 import { handled, ok } from '@/lib/api-response';
@@ -19,8 +19,15 @@ export async function PATCH(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  let user;
+  try {
+    const ctx = await requirePermission('settings.write');
+    user = ctx.owner;
+  } catch (e: any) {
+    if (e?.code === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (e?.code === 'FORBIDDEN') return NextResponse.json({ error: e.message }, { status: 403 });
+    throw e;
+  }
 
   const body = await req.json();
   const parsed = settingsSchema.safeParse(body);

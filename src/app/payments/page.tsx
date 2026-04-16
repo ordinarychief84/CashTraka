@@ -6,6 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { PaymentRowActions } from '@/components/PaymentRowActions';
+import { CreateReceiptButton } from '@/components/CreateReceiptButton';
 import { TimeRange } from '@/components/TimeRange';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { formatNaira, formatDateTime } from '@/lib/format';
@@ -70,10 +71,17 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
         title="Payments"
         subtitle="Cash and transfers you've received or are expecting."
         action={
-          <Link href="/payments/new" className="btn-primary">
-            <Plus size={18} />
-            Add
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <CreateReceiptButton
+              businessName={user.businessName ?? 'Business'}
+              variant="secondary"
+              label="Create receipt"
+            />
+            <Link href="/payments/new" className="btn-primary">
+              <Plus size={18} />
+              Add payment
+            </Link>
+          </div>
         }
       />
 

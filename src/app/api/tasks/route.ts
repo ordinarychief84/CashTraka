@@ -32,6 +32,20 @@ export async function POST(req: Request) {
 
   const { title, description, assignedToId, customerId, priority, dueDate } = parsed.data;
 
+  // IDOR guard: verify assignee + customer belong to this tenant before writing.
+  if (assignedToId) {
+    const staff = await prisma.staffMember.findFirst({
+      where: { id: assignedToId, userId: user.id },
+    });
+    if (!staff) return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
+  }
+  if (customerId) {
+    const cust = await prisma.customer.findFirst({
+      where: { id: customerId, userId: user.id },
+    });
+    if (!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+  }
+
   const task = await prisma.task.create({
     data: {
       userId: user.id,

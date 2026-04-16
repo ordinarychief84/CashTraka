@@ -8,15 +8,16 @@ export const runtime = 'nodejs';
 
 /**
  * GET /api/invoices/[id]/pdf → streams a PDF of the invoice.
- * Accepts either the cuid `id` OR the human invoice number via query:
- *   /api/invoices/by-number/INV-00042/pdf → not used, we accept number via /[id] too.
+ *
+ * SECURITY: only accepts the cuid `id`, NOT the sequential invoiceNumber.
+ * The sequential number (INV-00042) is guessable and would let an attacker
+ * enumerate invoices across tenants. The public /invoice/[number] page
+ * renders HTML for sharing; this PDF endpoint is the high-value target so
+ * we lock it to the non-guessable cuid.
  */
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  // Find by id OR by invoiceNumber — makes the public share-link experience seamless.
   const invoice = await prisma.invoice.findFirst({
-    where: {
-      OR: [{ id: params.id }, { invoiceNumber: params.id }],
-    },
+    where: { id: params.id },
     include: {
       user: {
         select: {

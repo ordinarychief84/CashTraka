@@ -83,9 +83,11 @@ export const paymentService = {
         if (!it.productId) continue;
         const prod = productMap.get(it.productId);
         if (!prod || !prod.trackStock) continue;
+        // Clamp at zero — never let stock go negative on oversell.
+        const newStock = Math.max(0, prod.stock - it.quantity);
         await tx.product.update({
           where: { id: prod.id },
-          data: { stock: { decrement: it.quantity } },
+          data: { stock: newStock },
         });
       }
       return created;

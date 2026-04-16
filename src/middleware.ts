@@ -33,8 +33,11 @@ const AUTH_PAGES = ['/login', '/signup'];
 
 async function verify(token: string | undefined): Promise<string | null> {
   if (!token) return null;
+  const raw = process.env.AUTH_SECRET;
+  // CRITICAL: never fall back to '' — that makes forged sessions trivial.
+  if (!raw) return null;
   try {
-    const secret = new TextEncoder().encode(process.env.AUTH_SECRET || '');
+    const secret = new TextEncoder().encode(raw);
     const { payload } = await jwtVerify(token, secret);
     return (payload.sub as string) || null;
   } catch {

@@ -68,18 +68,21 @@ export async function POST(req: Request) {
     nextSlug = normalized;
   }
 
+  // Only update fields that were actually sent. Previously every absent
+  // field resolved to `undefined ? … : null`, silently wiping existing data.
+  const data: Record<string, unknown> = {};
+  if (businessName !== undefined) data.businessName = businessName?.trim() || null;
+  if (whatsappNumber !== undefined) data.whatsappNumber = whatsappNumber?.trim() || null;
+  if (nextSlug !== undefined) data.shopSlug = nextSlug;
+  if (receiptFooter !== undefined) data.receiptFooter = receiptFooter?.trim() || null;
+  if (bankName !== undefined) data.bankName = bankName?.trim() || null;
+  if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
+  if (bankAccountName !== undefined) data.bankAccountName = bankAccountName?.trim() || null;
+  if (businessType !== undefined) data.businessType = businessType || user.businessType;
+
   await prisma.user.update({
     where: { id: user.id },
-    data: {
-      businessName: businessName ? businessName.trim() : null,
-      whatsappNumber: whatsappNumber ? whatsappNumber.trim() : null,
-      shopSlug: nextSlug,
-      receiptFooter: receiptFooter ? receiptFooter.trim() : null,
-      bankName: bankName ? bankName.trim() : null,
-      bankAccountNumber: bankAccountNumber ? bankAccountNumber.trim() : null,
-      bankAccountName: bankAccountName ? bankAccountName.trim() : null,
-      businessType: businessType ?? user.businessType,
-    },
+    data,
   });
 
   return NextResponse.json({ ok: true, shopSlug: nextSlug });

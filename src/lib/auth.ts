@@ -176,10 +176,17 @@ export async function getAuthContext(): Promise<AuthContext | null> {
  * Read current OWNER from the cookie store. For back-compat: returns the
  * OWNER user regardless of whether a staff is signed in. Callers scoping data
  * by `user.id` continue to behave correctly because data is always owner-scoped.
+ *
+ * IMPORTANT: also enforces suspension — a suspended owner returns null (which
+ * downstream handlers treat as unauthorized). This closes the gap where ~36
+ * routes called getCurrentUser() without separately checking isSuspended.
  */
 export async function getCurrentUser() {
   const ctx = await getAuthContext();
-  return ctx?.owner ?? null;
+  if (!ctx) return null;
+  // Block suspended accounts at the lowest level so no handler can skip it.
+  if (ctx.owner.isSuspended) return null;
+  return ctx.owner;
 }
 
 /** Throws UNAUTHORIZED if no session, FORBIDDEN if owner is suspended. */

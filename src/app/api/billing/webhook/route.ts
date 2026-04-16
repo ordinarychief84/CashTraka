@@ -70,8 +70,14 @@ export async function POST(req: Request) {
     if (e?.code === 'P2002') {
       return NextResponse.json({ success: true, data: { duplicate: true } });
     }
-    // Anything else is unexpected; record but don't leak details.
+    // Genuine DB failure — return 500 so Paystack retries instead of
+    // marking the event as delivered. Without this, billing events are
+    // silently lost during outages.
     if (process.env.NODE_ENV !== 'production') console.error(e);
+    return NextResponse.json(
+      { success: false, error: 'internal_error' },
+      { status: 500 },
+    );
   }
 
   try {

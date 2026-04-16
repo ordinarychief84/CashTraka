@@ -41,8 +41,8 @@ const SELLER_QUESTIONS: QA[] = [
     a: 'Yes. Every payment automatically gets a shareable receipt link AND a downloadable PDF. You can also create professional invoices, send them on WhatsApp, and convert them to a payment once received.',
   },
   {
-    q: 'Can I manage a team and track staff hours?',
-    a: 'Yes. Add staff, assign tasks, track time clock in/out, and auto-calculate wages based on hourly or daily rates. All wages flow into your expenses report.',
+    q: 'Can I manage a team and track what I owe them?',
+    a: 'Yes. Add your staff with their pay type (monthly salary, weekly, daily wage, or per-task), mark attendance each day, and log every salary, advance, bonus, or reimbursement. CashTraka shows how much you still owe each staff this month, and salary payments automatically appear in your expenses report.',
   },
   {
     q: 'Do I need to change how I sell?',

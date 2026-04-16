@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Check,
@@ -10,9 +10,11 @@ import {
   Send,
   Shield,
   Link as LinkIcon,
+  Eye,
 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 import { VerifyDialog } from './VerifyDialog';
+import { ReceiptDialog } from './ReceiptDialog';
 import { waLink } from '@/lib/whatsapp';
 
 type Props = {
@@ -23,8 +25,19 @@ type Props = {
   referenceCode: string | null;
   customerName?: string;
   phone?: string;
+  createdAt: string | Date;
+  businessName: string;
+  /** When true on mount, opens the receipt dialog immediately. Set by the
+   *  payments page when the URL has ?openReceipt=<this-id>. */
+  autoOpenReceipt?: boolean;
 };
 
+/**
+ * Per-row actions on the /payments list.
+ *
+ * Design goal: the "happy path" action — generate+send receipt — is a
+ * single visible click. Everything else is in an overflow menu.
+ */
 export function PaymentRowActions({
   id,
   status,
@@ -33,9 +46,21 @@ export function PaymentRowActions({
   referenceCode,
   customerName,
   phone,
+  createdAt,
+  businessName,
+  autoOpenReceipt = false,
 }: Props) {
   const router = useRouter();
   const [verifyOpen, setVerifyOpen] = useState(false);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+
+  // Post-save hook: when the payments page redirects us here with
+  // ?openReceipt=<id>, pop the receipt dialog immediately so the owner
+  // doesn't have to click a second time.
+  useEffect(() => {
+    if (autoOpenReceipt) setReceiptOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const actions: RowMenuAction[] = [];
 
@@ -78,24 +103,10 @@ export function PaymentRowActions({
   }
 
   actions.push({
-    label: 'View receipt',
-    icon: <Receipt size={16} />,
+    label: 'View receipt online',
+    icon: <Eye size={16} />,
     onClick: () => { window.open(`/r/${id}`, '_blank'); },
   });
-
-  if (phone && customerName) {
-    actions.push({
-      label: 'Share receipt on WhatsApp',
-      icon: <Send size={16} />,
-      onClick: () => {
-        const origin =
-          typeof window !== 'undefined' ? window.location.origin : 'https://cashtraka.app';
-        const url = `${origin}/r/${id}`;
-        const msg = `Hi ${customerName}, here is your receipt: ${url}`;
-        window.open(waLink(phone, msg), '_blank');
-      },
-    });
-  }
 
   if (status === 'PENDING') {
     actions.push({
@@ -108,6 +119,9 @@ export function PaymentRowActions({
           body: JSON.stringify({ status: 'PAID' }),
         });
         router.refresh();
+        // After flipping to PAID, open the receipt dialog so the owner can
+        // review and send the auto-generated receipt immediately.
+        setReceiptOpen(true);
       },
     });
   } else {
@@ -154,6 +168,16 @@ export function PaymentRowActions({
             Verify
           </button>
         )}
+        {/* The primary receipt action — always visible, always one tap. */}
+        <button
+          type="button"
+          onClick={() => setReceiptOpen(true)}
+          className="inline-flex items-center gap-1 rounded-md border border-border bg-white px-2 py-1 text-[10px] font-bold text-slate-700 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"
+          title="Generate & send receipt"
+        >
+          <Receipt size={11} />
+          Receipt
+        </button>
         <RowMenu actions={actions} />
       </div>
       <VerifyDialog
@@ -166,6 +190,19 @@ export function PaymentRowActions({
           customerName: customerName ?? '',
           phone: phone ?? undefined,
         }}
+      />
+      <ReceiptDialog
+        open={receiptOpen}
+        onClose={() => setReceiptOpen(false)}
+        payment={{
+          id,
+          amount,
+          status,
+          createdAt,
+          customerName: customerName ?? 'Customer',
+          phone: phone ?? null,
+        }}
+        businessName={businessName}
       />
     </>
   );

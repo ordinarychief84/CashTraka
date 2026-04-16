@@ -5,6 +5,7 @@ import { upsertCustomer, recomputeCustomerTotals } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { generateRefCode } from '@/lib/ref-code';
 import { paymentRepo } from '@/lib/repositories/payment.repository';
+import { receiptService } from './receipt.service';
 
 /** Generate a reference code that doesn't collide with an existing one. */
 async function uniqueRefCode(): Promise<string> {
@@ -38,9 +39,9 @@ export const paymentService = {
    * Create a payment. Upserts the customer, optionally decrements product stock
    * if line items reference catalog products, and returns the new payment id.
    *
-   * Auto-receipt generation is triggered from the verify flow, not here —
-   * a PAID payment is not considered "verified" until a bank alert is
-   * matched, which is a separate step. See receipt.service.ts.
+   * If the payment is created as PAID, a receipt is auto-generated so the
+   * owner can share it immediately. Verification (bank-alert matching) is
+   * separate — it also generates a receipt if one doesn't yet exist.
    */
   create: async (userId: string, input: unknown) => {
     const parsed = paymentSchema.parse(input);
@@ -91,6 +92,21 @@ export const paymentService = {
     });
 
     await recomputeCustomerTotals(customer.id);
-    return { id: payment.id, referenceCode };
+
+    // Auto-generate a receipt for PAID payments. Fire and forget — never let
+    // receipt gen (which touches Cloudinary) block payment creation.
+    let receiptId: string | null = null;
+    let receiptNumber: string | null = null;
+    if (payment.status === 'PAID') {
+      try {
+        const receipt = await receiptService.ensureForPayment(userId, payment.id);
+        receiptId = receipt.id;
+        receiptNumber = receipt.receiptNumber;
+      } catch {
+        // Swallow — the owner can always click "Generate receipt" from the list.
+      }
+    }
+
+    return { id: payment.id, referenceCode, receiptId, receiptNumber };
   },
 };

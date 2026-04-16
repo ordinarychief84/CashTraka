@@ -104,7 +104,12 @@ export function PaymentForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
       onSuccess?.();
-      router.push(redirectTo);
+      // If the save produced a PAID payment the API also auto-generated a
+      // receipt. Hint the destination page to open the receipt dialog right
+      // away so the owner can send it without an extra click.
+      const paymentId = editing ? initial!.id : data?.data?.id || data?.id;
+      const opened = paymentId && payload.status === 'PAID' ? `?openReceipt=${paymentId}` : '';
+      router.push(redirectTo + opened);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');

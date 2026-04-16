@@ -22,6 +22,9 @@ type SP = {
   status?: 'PAID' | 'PENDING' | 'ALL';
   range?: string;
   verification?: VerificationFilter;
+  /** Set by PaymentForm after saving a PAID payment — triggers the receipt
+   *  dialog to auto-open for that row. */
+  openReceipt?: string;
 };
 
 function parseVerification(v: string | undefined): VerificationFilter {
@@ -62,7 +65,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType}>
+    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title="Payments"
         subtitle="Cash and transfers you've received or are expecting."
@@ -170,6 +173,9 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
                 referenceCode={p.referenceCode}
                 customerName={p.customerNameSnapshot}
                 phone={p.phoneSnapshot}
+                createdAt={p.createdAt.toISOString()}
+                businessName={user.businessName ?? 'Business'}
+                autoOpenReceipt={searchParams.openReceipt === p.id}
               />
             </li>
           ))}

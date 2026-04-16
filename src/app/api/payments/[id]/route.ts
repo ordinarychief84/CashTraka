@@ -5,6 +5,7 @@ import { getCurrentUser, requireUser } from '@/lib/auth';
 import { recomputeCustomerTotals, upsertCustomer } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { paymentService } from '@/lib/services/payment.service';
+import { receiptService } from '@/lib/services/receipt.service';
 import { handled, ok } from '@/lib/api-response';
 
 const patchSchema = z.object({
@@ -75,7 +76,23 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     await recomputeCustomerTotals(prevCustomerId);
   }
 
-  return NextResponse.json({ ok: true });
+  // If the status just flipped PENDING → PAID, auto-generate a receipt so the
+  // owner never has to chase one manually. The service is idempotent — if a
+  // receipt already exists for this payment, it's a no-op.
+  let receiptId: string | null = null;
+  let receiptNumber: string | null = null;
+  if (status === 'PAID' && payment.status !== 'PAID') {
+    try {
+      const receipt = await receiptService.ensureForPayment(user.id, payment.id);
+      receiptId = receipt.id;
+      receiptNumber = receipt.receiptNumber;
+    } catch {
+      // Never block the status flip on receipt-gen errors (e.g. PDF storage
+      // misconfig). The owner can retry from the row action.
+    }
+  }
+
+  return NextResponse.json({ ok: true, receiptId, receiptNumber });
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {

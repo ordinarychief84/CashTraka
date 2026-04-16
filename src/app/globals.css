@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+html,
+body {
+  background: #F7F9F8;
+  color: #1A1A1A;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Form controls: big, tappable defaults */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+input,
+textarea,
+select {
+  min-height: 48px;
+}
+
+/* Tabular numerals for money/quantities */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Infinite horizontal marquee used by <Marquee />. Duration is overridden inline. */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 40s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee { animation: none; }
+}
+
+/* Utility helpers */
+.container-app {
+  @apply mx-auto w-full max-w-screen-md px-4;
+}
+
+.card {
+  @apply bg-white rounded-xl border border-border shadow-xs;
+}
+
+.input {
+  @apply w-full rounded-lg border border-border bg-white px-3 py-3 text-base outline-none
+    focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-slate-400;
+}
+
+.label {
+  @apply block text-sm font-medium text-slate-700 mb-1.5;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-semibold
+    text-sm transition active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  min-height: 48px;
+}
+
+.btn-primary {
+  @apply btn bg-brand-500 text-white hover:bg-brand-600;
+}
+
+.btn-secondary {
+  @apply btn bg-white text-brand-600 border border-brand-500 hover:bg-brand-50;
+}
+
+.btn-ghost {
+  @apply btn bg-transparent text-slate-700 hover:bg-slate-100;
+}
+
+.btn-danger {
+  @apply btn bg-owed-500 text-white hover:bg-owed-600;
+}
+
+.btn-wa {
+  @apply btn bg-[#25D366] text-white hover:bg-[#1fbd5b];
+}
+
+.badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+}
+
+.badge-paid {
+  @apply badge bg-success-50 text-success-700;
+}
+
+.badge-pending {
+  @apply badge bg-slate-100 text-slate-600;
+}
+
+.badge-open {
+  @apply badge bg-owed-50 text-owed-700;
+}
+
+/* ── Print styles (receipts + invoices) ── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; }
+  .ring-1, .ring-border, .shadow-sm, .shadow-xs, .shadow-md, .shadow-lg {
+    box-shadow: none !important;
+  }
+  .rounded-2xl { border-radius: 0 !important; }
+  @page { margin: 16mm; }
+}

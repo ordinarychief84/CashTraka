@@ -1,0 +1,561 @@
+// CashTraka — WhatsApp Sales & Cash Tracker + Property Manager
+// Prisma schema. Provider is sqlite for easy local dev; swap to postgresql for prod.
+// To deploy against Postgres:
+//   1) Change `provider = "sqlite"` to `provider = "postgresql"` below.
+//   2) Set DATABASE_URL to your Postgres connection string (see .env.postgres.example).
+//   3) Run `npx prisma migrate deploy` (or `prisma migrate dev --name whatever` in dev).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- USER ----------
+
+model User {
+  id                   String    @id @default(cuid())
+  name                 String
+  email                String    @unique
+  passwordHash         String
+  businessName         String?
+  whatsappNumber       String?
+  shopSlug             String?   @unique
+  receiptFooter        String?
+  /// "seller" (default) or "property_manager"
+  businessType         String    @default("seller")
+  /// "free" | "business" | "business_plus" | "landlord" | "estate_manager"
+  plan                 String    @default("free")
+  /// "USER" (default) or "ADMIN". Admins access /admin.
+  role                 String    @default("USER")
+  /// Suspended users cannot log in.
+  isSuspended          Boolean   @default(false)
+  /// Timestamp of last successful login (for audit + analytics).
+  lastLoginAt          DateTime?
+
+  bankName             String?
+  bankAccountNumber    String?
+  bankAccountName      String?
+
+  /// Address line shown on invoices.
+  businessAddress      String?
+  /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
+  logoUrl              String?
+
+  onboardingCompleted  Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  customers            Customer[]
+  payments             Payment[]
+  debts                Debt[]
+  products             Product[]
+  expenses             Expense[]
+  templates            MessageTemplate[]
+  fraudReports         FraudReport[]
+  invoices             Invoice[]
+  reminderSchedules    ReminderSchedule[]
+  properties           Property[]
+  tenants              Tenant[]
+  rentPayments         RentPayment[]
+  staffMembers         StaffMember[]
+  clockEntries         ClockEntry[]
+  tasks                Task[]
+  checklists           Checklist[]
+  checklistRuns        ChecklistRun[]
+  receipts             Receipt[]
+  adminNotesAuthored   AdminNote[]       @relation("AdminNoteAuthor")
+  adminNotesReceived   AdminNote[]       @relation("AdminNoteTarget")
+
+  @@index([role])
+  @@index([businessType])
+  @@index([isSuspended])
+  @@index([lastLoginAt])
+}
+
+// ---------- CORE: customers, payments, debts ----------
+
+model Customer {
+  id               String    @id @default(cuid())
+  userId           String
+  name             String
+  phone            String
+  totalPaid        Int       @default(0)
+  totalOwed        Int       @default(0)
+  transactionCount Int       @default(0)
+  lastActivityAt   DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments         Payment[]
+  debts            Debt[]
+  invoices         Invoice[]
+
+  @@unique([userId, phone])
+  @@index([userId])
+  @@index([phone])
+}
+
+model Payment {
+  id                   String    @id @default(cuid())
+  userId               String
+  customerId           String
+  customerNameSnapshot String
+  phoneSnapshot        String
+  amount               Int
+  status               String    @default("PAID")
+  createdAt            DateTime  @default(now())
+
+  referenceCode        String?   @unique
+  verified             Boolean   @default(false)
+  verifiedAt           DateTime?
+  verificationMethod   String?
+  bankAlertText        String?
+  bankAlertSenderName  String?
+  bankAlertBank        String?
+  claimedAt            DateTime?
+
+  /// If this payment was created from an invoice, link back.
+  invoiceId            String?
+
+  /// Whether a receipt was auto-sent after verification.
+  receiptSentAt        DateTime?
+
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items                PaymentItem[]
+  invoice              Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([userId, verified])
+}
+
+model PaymentItem {
+  id          String   @id @default(cuid())
+  paymentId   String
+  productId   String?
+  description String
+  unitPrice   Int
+  quantity    Int      @default(1)
+
+  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+}
+
+model Debt {
+  id                   String    @id @default(cuid())
+  userId               String
+  customerId           String
+  customerNameSnapshot String
+  phoneSnapshot        String
+  amountOwed           Int
+  amountPaid           Int       @default(0)
+  dueDate              DateTime?
+  status               String    @default("OPEN")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer             Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  reminderSchedules    ReminderSchedule[]
+
+  @@index([userId, status])
+}
+
+// ---------- PRODUCTS ----------
+
+model Product {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  price       Int
+  cost        Int?
+  stock       Int       @default(0)
+  trackStock  Boolean   @default(true)
+  lowStockAt  Int       @default(3)
+  note        String?
+  archived    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       PaymentItem[]
+  invoiceItems InvoiceItem[]
+
+  @@index([userId, archived])
+}
+
+// ---------- EXPENSES ----------
+
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int
+  category    String
+  note        String?
+  incurredOn  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, incurredOn])
+}
+
+// ---------- MESSAGING ----------
+
+model MessageTemplate {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  body        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------- FRAUD ----------
+
+model FraudReport {
+  id         String   @id @default(cuid())
+  userId     String
+  phone      String
+  reason     String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, phone])
+  @@index([phone])
+}
+
+// ---------- INVOICES ----------
+
+/// A formal invoice the seller can generate and share before or after payment.
+/// Public at /invoice/[invoiceNumber].
+model Invoice {
+  id              String    @id @default(cuid())
+  userId          String
+  customerId      String?
+  /// Human-readable number like "INV-00042".
+  invoiceNumber   String    @unique
+  customerName    String
+  customerPhone   String
+  customerEmail   String?
+  /// "DRAFT" | "SENT" | "PAID" | "CANCELLED"
+  status          String    @default("DRAFT")
+  subtotal        Int       @default(0)
+  tax             Int       @default(0)
+  total           Int       @default(0)
+  note            String?
+  dueDate         DateTime?
+  issuedAt        DateTime  @default(now())
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items           InvoiceItem[]
+  payments        Payment[]
+
+  @@index([userId, status])
+}
+
+model InvoiceItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  productId   String?
+  description String
+  unitPrice   Int
+  quantity    Int      @default(1)
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([invoiceId])
+}
+
+// ---------- REMINDERS ----------
+
+/// A scheduled reminder linked to a Debt. The system surfaces which reminders are
+/// "due today" so the seller can one-tap send them all in WhatsApp.
+model ReminderSchedule {
+  id          String    @id @default(cuid())
+  userId      String
+  debtId      String
+  /// "daily" | "every_3_days" | "weekly" | "custom"
+  frequency   String    @default("weekly")
+  /// Custom: number of days between reminders. Used when frequency=custom.
+  intervalDays Int      @default(7)
+  nextDueAt   DateTime
+  lastSentAt  DateTime?
+  enabled     Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debt        Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
+
+  @@index([userId, nextDueAt])
+}
+
+// ---------- PROPERTY MANAGEMENT ----------
+
+/// A property (building / compound) owned or managed by the user.
+model Property {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  address       String?
+  unitCount     Int       @default(0)
+  note          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenants       Tenant[]
+
+  @@index([userId])
+}
+
+/// A tenant occupying a unit in a Property.
+model Tenant {
+  id            String    @id @default(cuid())
+  userId        String
+  propertyId    String
+  name          String
+  phone         String
+  unitLabel     String?
+  /// Monthly rent in Naira.
+  rentAmount    Int
+  /// Day of month rent is due (1-28).
+  rentDueDay    Int       @default(1)
+  /// "monthly" | "quarterly" | "yearly"
+  rentFrequency String    @default("monthly")
+  leaseStart    DateTime?
+  leaseEnd      DateTime?
+  /// "active" | "moved_out" | "evicted"
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  rentPayments  RentPayment[]
+
+  @@index([userId, status])
+}
+
+/// Tracks each rent payment (or partial) for a tenant in a given period.
+model RentPayment {
+  id           String    @id @default(cuid())
+  userId       String
+  tenantId     String
+  amount       Int
+  /// The calendar month this covers, e.g. "2026-04".
+  period       String
+  /// "PAID" | "PARTIAL" | "PENDING" | "OVERDUE"
+  status       String    @default("PENDING")
+  verified     Boolean   @default(false)
+  paidAt       DateTime?
+  note         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, period])
+  @@index([userId, period])
+}
+
+// ---------- TEAM & TIME CLOCK ----------
+
+/// A staff member / helper who works for the seller.
+model StaffMember {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  phone       String?
+  pin         String?
+  role        String?
+  hourlyRate  Int?
+  dailyRate   Int?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clockEntries ClockEntry[]
+  tasks        Task[]
+
+  @@index([userId, status])
+}
+
+/// A clock-in / clock-out record for a staff member.
+model ClockEntry {
+  id          String    @id @default(cuid())
+  userId      String
+  staffId     String
+  clockIn     DateTime  @default(now())
+  clockOut    DateTime?
+  hoursWorked Float?
+  note        String?
+  createdAt   DateTime  @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staff       StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([userId, staffId])
+}
+
+// ---------- TASK MANAGEMENT ----------
+
+/// A task assigned to self or a staff member.
+model Task {
+  id           String    @id @default(cuid())
+  userId       String
+  title        String
+  description  String?
+  assignedToId String?
+  customerId   String?
+  priority     String    @default("normal")
+  status       String    @default("todo")
+  dueDate      DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo   StaffMember? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+}
+
+// ---------- CHECKLISTS ----------
+
+/// A reusable checklist template (e.g. "Daily Opening", "Delivery Prep").
+model Checklist {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  category    String    @default("custom")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       ChecklistItem[]
+  runs        ChecklistRun[]
+
+  @@index([userId])
+}
+
+/// A single item in a Checklist template.
+model ChecklistItem {
+  id          String    @id @default(cuid())
+  checklistId String
+  label       String
+  sortOrder   Int       @default(0)
+
+  checklist   Checklist        @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  results     ChecklistResult[]
+
+  @@index([checklistId])
+}
+
+/// A single execution of a Checklist (e.g. "Monday morning opening").
+model ChecklistRun {
+  id          String    @id @default(cuid())
+  userId      String
+  checklistId String
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  completedBy String?
+  createdAt   DateTime  @default(now())
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklist   Checklist         @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  results     ChecklistResult[]
+
+  @@index([userId, checklistId])
+}
+
+/// The result of a single item within a ChecklistRun.
+model ChecklistResult {
+  id        String    @id @default(cuid())
+  runId     String
+  itemId    String
+  checked   Boolean   @default(false)
+  note      String?
+  checkedAt DateTime?
+
+  run       ChecklistRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  item      ChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
+
+// ---------- RECEIPTS ----------
+
+/// A persisted receipt record. Created automatically when a payment is marked
+/// PAID (and optionally when a debt is cleared). Stores the generated PDF URL
+/// (on Cloudinary) and tracks email delivery status.
+model Receipt {
+  id             String    @id @default(cuid())
+  userId         String
+  customerId     String?
+  paymentId      String?   @unique
+  debtId         String?   @unique
+  /// Human-readable number like "CT-00001", unique globally.
+  receiptNumber  String    @unique
+  /// Hosted PDF URL (Cloudinary). Optional — may be null if storage failed;
+  /// the PDF can always be re-rendered on demand from the source records.
+  pdfUrl         String?
+  /// "GENERATED" | "EMAILED" | "FAILED"
+  status         String    @default("GENERATED")
+  emailedTo      String?
+  emailedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+// ---------- ADMIN ----------
+
+/// A free-form note written by an admin about a user (for audit trail).
+model AdminNote {
+  id            String   @id @default(cuid())
+  adminUserId   String
+  targetUserId  String
+  note          String
+  createdAt     DateTime @default(now())
+
+  author        User     @relation("AdminNoteAuthor", fields: [adminUserId],  references: [id], onDelete: Cascade)
+  target        User     @relation("AdminNoteTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([targetUserId, createdAt])
+}
+
+/// A key-value store for system-level configuration (feature flags, banners, etc.).
+/// Value is JSON-stringified so it can hold any shape.
+model SystemSetting {
+  id         String   @id @default(cuid())
+  key        String   @unique
+  value      String
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+}

@@ -1,0 +1,21 @@
+node_modules
+.next
+.env
+.env.local
+*.log
+.DS_Store
+
+# Prisma local SQLite DB — contains seeded password hashes; never commit.
+prisma/dev.db
+prisma/*.db-journal
+prisma/migrations/dev.db*
+
+# Build cache
+.next/cache
+
+# Editor
+.vscode
+.idea
+
+# OS
+Thumbs.db

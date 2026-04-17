@@ -19,7 +19,7 @@ import { Section } from '@/components/marketing/Section';
 import { PricingCards } from '@/components/marketing/PricingCards';
 import { FAQ } from '@/components/marketing/FAQ';
 import { HeroMockup } from '@/components/marketing/HeroMockup';
-import { HeroICP } from '@/components/marketing/HeroICP';
+import { HeroSolutions } from '@/components/marketing/HeroSolutions';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Stagger } from '@/components/marketing/Stagger';
 import { AnimatedStat } from '@/components/marketing/AnimatedStat';
@@ -35,7 +35,7 @@ export default function LandingPage() {
       <ScrollProgress />
       <Navbar />
       <main>
-        <HeroICP />
+        <HeroSolutions />
         <AudienceMarquee />
         <SocialProof />
         <Problem />
@@ -43,7 +43,6 @@ export default function LandingPage() {
         <DeepDives />
         <HowItWorks />
         <ValueSection />
-        <PropertyManagerSpotlight />
         <Objections />
         <Pricing />
         <FAQSection />
@@ -121,7 +120,7 @@ function AudienceMarquee() {
       <div className="container-app mb-4">
         <Reveal from="zoom" distance={10}>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Built for real sellers
+            Built for real businesses & landlords
           </p>
         </Reveal>
       </div>
@@ -257,8 +256,8 @@ function Problem() {
     <Section
       id="problem"
       eyebrow="The problem"
-      title="If you sell on WhatsApp, you are already losing money"
-      subtitle="Customers say they have paid but you are not sure. Some people owe you and you forget to follow up. Old customers disappear because you never check in. Important chats get buried and lost."
+      title="If you run a business on WhatsApp alone, you're already losing money"
+      subtitle="Customers or tenants say they have paid but you are not sure. People owe you and you forget to follow up. Regulars drift away because you never check in. Important chats get buried and lost."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (

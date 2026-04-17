@@ -96,7 +96,7 @@ export function FAQ() {
             )}
           >
             <Store size={13} />
-            For sellers
+            Small Business
           </button>
           <button
             type="button"
@@ -107,7 +107,7 @@ export function FAQ() {
             )}
           >
             <Home size={13} />
-            For property managers
+            Landlords
           </button>
         </div>
       </div>

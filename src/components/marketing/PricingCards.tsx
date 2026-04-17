@@ -201,7 +201,7 @@ export function PricingCards() {
             )}
           >
             <Store size={15} />
-            For sellers
+            Small Business
           </button>
           <button
             type="button"
@@ -214,7 +214,7 @@ export function PricingCards() {
             )}
           >
             <Home size={15} />
-            For property managers
+            Landlords
           </button>
         </div>
       </div>

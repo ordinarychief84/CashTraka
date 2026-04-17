@@ -62,7 +62,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
       {mode === 'signup' && (
         <>
           <div>
-            <label className="label">What kind of business do you run?</label>
+            <label className="label">Choose your solution</label>
+            <p className="mb-2 text-xs text-slate-500">
+              Pick the product that matches what you do. You can change it later.
+            </p>
             <div className="grid grid-cols-1 gap-2">
               {BUSINESS_TYPES.map((bt) => (
                 <button
@@ -78,7 +81,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 >
                   <span className="text-2xl leading-none">{bt.emoji}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-ink">{bt.label}</span>
+                    <span className="block text-sm font-semibold text-ink">{bt.productName}</span>
                     <span className="block text-xs text-slate-500">{bt.description}</span>
                   </span>
                   <span
@@ -93,9 +96,6 @@ export function AuthForm({ mode }: { mode: Mode }) {
                 </button>
               ))}
             </div>
-            <p className="mt-1 text-xs text-slate-500">
-              We'll tailor your experience. You can change this anytime in settings.
-            </p>
           </div>
           <div>
             <label htmlFor="name" className="label">Full name</label>

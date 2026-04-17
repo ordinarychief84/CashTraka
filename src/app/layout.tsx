@@ -5,7 +5,7 @@ import { RegisterSW } from '@/components/RegisterSW';
 export const metadata: Metadata = {
   title: 'CashTraka — Know who paid, know who owes',
   description:
-    'CashTraka helps small WhatsApp sellers track payments, see who owes them, and follow up in seconds.',
+    'CashTraka helps small businesses and landlords track payments, see who owes them, and follow up in seconds.',
   // PWA metadata
   applicationName: 'CashTraka',
   manifest: '/manifest.webmanifest',

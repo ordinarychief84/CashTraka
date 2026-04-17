@@ -74,7 +74,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-xs text-slate-500 md:flex-row md:items-center">
           <div>© {year} CashTraka. All rights reserved.</div>
-          <div>Built for WhatsApp sellers in Nigeria.</div>
+          <div>Built for small businesses and landlords in Nigeria.</div>
         </div>
       </div>
     </footer>

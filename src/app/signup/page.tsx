@@ -23,11 +23,15 @@ export default function SignupPage({
   const isPm = hinted === 'property_manager';
 
   const headline = isPm
-    ? 'Create your property-manager account'
-    : 'Create your seller account';
+    ? 'Start with CashTraka for Landlords'
+    : hinted === 'seller'
+      ? 'Start with CashTraka for Business'
+      : 'Create your CashTraka account';
   const sub = isPm
-    ? 'Track rent, tenants, and overdue payments in minutes.'
-    : 'Track payments, debts and customers in minutes.';
+    ? 'Track rent across every property and tenant in minutes.'
+    : hinted === 'seller'
+      ? 'Track sales, debts, invoices and customers in minutes.'
+      : 'Pick the solution that matches what you do — we\'ll tailor the rest.';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">

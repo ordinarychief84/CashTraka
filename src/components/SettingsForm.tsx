@@ -87,11 +87,11 @@ export function SettingsForm({ initial }: Props) {
             className="input"
             defaultValue={initial.businessType}
           >
-            <option value="seller">WhatsApp Seller</option>
-            <option value="property_manager">Property Manager</option>
+            <option value="seller">Small Business</option>
+            <option value="property_manager">Landlord</option>
           </select>
           <p className="mt-1 text-xs text-slate-500">
-            Property managers get rent tracking, tenant management and property dashboards.
+            Landlords get rent tracking, tenant management, and per-property dashboards.
           </p>
         </div>
         <div>

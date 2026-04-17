@@ -1,32 +1,45 @@
 /**
  * Centralized ICP (Ideal Customer Profile) logic for CashTraka.
  *
- * Supports two business types today:
- *   - `seller` — WhatsApp-based small business selling products/services
- *   - `property_manager` — landlord / rental manager tracking tenants and rent
+ * Two solution lines sit on top of the same core backend:
  *
- * All role-specific language, feature visibility, and dashboard copy flows
- * through this file so adding a new ICP (e.g. `service_provider`) is one place.
+ *   1. CashTraka for Business   (businessType = 'seller')
+ *      For shops, services, food vendors, tailors, delivery — anyone selling
+ *      goods or services to customers. WhatsApp is a channel, not the
+ *      identity, so we avoid "WhatsApp seller" in user-facing copy.
+ *
+ *   2. CashTraka for Landlords  (businessType = 'property_manager')
+ *      For landlords, property managers, estate agents tracking rent.
+ *
+ * The `value` strings stay `'seller'` + `'property_manager'` for back-compat
+ * with the DB and existing queries. Only the labels shown to users change.
  */
 
 export type BusinessType = 'seller' | 'property_manager';
 
 export const BUSINESS_TYPES: {
   value: BusinessType;
+  /** The solution name as shown in pickers ("Small Business", "Landlord"). */
   label: string;
+  /** Longer product name ("CashTraka for Business"). */
+  productName: string;
   description: string;
   emoji: string;
 }[] = [
   {
     value: 'seller',
-    label: 'Small business / WhatsApp seller',
-    description: 'You sell products or services and get paid by customers.',
+    label: 'Small Business',
+    productName: 'CashTraka for Business',
+    description:
+      'Shops, services, food vendors, delivery, tailors — anyone selling and getting paid.',
     emoji: '🛍️',
   },
   {
     value: 'property_manager',
-    label: 'Property manager / landlord',
-    description: 'You collect rent from tenants across one or more properties.',
+    label: 'Landlord',
+    productName: 'CashTraka for Landlords',
+    description:
+      'Landlords, property managers, and estate agents collecting rent across one or many properties.',
     emoji: '🏠',
   },
 ];

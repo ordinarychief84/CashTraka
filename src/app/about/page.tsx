@@ -8,7 +8,7 @@ export default function AboutPage() {
   return (
     <LegalLayout title="About CashTraka">
       <p className="text-lg">
-        CashTraka is a simple tool that helps small WhatsApp sellers in Nigeria
+        CashTraka is a simple tool that helps small businesses and landlords in Nigeria
         know who paid, know who owes, and follow up quickly.
       </p>
 

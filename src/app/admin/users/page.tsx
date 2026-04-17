@@ -54,7 +54,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
         >
           <option value="">All types</option>
           <option value="seller">Seller</option>
-          <option value="property_manager">Property manager</option>
+          <option value="property_manager">Landlord</option>
         </select>
         <select
           name="isSuspended"

@@ -7,53 +7,58 @@ import {
   X,
   Wallet,
   Clock3,
-  Users,
   MessageCircle,
   ChevronDown,
   Shield,
   FileText,
   Home,
+  Store,
+  ArrowRight,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
-const SOLUTIONS = [
+/**
+ * Solutions-first navigation (Connecteam-style).
+ *
+ * The dropdown leads with our two ICP product pages — "For Small Business" and
+ * "For Landlords" — presented as big primary cards. A secondary grid of
+ * feature links sits underneath for visitors browsing by capability.
+ */
+
+type Solution = {
+  icon: typeof Store;
+  title: string;
+  tagline: string;
+  href: string;
+  accent: 'brand' | 'success';
+};
+
+const ICP_SOLUTIONS: Solution[] = [
   {
-    icon: Shield,
-    title: 'Bank-alert verification',
-    body: 'Kill fake screenshots forever.',
-    href: '/#solutions',
-  },
-  {
-    icon: Wallet,
-    title: 'Payments & receipts',
-    body: 'Track, verify, receipt — one flow.',
-    href: '/#solutions',
-  },
-  {
-    icon: FileText,
-    title: 'Invoices',
-    body: 'Professional, shareable, paid faster.',
-    href: '/#solutions',
-  },
-  {
-    icon: Clock3,
-    title: 'Debts & reminders',
-    body: 'Chase unpaid money automatically.',
-    href: '/#solutions',
-  },
-  {
-    icon: MessageCircle,
-    title: 'WhatsApp follow-ups',
-    body: 'Reminders and templates in one tap.',
-    href: '/#solutions',
+    icon: Store,
+    title: 'For Small Business',
+    tagline:
+      'Shops, food, services, tailors — track payments, debts, invoices and receipts in one place.',
+    href: '/for-business',
+    accent: 'brand',
   },
   {
     icon: Home,
-    title: 'Property management',
-    body: 'Rent tracker for landlords.',
-    href: '/#property-manager',
+    title: 'For Landlords',
+    tagline:
+      'Track rent across every property and tenant, verify bank payments, auto-issue receipts.',
+    href: '/for-landlords',
+    accent: 'success',
   },
+];
+
+const FEATURES = [
+  { icon: Shield, title: 'Bank-alert verification', href: '/#solutions' },
+  { icon: Wallet, title: 'Payments & receipts', href: '/#solutions' },
+  { icon: FileText, title: 'Invoices', href: '/#solutions' },
+  { icon: Clock3, title: 'Debts & reminders', href: '/#solutions' },
+  { icon: MessageCircle, title: 'WhatsApp follow-ups', href: '/#solutions' },
 ];
 
 export function Navbar() {
@@ -69,7 +74,6 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close the solutions dropdown on outside click / Escape
   useEffect(() => {
     if (!solutionsOpen) return;
     const onClick = (e: MouseEvent) => {
@@ -128,35 +132,76 @@ export function Navbar() {
               />
             </button>
 
-            {/* Dropdown */}
+            {/* Mega dropdown */}
             <div
               role="menu"
               className={cn(
-                'absolute left-1/2 top-full z-50 mt-2 w-[22rem] -translate-x-1/2 origin-top rounded-2xl border border-border bg-white p-3 shadow-lg transition-all duration-200',
+                'absolute left-1/2 top-full z-50 mt-2 w-[34rem] -translate-x-1/2 origin-top rounded-2xl border border-border bg-white p-4 shadow-xl transition-all duration-200',
                 solutionsOpen
                   ? 'visible opacity-100 translate-y-0'
                   : 'invisible opacity-0 -translate-y-2',
               )}
             >
-              <div className="grid grid-cols-1 gap-1">
-                {SOLUTIONS.map((s) => (
+              {/* ICP solution cards */}
+              <div className="grid grid-cols-2 gap-3">
+                {ICP_SOLUTIONS.map((s) => (
                   <Link
                     key={s.title}
                     href={s.href}
                     onClick={close}
-                    className="flex items-start gap-3 rounded-xl px-3 py-2.5 hover:bg-brand-50"
+                    className={cn(
+                      'group/card relative flex h-full flex-col gap-2 rounded-xl border p-4 transition',
+                      s.accent === 'brand'
+                        ? 'border-brand-100 bg-brand-50/50 hover:border-brand-300 hover:bg-brand-50'
+                        : 'border-success-100 bg-success-50/40 hover:border-success-300 hover:bg-success-50',
+                    )}
                   >
-                    <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                    <span
+                      className={cn(
+                        'flex h-9 w-9 items-center justify-center rounded-lg text-white',
+                        s.accent === 'brand' ? 'bg-brand-500' : 'bg-success-600',
+                      )}
+                    >
                       <s.icon size={18} />
                     </span>
-                    <span>
-                      <span className="block text-sm font-semibold text-ink">
-                        {s.title}
-                      </span>
-                      <span className="block text-xs text-slate-500">{s.body}</span>
+                    <span className="block text-sm font-bold text-ink">{s.title}</span>
+                    <span className="block text-xs leading-relaxed text-slate-600">
+                      {s.tagline}
+                    </span>
+                    <span
+                      className={cn(
+                        'mt-auto inline-flex items-center gap-1 text-[11px] font-semibold',
+                        s.accent === 'brand' ? 'text-brand-700' : 'text-success-700',
+                      )}
+                    >
+                      Explore
+                      <ArrowRight
+                        size={12}
+                        className="transition group-hover/card:translate-x-0.5"
+                      />
                     </span>
                   </Link>
                 ))}
+              </div>
+
+              {/* Secondary: feature links */}
+              <div className="mt-4 border-t border-border pt-3">
+                <p className="px-1 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                  By feature
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-0.5">
+                  {FEATURES.map((f) => (
+                    <Link
+                      key={f.title}
+                      href={f.href}
+                      onClick={close}
+                      className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-ink"
+                    >
+                      <f.icon size={14} className="text-brand-600" />
+                      {f.title}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -206,32 +251,55 @@ export function Navbar() {
       <div
         className={cn(
           'overflow-hidden border-t border-border bg-white md:hidden transition-[max-height,opacity] duration-300 ease-out',
-          open ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0',
+          open ? 'max-h-[90vh] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0',
         )}
       >
         <nav className="container-app flex flex-col py-2">
-          <details className="group py-1">
+          <details className="group py-1" open>
             <summary className="flex cursor-pointer items-center justify-between rounded-md px-3 py-3 text-base font-medium text-slate-800 hover:bg-slate-100">
               Solutions
               <ChevronDown size={18} className="text-slate-500 transition group-open:rotate-180" />
             </summary>
-            <div className="mt-1 space-y-1 px-1 pb-2">
-              {SOLUTIONS.map((s) => (
+            <div className="mt-1 space-y-2 px-1 pb-2">
+              {ICP_SOLUTIONS.map((s) => (
                 <Link
                   key={s.title}
                   href={s.href}
                   onClick={close}
-                  className="flex items-start gap-3 rounded-lg px-3 py-2 hover:bg-brand-50"
+                  className={cn(
+                    'flex items-start gap-3 rounded-lg border p-3',
+                    s.accent === 'brand'
+                      ? 'border-brand-100 bg-brand-50/50'
+                      : 'border-success-100 bg-success-50/40',
+                  )}
                 >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                  <span
+                    className={cn(
+                      'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white',
+                      s.accent === 'brand' ? 'bg-brand-500' : 'bg-success-600',
+                    )}
+                  >
                     <s.icon size={16} />
                   </span>
                   <span>
-                    <span className="block text-sm font-semibold text-ink">{s.title}</span>
-                    <span className="block text-xs text-slate-500">{s.body}</span>
+                    <span className="block text-sm font-bold text-ink">{s.title}</span>
+                    <span className="block text-xs text-slate-600">{s.tagline}</span>
                   </span>
                 </Link>
               ))}
+              <div className="mt-2 border-t border-border pt-2">
+                {FEATURES.map((f) => (
+                  <Link
+                    key={f.title}
+                    href={f.href}
+                    onClick={close}
+                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  >
+                    <f.icon size={15} className="text-brand-600" />
+                    {f.title}
+                  </Link>
+                ))}
+              </div>
             </div>
           </details>
           <a

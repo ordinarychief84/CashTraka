@@ -1,5 +1,20 @@
 import type { Config } from 'tailwindcss';
 
+/**
+ * CashTraka brand tokens.
+ *
+ * NEW brand identity (built around the circular blue+green logo):
+ *
+ *   brand    — Cyan/sky BLUE. Primary UI chrome: navbar, links, focus rings,
+ *              hero gradients, key UI surfaces.
+ *   success  — Lime GREEN (logo bottom half). Action color: primary buttons,
+ *              CTAs, paid confirmations, positive deltas.
+ *   owed     — Amber. Open debts, warnings, "needs attention".
+ *
+ * The previous deep-green `brand` and separate `lime` palettes have been
+ * retired. Every `brand-*` class in the codebase automatically re-renders
+ * blue now; every `success-*` class now renders the logo's lime green.
+ */
 const config: Config = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,46 +24,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // CashTraka brand — Deep Green ramp centered on #0F6F4F
+        // ─── Primary UI: BLUE ramp around #00B8E8 ──────────────────────────
         brand: {
-          50:  '#E8F3EE',
-          100: '#C9E4D4',
-          200: '#93C9A9',
-          300: '#5DAE7E',
-          400: '#2F9160',
-          500: '#0F6F4F', // primary
-          600: '#0B5A41',
-          700: '#084632',
-          800: '#063424',
-          900: '#042316',
+          50:  '#E6F8FD',
+          100: '#C2EEFB',
+          200: '#84DCF7',
+          300: '#45CBF2',
+          400: '#1FC1EE',
+          500: '#00B8E8', // primary UI color
+          600: '#009BC6',
+          700: '#0076A0',
+          800: '#00577A',
+          900: '#003A52',
         },
-        // Secondary Success Green for "paid" confirmations — #2ECC71
+        // ─── Actions / paid confirmations: GREEN ramp around #8BD91E ──────
         success: {
-          50:  '#ECFCEF',
-          100: '#D3F5DD',
-          200: '#A9EBBC',
-          300: '#7EE19B',
-          400: '#54D77A',
-          500: '#2ECC71',
-          600: '#27AE60',
-          700: '#1E8A4D',
-          800: '#166A3A',
-          900: '#0E4B28',
+          50:  '#F2FBDC',
+          100: '#E4F6B2',
+          200: '#CFEF83',
+          300: '#B4E553',
+          400: '#9FDE32',
+          500: '#8BD91E', // primary action green (from logo)
+          600: '#72B515',
+          700: '#588A10',
+          800: '#3F610B',
+          900: '#2A4108',
         },
-        // Lime accent — used for CTAs and active-state highlights on the new
-        // dashboard. Pair with dark slate backgrounds for pop.
+        // Alias lime→success so any residual `lime-*` classes in markup still
+        // resolve to the new green palette until they're cleaned up.
         lime: {
-          50:  '#F7FBE7',
-          100: '#EEF6CC',
-          200: '#DEEF9B',
-          300: '#CEE868',
-          400: '#C0E24A',
-          500: '#AEDC2A',
-          600: '#8EB91F',
-          700: '#6D8E17',
+          50:  '#F2FBDC',
+          100: '#E4F6B2',
+          200: '#CFEF83',
+          300: '#B4E553',
+          400: '#9FDE32',
+          500: '#8BD91E',
+          600: '#72B515',
+          700: '#588A10',
         },
-        // Owed / alerts — amber #F59E0B (matches Tailwind's built-in amber-500,
-        // aliased here so intent is obvious at the call site).
+        // ─── Owed / alerts: amber (unchanged, spec-approved) ──────────────
         owed: {
           50:  '#FFFBEB',
           100: '#FEF3C7',
@@ -56,7 +70,7 @@ const config: Config = {
           600: '#D97706',
           700: '#B45309',
         },
-        // Neutrals
+        // ─── Neutrals (unchanged) ─────────────────────────────────────────
         ink: '#1A1A1A',
         canvas: '#F7F9F8',
         border: '#E5E7EB',

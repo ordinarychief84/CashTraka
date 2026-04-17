@@ -63,6 +63,7 @@ select {
 }
 
 .input {
+  /* Focus uses BLUE (brand) — matches the UI chrome. */
   @apply w-full rounded-lg border border-border bg-white px-3 py-3 text-base outline-none
     focus:border-brand-500 focus:ring-2 focus:ring-brand-100 placeholder:text-slate-400;
 }
@@ -77,12 +78,20 @@ select {
   min-height: 48px;
 }
 
+/*
+ * Primary action button = GREEN (from logo bottom half).
+ * ink text on green gives better contrast than white at our exact shade,
+ * matching the spec "text: dark or white (whichever has better contrast)".
+ */
 .btn-primary {
-  @apply btn bg-brand-500 text-white hover:bg-brand-600;
+  @apply btn bg-success-500 text-ink hover:bg-success-600 hover:text-white;
 }
 
+/*
+ * Secondary = outline style, BLUE border & text (the "UI chrome" color).
+ */
 .btn-secondary {
-  @apply btn bg-white text-brand-600 border border-brand-500 hover:bg-brand-50;
+  @apply btn bg-white text-brand-700 border border-brand-500 hover:bg-brand-50;
 }
 
 .btn-ghost {

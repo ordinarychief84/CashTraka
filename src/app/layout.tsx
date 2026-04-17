@@ -28,7 +28,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0F6F4F',
+  // Blue primary — matches `brand-500` in tailwind.config and the top half
+  // of the new logo. Surfaces in PWA theme colour + mobile browser chrome.
+  themeColor: '#00B8E8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

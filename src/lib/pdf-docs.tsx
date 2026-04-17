@@ -7,18 +7,21 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 
+// Keep PDF colours in sync with `tailwind.config.ts`. Receipts/invoices are
+// customer-facing, so we lean on the new brand palette (blue chrome, green
+// "paid" badge) for visual consistency with the app.
 const palette = {
   ink: '#1A1A1A',
-  brand: '#0F6F4F',
-  brandLight: '#E6F4EE',
+  brand: '#00B8E8',       // primary UI blue (headers, accent strokes)
+  brandLight: '#E6F8FD',  // soft blue tint (light backgrounds)
   slate600: '#475569',
   slate500: '#64748B',
   slate300: '#CBD5E1',
   slate100: '#F1F5F9',
-  success700: '#166534',
-  success50: '#F0FDF4',
+  success700: '#588A10',  // deep green — matches success-700
+  success50:  '#F2FBDC',  // pale green tint
   owed600: '#D97706',
-  owed50: '#FEF3C7',
+  owed50:  '#FEF3C7',
   border: '#E5E7EB',
 };
 

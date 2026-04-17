@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 200" fill="none" aria-label="CashTraka">
+  <!-- Top blue half (dome, right side dipping lower) -->
+  <path d="M 80,4 C 43.6,4 14,33.6 14,70 L 14,94 C 14,94 56,106 120,99 L 146,72 C 146,34.2 117.4,4 80,4 Z" fill="#00B8E8"/>
+  <!-- Bottom green half (reverse dome, left side lower) -->
+  <path d="M 80,196 C 116.4,196 146,166.4 146,130 L 146,106 C 146,106 104,94 40,101 L 14,128 C 14,165.8 42.6,196 80,196 Z" fill="#8BD91E"/>
+</svg>

@@ -18,8 +18,19 @@ import { clearSessionCookie } from '@/lib/auth';
  * the same way.
  */
 function buildLogoutResponse(req: Request) {
-  const origin = new URL(req.url).origin;
-  const res = NextResponse.redirect(`${origin}/login`, { status: 303 });
+  // Derive the origin from the REQUEST's Host header, not from req.url.
+  // When the dev server is bound to a non-loopback interface (e.g.
+  // `next dev -H 0.0.0.0` for LAN testing), req.url ends up as
+  // http://0.0.0.0:3001/... and the redirect becomes unreachable from
+  // the actual client. The Host header reflects the address the client
+  // used to reach us, which is always the right target.
+  const reqUrl = new URL(req.url);
+  const host = req.headers.get('host') || reqUrl.host;
+  const proto =
+    req.headers.get('x-forwarded-proto') ||
+    reqUrl.protocol.replace(':', '') ||
+    'http';
+  const res = NextResponse.redirect(`${proto}://${host}/login`, { status: 303 });
   // Clear the cookie on the outbound headers too (belt-and-braces with the
   // cookies() mutation above), so the cookie is gone BEFORE the browser
   // follows the redirect and lands on /login.

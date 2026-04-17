@@ -112,7 +112,20 @@ export async function verifySessionToken(token: string): Promise<string | null> 
 }
 
 export function clearSessionCookie() {
-  cookies().set(SESSION_COOKIE, '', { path: '/', maxAge: 0 });
+  // Match the attributes used when the cookie was set. Most browsers
+  // delete cookies by matching name + path + domain, but some (older
+  // Safari, some Android webviews) are stricter about sameSite/secure —
+  // mirroring the original attributes guarantees the Set-Cookie
+  // replacement actually unsets the session.
+  cookies().set({
+    name: SESSION_COOKIE,
+    value: '',
+    path: '/',
+    maxAge: 0,
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
 }
 
 export function readSessionTokenFromRequest(req: Request): string | null {

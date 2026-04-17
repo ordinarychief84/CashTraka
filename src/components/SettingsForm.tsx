@@ -55,12 +55,6 @@ export function SettingsForm({ initial }: Props) {
     }
   }
 
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
-    router.refresh();
-  }
-
   return (
     <div className="space-y-6">
       <form onSubmit={handleSave} className="card space-y-4 p-5">
@@ -231,10 +225,22 @@ export function SettingsForm({ initial }: Props) {
         </div>
       </div>
 
-      <button onClick={handleLogout} className="btn-secondary w-full text-red-600">
-        <LogOut size={16} />
-        Log out
-      </button>
+      {/*
+        Logout: native form POST so the browser handles the server's 303
+        redirect as a real navigation. This is the only reliable way to
+        land on /login with the session cookie cleared — a fetch()-based
+        logout drops cookies set on intermediate redirects in some
+        browsers and leaves stale client-router cache.
+      */}
+      <form action="/api/auth/logout" method="post">
+        <button
+          type="submit"
+          className="btn-secondary w-full text-red-600 hover:bg-red-50 hover:text-red-700"
+        >
+          <LogOut size={16} />
+          Log out
+        </button>
+      </form>
     </div>
   );
 }

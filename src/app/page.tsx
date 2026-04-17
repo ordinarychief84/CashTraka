@@ -133,8 +133,50 @@ function AudienceMarquee() {
 /* ---------------------- 2b. SOCIAL PROOF (trust stats) --------------------- */
 
 function SocialProof() {
+  /*
+   * Rebuilt layout. Previously each stat card was text-4xl on every
+   * viewport which made mobile feel bloated (the user screenshot showed
+   * the ₦ glyph nearly touching the card border). New shape:
+   *
+   *   mobile   : 3 cards stacked, tighter padding, text-3xl number
+   *   tablet   : 2 + 1 layout so the primary "₦150k+" card stays wide
+   *   desktop  : 3 equal columns with a subtle lift-on-hover
+   *
+   * Labels stay small, descriptions a single line, numbers scaled via
+   * a responsive clamp so they don't squash the card on narrow screens.
+   */
+  const cards = [
+    {
+      label: 'Average seller recovers',
+      number: (
+        <AnimatedStat
+          prefix="₦"
+          value={150_000}
+          suffix="+"
+          className="text-brand-600"
+        />
+      ),
+      body: 'in previously-forgotten debts, within the first 30 days.',
+      accent: 'brand',
+    },
+    {
+      label: 'Setup time',
+      number: (
+        <AnimatedStat value={5} suffix=" min" className="text-success-700" />
+      ),
+      body: 'from signup to recording your first payment. No tutorials.',
+      accent: 'success',
+    },
+    {
+      label: 'Collection rate',
+      number: <AnimatedStat value={82} suffix="%" className="text-brand-600" />,
+      body: 'average of what is owed comes in — vs 54% on spreadsheets.',
+      accent: 'brand',
+    },
+  ] as const;
+
   return (
-    <section className="py-14 md:py-16">
+    <section className="py-14 md:py-20">
       <div className="container-app">
         <Reveal from="up" blur>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-brand-600">
@@ -144,43 +186,43 @@ function SocialProof() {
             The tool Nigerian SMBs lean on to recover real money
           </h2>
         </Reveal>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          <Stagger step={120} from="up">
-            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Average seller recovers
-              </div>
-              <div className="mt-3 text-4xl font-black text-brand-700">
-                <AnimatedStat prefix="₦" value={150_000} suffix="+" />
-              </div>
-              <p className="mt-2 text-xs text-slate-600">
-                in previously-forgotten debts, within the first 30 days.
-              </p>
-            </div>
-            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Setup time
-              </div>
-              <div className="mt-3 text-4xl font-black text-success-700">
-                <AnimatedStat value={5} suffix=" min" />
-              </div>
-              <p className="mt-2 text-xs text-slate-600">
-                from signup to recording your first payment. No tutorials.
-              </p>
-            </div>
-            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                Collection rate
-              </div>
-              <div className="mt-3 text-4xl font-black text-brand-700">
-                <AnimatedStat value={82} suffix="%" />
-              </div>
-              <p className="mt-2 text-xs text-slate-600">
-                average of what&apos;s owed comes in — vs 54% on spreadsheets.
-              </p>
-            </div>
+        <ul className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          <Stagger step={110} from="up" className="contents">
+            {cards.map((c, i) => (
+              <li
+                key={c.label}
+                className={
+                  'group relative flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-white p-5 text-center shadow-xs transition hover:-translate-y-1 hover:shadow-md md:p-6' +
+                  // Make the middle (primary) card pop slightly on tablet+
+                  (i === 0 ? ' sm:col-span-2 lg:col-span-1' : '')
+                }
+              >
+                {/* Soft accent glow on hover */}
+                <span
+                  aria-hidden
+                  className={
+                    'pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition group-hover:opacity-100 ' +
+                    (c.accent === 'brand'
+                      ? 'bg-gradient-to-br from-brand-500/0 via-brand-500/5 to-brand-500/0'
+                      : 'bg-gradient-to-br from-success-500/0 via-success-500/10 to-success-500/0')
+                  }
+                />
+                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                  {c.label}
+                </span>
+                <span
+                  className="relative mt-3 block text-3xl font-black leading-none tracking-tight md:text-4xl"
+                  style={{ fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {c.number}
+                </span>
+                <p className="relative mt-3 max-w-[22ch] text-xs leading-relaxed text-slate-600">
+                  {c.body}
+                </p>
+              </li>
+            ))}
           </Stagger>
-        </div>
+        </ul>
       </div>
     </section>
   );

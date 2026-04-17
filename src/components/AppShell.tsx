@@ -30,6 +30,9 @@ type Props = {
   accessRole?: AccessRole;
   /** Name of the actual principal — might be the staff's name, not the owner's. */
   principalName?: string;
+  /** When set, renders a number badge next to the "Tasks" nav link. Used on
+   *  staff-principal dashboards so they always see pending work at a glance. */
+  pendingTaskCount?: number;
 };
 
 export function AppShell({
@@ -39,6 +42,7 @@ export function AppShell({
   businessType,
   accessRole = 'OWNER',
   principalName,
+  pendingTaskCount,
 }: Props) {
   const isPropManager = businessType === 'property_manager';
 
@@ -112,7 +116,14 @@ export function AppShell({
 
           {/* Operations */}
           {(show.tasks || show.checklists) && <GroupLabel>Operations</GroupLabel>}
-          {show.tasks && <SideLink href="/tasks" icon={ListTodo} label="Tasks" />}
+          {show.tasks && (
+            <SideLink
+              href="/tasks"
+              icon={ListTodo}
+              label="Tasks"
+              badge={pendingTaskCount}
+            />
+          )}
           {show.checklists && (
             <SideLink href="/checklists" icon={ClipboardList} label="Checklists" />
           )}
@@ -201,10 +212,15 @@ function SideLink({
   href,
   icon: Icon,
   label,
+  badge,
+  badgeTone = 'brand',
 }: {
   href: string;
   icon: typeof Home;
   label: string;
+  /** Optional number pill rendered after the label (e.g. pending task count). */
+  badge?: number;
+  badgeTone?: 'brand' | 'danger';
 }) {
   return (
     <Link
@@ -212,7 +228,19 @@ function SideLink({
       className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-ink"
     >
       <Icon size={18} />
-      {label}
+      <span className="flex-1">{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span
+          className={
+            'inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ' +
+            (badgeTone === 'danger'
+              ? 'bg-red-600 text-white'
+              : 'bg-brand-500 text-white')
+          }
+        >
+          {badge > 99 ? '99+' : badge}
+        </span>
+      )}
     </Link>
   );
 }

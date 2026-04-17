@@ -14,6 +14,8 @@ import {
   ArrowRight,
   PiggyBank,
   Percent,
+  ListTodo,
+  CheckCircle2,
 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
@@ -61,7 +63,34 @@ export default async function DashboardPage() {
   const now = new Date();
   const copy = copyFor(user.businessType);
   const isPm = isPropertyManager(user.businessType);
-  const firstName = user.name.split(' ')[0];
+  const firstName = (user.principalName ?? user.name).split(' ')[0];
+  const isStaffPrincipal = !user.isOwner && Boolean(user.staffId);
+
+  // Staff sees their own task queue front-and-centre. For the owner we
+  // compute the same two numbers but render them differently (inside the
+  // regular triage rather than as a hero).
+  const staffTaskCounts = isStaffPrincipal
+    ? await (async () => {
+        const [pending, overdueCount] = await Promise.all([
+          prisma.task.count({
+            where: {
+              userId: user.id,
+              assignedToId: user.staffId!,
+              status: { in: ['todo', 'in_progress'] },
+            },
+          }),
+          prisma.task.count({
+            where: {
+              userId: user.id,
+              assignedToId: user.staffId!,
+              status: { in: ['todo', 'in_progress'] },
+              dueDate: { lt: now, not: null },
+            },
+          }),
+        ]);
+        return { pending, overdue: overdueCount };
+      })()
+    : null;
 
   // Role-based feature gates (used for conditional sections below)
   const showExpenses = can(user.accessRole, 'expenses.read');
@@ -375,6 +404,7 @@ export default async function DashboardPage() {
       businessType={user.businessType}
       accessRole={user.accessRole}
       principalName={user.principalName}
+      pendingTaskCount={staffTaskCounts?.pending}
     >
       {/* ───────── Welcome + primary CTA ───────── */}
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -382,9 +412,13 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
             {greetingFor()} {firstName} <span className="inline-block">👋</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-600">{copy.greetingSub}</p>
+          <p className="mt-1 text-sm text-slate-600">
+            {isStaffPrincipal
+              ? `You're signed in to ${user.businessName || 'the team'}. Here's what's on your plate today.`
+              : copy.greetingSub}
+          </p>
         </div>
-        {canWrite && (
+        {canWrite && !isStaffPrincipal && (
           <div className="flex flex-wrap gap-2">
             <CreateReceiptButton
               businessName={user.businessName ?? 'Business'}
@@ -398,6 +432,57 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* ─── STAFF PRINCIPAL: My-tasks hero card (clear path to their work) ─── */}
+      {isStaffPrincipal && staffTaskCounts && (
+        <Link
+          href="/tasks"
+          className="mb-6 block overflow-hidden rounded-2xl border border-success-200 bg-gradient-to-br from-success-50 to-white p-5 transition hover:-translate-y-0.5 hover:shadow-md md:p-6"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success-500 text-ink shadow-sm">
+              <ListTodo size={28} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-success-700">
+                My tasks
+              </div>
+              <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                {staffTaskCounts.pending === 0 ? (
+                  <span className="text-lg font-bold text-ink">
+                    <CheckCircle2
+                      size={18}
+                      className="mr-1 inline -translate-y-0.5 text-success-600"
+                    />
+                    All caught up
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-2xl font-black leading-none text-ink md:text-3xl">
+                      {staffTaskCounts.pending}
+                    </span>
+                    <span className="text-sm text-slate-600">
+                      {staffTaskCounts.pending === 1 ? 'task' : 'tasks'} to finish
+                    </span>
+                    {staffTaskCounts.overdue > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                        <AlertTriangle size={10} />
+                        {staffTaskCounts.overdue} overdue
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-slate-600">
+                {staffTaskCounts.pending === 0
+                  ? 'No tasks assigned to you right now. Good work.'
+                  : 'Tap here to see, update and close out the work your employer assigned you.'}
+              </p>
+            </div>
+            <ArrowRight size={18} className="shrink-0 text-slate-400" />
+          </div>
+        </Link>
+      )}
 
       {/* ─────────────────── ZONE 1 · TODAY ─────────────────── */}
       <TodayTriage items={triage} />

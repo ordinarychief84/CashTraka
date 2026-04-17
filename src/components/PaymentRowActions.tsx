@@ -78,7 +78,7 @@ export function PaymentRowActions({
       icon: <Send size={16} />,
       onClick: () => {
         const origin =
-          typeof window !== 'undefined' ? window.location.origin : 'https://cashtraka.app';
+          typeof window !== 'undefined' ? window.location.origin : 'https://cashtraka.co';
         const url = `${origin}/pay/${referenceCode}`;
         const msg = `Hi ${customerName}, here is your secure payment link for ₦${amount.toLocaleString(
           'en-NG',

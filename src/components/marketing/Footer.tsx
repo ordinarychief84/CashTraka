@@ -22,9 +22,9 @@ export function Footer() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <a href="mailto:hello@cashtraka.app" className="btn-secondary text-sm">
+              <a href="mailto:Support@cashtraka.co" className="btn-secondary text-sm">
                 <Mail size={16} />
-                hello@cashtraka.app
+                Support@cashtraka.co
               </a>
               <Link href="/contact" className="btn-primary text-sm">
                 <MessageCircle size={16} />
@@ -66,7 +66,7 @@ export function Footer() {
           {/* Column 4: contact / legal */}
           <Column title="Contact & Legal">
             <FooterLink href="/contact">Contact us</FooterLink>
-            <FooterLink href="mailto:hello@cashtraka.app">hello@cashtraka.app</FooterLink>
+            <FooterLink href="mailto:Support@cashtraka.co">Support@cashtraka.co</FooterLink>
             <FooterLink href="/privacy">Privacy Policy</FooterLink>
             <FooterLink href="/terms">Terms of Use</FooterLink>
           </Column>

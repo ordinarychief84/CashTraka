@@ -12,8 +12,8 @@ export default function ContactPage() {
       </p>
       <p>
         Email:{' '}
-        <a href="mailto:hello@cashtraka.app" className="font-semibold text-brand-600 hover:underline">
-          hello@cashtraka.app
+        <a href="mailto:Support@cashtraka.co" className="font-semibold text-brand-600 hover:underline">
+          Support@cashtraka.co
         </a>
       </p>
       <p>

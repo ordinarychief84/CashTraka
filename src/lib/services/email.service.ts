@@ -8,7 +8,7 @@
  * The app keeps working if RESEND_API_KEY is unset — sends return an error and
  * nothing crashes. Configure for production by setting:
  *   RESEND_API_KEY    — from resend.com dashboard
- *   RESEND_FROM_EMAIL — e.g. "CashTraka <receipts@mail.cashtraka.app>"
+ *   RESEND_FROM_EMAIL — e.g. "CashTraka <receipts@mail.cashtraka.co>"
  *   APP_URL           — used for links inside emails
  */
 

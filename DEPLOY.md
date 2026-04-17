@@ -15,7 +15,7 @@ You need accounts on:
 | **Neon** (or Supabase / Railway) | Production Postgres | ✓ |
 | **Paystack** | Real payments (live keys) | N/A |
 | **Resend** | Transactional emails | ✓ (100/day) |
-| **Cloudinary** | Receipt PDF + logo storage | ✓ (25 GB/month) |
+| **Uploadcare** | Receipt PDF + logo storage | ✓ (25 GB/month) |
 | **GitHub** | Already set up — repo at `ordinarychief84/CashTraka` | ✓ |
 | **Your domain** | e.g. `cashtraka.co` (you mentioned this one) | N/A |
 
@@ -85,12 +85,12 @@ While unverified, use `RESEND_FROM_EMAIL="onboarding@resend.dev"` — Resend's s
 
 ---
 
-## 6. Cloudinary
+## 6. Uploadcare
 
-1. Sign up at https://cloudinary.com
+1. Sign up at https://uploadcare.com
 2. **Dashboard → Product Environment → API Keys**, copy the full **API Environment Variable** value:
    ```
-   CLOUDINARY_URL=cloudinary://<real_api_key>:<real_api_secret>@<cloud_name>
+   UPLOADCARE_PUBLIC_KEY=uploadcare://<real_api_key>:<real_api_secret>@<cloud_name>
    ```
 3. Until this is set, receipt PDFs render on-demand but aren't stored as hosted URLs, and logo upload returns 503.
 
@@ -122,7 +122,7 @@ PAYSTACK_WEBHOOK_SECRET     = <from Paystack webhooks page>
 RESEND_API_KEY              = re_...
 RESEND_FROM_EMAIL           = CashTraka <hello@cashtraka.co>
 
-CLOUDINARY_URL              = cloudinary://...:...@...
+UPLOADCARE_PUBLIC_KEY              = uploadcare://...:...@...
 ```
 
 ### 7c. First deploy
@@ -162,7 +162,7 @@ Open `https://cashtraka.co` and:
 - [ ] Click "Generate receipt" → generate → send via WhatsApp
 - [ ] Try upgrading to Business plan — complete Paystack test-mode checkout if you haven't switched to live yet
 - [ ] Verify the Paystack webhook fires — check Paystack dashboard's webhook log
-- [ ] Check that the receipt PDF is hosted on Cloudinary (URL contains `res.cloudinary.com`)
+- [ ] Check that the receipt PDF is hosted on Uploadcare (URL contains `res.uploadcare.com`)
 
 ---
 

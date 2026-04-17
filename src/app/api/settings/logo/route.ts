@@ -1,6 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { userService } from '@/lib/services/user.service';
-import { uploadLogo } from '@/lib/cloudinary/upload';
+import { uploadLogo } from '@/lib/uploadcare/upload';
 import { handled, ok, fail } from '@/lib/api-response';
 import { requireFeature } from '@/lib/gate';
 

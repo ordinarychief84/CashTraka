@@ -18,7 +18,7 @@ receipts, email, file uploads, and how to take this to production on Postgres.
 | Validation      | Zod                              | Runtime-safe + inferred types                    |
 | PDF             | `@react-pdf/renderer`            | JSX pipeline, branded receipts/invoices          |
 | Email           | Resend (direct HTTP)             | Simple transactional email                       |
-| File storage    | Cloudinary                       | Hosted URLs for logos + receipt PDFs             |
+| File storage    | Uploadcare                       | Hosted URLs for logos + receipt PDFs             |
 
 **Deviation from spec:** the spec mentions NextAuth + pdf-lib. We ship the
 custom JWT + `@react-pdf/renderer` already shipped across dozens of routes and
@@ -83,7 +83,7 @@ src/
       admin.service.ts               # user mgmt, suspend/reactivate, notes
       business-type.service.ts       # re-exports business-type.ts
 
-    cloudinary/
+    uploadcare/
       upload.ts                      # uploadLogo, uploadPdf
 
   components/
@@ -99,7 +99,7 @@ prisma/
   seed.ts                            # demo seller + PM + admin
 
 .env                                  # local (SQLite by default)
-.env.example                          # template with Resend + Cloudinary
+.env.example                          # template with Resend + Uploadcare
 .env.postgres.example                 # production Postgres template
 ```
 
@@ -192,7 +192,7 @@ when `user.role === 'ADMIN'`.
 2. **Verify payment** (bank alert or manual) → `receiptService.ensureForPayment()` fires.
    - Idempotent — if a Receipt for this payment already exists, returns it.
    - Renders PDF via `@react-pdf/renderer` (`ReceiptDoc`).
-   - Uploads to Cloudinary if configured (stores `pdfUrl`).
+   - Uploads to Uploadcare if configured (stores `pdfUrl`).
    - Persists `Receipt` row with `status: 'GENERATED'`.
 3. **Mark debt PAID** → `debtService.markPaid()` auto-creates a compensating
    `Payment` for the remaining balance and then calls `ensureForPayment()`.
@@ -206,7 +206,7 @@ when `user.role === 'ADMIN'`.
 
 The receipt system keeps working with missing env vars:
 
-- No `CLOUDINARY_URL` → Receipts still generate and render on demand; `pdfUrl` is null.
+- No `UPLOADCARE_PUBLIC_KEY` → Receipts still generate and render on demand; `pdfUrl` is null.
 - No `RESEND_API_KEY` → `sendEmail()` returns `{ ok: false, error }`; the
   Receipt is marked `FAILED` and can be retried.
 
@@ -264,13 +264,13 @@ if (!result.ok) console.warn(result.error);
 
 ---
 
-## 7. File uploads (Cloudinary)
+## 7. File uploads (Uploadcare)
 
 Endpoint: `POST /api/settings/logo` (multipart/form-data, field `file`).
 
 Limits: 2 MB, `image/png`, `image/jpeg`, `image/webp`.
 
-`src/lib/cloudinary/upload.ts` is resilient: if Cloudinary env vars are unset,
+`src/lib/uploadcare/upload.ts` is resilient: if Uploadcare env vars are unset,
 `uploadLogo()` and `uploadPdf()` return `null` instead of throwing.
 
 Receipt PDFs are uploaded under `cashtraka/receipts/<userId>/CT-00001.pdf`.
@@ -316,7 +316,7 @@ npm run dev                   # http://localhost:3000
    - `AUTH_SECRET` (fresh, 32+ bytes)
    - `APP_URL`
    - `RESEND_API_KEY`, `RESEND_FROM_EMAIL`
-   - `CLOUDINARY_URL` (or CLOUD_NAME + API_KEY + API_SECRET)
+   - `UPLOADCARE_PUBLIC_KEY` (or CLOUD_NAME + API_KEY + API_SECRET)
 
 3. **Run migrations**
    ```bash

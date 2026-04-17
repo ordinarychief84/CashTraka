@@ -20,7 +20,6 @@
     "@prisma/client": "^5.14.0",
     "@react-pdf/renderer": "^4.5.1",
     "bcryptjs": "^2.4.3",
-    "cloudinary": "^2.9.0",
     "clsx": "^2.1.0",
     "jose": "^5.4.0",
     "lucide-react": "^0.383.0",

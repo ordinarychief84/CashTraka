@@ -5,7 +5,7 @@ import { ReceiptDoc, type ReceiptData } from '@/lib/pdf-docs';
 import { displayPhone } from '@/lib/whatsapp';
 import { receiptRepo, nextReceiptNumber } from '@/lib/repositories/receipt.repository';
 import { RECEIPT_STATUS } from '@/lib/constants/receipt-status';
-import { uploadPdf } from '@/lib/cloudinary/upload';
+import { uploadPdf } from '@/lib/uploadcare/upload';
 import { emailService } from './email.service';
 
 /**

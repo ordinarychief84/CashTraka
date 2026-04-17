@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser, requireUser, requirePermission } from '@/lib/auth';
+import { requireUser, requirePermission } from '@/lib/auth';
 import { settingsSchema } from '@/lib/validators';
-import { isValidSlug, normalizeSlug } from '@/lib/slug';
 import { handled, ok } from '@/lib/api-response';
 
 /** GET /api/settings — returns the current user's settings (no password hash). */
@@ -40,7 +39,6 @@ export async function POST(req: Request) {
   const {
     businessName,
     whatsappNumber,
-    shopSlug,
     receiptFooter,
     bankName,
     bankAccountNumber,
@@ -48,32 +46,11 @@ export async function POST(req: Request) {
     businessType,
   } = parsed.data;
 
-  // Normalize and validate the slug if provided.
-  let nextSlug: string | null = null;
-  if (shopSlug && shopSlug.length > 0) {
-    const normalized = normalizeSlug(shopSlug);
-    if (!isValidSlug(normalized)) {
-      return NextResponse.json(
-        { error: 'Shop link can only contain letters, numbers and dashes' },
-        { status: 400 },
-      );
-    }
-    const existing = await prisma.user.findUnique({ where: { shopSlug: normalized } });
-    if (existing && existing.id !== user.id) {
-      return NextResponse.json(
-        { error: 'That shop link is already taken' },
-        { status: 409 },
-      );
-    }
-    nextSlug = normalized;
-  }
-
   // Only update fields that were actually sent. Previously every absent
   // field resolved to `undefined ? … : null`, silently wiping existing data.
   const data: Record<string, unknown> = {};
   if (businessName !== undefined) data.businessName = businessName?.trim() || null;
   if (whatsappNumber !== undefined) data.whatsappNumber = whatsappNumber?.trim() || null;
-  if (nextSlug !== undefined) data.shopSlug = nextSlug;
   if (receiptFooter !== undefined) data.receiptFooter = receiptFooter?.trim() || null;
   if (bankName !== undefined) data.bankName = bankName?.trim() || null;
   if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
@@ -85,5 +62,5 @@ export async function POST(req: Request) {
     data,
   });
 
-  return NextResponse.json({ ok: true, shopSlug: nextSlug });
+  return NextResponse.json({ ok: true });
 }

@@ -3,7 +3,32 @@ import { Suspense } from 'react';
 import { AuthForm } from '@/components/AuthForm';
 import { Logo } from '@/components/Logo';
 
-export default function SignupPage() {
+type SearchParams = {
+  type?: string;
+  ic?: string;
+  plan?: string;
+};
+
+/**
+ * Signup page — reads `?type=seller | property_manager` from the URL so the
+ * headline + subhead match whichever journey the visitor came from. The
+ * inline AuthForm also presets the ICP picker to the same value.
+ */
+export default function SignupPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const hinted = (searchParams.type || searchParams.ic || '').toLowerCase();
+  const isPm = hinted === 'property_manager';
+
+  const headline = isPm
+    ? 'Create your property-manager account'
+    : 'Create your seller account';
+  const sub = isPm
+    ? 'Track rent, tenants, and overdue payments in minutes.'
+    : 'Track payments, debts and customers in minutes.';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
       <div className="container-app py-10">
@@ -12,10 +37,8 @@ export default function SignupPage() {
         </Link>
         <div className="mx-auto max-w-md">
           <div className="card p-6">
-            <h1 className="text-2xl font-bold text-ink">Create your seller account</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Track payments, debts and customers in minutes.
-            </p>
+            <h1 className="text-2xl font-bold text-ink">{headline}</h1>
+            <p className="mt-1 text-sm text-slate-600">{sub}</p>
             <div className="mt-5">
               <Suspense>
                 <AuthForm mode="signup" />

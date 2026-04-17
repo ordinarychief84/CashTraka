@@ -23,7 +23,6 @@ model User {
   passwordHash         String
   businessName         String?
   whatsappNumber       String?
-  shopSlug             String?   @unique
   receiptFooter        String?
   /// "seller" (default) or "property_manager"
   businessType         String    @default("seller")

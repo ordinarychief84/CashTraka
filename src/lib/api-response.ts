@@ -46,6 +46,23 @@ export function notFound(error = 'Not found'): NextResponse<ApiErr> {
   return fail(error, 404);
 }
 
+/**
+ * Translate a thrown ServiceError from `requireAuth`/`requirePermission`
+ * into a legacy `{ error }` envelope response. Handlers that pre-date the
+ * `handled()` wrapper use this inside a try/catch. Returns `null` if the
+ * exception isn't an auth-related ServiceError so the caller can rethrow.
+ */
+export function authFail(e: unknown): NextResponse | null {
+  const err = e as { code?: string; message?: string };
+  if (err?.code === 'UNAUTHORIZED') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (err?.code === 'FORBIDDEN') {
+    return NextResponse.json({ error: err.message ?? 'Forbidden' }, { status: 403 });
+  }
+  return null;
+}
+
 /** 422 for Zod validation failures — returns the first issue + full details. */
 export function validationFail(err: ZodError): NextResponse<ApiErr> {
   const first = err.issues[0];

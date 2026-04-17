@@ -2,16 +2,9 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requirePermission } from '@/lib/auth';
+import { authFail } from '@/lib/api-response';
 import { requireFeature } from '@/lib/gate';
 
-function authFail(e: unknown): NextResponse | null {
-  const err = e as { code?: string; message?: string };
-  if (err?.code === 'UNAUTHORIZED')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (err?.code === 'FORBIDDEN')
-    return NextResponse.json({ error: err.message ?? 'Forbidden' }, { status: 403 });
-  return null;
-}
 
 /**
  * Staff payment API.

@@ -2,15 +2,8 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
+import { authFail } from '@/lib/api-response';
 
-function authFail(e: unknown): NextResponse | null {
-  const err = e as { code?: string; message?: string };
-  if (err?.code === 'UNAUTHORIZED')
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (err?.code === 'FORBIDDEN')
-    return NextResponse.json({ error: err.message ?? 'Forbidden' }, { status: 403 });
-  return null;
-}
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).optional(),

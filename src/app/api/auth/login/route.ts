@@ -6,6 +6,7 @@ import {
 } from '@/lib/auth';
 import { loginSchema } from '@/lib/validators';
 import { ok, fail, unauthorized, forbidden, validationFail } from '@/lib/api-response';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 /**
  * Unified login.
@@ -20,11 +21,35 @@ import { ok, fail, unauthorized, forbidden, validationFail } from '@/lib/api-res
  */
 export async function POST(req: Request) {
   try {
+    // Rate limit — 10 attempts per IP per 10 minutes blocks online credential
+    // stuffing without hurting legit users who mistyped their password.
+    const ip = clientIp(req);
+    const limited = rateLimit('login', ip, { max: 10, windowMs: 10 * 60_000 });
+    if (!limited.allowed) {
+      return fail(
+        `Too many attempts. Try again in ${limited.retryAfter}s.`,
+        429,
+      );
+    }
+
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
     if (!parsed.success) return validationFail(parsed.error);
 
     const { email, password } = parsed.data;
+
+    // Secondary limiter — 8 attempts per email per 15 minutes prevents an
+    // attacker rotating IPs to pound a single account.
+    const byEmail = rateLimit('login-email', email.toLowerCase(), {
+      max: 8,
+      windowMs: 15 * 60_000,
+    });
+    if (!byEmail.allowed) {
+      return fail(
+        `Too many attempts on this account. Try again in ${byEmail.retryAfter}s.`,
+        429,
+      );
+    }
 
     // 1) Owner path — existing behaviour.
     const owner = await prisma.user.findUnique({ where: { email } });

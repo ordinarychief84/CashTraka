@@ -35,7 +35,19 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   if (title !== undefined) data.title = title.trim();
   if (description !== undefined) data.description = description || null;
-  if (assignedToId !== undefined) data.assignedToId = assignedToId || null;
+  if (assignedToId !== undefined) {
+    // IDOR guard: reassigning a task must stay within the caller's tenant.
+    if (assignedToId) {
+      const staff = await prisma.staffMember.findFirst({
+        where: { id: assignedToId, userId: user.id },
+        select: { id: true },
+      });
+      if (!staff) {
+        return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
+      }
+    }
+    data.assignedToId = assignedToId || null;
+  }
   if (priority !== undefined) data.priority = priority;
   if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
 

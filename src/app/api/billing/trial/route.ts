@@ -1,7 +1,8 @@
 import { z } from 'zod';
 import { requirePermission } from '@/lib/auth';
 import { billingService } from '@/lib/services/billing.service';
-import { handled, ok, validationFail } from '@/lib/api-response';
+import { handled, ok, fail, validationFail } from '@/lib/api-response';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +16,15 @@ const schema = z.object({
  */
 export const POST = (req: Request) =>
   handled(async () => {
+    // Rate limit — one tenant can only start a trial once anyway (service
+    // layer enforces that), but limit by IP too so a script rotating
+    // accounts can't burn through trials. 3 attempts / hour / IP.
+    const ip = clientIp(req);
+    const limited = rateLimit('trial', ip, { max: 3, windowMs: 60 * 60_000 });
+    if (!limited.allowed) {
+      return fail('Too many trial attempts. Try again later.', 429);
+    }
+
     const ctx = await requirePermission('billing.write');
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);

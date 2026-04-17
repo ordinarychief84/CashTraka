@@ -45,8 +45,68 @@ async function verify(token: string | undefined): Promise<string | null> {
   }
 }
 
+/**
+ * CSRF defence via Origin / Referer header check.
+ *
+ * We rely on SameSite=Lax cookies for session storage, but that alone
+ * doesn't block top-level form POSTs from a malicious third-party site.
+ * This additional check guarantees that any state-changing API request
+ * (non-GET on /api/*) must come from the same origin that served the
+ * page — closing off the classic CSRF attack vector without requiring
+ * a double-submit token scheme.
+ *
+ * Exemptions:
+ *   - /api/billing/webhook — Paystack's server calls us cross-origin
+ *     with no Origin header. Signature verification protects it.
+ *   - /api/payments/claim/* — public "customer paid me" endpoint,
+ *     intentionally origin-free.
+ */
+const CSRF_EXEMPT_PREFIXES = [
+  '/api/billing/webhook',
+  '/api/payments/claim/',
+];
+
+function sameOriginOk(req: NextRequest): boolean {
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
+  const host = req.headers.get('host');
+  if (!host) return false;
+  // Trusted matcher: the request host must match the Origin header's host.
+  const sourceHost = origin
+    ? safeHost(origin)
+    : referer
+      ? safeHost(referer)
+      : null;
+  // Allow missing headers only for server-to-server / curl-without-origin
+  // calls — but those get through SameSite so we explicitly deny.
+  if (!sourceHost) return false;
+  return sourceHost === host;
+}
+
+function safeHost(u: string): string | null {
+  try {
+    return new URL(u).host;
+  } catch {
+    return null;
+  }
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // ── CSRF check — any state-changing /api/* call must be same-origin ──
+  const method = req.method.toUpperCase();
+  const isStateChanging = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+  const isApi = pathname.startsWith('/api/');
+  const isCsrfExempt = CSRF_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
+  if (isApi && isStateChanging && !isCsrfExempt && !sameOriginOk(req)) {
+    return NextResponse.json(
+      { success: false, error: 'Blocked: cross-origin request rejected.' },
+      { status: 403 },
+    );
+  }
+
+  // ── Session-based route gating (unchanged behaviour) ──
   const token = req.cookies.get(SESSION_COOKIE)?.value;
   const userId = await verify(token);
 
@@ -72,7 +132,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
+  // Include /api/* so the CSRF origin check can fire on state-changing
+  // calls. The old matcher excluded /api entirely, leaving the origin
+  // check dead code. We still skip Next internals + static assets.
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon\\.svg|icon-.*\\.png|apple-touch-icon\\.png|manifest\\.webmanifest|logo\\.svg|sw\\.js).*)',
   ],
 };

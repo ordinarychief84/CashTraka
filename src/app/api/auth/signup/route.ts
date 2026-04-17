@@ -2,14 +2,36 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword, setSessionCookie } from '@/lib/auth';
 import { signupSchema } from '@/lib/validators';
 import { ok, fail, validationFail } from '@/lib/api-response';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
+import { isWeakPassword } from '@/lib/password-policy';
 
 export async function POST(req: Request) {
   try {
+    // Rate limit — 5 new accounts per IP per hour blocks trial-abuse scripts
+    // (a common vector: rotate emails, claim 14-day trial, cancel before charge).
+    const ip = clientIp(req);
+    const limited = rateLimit('signup', ip, { max: 5, windowMs: 60 * 60_000 });
+    if (!limited.allowed) {
+      return fail(
+        `Too many sign-ups from this network. Try again in ${Math.ceil(limited.retryAfter / 60)} min.`,
+        429,
+      );
+    }
+
     const body = await req.json();
     const parsed = signupSchema.safeParse(body);
     if (!parsed.success) return validationFail(parsed.error);
 
     const { name, email, password, businessType } = parsed.data;
+
+    // Password policy — 8-char minimum was already enforced by Zod; block
+    // the top-1000 common passwords so no one ships a 12345678 account.
+    if (isWeakPassword(password)) {
+      return fail(
+        'Please choose a stronger password — that one appears on common-password lists.',
+        422,
+      );
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return fail('Email is already registered', 409);

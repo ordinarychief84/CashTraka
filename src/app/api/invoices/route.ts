@@ -45,6 +45,25 @@ export async function POST(req: Request) {
   const customer = await upsertCustomer(user.id, customerName, customerPhone);
   const invoiceNumber = await nextInvoiceNumber(user.id);
 
+  // IDOR guard: any productId supplied in a line item must belong to the
+  // caller's tenant. Without this, an attacker can link invoice lines to a
+  // different tenant's product and leak its name via the invoice record.
+  const productIds = Array.from(
+    new Set(items.map((it) => it.productId).filter(Boolean) as string[]),
+  );
+  if (productIds.length > 0) {
+    const owned = await prisma.product.findMany({
+      where: { id: { in: productIds }, userId: user.id },
+      select: { id: true },
+    });
+    if (owned.length !== productIds.length) {
+      return NextResponse.json(
+        { error: 'One or more products do not exist in your catalog.' },
+        { status: 400 },
+      );
+    }
+  }
+
   const subtotal = items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
   const total = subtotal + tax;
 

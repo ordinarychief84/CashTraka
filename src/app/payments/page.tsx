@@ -97,14 +97,14 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
         <input type="hidden" name="verification" value={verification} />
         <div className="relative">
           <Search
-            size={18}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             name="q"
             defaultValue={q}
             placeholder="Search by name or phone"
-            className="input pl-10"
+            className="input pl-11"
           />
         </div>
         <div className="flex gap-2">

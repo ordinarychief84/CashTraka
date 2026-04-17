@@ -26,6 +26,7 @@ export default async function EditExpensePage({ params }: { params: { id: string
             category: expense.category,
             note: expense.note ?? '',
             incurredOn: expense.incurredOn.toISOString().slice(0, 10),
+            kind: (expense.kind as 'business' | 'personal') ?? 'business',
           }}
         />
       </div>

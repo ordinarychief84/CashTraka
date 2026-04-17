@@ -5,6 +5,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { SettingsForm } from '@/components/SettingsForm';
 import { BillingCard } from '@/components/billing/BillingCard';
 import { UpgradeModal } from '@/components/billing/UpgradeModal';
+import { PersonalBudgetCard } from '@/components/PersonalBudgetCard';
 import { billingService } from '@/lib/services/billing.service';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,12 @@ export default async function SettingsPage() {
             bankAccountNumber: user.bankAccountNumber || '',
             bankAccountName: user.bankAccountName || '',
             businessType: user.businessType || 'seller',
+          }}
+        />
+        <PersonalBudgetCard
+          initial={{
+            weekly: user.personalBudgetWeekly ?? null,
+            monthly: user.personalBudgetMonthly ?? null,
           }}
         />
       </div>

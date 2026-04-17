@@ -20,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       { status: 400 },
     );
   }
-  const { amount, category, note, incurredOn } = parsed.data;
+  const { amount, category, note, incurredOn, kind } = parsed.data;
 
   await prisma.expense.update({
     where: { id: expense.id },
@@ -28,6 +28,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       amount: amount ?? expense.amount,
       category: category ?? expense.category,
       note: note === undefined ? expense.note : note || null,
+      kind: kind ?? expense.kind,
       incurredOn: incurredOn ? new Date(incurredOn) : expense.incurredOn,
     },
   });

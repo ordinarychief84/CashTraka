@@ -58,6 +58,12 @@ model User {
   /// The plan the user picked at checkout; cleared when the webhook confirms.
   pendingPlan              String?
 
+  /// Personal-expense thresholds (naira). When the owner's personal spending
+  /// in the current week / month crosses either number, the dashboard
+  /// surfaces a warning banner. Both are optional — leave null to disable.
+  personalBudgetWeekly     Int?
+  personalBudgetMonthly    Int?
+
   onboardingCompleted  Boolean   @default(false)
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
@@ -214,12 +220,17 @@ model Expense {
   amount      Int
   category    String
   note        String?
+  /// "business" (default) or "personal" — lets the owner track
+  /// out-of-pocket personal spending alongside the business books.
+  /// Personal expenses never show up in profit reports.
+  kind        String   @default("business")
   incurredOn  DateTime @default(now())
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, incurredOn])
+  @@index([userId, kind, incurredOn])
 }
 
 // ---------- MESSAGING ----------
@@ -522,6 +533,17 @@ model Task {
   status       String    @default("todo")
   dueDate      DateTime?
   completedAt  DateTime?
+  /// Who marked the task done — either the owner (when OWNER finishes
+  /// their own task) or the assigned StaffMember. Stored as a union:
+  ///   completedByKind = "owner" | "staff"
+  ///   completedById   = User.id  | StaffMember.id
+  /// Kept as free-text strings (no FK) so we don't complicate the schema
+  /// with a polymorphic relation. The UI resolves it for display.
+  completedByKind String?
+  completedById   String?
+  /// Optional short note the assignee leaves when completing. Shown to
+  /// the owner as a lightweight completion report ("Delivered, paid cash").
+  completionNote  String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -529,6 +551,7 @@ model Task {
   assignedTo   StaffMember? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
+  @@index([assignedToId, status])
 }
 
 // ---------- CHECKLISTS ----------

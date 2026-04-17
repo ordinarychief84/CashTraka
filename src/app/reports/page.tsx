@@ -46,7 +46,9 @@ export default async function ReportsPage() {
       select: { amount: true, createdAt: true },
     }),
     prisma.expense.findMany({
-      where: { userId: user.id, incurredOn: { gte: earliest } },
+      // Reports show the BUSINESS P&L only — personal spending is private
+      // budgeting data and shouldn't roll into profit trends.
+      where: { userId: user.id, kind: 'business', incurredOn: { gte: earliest } },
       select: { amount: true, category: true, incurredOn: true },
     }),
   ]);

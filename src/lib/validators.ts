@@ -80,6 +80,7 @@ export const expenseSchema = z.object({
   category: z.enum(expenseCategories),
   note: z.string().trim().max(200).optional().or(z.literal('')),
   incurredOn: z.string().optional(),
+  kind: z.enum(['business', 'personal']).default('business'),
 });
 
 export const productSchema = z.object({

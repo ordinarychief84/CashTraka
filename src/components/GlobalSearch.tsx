@@ -20,8 +20,8 @@ function Inner() {
     <form onSubmit={onSubmit} role="search" className="w-full max-w-md">
       <div className="relative">
         <Search
-          size={16}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          size={15}
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
         />
         <input
           type="search"
@@ -29,7 +29,7 @@ function Inner() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search customers, payments, debts"
-          className="h-10 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+          className="h-10 w-full rounded-lg border border-border bg-white pl-10 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
           style={{ minHeight: '40px' }}
         />
       </div>

@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Calendar,
   User2,
+  Check,
 } from 'lucide-react';
 import { guardWithFeature } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
@@ -74,10 +75,20 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
   const assignee = searchParams.assignee || 'all';
   const onlyOverdue = searchParams.overdue === '1';
 
+  // Staff only see tasks assigned to them — they are "workers" of their
+  // owner's tasks, not co-owners of the full task list. Owners / Managers
+  // see everything.
+  const isStaffPrincipal = !user.isOwner && user.staffId;
+
   const [allTasks, staff] = await Promise.all([
     prisma.task.findMany({
-      where: { userId: user.id },
-      include: { assignedTo: { select: { id: true, name: true } } },
+      where: {
+        userId: user.id,
+        ...(isStaffPrincipal ? { assignedToId: user.staffId ?? undefined } : {}),
+      },
+      include: {
+        assignedTo: { select: { id: true, name: true } },
+      },
       orderBy: [{ createdAt: 'desc' }],
     }),
     prisma.staffMember.findMany({
@@ -168,8 +179,12 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
       principalName={user.principalName}
     >
       <PageHeader
-        title="Tasks"
-        subtitle="Track what needs doing and who is on it."
+        title={isStaffPrincipal ? 'My tasks' : 'Tasks'}
+        subtitle={
+          isStaffPrincipal
+            ? 'Work assigned to you. Tap a task to mark it done.'
+            : 'Track what needs doing and who is on it.'
+        }
         action={
           <Link href="/tasks/new" className="btn-primary">
             <Plus size={18} />
@@ -318,7 +333,11 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
       ) : view === 'board' ? (
         <TaskKanban tasks={kanbanTasks} />
       ) : (
-        <TaskListView tasks={filtered} />
+        <TaskListView
+          tasks={filtered}
+          staffById={new Map(staff.map((s) => [s.id, s.name]))}
+          viewerIsStaff={Boolean(isStaffPrincipal)}
+        />
       )}
     </AppShell>
   );
@@ -352,8 +371,14 @@ function AssigneeChip({
 /** List view split into Overdue → To-do → In progress → Done for scannability. */
 function TaskListView({
   tasks,
+  staffById,
+  viewerIsStaff,
 }: {
   tasks: Awaited<ReturnType<typeof prisma.task.findMany>>;
+  /** Staff map so completion attribution can resolve the name. */
+  staffById: Map<string, string>;
+  /** When true (cashier/manager), clicking the checkbox opens the note dialog. */
+  viewerIsStaff: boolean;
 }) {
   const overdue = tasks.filter((t) => isOverdue(t.dueDate, t.status));
   const remaining = tasks.filter((t) => !isOverdue(t.dueDate, t.status));
@@ -384,7 +409,12 @@ function TaskListView({
             </h2>
             <ul className="space-y-2">
               {b.items.map((t) => (
-                <TaskListRow key={t.id} task={t} />
+                <TaskListRow
+                  key={t.id}
+                  task={t}
+                  staffById={staffById}
+                  viewerIsStaff={viewerIsStaff}
+                />
               ))}
             </ul>
           </section>
@@ -396,12 +426,22 @@ function TaskListView({
 
 function TaskListRow({
   task,
+  staffById,
+  viewerIsStaff,
 }: {
   task: Awaited<ReturnType<typeof prisma.task.findMany>>[number] & {
     assignedTo?: { name: string } | null;
   };
+  staffById: Map<string, string>;
+  viewerIsStaff: boolean;
 }) {
   const overdue = isOverdue(task.dueDate, task.status);
+  const doneBy =
+    task.status === 'done' && task.completedByKind === 'staff' && task.completedById
+      ? staffById.get(task.completedById) ?? 'Staff'
+      : task.status === 'done' && task.completedByKind === 'owner'
+        ? 'Owner'
+        : null;
   return (
     <li
       className={cn(
@@ -410,7 +450,12 @@ function TaskListRow({
       )}
     >
       <div className="flex items-start gap-3">
-        <TaskQuickCheck id={task.id} done={task.status === 'done'} />
+        <TaskQuickCheck
+          id={task.id}
+          done={task.status === 'done'}
+          title={task.title}
+          promptOnComplete={viewerIsStaff}
+        />
         <div className="min-w-0 flex-1">
           <Link
             href={`/tasks/${task.id}/edit`}
@@ -424,6 +469,24 @@ function TaskListRow({
           {task.description && (
             <p className="mt-0.5 line-clamp-2 text-xs text-slate-500">
               {task.description}
+            </p>
+          )}
+          {/* Completion attribution — visible to the owner when the task is done */}
+          {task.status === 'done' && doneBy && (
+            <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700">
+              <Check size={10} />
+              Done by {doneBy}
+              {task.completedAt && (
+                <span className="font-normal opacity-70">
+                  {' '}
+                  · {formatDate(task.completedAt)}
+                </span>
+              )}
+            </p>
+          )}
+          {task.completionNote && (
+            <p className="mt-1 text-xs text-slate-600">
+              &ldquo;{task.completionNote}&rdquo;
             </p>
           )}
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px]">

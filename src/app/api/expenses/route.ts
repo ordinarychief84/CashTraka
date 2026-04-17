@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { amount, category, note, incurredOn } = parsed.data;
+  const { amount, category, note, incurredOn, kind } = parsed.data;
 
   const expense = await prisma.expense.create({
     data: {
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
       amount,
       category,
       note: note || null,
+      kind,
       incurredOn: incurredOn ? new Date(incurredOn) : new Date(),
     },
   });

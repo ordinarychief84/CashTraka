@@ -48,14 +48,14 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
       <form className="mb-4" action="/customers" method="get">
         <div className="relative">
           <Search
-            size={18}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            size={16}
+            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
           />
           <input
             name="q"
             defaultValue={q}
             placeholder="Search customers"
-            className="input pl-10"
+            className="input pl-11"
           />
         </div>
       </form>

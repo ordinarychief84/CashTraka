@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Briefcase, User } from 'lucide-react';
 import { EXPENSE_CATEGORIES } from '@/lib/validators';
+import { cn } from '@/lib/utils';
+
+type Kind = 'business' | 'personal';
 
 type Initial = {
   id?: string;
@@ -10,6 +14,7 @@ type Initial = {
   category?: string;
   note?: string;
   incurredOn?: string;
+  kind?: Kind;
 };
 
 type Props = {
@@ -17,11 +22,17 @@ type Props = {
   initial?: Initial;
 };
 
+/**
+ * Expense form — now captures whether the spend is BUSINESS (affects P&L)
+ * or PERSONAL (owner's out-of-pocket, tracked for budgeting only).
+ * Personal expenses never roll into profit reports.
+ */
 export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
   const router = useRouter();
   const editing = Boolean(initial?.id);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [kind, setKind] = useState<Kind>(initial?.kind ?? 'business');
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,6 +44,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
       category: String(form.get('category') || 'Other'),
       note: String(form.get('note') || ''),
       incurredOn: String(form.get('incurredOn') || ''),
+      kind,
     };
     try {
       const res = await fetch(
@@ -57,6 +69,27 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* ── Kind picker — top of the form, sets the mental mode ── */}
+      <div>
+        <span className="label">Type of expense</span>
+        <div className="grid grid-cols-2 gap-2">
+          <KindButton
+            active={kind === 'business'}
+            onClick={() => setKind('business')}
+            icon={<Briefcase size={16} />}
+            label="Business"
+            sub="Stock, rent, fuel, salary…"
+          />
+          <KindButton
+            active={kind === 'personal'}
+            onClick={() => setKind('personal')}
+            icon={<User size={16} />}
+            label="Personal"
+            sub="Out-of-pocket, not the business"
+          />
+        </div>
+      </div>
+
       <div>
         <label htmlFor="amount" className="label">Amount spent (₦)</label>
         <input
@@ -79,7 +112,9 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
           defaultValue={initial?.category ?? 'Stock'}
         >
           {EXPENSE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c} value={c}>
+              {c}
+            </option>
           ))}
         </select>
       </div>
@@ -99,7 +134,11 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
           id="note"
           name="note"
           className="input"
-          placeholder="e.g. Restocked 5 perfumes"
+          placeholder={
+            kind === 'personal'
+              ? 'e.g. Lunch, fuel, phone top-up'
+              : 'e.g. Restocked 5 perfumes'
+          }
           defaultValue={initial?.note ?? ''}
         />
       </div>
@@ -110,5 +149,50 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
         {submitting ? 'Saving…' : editing ? 'Save changes' : 'Save expense'}
       </button>
     </form>
+  );
+}
+
+function KindButton({
+  active,
+  onClick,
+  icon,
+  label,
+  sub,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  sub: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition',
+        active
+          ? 'border-brand-500 bg-brand-50 ring-1 ring-brand-500'
+          : 'border-border bg-white hover:border-brand-300',
+      )}
+    >
+      <span
+        className={cn(
+          'flex h-7 w-7 items-center justify-center rounded-md',
+          active ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-600',
+        )}
+      >
+        {icon}
+      </span>
+      <span
+        className={cn(
+          'text-sm font-semibold',
+          active ? 'text-brand-700' : 'text-ink',
+        )}
+      >
+        {label}
+      </span>
+      <span className="text-[11px] text-slate-500">{sub}</span>
+    </button>
   );
 }

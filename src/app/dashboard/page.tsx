@@ -170,6 +170,8 @@ export default async function DashboardPage() {
       ? prisma.expense.aggregate({
           where: {
             userId: user.id,
+            // Only BUSINESS expenses reduce profit. Personal is out-of-pocket.
+            kind: 'business',
             incurredOn: { gte: monthStart },
           },
           _sum: { amount: true },

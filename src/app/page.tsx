@@ -20,6 +20,7 @@ import { PricingCards } from '@/components/marketing/PricingCards';
 import { FAQ } from '@/components/marketing/FAQ';
 import { HeroMockup } from '@/components/marketing/HeroMockup';
 import { HeroSolutions } from '@/components/marketing/HeroSolutions';
+import { SolutionsPath } from '@/components/marketing/SolutionsPath';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Stagger } from '@/components/marketing/Stagger';
 import { AnimatedStat } from '@/components/marketing/AnimatedStat';
@@ -36,6 +37,7 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <HeroSolutions />
+        <SolutionsPath />
         <AudienceMarquee />
         <SocialProof />
         <Problem />

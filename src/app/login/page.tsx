@@ -1,10 +1,18 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { Users2 } from 'lucide-react';
+import { Users2, CheckCircle2 } from 'lucide-react';
 import { AuthForm } from '@/components/AuthForm';
 import { Logo } from '@/components/Logo';
 
-export default function LoginPage() {
+type SearchParams = { reset?: string };
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const justReset = searchParams.reset === '1';
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
       <div className="container-app py-10">
@@ -18,10 +26,28 @@ export default function LoginPage() {
               Log in to your CashTraka account.
             </p>
 
+            {justReset && (
+              <div className="mt-4 flex items-start gap-2 rounded-lg border border-success-200 bg-success-50 px-3 py-2.5 text-sm text-success-800">
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-success-700" />
+                <span>
+                  Password reset. Log in with your new password.
+                </span>
+              </div>
+            )}
+
             <div className="mt-5">
               <Suspense>
                 <AuthForm mode="login" />
               </Suspense>
+            </div>
+
+            <div className="mt-3 text-right">
+              <Link
+                href="/forgot-password"
+                className="text-xs font-semibold text-brand-700 hover:text-brand-800 hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             {/* ── Staff hint ── */}

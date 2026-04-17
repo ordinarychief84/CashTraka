@@ -90,6 +90,7 @@ model User {
   adminNotesAuthored   AdminNote[]       @relation("AdminNoteAuthor")
   adminNotesReceived   AdminNote[]       @relation("AdminNoteTarget")
   paymentAttempts      PaymentAttempt[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@index([role])
   @@index([businessType])
@@ -706,4 +707,22 @@ model BillingEvent {
   eventType       String
   payloadJson     String
   processedAt     DateTime @default(now())
+}
+
+/// Password-reset tokens. We never store the raw token — only its sha256 hash —
+/// so a dump of this table cannot be used to take over accounts. The raw token
+/// is mailed to the user once and never surfaced in our logs.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  /// sha256 hex digest of the raw reset token.
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }

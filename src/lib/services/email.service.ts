@@ -258,6 +258,48 @@ export const emailService = {
     return send({ to: args.to, subject: 'Welcome to CashTraka', html });
   },
 
+  /**
+   * Password-reset mail. Link expires in 30 minutes.
+   */
+  async sendPasswordReset(args: {
+    to: string;
+    name: string;
+    resetUrl: string;
+  }): Promise<SendResult> {
+    const html = `
+<!doctype html>
+<html>
+<body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,sans-serif;margin:0;padding:24px;background:#F7F9F8;color:#1A1A1A;">
+  <div style="max-width:560px;margin:0 auto;background:white;border:1px solid #E5E7EB;border-radius:16px;padding:24px;">
+    <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#00B8E8;">Password reset</div>
+    <div style="font-size:20px;font-weight:800;margin-top:4px;">Hi ${escape(args.name)},</div>
+    <p style="color:#475569;font-size:14px;margin:16px 0;">
+      Someone (hopefully you) asked to reset the password on your CashTraka
+      account. Click the button below to choose a new password. The link is
+      good for <strong>30 minutes</strong>.
+    </p>
+    <p style="margin:20px 0;">
+      <a href="${escape(args.resetUrl)}" style="display:inline-block;padding:12px 20px;background:#8BD91E;color:#1A1A1A;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Reset my password</a>
+    </p>
+    <p style="color:#64748B;font-size:12px;margin:16px 0;">
+      If the button doesn&rsquo;t work, paste this link into your browser:<br>
+      <span style="word-break:break-all;color:#1A1A1A;">${escape(args.resetUrl)}</span>
+    </p>
+    <p style="color:#64748B;font-size:12px;margin-top:32px;border-top:1px solid #E5E7EB;padding-top:16px;">
+      Didn&rsquo;t ask for this? You can ignore this email — your password stays
+      the same until the link is used. For your safety, the link expires in 30
+      minutes.
+    </p>
+  </div>
+</body>
+</html>`;
+    return send({
+      to: args.to,
+      subject: 'Reset your CashTraka password',
+      html,
+    });
+  },
+
   /** Low-level escape hatch so other services can send arbitrary transactional mail. */
   raw: send,
 };

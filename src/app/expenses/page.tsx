@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { StatCard } from '@/components/StatCard';
 import { TimeRange } from '@/components/TimeRange';
 import { ExpenseRowActions } from '@/components/ExpenseRowActions';
+import { PersonalBudgetCard } from '@/components/PersonalBudgetCard';
 import { formatNaira, formatDate } from '@/lib/format';
 import { parseRange, rangeStart, RANGE_LABELS } from '@/lib/range';
 import { cn } from '@/lib/utils';
@@ -180,12 +181,12 @@ export default async function ExpensesPage({
                 </li>
               )}
             </ul>
-            <Link
-              href="/settings#personal-budget"
+            <a
+              href="#personal-budget"
               className="mt-2 inline-block text-xs font-semibold text-red-800 underline hover:text-red-900"
             >
-              Adjust thresholds in Settings
-            </Link>
+              Adjust thresholds below
+            </a>
           </div>
         </div>
       )}
@@ -277,6 +278,7 @@ export default async function ExpensesPage({
           actionLabel="Add expense"
         />
       ) : (
+        <>
         <ul className="card divide-y divide-border">
           {expenses.map((e) => (
             <li key={e.id} className="flex items-center gap-2 px-4 py-3">
@@ -295,7 +297,19 @@ export default async function ExpensesPage({
             </li>
           ))}
         </ul>
+        </>
       )}
+
+      {/* ── Personal budget thresholds (moved from /settings so it lives
+          next to the expenses it governs) ── */}
+      <div className="mt-6">
+        <PersonalBudgetCard
+          initial={{
+            weekly: user.personalBudgetWeekly ?? null,
+            monthly: user.personalBudgetMonthly ?? null,
+          }}
+        />
+      </div>
     </AppShell>
   );
 }

@@ -125,7 +125,7 @@ export default async function DebtsPage({ searchParams }: { searchParams: SP }) 
             name="q"
             defaultValue={q}
             placeholder="Search by name or phone"
-            className="input pl-11"
+            className="input !pl-11"
           />
         </div>
       </form>

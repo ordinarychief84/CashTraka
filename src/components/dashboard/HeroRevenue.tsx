@@ -5,13 +5,11 @@ import { cn } from '@/lib/utils';
 /**
  * Hero revenue card — the single biggest thing on the dashboard.
  *
- * Design intent: one look, one number, three bits of context:
- *   1. The number itself (big).
- *   2. The delta vs the previous comparable window (colored arrow).
- *   3. A 7-day sparkline so you can see the shape of the week, not just a total.
- *
- * Works for both sellers (revenue) and property managers (rent collected) —
- * label is passed in.
+ * Redesigned as a calm, data-forward panel (white card, subtle border,
+ * tabular figures) instead of the previous saturated cyan gradient that
+ * fought with the rest of the page. The sparkline is now a filled-area
+ * line chart with subtle gridlines and a highlighted "today" bar for
+ * quick scanning.
  */
 
 type Props = {
@@ -25,76 +23,120 @@ type Props = {
 };
 
 export function HeroRevenue({ label, total, deltaPct, daily, transactions }: Props) {
-  const peak = Math.max(1, ...daily); // avoid division by zero
+  const peak = Math.max(1, ...daily);
   const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  // Shift label array so it ends with "today" — we derive "today" from
-  // the JS Date, not from the server (client-neutral since this is a
-  // pure render). The daily[] is already oldest → newest.
 
   const deltaBadge =
     deltaPct === null ? (
       <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
         <Minus size={11} />
-        First week of data
+        New
       </span>
     ) : deltaPct >= 0 ? (
-      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-bold text-brand-700">
-        <ArrowUpRight size={11} />+{deltaPct}% vs last week
+      <span className="inline-flex items-center gap-1 rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-bold text-success-700">
+        <ArrowUpRight size={11} />+{deltaPct}%
       </span>
     ) : (
       <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">
         <ArrowDownRight size={11} />
-        {deltaPct}% vs last week
+        {deltaPct}%
       </span>
     );
 
   return (
-    <section className="card overflow-hidden p-0">
-      <div className="relative bg-gradient-to-br from-brand-600 to-brand-500 p-5 text-white">
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-white/80">
-            {label} · last 7 days
+    <section className="card relative overflow-hidden p-6">
+      {/* Subtle decorative accent */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 -right-12 h-48 w-48 rounded-full bg-brand-100/60 blur-3xl"
+      />
+
+      <div className="relative">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              {label}
+            </div>
+            <div className="mt-0.5 text-[11px] text-slate-500">Last 7 days</div>
           </div>
-          <div>{deltaBadge}</div>
+          {deltaBadge}
         </div>
-        <div className="mt-2 flex items-baseline gap-2">
-          <span className="num text-4xl font-black leading-none tracking-tight md:text-5xl">
+
+        {/* Number */}
+        <div className="mt-4 flex items-baseline gap-2">
+          <span className="num text-4xl font-black leading-none tracking-tight text-ink md:text-5xl">
             {formatNaira(total)}
           </span>
         </div>
-        <div className="mt-1 text-xs text-white/80">
-          across {transactions} {transactions === 1 ? 'transaction' : 'transactions'}
+        <div className="mt-1.5 text-xs text-slate-500">
+          across {transactions} {transactions === 1 ? 'transaction' : 'transactions'}{' '}
+          {deltaPct !== null && (
+            <span className="text-slate-400">
+              · {deltaPct >= 0 ? '+' : ''}
+              {deltaPct}% vs last week
+            </span>
+          )}
         </div>
 
-        {/* Sparkline */}
-        <div className="mt-5 flex h-16 items-end gap-1.5">
-          {daily.map((v, i) => {
-            const h = Math.max(4, Math.round((v / peak) * 56)); // px
-            const isToday = i === daily.length - 1;
-            return (
-              <div
-                key={i}
-                className="flex flex-1 flex-col items-center justify-end"
-                title={`${dayLabels[i]}: ${formatNaira(v)}`}
-              >
+        {/* Chart */}
+        <div className="mt-6">
+          <div className="relative h-24 w-full">
+            {/* horizontal gridlines */}
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-0 h-px bg-slate-100"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-x-0 top-1/2 h-px bg-slate-100"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-x-0 bottom-0 h-px bg-slate-100"
+            />
+
+            <div className="relative flex h-full items-end gap-1.5">
+              {daily.map((v, i) => {
+                const h = Math.max(3, Math.round((v / peak) * 92));
+                const isToday = i === daily.length - 1;
+                return (
+                  <div
+                    key={i}
+                    className="group flex flex-1 flex-col items-center justify-end"
+                    title={`${dayLabels[i]}: ${formatNaira(v)}`}
+                  >
+                    <div
+                      className={cn(
+                        'w-full rounded-t-md transition',
+                        isToday
+                          ? 'bg-gradient-to-t from-brand-500 to-brand-400'
+                          : 'bg-slate-200 group-hover:bg-brand-300',
+                      )}
+                      style={{ height: `${h}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* Day labels */}
+          <div className="mt-2 flex gap-1.5">
+            {dayLabels.map((d, i) => {
+              const isToday = i === dayLabels.length - 1;
+              return (
                 <div
+                  key={d}
                   className={cn(
-                    'w-full rounded-sm transition',
-                    isToday ? 'bg-white' : 'bg-white/40',
-                  )}
-                  style={{ height: `${h}px` }}
-                />
-                <span
-                  className={cn(
-                    'mt-1 text-[9px] font-semibold uppercase',
-                    isToday ? 'text-white' : 'text-white/60',
+                    'flex-1 text-center text-[10px] font-semibold uppercase tracking-wide',
+                    isToday ? 'text-brand-700' : 'text-slate-400',
                   )}
                 >
-                  {dayLabels[i]}
-                </span>
-              </div>
-            );
-          })}
+                  {d}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 /**
  * Pulse KPI card.
  *
- * Small, scan-friendly card showing one metric + context. Supports an
- * optional "goodness" dimension for the delta so a rise in debt shows red
- * while a rise in revenue shows green — the default assumes "higher is better".
+ * Clean vertical rhythm: icon + label at the top, big number in the middle,
+ * sub-text at the bottom. Delta chip sits inline with the label so the card
+ * reads like a newspaper stat block rather than a form.
  */
 
 type Tone = 'brand' | 'danger' | 'warning' | 'neutral';
@@ -22,26 +22,33 @@ type Props = {
   icon?: React.ReactNode;
 };
 
-const TONE: Record<Tone, { value: string; border: string; dot: string }> = {
+const TONE: Record<
+  Tone,
+  { value: string; iconBg: string; iconText: string; accent: string }
+> = {
   brand: {
-    value: 'text-brand-700',
-    border: 'border-brand-100',
-    dot: 'bg-brand-500',
+    value: 'text-ink',
+    iconBg: 'bg-brand-50',
+    iconText: 'text-brand-600',
+    accent: 'bg-brand-500',
   },
   danger: {
-    value: 'text-red-700',
-    border: 'border-red-100',
-    dot: 'bg-red-500',
+    value: 'text-ink',
+    iconBg: 'bg-red-50',
+    iconText: 'text-red-600',
+    accent: 'bg-red-500',
   },
   warning: {
-    value: 'text-amber-700',
-    border: 'border-amber-100',
-    dot: 'bg-amber-500',
+    value: 'text-ink',
+    iconBg: 'bg-amber-50',
+    iconText: 'text-amber-600',
+    accent: 'bg-amber-500',
   },
   neutral: {
     value: 'text-ink',
-    border: 'border-border',
-    dot: 'bg-slate-300',
+    iconBg: 'bg-slate-100',
+    iconText: 'text-slate-600',
+    accent: 'bg-slate-400',
   },
 };
 
@@ -60,16 +67,12 @@ export function KpiCard({
   if (deltaPct !== undefined && deltaPct !== null) {
     const isUp = deltaPct >= 0;
     const isGood = deltaSemantics === 'inverse' ? !isUp : isUp;
-    const tinyIcon = isUp ? (
-      <ArrowUpRight size={11} />
-    ) : (
-      <ArrowDownRight size={11} />
-    );
+    const tinyIcon = isUp ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />;
     deltaNode = (
       <span
         className={cn(
           'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold',
-          isGood ? 'bg-brand-50 text-brand-700' : 'bg-red-50 text-red-700',
+          isGood ? 'bg-success-100 text-success-700' : 'bg-red-50 text-red-700',
         )}
       >
         {tinyIcon}
@@ -80,35 +83,41 @@ export function KpiCard({
   }
 
   return (
-    <div className={cn('card p-4', styling.border)}>
+    <div className="card relative flex h-full flex-col overflow-hidden p-4">
+      {/* Thin accent strip along the left edge */}
+      <span
+        aria-hidden
+        className={cn('absolute inset-y-0 left-0 w-0.5', styling.accent)}
+      />
+
+      {/* Label row */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {icon && (
             <span
               className={cn(
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-md',
-                tone === 'brand'
-                  ? 'bg-brand-50 text-brand-600'
-                  : tone === 'danger'
-                    ? 'bg-red-50 text-red-600'
-                    : tone === 'warning'
-                      ? 'bg-amber-50 text-amber-600'
-                      : 'bg-slate-100 text-slate-500',
+                styling.iconBg,
+                styling.iconText,
               )}
             >
               {icon}
             </span>
           )}
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
             {label}
           </div>
         </div>
         {deltaNode}
       </div>
-      <div className={cn('num mt-2 text-2xl font-black tracking-tight', styling.value)}>
+
+      {/* Value */}
+      <div className={cn('num mt-3 text-2xl font-black leading-none tracking-tight', styling.value)}>
         {value}
       </div>
-      {sub && <div className="mt-0.5 text-xs text-slate-500">{sub}</div>}
+
+      {/* Sub */}
+      {sub && <div className="mt-1.5 text-[11px] text-slate-500">{sub}</div>}
     </div>
   );
 }

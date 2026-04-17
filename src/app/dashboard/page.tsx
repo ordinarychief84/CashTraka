@@ -316,7 +316,13 @@ export default async function DashboardPage() {
   const unverifiedTotal = unverifiedAgg._sum.amount ?? 0;
   const monthExpenses = showExpenses ? expensesThisMonth._sum.amount ?? 0 : 0;
   const netProfit = monthRevenue - monthExpenses;
-  const profitMargin = monthRevenue > 0 ? Math.round((netProfit / monthRevenue) * 100) : null;
+  // Only report a margin when both revenue AND expenses have been logged —
+  // otherwise "100% margin" is misleading for sellers who haven't started
+  // recording expenses yet.
+  const profitMargin =
+    monthRevenue > 0 && monthExpenses > 0
+      ? Math.round((netProfit / monthRevenue) * 100)
+      : null;
 
   // Collection rate — what fraction of what's been billed has been received.
   // billed = revenue + outstanding; collected = revenue.
@@ -407,28 +413,34 @@ export default async function DashboardPage() {
       pendingTaskCount={staffTaskCounts?.pending}
     >
       {/* ───────── Welcome + primary CTA ───────── */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
-            {greetingFor()} {firstName} <span className="inline-block">👋</span>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            {greetingFor()}
+          </div>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-ink md:text-3xl">
+            {firstName}
           </h1>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1.5 text-sm text-slate-600">
             {isStaffPrincipal
-              ? `You're signed in to ${user.businessName || 'the team'}. Here's what's on your plate today.`
+              ? `Signed in to ${user.businessName || 'the team'}. Here's what's on your plate today.`
               : copy.greetingSub}
           </p>
         </div>
         {canWrite && !isStaffPrincipal && (
           <div className="flex flex-wrap gap-2">
+            <Link
+              href="/payments/new"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+            >
+              <Wallet size={15} />
+              Add payment
+            </Link>
             <CreateReceiptButton
               businessName={user.businessName ?? 'Business'}
               variant="primary"
               label="Create receipt"
             />
-            <Link href="/payments/new" className="btn-secondary">
-              <Wallet size={16} />
-              Add payment
-            </Link>
           </div>
         )}
       </div>
@@ -536,7 +548,13 @@ export default async function DashboardPage() {
             <KpiCard
               label={`Net profit · ${monthLabel}`}
               value={formatNaira(netProfit)}
-              sub={profitMargin !== null ? `${profitMargin}% margin` : 'Log expenses to see margin'}
+              sub={
+                profitMargin !== null
+                  ? `${profitMargin}% margin · ${monthLabel}`
+                  : monthRevenue === 0
+                    ? 'No revenue logged yet'
+                    : 'Log expenses to see true margin'
+              }
               tone={netProfit >= 0 ? 'brand' : 'danger'}
               icon={<PiggyBank size={13} />}
             />

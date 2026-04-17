@@ -39,7 +39,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             name="q"
             defaultValue={searchParams.q ?? ''}
             placeholder="Name, email or business name"
-            className="input pl-9"
+            className="input !pl-10"
           />
         </div>
         <select name="role" defaultValue={searchParams.role ?? ''} className="input md:w-40">

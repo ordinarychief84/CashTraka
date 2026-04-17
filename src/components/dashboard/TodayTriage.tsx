@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Package,
   Users2,
+  ListChecks,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -15,14 +16,10 @@ import { cn } from '@/lib/utils';
 /**
  * "Today" triage — the first block on the dashboard.
  *
- * Unifies what were previously two banners + a priority list into a single
- * ranked queue. Rules:
- *   - Items are sorted by money impact (highest first) but critical security
- *     issues (unverified payments) always pin to the top.
- *   - Shows up to 5 items; the rest hide behind a "View all" link.
- *   - If nothing is burning, shows a quiet empty state.
- *
- * This is the only place the owner should need to look at the start of the day.
+ * Softer than the previous loud-red version. Severity is now expressed as a
+ * left-edge accent strip + a small dot + the icon tint, rather than a bright
+ * CRITICAL badge. Makes the dashboard feel like a calm command centre, not a
+ * fire alarm, while still making urgent items scannable.
  */
 
 type Severity = 'critical' | 'warning' | 'info';
@@ -41,22 +38,34 @@ export type TriageItem = {
 
 const SEVERITY_STYLE: Record<
   Severity,
-  { chip: string; ring: string; iconWrap: string }
+  {
+    accent: string;
+    iconWrap: string;
+    dot: string;
+    label: string;
+    labelText: string;
+  }
 > = {
   critical: {
-    chip: 'bg-red-600 text-white',
-    ring: 'ring-red-100',
+    accent: 'bg-red-500',
     iconWrap: 'bg-red-50 text-red-600',
+    dot: 'bg-red-500',
+    label: 'Urgent',
+    labelText: 'text-red-600',
   },
   warning: {
-    chip: 'bg-amber-500 text-white',
-    ring: 'ring-amber-100',
+    accent: 'bg-amber-400',
     iconWrap: 'bg-amber-50 text-amber-700',
+    dot: 'bg-amber-400',
+    label: 'Soon',
+    labelText: 'text-amber-700',
   },
   info: {
-    chip: 'bg-slate-500 text-white',
-    ring: 'ring-slate-100',
+    accent: 'bg-slate-300',
     iconWrap: 'bg-slate-50 text-slate-600',
+    dot: 'bg-slate-300',
+    label: 'Note',
+    labelText: 'text-slate-500',
   },
 };
 
@@ -76,7 +85,7 @@ export function TodayTriage({ items }: { items: TriageItem[] }) {
     return (
       <section className="card p-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-100 text-success-700">
             <CheckCircle2 size={20} />
           </div>
           <div>
@@ -92,16 +101,17 @@ export function TodayTriage({ items }: { items: TriageItem[] }) {
 
   return (
     <section className="card overflow-hidden p-0">
-      <header className="flex items-center justify-between border-b border-border px-5 py-3">
-        <h2 className="text-sm font-bold text-ink">
+      <header className="flex items-center justify-between border-b border-border px-5 py-3.5">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
+          <ListChecks size={15} className="text-slate-400" />
           Today&apos;s priorities
           {criticalCount > 0 && (
-            <span className="ml-2 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">
+            <span className="ml-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-50 px-1.5 text-[10px] font-bold text-red-600 ring-1 ring-red-100">
               {criticalCount}
             </span>
           )}
         </h2>
-        <span className="text-[11px] font-semibold text-slate-500">
+        <span className="text-[11px] font-semibold text-slate-400">
           {ranked.length} {ranked.length === 1 ? 'item' : 'items'}
         </span>
       </header>
@@ -110,16 +120,20 @@ export function TodayTriage({ items }: { items: TriageItem[] }) {
           const style = SEVERITY_STYLE[item.severity];
           const Icon = item.icon;
           return (
-            <li key={item.id}>
+            <li key={item.id} className="relative">
+              {/* Left-edge accent */}
+              <span
+                aria-hidden
+                className={cn('absolute inset-y-0 left-0 w-0.5', style.accent)}
+              />
               <Link
                 href={item.href}
-                className="flex items-center gap-3 px-5 py-3 transition hover:bg-slate-50"
+                className="flex items-center gap-3 px-5 py-3.5 transition hover:bg-slate-50"
               >
                 <div
                   className={cn(
-                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-4',
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
                     style.iconWrap,
-                    style.ring,
                   )}
                 >
                   <Icon size={18} />
@@ -129,17 +143,23 @@ export function TodayTriage({ items }: { items: TriageItem[] }) {
                     <span className="truncate text-sm font-semibold text-ink">
                       {item.title}
                     </span>
-                    {item.severity === 'critical' && (
-                      <span className="rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                        Critical
-                      </span>
-                    )}
+                    <span
+                      className={cn(
+                        'hidden shrink-0 items-center gap-1 text-[10px] font-bold uppercase tracking-wide sm:inline-flex',
+                        style.labelText,
+                      )}
+                    >
+                      <span className={cn('h-1.5 w-1.5 rounded-full', style.dot)} />
+                      {style.label}
+                    </span>
                   </div>
                   {item.subtitle && (
-                    <p className="truncate text-xs text-slate-500">{item.subtitle}</p>
+                    <p className="mt-0.5 truncate text-xs text-slate-500">
+                      {item.subtitle}
+                    </p>
                   )}
                 </div>
-                <ChevronRight size={16} className="shrink-0 text-slate-400" />
+                <ChevronRight size={16} className="shrink-0 text-slate-300" />
               </Link>
             </li>
           );

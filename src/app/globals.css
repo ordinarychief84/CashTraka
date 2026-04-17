@@ -38,6 +38,8 @@ select {
   font-weight: 600;
 }
 
+/* ─── Landing motion primitives ──────────────────────────────────────── */
+
 /* Infinite horizontal marquee used by <Marquee />. Duration is overridden inline. */
 @keyframes marquee {
   from { transform: translateX(0); }
@@ -49,8 +51,76 @@ select {
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* Gentle floating idle loop for hero mockups / feature cards. The distance
+   and speed come from CSS custom properties set by <FloatingCard>. */
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(calc(var(--float-distance, 8px) * -1)); }
+}
+.animate-float {
+  animation: float var(--float-speed, 4s) ease-in-out infinite;
+}
+
+/* Slow, continuous spin — used behind hero glows so the ambience feels alive. */
+@keyframes slow-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.animate-slow-spin {
+  animation: slow-spin 24s linear infinite;
+}
+
+/* Subtle conic-gradient shimmer — applies to any element as a pseudo-layer.
+   Used for CTA shine on hover. */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.35) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.2s ease-in-out infinite;
+}
+
+/* Pulse dot for "live" indicators (active users, live feed). */
+@keyframes live-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(139, 217, 30, 0.55); }
+  70%     { box-shadow: 0 0 0 8px rgba(139, 217, 30, 0); }
+}
+.animate-live-pulse {
+  animation: live-pulse 1.8s ease-out infinite;
+}
+
+/* Soft rise of the arrow/icon on primary CTA hover. */
+.btn-primary > svg,
+.btn-secondary > svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-primary:hover > svg,
+.btn-secondary:hover > svg {
+  transform: translateX(2px);
+}
+
+/* Respect user preference — kill every decorative animation when the user
+   has asked their OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee { animation: none; }
+  .animate-marquee,
+  .animate-float,
+  .animate-slow-spin,
+  .animate-shimmer,
+  .animate-live-pulse {
+    animation: none !important;
+  }
+  .btn-primary > svg,
+  .btn-secondary > svg {
+    transition: none !important;
+  }
 }
 
 /* Utility helpers */

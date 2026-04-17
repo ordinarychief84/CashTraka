@@ -6,6 +6,7 @@ import { Store, Home, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Reveal } from './Reveal';
 import { HeroMockup } from './HeroMockup';
+import { FloatingCard } from './FloatingCard';
 
 type IC = 'seller' | 'property_manager';
 
@@ -91,8 +92,10 @@ export function HeroICP() {
               Set up in under 5 minutes · No card required · Works on any phone
             </p>
           </Reveal>
-          <Reveal from="right" delay={150} className="order-first md:order-last">
-            <HeroMockup />
+          <Reveal from="right" delay={150} distance={36} blur className="order-first md:order-last">
+            <FloatingCard distance={10} speed={5}>
+              <HeroMockup />
+            </FloatingCard>
           </Reveal>
         </div>
       </div>

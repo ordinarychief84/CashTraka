@@ -1,28 +1,36 @@
 import { cn } from '@/lib/utils';
 
-type Size = 'sm' | 'md' | 'lg';
+type Size = 'sm' | 'md' | 'lg' | 'xl';
 
+/**
+ * Display sizes tuned so the mark keeps real visual presence at every
+ * context. Previous `md` was 36px which read as a thumbnail — bumped so the
+ * brand doesn't disappear in chrome.
+ */
 const iconBox: Record<Size, string> = {
-  sm: 'h-7 w-7',
-  md: 'h-9 w-9',
-  lg: 'h-11 w-11',
+  sm: 'h-8 w-8',   // 32px — tight contexts (mobile bottom bars, print)
+  md: 'h-10 w-10', // 40px — navbar, app shell
+  lg: 'h-14 w-14', // 56px — auth pages, section accents
+  xl: 'h-20 w-20', // 80px — marketing hero
 };
 
 const wordmark: Record<Size, string> = {
   sm: 'text-base',
-  md: 'text-lg',
+  md: 'text-xl',
   lg: 'text-2xl',
+  xl: 'text-3xl',
 };
 
 /**
  * CashTraka mark — two-half circular logo.
  *
- * Top half (cyan) and bottom half (lime) mirror the brand palette defined in
- * `tailwind.config.ts` (brand-500 ≈ #00B8E8, success-500 ≈ #8BD91E). The path
- * shapes are intentionally asymmetric to create the stylised "S" twist.
+ * Top (cyan) and bottom (lime) halves mirror `brand-500` / `success-500` in
+ * tailwind.config. Rendered as inline SVG (not <img>) so it stays crisp on
+ * retina and scales via Tailwind utility classes.
  *
- * Rendered as inline SVG (not `<img>`) so it scales, stays crisp on retina,
- * and can inherit sizing from Tailwind utilities.
+ * The paths are tuned to match the official logo's asymmetric "S" twist
+ * (top dome dips slightly right, bottom dome dips slightly left) — keep in
+ * sync with `public/logo.svg`, `src/app/icon.svg`, `public/manifest`.
  */
 export function LogoIcon({
   size = 'md',
@@ -87,13 +95,15 @@ export function Logo({
 
   if (href) {
     return (
-      <a href={href} className={cn('inline-flex items-center gap-2', className)}>
+      <a href={href} className={cn('inline-flex items-center gap-2.5', className)}>
         {content}
       </a>
     );
   }
   return (
-    <span className={cn('inline-flex items-center gap-2', className)}>{content}</span>
+    <span className={cn('inline-flex items-center gap-2.5', className)}>
+      {content}
+    </span>
   );
 }
 

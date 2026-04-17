@@ -21,6 +21,10 @@ import { FAQ } from '@/components/marketing/FAQ';
 import { HeroMockup } from '@/components/marketing/HeroMockup';
 import { HeroICP } from '@/components/marketing/HeroICP';
 import { Reveal } from '@/components/marketing/Reveal';
+import { Stagger } from '@/components/marketing/Stagger';
+import { AnimatedStat } from '@/components/marketing/AnimatedStat';
+import { HoverLift } from '@/components/marketing/HoverLift';
+import { ScrollProgress } from '@/components/marketing/ScrollProgress';
 import { Marquee } from '@/components/marketing/Marquee';
 import { FeatureCarousel } from '@/components/marketing/FeatureCarousel';
 import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
@@ -28,10 +32,12 @@ import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-ink">
+      <ScrollProgress />
       <Navbar />
       <main>
         <HeroICP />
         <AudienceMarquee />
+        <SocialProof />
         <Problem />
         <Solution />
         <DeepDives />
@@ -102,19 +108,80 @@ function AudienceMarquee() {
     'Rental agents',
     'Small business owners',
   ];
-  const items = chips.map((c) => (
-    <span className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700">
+  const items = chips.map((c, i) => (
+    <span
+      key={`${c}-${i}`}
+      className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-400 hover:text-brand-700"
+    >
       {c}
     </span>
   ));
   return (
     <section className="border-y border-border bg-slate-50 py-8">
       <div className="container-app mb-4">
-        <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Built for real sellers
-        </p>
+        <Reveal from="zoom" distance={10}>
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Built for real sellers
+          </p>
+        </Reveal>
       </div>
       <Marquee items={items} speed={35} />
+    </section>
+  );
+}
+
+/* ---------------------- 2b. SOCIAL PROOF (trust stats) --------------------- */
+
+function SocialProof() {
+  return (
+    <section className="py-14 md:py-16">
+      <div className="container-app">
+        <Reveal from="up" blur>
+          <p className="text-center text-xs font-semibold uppercase tracking-wider text-brand-600">
+            Built by sellers · for sellers
+          </p>
+          <h2 className="mx-auto mt-3 max-w-2xl text-center text-2xl font-black tracking-tight text-ink md:text-3xl">
+            The tool Nigerian SMBs lean on to recover real money
+          </h2>
+        </Reveal>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <Stagger step={120} from="up">
+            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Average seller recovers
+              </div>
+              <div className="mt-3 text-4xl font-black text-brand-700">
+                <AnimatedStat prefix="₦" value={150_000} suffix="+" />
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                in previously-forgotten debts, within the first 30 days.
+              </p>
+            </div>
+            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Setup time
+              </div>
+              <div className="mt-3 text-4xl font-black text-success-700">
+                <AnimatedStat value={5} suffix=" min" />
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                from signup to recording your first payment. No tutorials.
+              </p>
+            </div>
+            <div className="card p-6 text-center transition hover:-translate-y-1 hover:shadow-lg">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Collection rate
+              </div>
+              <div className="mt-3 text-4xl font-black text-brand-700">
+                <AnimatedStat value={82} suffix="%" />
+              </div>
+              <p className="mt-2 text-xs text-slate-600">
+                average of what&apos;s owed comes in — vs 54% on spreadsheets.
+              </p>
+            </div>
+          </Stagger>
+        </div>
+      </div>
     </section>
   );
 }
@@ -151,11 +218,11 @@ function Problem() {
       title="If you sell on WhatsApp, you are already losing money"
       subtitle="Customers say they have paid but you are not sure. Some people owe you and you forget to follow up. Old customers disappear because you never check in. Important chats get buried and lost."
     >
-      <div className="grid gap-4 md:grid-cols-2">
-        {pains.map((p, i) => (
-          <Reveal key={p.title} delay={i * 80}>
-            <div className="card flex h-full gap-4 p-5 transition hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-owed-50 text-owed-600">
+      <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
+        {pains.map((p) => (
+          <HoverLift key={p.title}>
+            <div className="card flex h-full gap-4 p-5 transition">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-owed-50 text-owed-600 transition group-hover:scale-110 group-hover:bg-owed-100">
                 <p.icon size={20} />
               </div>
               <div>
@@ -163,10 +230,10 @@ function Problem() {
                 <p className="mt-1 text-sm text-slate-600">{p.body}</p>
               </div>
             </div>
-          </Reveal>
+          </HoverLift>
         ))}
-      </div>
-      <Reveal delay={320}>
+      </Stagger>
+      <Reveal delay={400} from="zoom" distance={14}>
         <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
           You are not running a system. You are reacting to messages.
         </p>
@@ -298,22 +365,27 @@ function HowItWorks() {
       title="Simple. Fast. Works from day one."
     >
       <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
-        {/* Desktop connector line */}
+        {/* Desktop connector line — animated gradient sweep */}
         <div
           aria-hidden
-          className="absolute left-0 right-0 top-6 hidden h-0.5 bg-brand-100 md:block"
-        />
-        {steps.map((s, i) => (
-          <Reveal key={s.n} delay={i * 120} className="relative">
-            <div className="relative z-10 mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-lg font-black text-white shadow-md">
-              {s.n}
+          className="absolute left-0 right-0 top-6 hidden h-0.5 overflow-hidden bg-brand-100 md:block"
+        >
+          <div className="h-full w-1/2 animate-shimmer bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
+        </div>
+        <Stagger step={140} from="up" className="contents">
+          {steps.map((s) => (
+            <div key={s.n} className="relative">
+              <div className="group/step relative z-10 mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-lg font-black text-white shadow-md transition hover:scale-110 hover:shadow-lg">
+                <span className="absolute inset-0 rounded-full bg-brand-500 opacity-40 blur-lg transition group-hover/step:opacity-70" />
+                <span className="relative">{s.n}</span>
+              </div>
+              <div className="mt-4 text-center">
+                <h3 className="text-lg font-semibold text-ink">{s.title}</h3>
+                <p className="mt-1 text-sm text-slate-600">{s.body}</p>
+              </div>
             </div>
-            <div className="mt-4 text-center">
-              <h3 className="text-lg font-semibold text-ink">{s.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">{s.body}</p>
-            </div>
-          </Reveal>
-        ))}
+          ))}
+        </Stagger>
       </div>
     </Section>
   );
@@ -334,18 +406,18 @@ function ValueSection() {
       title="Make more money without finding new customers"
       subtitle="Most sellers do not need more customers. They need to manage the ones they already have."
     >
-      <div className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
-        {wins.map((w, i) => (
-          <Reveal key={w.label} delay={i * 80}>
-            <div className="card flex items-center gap-3 p-4 transition hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+      <Stagger step={90} from="left" className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
+        {wins.map((w) => (
+          <HoverLift key={w.label}>
+            <div className="card flex items-center gap-3 p-4 transition">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-100 group-hover:scale-110">
                 <w.icon size={18} />
               </div>
               <span className="font-medium text-slate-800">{w.label}</span>
             </div>
-          </Reveal>
+          </HoverLift>
         ))}
-      </div>
+      </Stagger>
     </Section>
   );
 }
@@ -364,20 +436,20 @@ function Objections() {
       eyebrow="We keep it simple"
       title="You do not need another complicated tool"
     >
-      <div className="grid gap-4 md:grid-cols-3">
-        {items.map((it, i) => (
-          <Reveal key={it.title} delay={i * 100}>
-            <div className="card p-6 transition hover:-translate-y-0.5 hover:shadow-md">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+      <Stagger step={100} from="zoom" distance={18} className="grid gap-4 md:grid-cols-3">
+        {items.map((it) => (
+          <HoverLift key={it.title}>
+            <div className="card p-6 transition">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-100 group-hover:rotate-6">
                 <Sparkles size={20} />
               </div>
               <h3 className="font-semibold text-ink">{it.title}</h3>
               <p className="mt-1 text-sm text-slate-600">{it.body}</p>
             </div>
-          </Reveal>
+          </HoverLift>
         ))}
-      </div>
-      <Reveal delay={350}>
+      </Stagger>
+      <Reveal delay={400} from="zoom" distance={14}>
         <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
           If you can use WhatsApp, you can use CashTraka.
         </p>
@@ -428,29 +500,43 @@ function FinalCTA() {
   return (
     <section className="py-16 md:py-24">
       <div className="container-app">
-        <Reveal>
-          <div className="relative overflow-hidden rounded-3xl bg-brand-500 px-6 py-12 text-center text-white md:px-12 md:py-16">
-            <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-              You already did the hard part. You got the customers.
-            </h2>
-            <p className="mt-3 text-lg text-white/90">Now stop losing money from them.</p>
-            <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/signup"
-                className="btn inline-flex bg-white text-brand-700 hover:bg-brand-50"
-              >
-                Start free
-              </Link>
-              <Link
-                href="/login"
-                className="btn inline-flex border border-white/40 bg-transparent text-white hover:bg-white/10"
-              >
-                Sign in
-              </Link>
+        <Reveal from="zoom" distance={20} blur>
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-success-500 px-6 py-12 text-center text-white md:px-12 md:py-16">
+            {/* Ambient glows — slow-spin gives the background faint motion */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-slow-spin"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-success-300/30 blur-3xl animate-slow-spin"
+              style={{ animationDuration: '32s', animationDirection: 'reverse' }}
+            />
+            <div className="relative">
+              <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
+                You already did the hard part. You got the customers.
+              </h2>
+              <p className="mt-3 text-lg text-white/90">Now stop losing money from them.</p>
+              <div className="mt-7 flex flex-wrap justify-center gap-3">
+                <Link
+                  href="/signup"
+                  className="btn group/cta relative inline-flex overflow-hidden bg-white text-brand-700 shadow-lg hover:bg-brand-50"
+                >
+                  {/* Shimmer sweep on hover */}
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-brand-200/60 to-transparent transition-transform duration-700 group-hover/cta:translate-x-full" />
+                  <span className="relative font-bold">Start free</span>
+                </Link>
+                <Link
+                  href="/login"
+                  className="btn inline-flex border border-white/40 bg-transparent text-white hover:bg-white/10"
+                >
+                  Sign in
+                </Link>
+              </div>
+              <p className="mt-4 text-sm text-white/80">
+                Set up in minutes. See value the same day.
+              </p>
             </div>
-            <p className="mt-4 text-sm text-white/80">
-              Set up in minutes. See value the same day.
-            </p>
           </div>
         </Reveal>
       </div>

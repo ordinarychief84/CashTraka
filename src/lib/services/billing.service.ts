@@ -353,13 +353,22 @@ export const billingService = {
       plan: args.plan,
       subscriptionStatus: status,
     };
-    // When flipping to a paid plan, extend the period end.
+    // When flipping to a paid plan, set the right time boundary for the
+    // lifecycle state. effectivePlan() treats a `trialing` row with a null
+    // trialEndsAt as already expired, and an `active` row with a null
+    // currentPeriodEnd as already expired — so we must always set them here
+    // or the user silently lands on Free.
     if (status === 'active' && args.plan !== 'free') {
       const pricing = isPaidPlan(args.plan) ? PLAN_PRICING[args.plan] : null;
       data.currentPeriodEnd = daysFromNow(pricing?.cycleDays ?? DEFAULT_CYCLE_DAYS);
       data.pendingPlan = null;
+    } else if (status === 'trialing' && args.plan !== 'free') {
+      // Admin-granted trial — default window = TRIAL_DAYS (14).
+      data.trialEndsAt = daysFromNow(TRIAL_DAYS);
+      data.pendingPlan = null;
     } else if (args.plan === 'free') {
       data.currentPeriodEnd = null;
+      data.trialEndsAt = null;
       data.pendingPlan = null;
     }
 

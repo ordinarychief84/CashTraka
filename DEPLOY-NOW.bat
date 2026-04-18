@@ -19,7 +19,7 @@ git add -A
 echo.
 
 echo [4/5] Committing changes...
-git commit -m "fix: email service syntax - add comma after sendVerificationOtp method"
+git commit -m "feat: add pricing page with plan tiers, comparison table, and FAQ"
 if %ERRORLEVEL% NEQ 0 (
     echo No new changes to commit, pushing existing commits...
 )

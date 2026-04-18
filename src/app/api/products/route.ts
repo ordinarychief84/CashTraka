@@ -6,7 +6,7 @@ import { requireFeature } from '@/lib/gate';
 
 export async function GET() {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const products = await prisma.product.findMany({
     where: { userId: user.id, archived: false },
     orderBy: { name: 'asc' },
@@ -16,14 +16,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const feature = requireFeature(user, 'products');
   if (feature) return feature;
 
   const body = await req.json();
   const parsed = productSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },

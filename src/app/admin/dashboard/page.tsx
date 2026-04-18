@@ -202,6 +202,12 @@ export default async function AdminDashboardPage() {
             icon={<AlertTriangle size={12} />}
           />
           <AdminKpi
+            label="Expenses · this month"
+            value={formatNaira(platform.expensesThisMonth)}
+            sub={`${platform.expenseCount} entries across tenants`}
+            icon={<CreditCard size={12} />}
+          />
+          <AdminKpi
             label="Billing success · 30d"
             value={
               billing.attemptsLast30d.successRatePct === null

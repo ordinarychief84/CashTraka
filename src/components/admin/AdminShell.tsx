@@ -22,7 +22,6 @@ import { Logo } from '@/components/Logo';
 type Props = {
   children: ReactNode;
   adminName?: string;
-  /** Current page path for active nav highlighting */
   activePath?: string;
 };
 
@@ -39,20 +38,12 @@ const NAV_ITEMS = [
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
-/**
- * Admin layout shell. Visually distinct from the seller app (dark sidebar,
- * lime accent) so it's obvious you're in the privileged area.
- */
 export function AdminShell({ children, adminName, activePath }: Props) {
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* ── Desktop sidebar ── */}
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-slate-800 bg-slate-900 text-slate-200 md:flex">
         <div className="flex h-16 items-center justify-between border-b border-slate-800 px-5">
-          <Link
-            href="/admin/dashboard"
-            className="inline-flex items-center gap-2"
-          >
+          <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
             <Logo size="md" variant="light" />
           </Link>
           <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
@@ -104,7 +95,6 @@ export function AdminShell({ children, adminName, activePath }: Props) {
         </div>
       </aside>
 
-      {/* ── Mobile top bar ── */}
       <header className="sticky top-0 z-20 border-b border-border bg-slate-900 md:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
@@ -131,7 +121,6 @@ export function AdminShell({ children, adminName, activePath }: Props) {
             </form>
           </div>
         </div>
-        {/* Mobile nav tabs */}
         <div className="flex gap-0.5 overflow-x-auto px-4 pb-2">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;

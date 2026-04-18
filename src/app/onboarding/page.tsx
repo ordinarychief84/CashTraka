@@ -7,40 +7,20 @@ export const dynamic = 'force-dynamic';
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
-  if (!user) redirect('/login');
-  if (!user.emailVerified) redirect('/verify-email');
+  if (\!user) redirect('/login');
+  if (\!user.emailVerified) redirect('/verify-email');
   if (user.onboardingCompleted) redirect('/dashboard');
 
   const isPm = user.businessType === 'property_manager';
 
-  // Fetch both sets in parallel — we pass them to Onboarding which picks
-  // the right path. Unused fields are cheap and simplify props.
-  const [
-    payments,
-    debts,
-    latestDebt,
-    properties,
-    tenants,
-    latestProperty,
-    latestTenant,
-  ] = await Promise.all([
+  const [payments, debts, latestDebt, properties, tenants, latestProperty, latestTenant] = await Promise.all([
     prisma.payment.count({ where: { userId: user.id } }),
     prisma.debt.count({ where: { userId: user.id } }),
-    prisma.debt.findFirst({
-      where: { userId: user.id, status: 'OPEN' },
-      orderBy: { createdAt: 'desc' },
-    }),
+    prisma.debt.findFirst({ where: { userId: user.id, status: 'OPEN' }, orderBy: { createdAt: 'desc' } }),
     prisma.property.count({ where: { userId: user.id } }),
     prisma.tenant.count({ where: { userId: user.id } }),
-    prisma.property.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.tenant.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      include: { property: { select: { name: true } } },
-    }),
+    prisma.property.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } }),
+    prisma.tenant.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, include: { property: { select: { name: true } } } }),
   ]);
 
   return (
@@ -67,4 +47,10 @@ export default async function OnboardingPage() {
               name: latestTenant.name,
               phone: latestTenant.phone,
               rentAmount: latestTenant.rentAmount,
-              propertyName: latestTenant.pr
+              propertyName: latestTenant.property.name,
+            }
+          : null,
+      }}
+    />
+  );
+}

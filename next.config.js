@@ -10,9 +10,6 @@ const nextConfig = {
 
   /**
    * Headers for the PWA service worker + manifest.
-   *  - /sw.js:                   registered with scope "/", never cached so new
-   *                              releases roll out fast.
-   *  - /manifest.webmanifest:    served with the official content-type.
    */
   async headers() {
     return [

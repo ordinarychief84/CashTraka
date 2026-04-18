@@ -36,7 +36,7 @@ export function FraudWarning({ phone, customerName }: Props) {
   }, [phone]);
 
   async function unreport() {
-    if (!confirm('Remove your fraud report for this number?')) return;
+    if (\!confirm('Remove your fraud report for this number?')) return;
     setLoading(true);
     try {
       await fetch(`/api/fraud-reports?phone=${encodeURIComponent(phone)}`, {
@@ -48,7 +48,7 @@ export function FraudWarning({ phone, customerName }: Props) {
     }
   }
 
-  if (!stats) return null;
+  if (\!stats) return null;
 
   const othersCount = stats.reports - (stats.youReported ? 1 : 0);
 
@@ -67,7 +67,7 @@ export function FraudWarning({ phone, customerName }: Props) {
                 {stats.youReported && othersCount > 0 && (
                   <>Reported by you and {othersCount} other seller{othersCount === 1 ? '' : 's'}.</>
                 )}
-                {!stats.youReported && othersCount > 0 && (
+                {\!stats.youReported && othersCount > 0 && (
                   <>Reported by {othersCount} seller{othersCount === 1 ? '' : 's'} on CashTraka.</>
                 )}
               </div>

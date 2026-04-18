@@ -19,19 +19,19 @@ const schema = z.object({
  */
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const debt = await prisma.debt.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (debt.status === 'PAID') {
     return NextResponse.json({ error: 'This debt is already paid' }, { status: 409 });
   }
 
   const body = await req.json().catch(() => ({}));
   const parsed = schema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },

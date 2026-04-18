@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: { kind: string } },
 ) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const feature = requireFeature(user, 'csvExport');
   if (feature) return feature;
@@ -98,7 +98,7 @@ export async function GET(
   // Property-manager-specific exports. Gate them behind the PM business type so
   // a seller with a paid plan can't accidentally hit these.
   if (kind === 'tenants') {
-    if (user.businessType !== 'property_manager') {
+    if (user.businessType \!== 'property_manager') {
       return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
     }
     const rows = await prisma.tenant.findMany({
@@ -125,7 +125,7 @@ export async function GET(
   }
 
   if (kind === 'properties') {
-    if (user.businessType !== 'property_manager') {
+    if (user.businessType \!== 'property_manager') {
       return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
     }
     const rows = await prisma.property.findMany({

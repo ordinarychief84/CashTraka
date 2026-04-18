@@ -30,7 +30,6 @@ export default async function PropertiesPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  // Compute totals
   let totalExpected = 0;
   let totalCollected = 0;
   let totalTenants = 0;

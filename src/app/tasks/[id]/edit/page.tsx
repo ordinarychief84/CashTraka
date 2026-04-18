@@ -12,7 +12,7 @@ export default async function EditTaskPage({ params }: { params: { id: string } 
   const task = await prisma.task.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!task) notFound();
+  if (\!task) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

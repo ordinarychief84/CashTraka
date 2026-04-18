@@ -33,7 +33,7 @@ function newReference(): string {
 }
 
 function ensurePaidPlan(plan: string): asserts plan is PaidPlanKey {
-  if (!isPaidPlan(plan)) {
+  if (\!isPaidPlan(plan)) {
     throw Err.validation(`Unknown paid plan "${plan}"`);
   }
 }
@@ -46,11 +46,11 @@ export const billingService = {
   async startTrial(userId: string, targetPlan: string) {
     ensurePaidPlan(targetPlan);
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw Err.notFound('User not found');
+    if (\!user) throw Err.notFound('User not found');
     if (user.trialEndsAt) {
       throw Err.conflict('You have already used your trial.');
     }
-    if (user.subscriptionStatus !== 'free' && user.subscriptionStatus !== null) {
+    if (user.subscriptionStatus \!== 'free' && user.subscriptionStatus \!== null) {
       throw Err.conflict('Cannot start a trial with an existing subscription.');
     }
 
@@ -89,7 +89,7 @@ export const billingService = {
     const pricing = PLAN_PRICING[targetPlan];
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw Err.notFound('User not found');
+    if (\!user) throw Err.notFound('User not found');
 
     const reference = newReference();
     const callbackUrl =
@@ -117,7 +117,7 @@ export const billingService = {
       metadata: { userId: user.id, targetPlan },
     });
 
-    if (!init.ok) {
+    if (\!init.ok) {
       await prisma.paymentAttempt.update({
         where: { id: attempt.id },
         data: { status: 'failed' },
@@ -153,7 +153,7 @@ export const billingService = {
     const attempt = await prisma.paymentAttempt.findUnique({
       where: { paystackReference: reference },
     });
-    if (!attempt) throw Err.notFound('Payment attempt not found');
+    if (\!attempt) throw Err.notFound('Payment attempt not found');
 
     // Idempotent short-circuit: already completed.
     if (attempt.status === 'success') {
@@ -163,12 +163,12 @@ export const billingService = {
 
     // Authoritative verify against Paystack.
     const verify = await paystackService.verifyTransaction(reference);
-    if (!verify.ok) {
+    if (\!verify.ok) {
       return { status: 'pending', userId: attempt.userId };
     }
     const paystackStatus = verify.data.status;
 
-    if (paystackStatus !== 'success') {
+    if (paystackStatus \!== 'success') {
       await prisma.paymentAttempt.update({
         where: { id: attempt.id },
         data: {
@@ -185,7 +185,7 @@ export const billingService = {
     }
 
     // Sanity check: amount charged matches what we expected.
-    if (verify.data.amount !== attempt.amount) {
+    if (verify.data.amount \!== attempt.amount) {
       await prisma.paymentAttempt.update({
         where: { id: attempt.id },
         data: { status: 'failed' },
@@ -232,7 +232,7 @@ export const billingService = {
   /** Flag a user as past-due. Called from the `invoice.payment_failed` webhook. */
   async markPastDue(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return;
+    if (\!user) return;
     await prisma.user.update({
       where: { id: userId },
       data: { subscriptionStatus: 'past_due' },
@@ -254,7 +254,7 @@ export const billingService = {
    */
   async cancel(userId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw Err.notFound('User not found');
+    if (\!user) throw Err.notFound('User not found');
     if (user.subscriptionStatus === 'free') {
       throw Err.conflict('No active subscription to cancel.');
     }
@@ -266,7 +266,7 @@ export const billingService = {
     if (
       user.subscriptionStatus === 'trialing' &&
       user.trialEndsAt &&
-      !user.currentPeriodEnd
+      \!user.currentPeriodEnd
     ) {
       data.currentPeriodEnd = user.trialEndsAt;
     }
@@ -302,8 +302,8 @@ export const billingService = {
     subscriptionStatus: string | null;
     trialEndsAt: Date | null;
   }) {
-    if (user.subscriptionStatus !== 'trialing') return;
-    if (!user.trialEndsAt) return;
+    if (user.subscriptionStatus \!== 'trialing') return;
+    if (\!user.trialEndsAt) return;
     if (user.trialEndsAt.getTime() > Date.now()) return;
 
     const planLabel = PLAN_LABELS[user.plan as keyof typeof PLAN_LABELS] ?? user.plan;
@@ -339,7 +339,7 @@ export const billingService = {
         pendingPlan: true,
       },
     });
-    if (!user) throw Err.notFound('User not found');
+    if (\!user) throw Err.notFound('User not found');
     return user;
   },
 
@@ -355,10 +355,10 @@ export const billingService = {
     reason?: string;
   }) {
     const user = await prisma.user.findUnique({ where: { id: args.userId } });
-    if (!user) throw Err.notFound('User not found');
+    if (\!user) throw Err.notFound('User not found');
 
     let status = args.status;
-    if (!status) {
+    if (\!status) {
       status = args.plan === 'free' ? 'free' : 'active';
     }
 
@@ -371,11 +371,11 @@ export const billingService = {
     // trialEndsAt as already expired, and an `active` row with a null
     // currentPeriodEnd as already expired — so we must always set them here
     // or the user silently lands on Free.
-    if (status === 'active' && args.plan !== 'free') {
+    if (status === 'active' && args.plan \!== 'free') {
       const pricing = isPaidPlan(args.plan) ? PLAN_PRICING[args.plan] : null;
       data.currentPeriodEnd = daysFromNow(pricing?.cycleDays ?? DEFAULT_CYCLE_DAYS);
       data.pendingPlan = null;
-    } else if (status === 'trialing' && args.plan !== 'free') {
+    } else if (status === 'trialing' && args.plan \!== 'free') {
       // Admin-granted trial — default window = TRIAL_DAYS (14).
       data.trialEndsAt = daysFromNow(TRIAL_DAYS);
       data.pendingPlan = null;

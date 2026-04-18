@@ -185,7 +185,7 @@ export function VerifyDialog({ open, onClose, payment }: Props) {
               <div className="mt-2 rounded-md bg-white px-2 py-1.5 text-[11px] text-slate-600">
                 We read: {formatNaira(result.parsed.amount)}
                 {result.parsed.sender ? ` · from ${result.parsed.sender}` : ''}
-                {result.parsed.ref ? ` · ref “${result.parsed.ref}”` : ''}
+                {result.parsed.ref ? ` · ref "${result.parsed.ref}"` : ''}
               </div>
             )}
           </div>

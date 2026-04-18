@@ -28,16 +28,16 @@ const patchSchema = z.object({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const debt = await prisma.debt.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -68,7 +68,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   // If debt is being marked PAID (and wasn't already), auto-create a payment
   // record for the remaining balance so "Total received" reflects it, and
   // return a receipt URL the UI can use to auto-send.
-  const transitioningToPaid = status === 'PAID' && debt.status !== 'PAID';
+  const transitioningToPaid = status === 'PAID' && debt.status \!== 'PAID';
   let autoReceiptPaymentId: string | null = null;
 
   if (transitioningToPaid) {
@@ -106,7 +106,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   });
 
   await recomputeCustomerTotals(customerId);
-  if (prevCustomerId !== customerId) {
+  if (prevCustomerId \!== customerId) {
     await recomputeCustomerTotals(prevCustomerId);
   }
 
@@ -130,12 +130,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const debt = await prisma.debt.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.debt.delete({ where: { id: debt.id } });
   await recomputeCustomerTotals(debt.customerId);

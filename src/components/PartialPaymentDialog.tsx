@@ -71,7 +71,7 @@ export function PartialPaymentDialog({ open, onClose, debt }: Props) {
 
         <h2 className="text-lg font-bold text-ink">Record a payment</h2>
         <p className="mt-1 text-sm text-slate-600">
-          Against <span className="font-semibold text-ink">{debt.customerName}</span>’s debt.
+          Against <span className="font-semibold text-ink">{debt.customerName}</span>'s debt.
         </p>
 
         <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-border bg-slate-50 p-3 text-center">
@@ -96,7 +96,7 @@ export function PartialPaymentDialog({ open, onClose, debt }: Props) {
               autoFocus
             />
             <p className="mt-1 text-xs text-slate-500">
-              Recording this also adds a payment to your “Total received”.
+              Recording this also adds a payment to your "Total received".
             </p>
           </div>
           {error && (

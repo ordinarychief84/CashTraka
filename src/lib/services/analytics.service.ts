@@ -165,6 +165,7 @@ export const analyticsService = {
       recentSignups,
       recentPayments,
       recentCancellations,
+      platformExpensesAgg,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { createdAt: { gte: last7 } } }),
@@ -266,6 +267,12 @@ export const analyticsService = {
           currentPeriodEnd: true,
           updatedAt: true,
         },
+      }),
+      // Platform-wide expense totals this month
+      prisma.expense.aggregate({
+        where: { incurredOn: { gte: monthStart } },
+        _sum: { amount: true },
+        _count: true,
       }),
     ]);
 
@@ -379,6 +386,8 @@ export const analyticsService = {
         txnsThisMonth: gmvThisMonth._count,
         outstandingDebt,
         avgTxn: Math.round(avgTxnAgg._avg.amount ?? 0),
+        expensesThisMonth: platformExpensesAgg._sum.amount ?? 0,
+        expenseCount: platformExpensesAgg._count,
       },
       topTenants: topTenants.map((t) => ({
         userId: t.userId,

@@ -12,7 +12,7 @@ export default async function EditExpensePage({ params }: { params: { id: string
   const expense = await prisma.expense.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!expense) notFound();
+  if (\!expense) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

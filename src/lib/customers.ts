@@ -53,7 +53,7 @@ export async function upsertCustomer(
       currentPeriodEnd: owner.currentPeriodEnd,
     });
     const limits = limitsFor(eff.plan);
-    if (limits.customers !== null) {
+    if (limits.customers \!== null) {
       const currentCount = await prisma.customer.count({ where: { userId } });
       if (currentCount >= limits.customers) {
         throw Err.paymentRequired(

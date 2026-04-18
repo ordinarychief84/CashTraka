@@ -183,7 +183,7 @@ export function requireFeature(
 ): NextResponse | null {
   const { limits } = resolveLimits(user);
   const allowed = limits[feature];
-  if (typeof allowed === 'boolean' && !allowed) {
+  if (typeof allowed === 'boolean' && \!allowed) {
     const status = isSubscriptionLapsed(user) ? 402 : 403;
     return denyQuota(user, 'This feature requires a paid plan.', status);
   }

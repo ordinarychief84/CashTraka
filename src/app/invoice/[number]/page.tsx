@@ -26,38 +26,25 @@ export default async function PublicInvoicePage({ params }: Props) {
       items: true,
     },
   });
-  if (!invoice) notFound();
+  if (\!invoice) notFound();
 
   const business = invoice.user.businessName || 'Seller';
   const hasBank = invoice.user.bankName && invoice.user.bankAccountNumber;
 
-  const StatusIcon =
-    invoice.status === 'PAID' ? Check
-    : invoice.status === 'CANCELLED' ? XCircle
-    : Clock3;
-  const statusLabel =
-    invoice.status === 'PAID' ? 'Paid'
-    : invoice.status === 'CANCELLED' ? 'Cancelled'
-    : invoice.status === 'SENT' ? 'Awaiting payment'
-    : 'Draft';
-  const statusColor =
-    invoice.status === 'PAID' ? 'bg-success-50 text-success-700'
-    : invoice.status === 'CANCELLED' ? 'bg-red-50 text-red-700'
-    : 'bg-owed-50 text-owed-700';
+  const StatusIcon = invoice.status === 'PAID' ? Check : invoice.status === 'CANCELLED' ? XCircle : Clock3;
+  const statusLabel = invoice.status === 'PAID' ? 'Paid' : invoice.status === 'CANCELLED' ? 'Cancelled' : invoice.status === 'SENT' ? 'Awaiting payment' : 'Draft';
+  const statusColor = invoice.status === 'PAID' ? 'bg-success-50 text-success-700' : invoice.status === 'CANCELLED' ? 'bg-red-50 text-red-700' : 'bg-owed-50 text-owed-700';
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-lg px-4">
         <div className="rounded-2xl bg-white shadow-sm ring-1 ring-border">
-          {/* Header */}
           <div className="border-b border-border px-6 py-5">
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-mono text-xs font-bold text-brand-600">{invoice.invoiceNumber}</div>
                 <div className="mt-1 text-xl font-bold text-ink">{business}</div>
-                {invoice.user.businessAddress && (
-                  <div className="mt-0.5 text-xs text-slate-500">{invoice.user.businessAddress}</div>
-                )}
+                {invoice.user.businessAddress && (<div className="mt-0.5 text-xs text-slate-500">{invoice.user.businessAddress}</div>)}
               </div>
               <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold ${statusColor}`}>
                 <StatusIcon size={13} />
@@ -66,7 +53,6 @@ export default async function PublicInvoicePage({ params }: Props) {
             </div>
           </div>
 
-          {/* Billing */}
           <div className="border-b border-border px-6 py-5 text-sm">
             <Row label="Invoice to" value={invoice.customerName} />
             <Row label="Phone" value={invoice.customerPhone} />
@@ -75,7 +61,6 @@ export default async function PublicInvoicePage({ params }: Props) {
             {invoice.dueDate && <Row label="Due" value={formatDate(invoice.dueDate)} />}
           </div>
 
-          {/* Items table */}
           <div className="border-b border-border px-6 py-5">
             <table className="w-full text-sm">
               <thead>
@@ -99,7 +84,6 @@ export default async function PublicInvoicePage({ params }: Props) {
             </table>
           </div>
 
-          {/* Totals */}
           <div className="border-b border-border px-6 py-5">
             <div className="flex justify-between text-sm text-slate-600">
               <span>Subtotal</span>
@@ -117,8 +101,7 @@ export default async function PublicInvoicePage({ params }: Props) {
             </div>
           </div>
 
-          {/* Bank details */}
-          {hasBank && invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
+          {hasBank && invoice.status \!== 'PAID' && invoice.status \!== 'CANCELLED' && (
             <div className="mx-6 my-5 rounded-xl border border-brand-100 bg-brand-50/60 p-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-brand-700">Pay to</div>
               <div className="mt-2 space-y-1 text-sm">
@@ -129,7 +112,6 @@ export default async function PublicInvoicePage({ params }: Props) {
             </div>
           )}
 
-          {/* Note */}
           {invoice.note && (
             <div className="border-t border-border bg-slate-50 px-6 py-4 text-xs text-slate-600">
               <span className="font-semibold text-slate-700">Note: </span>
@@ -138,13 +120,7 @@ export default async function PublicInvoicePage({ params }: Props) {
           )}
         </div>
 
-        <InvoiceActions
-          phone={invoice.customerPhone}
-          customerName={invoice.customerName}
-          invoiceNumber={invoice.invoiceNumber}
-          total={invoice.total}
-          businessName={business}
-        />
+        <InvoiceActions phone={invoice.customerPhone} customerName={invoice.customerName} invoiceNumber={invoice.invoiceNumber} total={invoice.total} businessName={business} />
 
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500 no-print">
           <Logo size="sm" />

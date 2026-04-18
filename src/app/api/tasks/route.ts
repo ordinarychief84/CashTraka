@@ -15,7 +15,7 @@ const createSchema = z.object({
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Plan feature gate — tasks are a Business+ feature.
   const feature = requireFeature(user, 'tasks');
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   const body = await req.json().catch(() => ({}));
   const parsed = createSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -37,13 +37,13 @@ export async function POST(req: Request) {
     const staff = await prisma.staffMember.findFirst({
       where: { id: assignedToId, userId: user.id },
     });
-    if (!staff) return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
+    if (\!staff) return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
   }
   if (customerId) {
     const cust = await prisma.customer.findFirst({
       where: { id: customerId, userId: user.id },
     });
-    if (!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    if (\!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
   }
 
   const task = await prisma.task.create({

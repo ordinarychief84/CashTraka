@@ -13,7 +13,7 @@ export default async function EditDebtPage({ params }: { params: { id: string } 
   const debt = await prisma.debt.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!debt) notFound();
+  if (\!debt) notFound();
 
   const dueDateStr = debt.dueDate
     ? new Date(debt.dueDate).toISOString().slice(0, 10)

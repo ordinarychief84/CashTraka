@@ -167,6 +167,4 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
           </div>
         </div>
       )}
-    </AdminShell>
-  );
-}
+  

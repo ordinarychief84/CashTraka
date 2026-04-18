@@ -19,11 +19,11 @@ export default async function ChecklistRunPage({ params, searchParams }: Props) 
   const checklist = await prisma.checklist.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!checklist) notFound();
+  if (\!checklist) notFound();
 
   // If no runId in query, start a new run
   let runId = searchParams.runId;
-  if (!runId) {
+  if (\!runId) {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_URL || 'http://localhost:3000'}/api/checklists/${params.id}/run`,
       { method: 'POST', headers: { cookie: '' } },
@@ -54,7 +54,7 @@ export default async function ChecklistRunPage({ params, searchParams }: Props) 
       },
     },
   });
-  if (!run) notFound();
+  if (\!run) notFound();
 
   const items = run.results.map((r) => ({
     resultId: r.id,

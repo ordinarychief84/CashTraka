@@ -48,7 +48,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
     };
     try {
       const res = await fetch(
-        editing ? `/api/expenses/${initial!.id}` : '/api/expenses',
+        editing ? `/api/expenses/${initial\!.id}` : '/api/expenses',
         {
           method: editing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -56,7 +56,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
         },
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not save');
+      if (\!res.ok) throw new Error(data.error || 'Could not save');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {

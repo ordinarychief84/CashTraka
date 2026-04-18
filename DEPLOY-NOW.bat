@@ -1,39 +1,32 @@
 @echo off
 echo ============================================
-echo   CashTraka - Push to GitHub + Deploy
+echo   CashTraka — Push to GitHub
 echo ============================================
 echo.
 
 cd /d "%~dp0"
 
-echo Adding all changes...
-git add -A
-if errorlevel 1 (
-    echo ERROR: git add failed
-    pause
-    exit /b 1
-)
-
+echo Checking git status...
+git status --short
 echo.
-echo Committing...
-git commit -m "feat: OTP verification, terms checkbox, email triggers + PayLinks, Daily Pulse, Collections"
-if errorlevel 1 (
-    echo NOTE: Nothing new to commit. Pushing existing commits...
-)
 
-echo.
-echo Pushing to GitHub...
+echo Pushing to origin/main...
 git push origin main
-if errorlevel 1 (
-    echo ERROR: Push failed. Check your internet connection.
+
+if %ERRORLEVEL% NEQ 0 (
+    echo.
+    echo PUSH FAILED. Make sure you're logged into GitHub.
+    echo Try: git config credential.helper manager
+    echo Then run this script again.
     pause
     exit /b 1
 )
 
 echo.
 echo ============================================
-echo   SUCCESS\! Code pushed to GitHub.
-echo   Vercel will auto-deploy in ~2 minutes.
+echo   SUCCESS\\! Code pushed to GitHub.
+echo   Vercel will auto-deploy in ~60 seconds.
+echo   Check: https://vercel.com/dashboard
 echo ============================================
 echo.
 pause

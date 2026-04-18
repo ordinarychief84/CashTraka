@@ -43,7 +43,7 @@ const statusLabel: Record<string, string> = {
 };
 
 function isOverdue(dueIso: string | Date | null, status: string) {
-  if (!dueIso || status === 'done') return false;
+  if (\!dueIso || status === 'done') return false;
   const t = typeof dueIso === 'string' ? new Date(dueIso).getTime() : dueIso.getTime();
   return t < Date.now() - 24 * 60 * 60 * 1000;
 }
@@ -78,7 +78,7 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
   // Staff only see tasks assigned to them — they are "workers" of their
   // owner's tasks, not co-owners of the full task list. Owners / Managers
   // see everything.
-  const isStaffPrincipal = !user.isOwner && user.staffId;
+  const isStaffPrincipal = \!user.isOwner && user.staffId;
 
   const [allTasks, staff] = await Promise.all([
     prisma.task.findMany({
@@ -121,7 +121,7 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
   }
   if (assignee === 'me') {
     filtered = filtered.filter((t) => t.assignedToId == null);
-  } else if (assignee !== 'all') {
+  } else if (assignee \!== 'all') {
     filtered = filtered.filter((t) => t.assignedToId === assignee);
   }
   if (onlyOverdue) {
@@ -151,10 +151,10 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
     const nextOverdue =
       over.overdue === null ? false : over.overdue === '1' ? true : onlyOverdue;
 
-    if (nextFilter && nextFilter !== 'all') params.set('filter', nextFilter);
+    if (nextFilter && nextFilter \!== 'all') params.set('filter', nextFilter);
     if (nextQ) params.set('q', nextQ);
-    if (nextView && nextView !== 'list') params.set('view', nextView);
-    if (nextAssignee && nextAssignee !== 'all') params.set('assignee', nextAssignee);
+    if (nextView && nextView \!== 'list') params.set('view', nextView);
+    if (nextAssignee && nextAssignee \!== 'all') params.set('assignee', nextAssignee);
     if (nextOverdue) params.set('overdue', '1');
     const qs = params.toString();
     return '/tasks' + (qs ? `?${qs}` : '');
@@ -273,9 +273,9 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
 
           {/* Search */}
           <form className="ml-auto" method="get" action="/tasks">
-            {filter !== 'all' && <input type="hidden" name="filter" value={filter} />}
-            {view !== 'list' && <input type="hidden" name="view" value={view} />}
-            {assignee !== 'all' && <input type="hidden" name="assignee" value={assignee} />}
+            {filter \!== 'all' && <input type="hidden" name="filter" value={filter} />}
+            {view \!== 'list' && <input type="hidden" name="view" value={view} />}
+            {assignee \!== 'all' && <input type="hidden" name="assignee" value={assignee} />}
             {onlyOverdue && <input type="hidden" name="overdue" value="1" />}
             <input
               name="q"
@@ -381,7 +381,7 @@ function TaskListView({
   viewerIsStaff: boolean;
 }) {
   const overdue = tasks.filter((t) => isOverdue(t.dueDate, t.status));
-  const remaining = tasks.filter((t) => !isOverdue(t.dueDate, t.status));
+  const remaining = tasks.filter((t) => \!isOverdue(t.dueDate, t.status));
   const buckets: { key: string; label: string; items: typeof tasks }[] = [
     { key: 'overdue', label: 'Overdue', items: overdue },
     { key: 'todo', label: 'To-do', items: remaining.filter((t) => t.status === 'todo') },

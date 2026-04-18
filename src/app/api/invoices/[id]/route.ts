@@ -12,16 +12,16 @@ const patchSchema = z.object({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -33,10 +33,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     where: { id: invoice.id },
     data: {
       status: status ?? invoice.status,
-      note: note !== undefined ? note || null : invoice.note,
-      dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : invoice.dueDate,
-      tax: tax !== undefined ? tax : invoice.tax,
-      total: tax !== undefined ? invoice.subtotal + tax : invoice.total,
+      note: note \!== undefined ? note || null : invoice.note,
+      dueDate: dueDate \!== undefined ? (dueDate ? new Date(dueDate) : null) : invoice.dueDate,
+      tax: tax \!== undefined ? tax : invoice.tax,
+      total: tax \!== undefined ? invoice.subtotal + tax : invoice.total,
       paidAt: status === 'PAID' ? new Date() : invoice.paidAt,
     },
   });
@@ -46,12 +46,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.invoice.delete({ where: { id: invoice.id } });
   return NextResponse.json({ ok: true });

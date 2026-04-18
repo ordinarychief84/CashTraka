@@ -75,9 +75,9 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    if (!solutionsOpen) return;
+    if (\!solutionsOpen) return;
     const onClick = (e: MouseEvent) => {
-      if (!solutionsRef.current?.contains(e.target as Node)) setSolutionsOpen(false);
+      if (\!solutionsRef.current?.contains(e.target as Node)) setSolutionsOpen(false);
     };
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setSolutionsOpen(false);
     document.addEventListener('mousedown', onClick);
@@ -114,7 +114,7 @@ export function Navbar() {
               type="button"
               aria-expanded={solutionsOpen}
               aria-haspopup="menu"
-              onClick={() => setSolutionsOpen((v) => !v)}
+              onClick={() => setSolutionsOpen((v) => \!v)}
               className={cn(
                 'group inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition',
                 solutionsOpen
@@ -239,7 +239,7 @@ export function Navbar() {
             type="button"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpen((v) => \!v)}
             className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-white text-slate-700"
           >
             {open ? <X size={20} /> : <Menu size={20} />}

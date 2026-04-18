@@ -18,7 +18,7 @@ export default async function TenantsPage({ searchParams }: { searchParams: { st
   const tenants = await prisma.tenant.findMany({
     where: {
       userId: user.id,
-      ...(filter !== 'all' ? { status: filter } : {}),
+      ...(filter \!== 'all' ? { status: filter } : {}),
     },
     include: { property: { select: { name: true } } },
     orderBy: { name: 'asc' },

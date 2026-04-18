@@ -31,7 +31,7 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 function getSecret() {
   const s = process.env.AUTH_SECRET;
-  if (!s) throw new Error('AUTH_SECRET env var is not set');
+  if (\!s) throw new Error('AUTH_SECRET env var is not set');
   return new TextEncoder().encode(s);
 }
 
@@ -63,7 +63,7 @@ async function verifySession(token: string): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(token, getSecret());
     const sub = payload.sub as string | undefined;
     const kind = (payload.kind as SessionKind | undefined) ?? 'owner';
-    if (!sub) return null;
+    if (\!sub) return null;
     return { kind, sub };
   } catch {
     return null;
@@ -152,13 +152,13 @@ export type AuthContext = {
 /** Resolve the current AuthContext from the session cookie, or null. */
 export async function getAuthContext(): Promise<AuthContext | null> {
   const token = cookies().get(SESSION_COOKIE)?.value;
-  if (!token) return null;
+  if (\!token) return null;
   const payload = await verifySession(token);
-  if (!payload) return null;
+  if (\!payload) return null;
 
   if (payload.kind === 'owner') {
     const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
-    if (!owner) return null;
+    if (\!owner) return null;
     return {
       owner,
       staff: null,
@@ -171,10 +171,10 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   // kind === 'staff'
   const staff = await prisma.staffMember.findUnique({ where: { id: payload.sub } });
-  if (!staff || staff.status !== 'active') return null;
-  if (staff.accessRole === 'NONE' || !staff.passwordHash) return null;
+  if (\!staff || staff.status \!== 'active') return null;
+  if (staff.accessRole === 'NONE' || \!staff.passwordHash) return null;
   const owner = await prisma.user.findUnique({ where: { id: staff.userId } });
-  if (!owner) return null;
+  if (\!owner) return null;
   return {
     owner,
     staff,
@@ -196,7 +196,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
  */
 export async function getCurrentUser() {
   const ctx = await getAuthContext();
-  if (!ctx) return null;
+  if (\!ctx) return null;
   // Block suspended accounts at the lowest level so no handler can skip it.
   if (ctx.owner.isSuspended) return null;
   return ctx.owner;
@@ -205,7 +205,7 @@ export async function getCurrentUser() {
 /** Throws UNAUTHORIZED if no session, FORBIDDEN if owner is suspended. */
 export async function requireUser() {
   const ctx = await getAuthContext();
-  if (!ctx) throw Err.unauthorized();
+  if (\!ctx) throw Err.unauthorized();
   if (ctx.owner.isSuspended) throw Err.forbidden('This account is suspended. Contact support.');
   return ctx.owner;
 }
@@ -213,7 +213,7 @@ export async function requireUser() {
 /** Like `requireUser` but returns the full AuthContext. */
 export async function requireAuth(): Promise<AuthContext> {
   const ctx = await getAuthContext();
-  if (!ctx) throw Err.unauthorized();
+  if (\!ctx) throw Err.unauthorized();
   if (ctx.owner.isSuspended) throw Err.forbidden('This account is suspended. Contact support.');
   return ctx;
 }
@@ -227,7 +227,7 @@ export async function requirePermission(
 ): Promise<AuthContext> {
   const ctx = await requireAuth();
   const { can } = await import('./rbac');
-  if (!can(ctx.accessRole, action)) {
+  if (\!can(ctx.accessRole, action)) {
     throw Err.forbidden(
       ctx.isOwner
         ? 'This action requires a higher permission level.'
@@ -241,7 +241,7 @@ export async function requirePermission(
 export async function requireAdmin() {
   const ctx = await requireAuth();
   // Only an owner-kind principal can be an admin (staff can never be admin).
-  if (!ctx.isOwner || ctx.owner.role !== ROLES.ADMIN) {
+  if (\!ctx.isOwner || ctx.owner.role \!== ROLES.ADMIN) {
     throw Err.forbidden('Admin access required.');
   }
   return ctx.owner;
@@ -255,9 +255,9 @@ export function requireBusinessAccess(
   resource: { userId: string } | null | undefined,
   user: { id: string; role: string },
 ): void {
-  if (!resource) throw Err.notFound();
+  if (\!resource) throw Err.notFound();
   if (user.role === ROLES.ADMIN) return;
-  if (resource.userId !== user.id) throw Err.forbidden();
+  if (resource.userId \!== user.id) throw Err.forbidden();
 }
 
 export const SESSION_COOKIE_NAME = SESSION_COOKIE;

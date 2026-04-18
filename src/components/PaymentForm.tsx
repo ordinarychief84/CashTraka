@@ -56,7 +56,7 @@ export function PaymentForm({
 
   // Load products lazily if line items are enabled.
   useEffect(() => {
-    if (!enableLineItems) return;
+    if (\!enableLineItems) return;
     fetch('/api/products')
       .then((r) => r.json())
       .then((data) => {
@@ -94,7 +94,7 @@ export function PaymentForm({
     }
     try {
       const res = await fetch(
-        editing ? `/api/payments/${initial!.id}` : '/api/payments',
+        editing ? `/api/payments/${initial\!.id}` : '/api/payments',
         {
           method: editing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -102,12 +102,12 @@ export function PaymentForm({
         },
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not save');
+      if (\!res.ok) throw new Error(data.error || 'Could not save');
       onSuccess?.();
       // If the save produced a PAID payment the API also auto-generated a
       // receipt. Hint the destination page to open the receipt dialog right
       // away so the owner can send it without an extra click.
-      const paymentId = editing ? initial!.id : data?.data?.id || data?.id;
+      const paymentId = editing ? initial\!.id : data?.data?.id || data?.id;
       const opened = paymentId && payload.status === 'PAID' ? `?openReceipt=${paymentId}` : '';
       router.push(redirectTo + opened);
       router.refresh();
@@ -119,7 +119,7 @@ export function PaymentForm({
 
   function addProduct(productId: string) {
     const prod = products.find((p) => p.id === productId);
-    if (!prod) return;
+    if (\!prod) return;
     setItems((prev) => [
       ...prev,
       {
@@ -136,7 +136,7 @@ export function PaymentForm({
     setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, ...patch } : it)));
   }
   function removeItem(idx: number) {
-    setItems((prev) => prev.filter((_, i) => i !== idx));
+    setItems((prev) => prev.filter((_, i) => i \!== idx));
   }
 
   return (

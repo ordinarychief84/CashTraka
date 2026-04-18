@@ -23,8 +23,6 @@ type SP = {
   status?: 'PAID' | 'PENDING' | 'ALL';
   range?: string;
   verification?: VerificationFilter;
-  /** Set by PaymentForm after saving a PAID payment — triggers the receipt
-   *  dialog to auto-open for that row. */
   openReceipt?: string;
 };
 
@@ -44,18 +42,11 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
   const payments = await prisma.payment.findMany({
     where: {
       userId: user.id,
-      ...(status !== 'ALL' ? { status } : {}),
+      ...(status \\!== 'ALL' ? { status } : {}),
       ...(start ? { createdAt: { gte: start } } : {}),
       ...(verification === 'verified' ? { verified: true } : {}),
       ...(verification === 'unverified' ? { verified: false } : {}),
-      ...(q
-        ? {
-            OR: [
-              { customerNameSnapshot: { contains: q } },
-              { phoneSnapshot: { contains: q.replace(/\D/g, '') } },
-            ],
-          }
-        : {}),
+      ...(q ? { OR: [ { customerNameSnapshot: { contains: q } }, { phoneSnapshot: { contains: q.replace(/\D/g, '') } } ] } : {}),
     },
     orderBy: { createdAt: 'desc' },
     take: 200,
@@ -104,14 +95,14 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
             name="q"
             defaultValue={q}
             placeholder="Search by name or phone"
-            className="input !pl-11"
+            className="input \\!pl-11"
           />
         </div>
         <div className="flex gap-2">
           <FilterPill current={status} value="ALL" label="All" />
           <FilterPill current={status} value="PAID" label="Paid" />
           <FilterPill current={status} value="PENDING" label="Pending" />
-          {(q || status !== 'ALL' || verification !== 'all') && (
+          {(q || status \\!== 'ALL' || verification \\!== 'all') && (
             <Link href={`/payments?range=${range}`} className="ml-auto text-sm text-slate-500 underline">
               Reset
             </Link>
@@ -128,9 +119,9 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
       {payments.length === 0 ? (
         <EmptyState
           icon={Wallet}
-          title={q || status !== 'ALL' || verification !== 'all' ? 'No payments match your filters' : 'No payments yet'}
+          title={q || status \\!== 'ALL' || verification \\!== 'all' ? 'No payments match your filters' : 'No payments yet'}
           description={
-            q || status !== 'ALL' || verification !== 'all'
+            q || status \\!== 'ALL' || verification \\!== 'all'
               ? 'Try a different filter or reset.'
               : 'Add your first payment to start tracking.'
           }
@@ -241,7 +232,7 @@ function VerificationLink({
   const qs = new URLSearchParams();
   qs.set('verification', value);
   qs.set('range', range);
-  if (status && status !== 'ALL') qs.set('status', status);
+  if (status && status \\!== 'ALL') qs.set('status', status);
   if (q) qs.set('q', q);
   return (
     <Link
@@ -249,8 +240,8 @@ function VerificationLink({
       className={cn(
         'rounded-full border px-3 py-1.5 font-semibold transition',
         active && tone === 'owed' && 'border-owed-500 bg-owed-500 text-white',
-        active && !tone && 'border-brand-500 bg-brand-500 text-white',
-        !active && 'border-border bg-white text-slate-700 hover:bg-slate-50',
+        active && \\!tone && 'border-brand-500 bg-brand-500 text-white',
+        \\!active && 'border-border bg-white text-slate-700 hover:bg-slate-50',
       )}
     >
       {label}

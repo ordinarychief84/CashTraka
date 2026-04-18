@@ -19,7 +19,7 @@ export default async function ReceiptPage({ params }: Props) {
       items: true,
     },
   });
-  if (!payment) notFound();
+  if (\!payment) notFound();
 
   const business = payment.user.businessName || 'Seller';
   const hasItems = payment.items.length > 0;
@@ -94,7 +94,7 @@ export default async function ReceiptPage({ params }: Props) {
 
           {/* Total */}
           <div className="px-6 py-5">
-            {hasItems && itemsTotal !== payment.amount && (
+            {hasItems && itemsTotal \!== payment.amount && (
               <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
                 <span>Items subtotal</span>
                 <span className="num">{formatNaira(itemsTotal)}</span>

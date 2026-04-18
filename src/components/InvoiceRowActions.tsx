@@ -39,15 +39,15 @@ export function InvoiceRowActions({ id, invoiceNumber, status, customerName, pho
           });
           router.refresh();
         }
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const origin = typeof window \!== 'undefined' ? window.location.origin : '';
         const url = `${origin}/invoice/${invoiceNumber}`;
-        const msg = `Hi ${customerName}, here is your invoice (${invoiceNumber}) for ₦${total.toLocaleString('en-NG')}: ${url}\nPlease pay at your earliest convenience. Thank you!`;
+        const msg = `Hi ${customerName}, here is your invoice (${invoiceNumber}) for ₦${total.toLocaleString('en-NG')}: ${url}\nPlease pay at your earliest convenience. Thank you\!`;
         window.open(waLink(phone, msg), '_blank');
       },
     });
   }
 
-  if (status !== 'PAID') {
+  if (status \!== 'PAID') {
     actions.push({
       label: 'Mark as paid',
       icon: <Check size={16} />,
@@ -62,13 +62,13 @@ export function InvoiceRowActions({ id, invoiceNumber, status, customerName, pho
     });
   }
 
-  if (status !== 'CANCELLED' && status !== 'PAID') {
+  if (status \!== 'CANCELLED' && status \!== 'PAID') {
     actions.push({
       label: 'Cancel',
       icon: <XCircle size={16} />,
       danger: true,
       onClick: async () => {
-        if (!confirm('Cancel this invoice?')) return;
+        if (\!confirm('Cancel this invoice?')) return;
         await fetch(`/api/invoices/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -84,7 +84,7 @@ export function InvoiceRowActions({ id, invoiceNumber, status, customerName, pho
     icon: <Trash2 size={16} />,
     danger: true,
     onClick: async () => {
-      if (!confirm('Delete this invoice permanently?')) return;
+      if (\!confirm('Delete this invoice permanently?')) return;
       await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
       router.refresh();
     },

@@ -58,18 +58,18 @@ export function SettingsForm({ initial }: Props) {
 
   const dirty = useMemo(
     () =>
-      form.businessName !== initial.businessName ||
-      form.whatsappNumber !== initial.whatsappNumber ||
-      form.receiptFooter !== initial.receiptFooter ||
-      form.bankName !== initial.bankName ||
-      form.bankAccountNumber !== initial.bankAccountNumber ||
-      form.bankAccountName !== initial.bankAccountName,
+      form.businessName \!== initial.businessName ||
+      form.whatsappNumber \!== initial.whatsappNumber ||
+      form.receiptFooter \!== initial.receiptFooter ||
+      form.bankName \!== initial.bankName ||
+      form.bankAccountNumber \!== initial.bankAccountNumber ||
+      form.bankAccountName \!== initial.bankAccountName,
     [form, initial],
   );
 
   // Auto-dismiss the "Saved" banner.
   useEffect(() => {
-    if (!saved) return;
+    if (\!saved) return;
     const t = setTimeout(() => setSaved(false), 3000);
     return () => clearTimeout(t);
   }, [saved]);
@@ -101,7 +101,7 @@ export function SettingsForm({ initial }: Props) {
     setError(null);
     setSaved(false);
 
-    if (!accountNumberValid) {
+    if (\!accountNumberValid) {
       setError('Account number should be 10 digits.');
       return;
     }
@@ -120,7 +120,7 @@ export function SettingsForm({ initial }: Props) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not save');
+      if (\!res.ok) throw new Error(data.error || 'Could not save');
       setSaved(true);
       router.refresh();
     } catch (err) {
@@ -239,7 +239,7 @@ export function SettingsForm({ initial }: Props) {
               value={form.receiptFooter}
               onChange={(e) => update('receiptFooter', e.target.value)}
               maxLength={200}
-              placeholder="e.g. Thank you for shopping with us! No returns after 7 days."
+              placeholder="e.g. Thank you for shopping with us\! No returns after 7 days."
             />
             <p className="mt-1 text-right text-[10px] text-slate-400">
               {form.receiptFooter.length}/200
@@ -275,7 +275,7 @@ export function SettingsForm({ initial }: Props) {
                   id="bankAccountNumber"
                   label="Account number"
                   compact
-                  error={!accountNumberValid ? 'Must be 10 digits' : undefined}
+                  error={\!accountNumberValid ? 'Must be 10 digits' : undefined}
                 >
                   <input
                     id="bankAccountNumber"
@@ -338,7 +338,7 @@ export function SettingsForm({ initial }: Props) {
             )}
             <button
               type="submit"
-              disabled={saving || !dirty}
+              disabled={saving || \!dirty}
               className="btn-primary disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save changes'}

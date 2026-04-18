@@ -12,7 +12,7 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
   const template = await prisma.messageTemplate.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!template) notFound();
+  if (\!template) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

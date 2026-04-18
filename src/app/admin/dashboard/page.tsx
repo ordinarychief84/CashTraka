@@ -202,6 +202,12 @@ export default async function AdminDashboardPage() {
             icon={<AlertTriangle size={12} />}
           />
           <AdminKpi
+            label="Expenses · this month"
+            value={formatNaira(platform.expensesThisMonth)}
+            sub={`${platform.expenseCount} entries across tenants`}
+            icon={<CreditCard size={12} />}
+          />
+          <AdminKpi
             label="Billing success · 30d"
             value={
               billing.attemptsLast30d.successRatePct === null
@@ -430,16 +436,4 @@ export default async function AdminDashboardPage() {
                   </div>
                   <div className="mt-0.5 text-[11px] text-slate-500">
                     {timeAgo(p.createdAt)}
-                  </div>
-                </div>
-                <div className="num text-sm font-bold text-brand-700">
-                  {formatNaira(p.amount)}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </AdminShell>
-  );
-}
+                  

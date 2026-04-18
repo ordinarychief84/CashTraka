@@ -61,7 +61,7 @@ self.addEventListener('activate', (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => !k.startsWith(CACHE_VERSION))
+          .filter((k) => \!k.startsWith(CACHE_VERSION))
           .map((k) => caches.delete(k)),
       );
       await self.clients.claim();
@@ -124,7 +124,7 @@ async function networkFirst(req) {
     if (hit) return hit;
     const offline = await caches.match('/offline');
     if (offline) return offline;
-    return new Response('<!doctype html><title>Offline</title><h1>Offline</h1>', {
+    return new Response('<\!doctype html><title>Offline</title><h1>Offline</h1>', {
       status: 503,
       headers: { 'Content-Type': 'text/html; charset=utf-8' },
     });
@@ -137,10 +137,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   // Ignore non-GET (POST/PATCH/DELETE must always hit the network).
-  if (request.method !== 'GET') return;
+  if (request.method \!== 'GET') return;
 
   // Ignore cross-origin requests (e.g. Google Fonts CSS we let the browser handle).
-  if (!isSameOrigin(request.url)) return;
+  if (\!isSameOrigin(request.url)) return;
 
   // API requests: network-only, no fallback. Surface a JSON error if offline.
   if (isApiRequest(request.url)) {

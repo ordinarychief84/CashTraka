@@ -4,13 +4,13 @@ import { getCurrentUser } from '@/lib/auth';
 
 export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const checklist = await prisma.checklist.findFirst({
     where: { id: params.id, userId: user.id },
     include: { items: { orderBy: { sortOrder: 'asc' } } },
   });
-  if (!checklist) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!checklist) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const run = await prisma.$transaction(async (tx) => {
     const r = await tx.checklistRun.create({

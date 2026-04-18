@@ -64,7 +64,7 @@ export function PaymentRowActions({
 
   const actions: RowMenuAction[] = [];
 
-  if (!verified) {
+  if (\!verified) {
     actions.push({
       label: 'Verify with bank alert',
       icon: <Shield size={16} />,
@@ -78,7 +78,7 @@ export function PaymentRowActions({
       icon: <Send size={16} />,
       onClick: () => {
         const origin =
-          typeof window !== 'undefined' ? window.location.origin : 'https://cashtraka.co';
+          typeof window \!== 'undefined' ? window.location.origin : 'https://cashtraka.co';
         const url = `${origin}/pay/${referenceCode}`;
         const msg = `Hi ${customerName}, here is your secure payment link for ₦${amount.toLocaleString(
           'en-NG',
@@ -90,7 +90,7 @@ export function PaymentRowActions({
       label: 'Copy payment link',
       icon: <LinkIcon size={16} />,
       onClick: async () => {
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
+        const origin = typeof window \!== 'undefined' ? window.location.origin : '';
         const url = `${origin}/pay/${referenceCode}`;
         try {
           await navigator.clipboard.writeText(url);
@@ -149,7 +149,7 @@ export function PaymentRowActions({
     icon: <Trash2 size={16} />,
     danger: true,
     onClick: async () => {
-      if (!confirm('Delete this payment? This cannot be undone.')) return;
+      if (\!confirm('Delete this payment? This cannot be undone.')) return;
       await fetch(`/api/payments/${id}`, { method: 'DELETE' });
       router.refresh();
     },
@@ -158,7 +158,7 @@ export function PaymentRowActions({
   return (
     <>
       <div className="flex items-center gap-1">
-        {!verified && status === 'PAID' && (
+        {\!verified && status === 'PAID' && (
           <button
             type="button"
             onClick={() => setVerifyOpen(true)}

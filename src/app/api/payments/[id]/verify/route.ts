@@ -14,16 +14,16 @@ const AMOUNT_TOLERANCE = 50;
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const payment = await prisma.payment.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = verifyAlertSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -59,14 +59,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   // Bank-alert verification — parse the pasted text and decide if it matches.
   const text = (parsed.data.text || '').trim();
-  if (!text) {
+  if (\!text) {
     return NextResponse.json(
       { error: 'Paste your bank alert text to auto-verify' },
       { status: 400 },
     );
   }
   const alert = parseBankAlert(text);
-  if (!alert) {
+  if (\!alert) {
     return NextResponse.json(
       {
         error:
@@ -91,14 +91,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     ? 'SENDER_MATCH'
     : null;
 
-  if (!amountClose || !method) {
+  if (\!amountClose || \!method) {
     return NextResponse.json(
       {
         ok: false,
         parsed: alert,
-        reason: !amountClose
+        reason: \!amountClose
           ? `Alert amount (₦${alert.amount.toLocaleString()}) doesn't match this payment (₦${payment.amount.toLocaleString()}).`
-          : 'The alert does not mention this payment’s reference code, and the sender name does not match the customer. Double-check before confirming.',
+          : 'The alert does not mention this payment's reference code, and the sender name does not match the customer. Double-check before confirming.',
       },
       { status: 200 },
     );

@@ -168,7 +168,7 @@ export function PricingCards() {
   useEffect(() => {
     let cancelled = false;
     fetch('/api/auth/me', { credentials: 'include' })
-      .then((r) => !cancelled && setIsLoggedIn(r.ok))
+      .then((r) => \!cancelled && setIsLoggedIn(r.ok))
       .catch(() => {});
     return () => {
       cancelled = true;
@@ -179,7 +179,7 @@ export function PricingCards() {
     if (isLoggedIn && plan.isPaid && plan.planKey) {
       return `/settings?upgrade=${plan.planKey}`;
     }
-    if (isLoggedIn && !plan.isPaid) {
+    if (isLoggedIn && \!plan.isPaid) {
       return '/dashboard';
     }
     return plan.ctaFallbackHref;

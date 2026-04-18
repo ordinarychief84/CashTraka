@@ -27,7 +27,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
     },
   });
 
-  if (!tenant) notFound();
+  if (\!tenant) notFound();
 
   const totalPaid = tenant.rentPayments
     .filter((p) => p.status === 'PAID' || p.status === 'PARTIAL')
@@ -94,7 +94,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
 
       {/* Lease status banner */}
       {(() => {
-        if (!tenant.leaseEnd) return null;
+        if (\!tenant.leaseEnd) return null;
         const days = Math.round((tenant.leaseEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
         if (days > 30) return null;
         const expired = days <= 0;
@@ -106,8 +106,8 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
             {expired ? <AlertTriangle size={18} className="shrink-0" /> : <Clock size={18} className="shrink-0" />}
             <span className="flex-1">
               {expired
-                ? `Lease expired ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''} ago on ${formatDate(tenant.leaseEnd)}. Contact tenant or renew the lease.`
-                : `Lease expires in ${days} day${days !== 1 ? 's' : ''} on ${formatDate(tenant.leaseEnd)}.`}
+                ? `Lease expired ${Math.abs(days)} day${Math.abs(days) \!== 1 ? 's' : ''} ago on ${formatDate(tenant.leaseEnd)}. Contact tenant or renew the lease.`
+                : `Lease expires in ${days} day${days \!== 1 ? 's' : ''} on ${formatDate(tenant.leaseEnd)}.`}
             </span>
             <RenewLeaseDialog
               tenantId={tenant.id}

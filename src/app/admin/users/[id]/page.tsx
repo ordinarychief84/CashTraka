@@ -56,7 +56,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
             )}
           </div>
         </div>
-        {user.role !== 'ADMIN' && (
+        {user.role \!== 'ADMIN' && (
           <SuspendButton userId={user.id} isSuspended={user.isSuspended} />
         )}
       </div>
@@ -93,7 +93,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
       </div>
 
       <div className="mb-6">
-        {user.role !== 'ADMIN' && (
+        {user.role \!== 'ADMIN' && (
           <PlanOverride
             userId={user.id}
             currentPlan={user.plan}

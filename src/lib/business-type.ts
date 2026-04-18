@@ -113,7 +113,7 @@ export const FEATURES: Record<string, BusinessType[]> = {
 export function canAccess(feature: string, type: BusinessType | string | null | undefined): boolean {
   const t = (type ?? 'seller') as BusinessType;
   const allowed = FEATURES[feature];
-  if (!allowed) return true; // default: show if not explicitly restricted
+  if (\!allowed) return true; // default: show if not explicitly restricted
   return allowed.includes(t);
 }
 

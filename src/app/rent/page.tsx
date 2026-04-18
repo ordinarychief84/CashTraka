@@ -28,7 +28,7 @@ function diffDays(a: Date, b: Date): number {
 }
 
 function leaseTag(leaseEnd: Date | null): { label: string; tone: 'ok' | 'warn' | 'danger' | 'none' } {
-  if (!leaseEnd) return { label: '', tone: 'none' };
+  if (\!leaseEnd) return { label: '', tone: 'none' };
   const days = diffDays(leaseEnd, new Date());
   if (days < -7) return { label: 'Notice to quit', tone: 'danger' };
   if (days < 0) return { label: `Expired ${Math.abs(days)}d ago`, tone: 'danger' };
@@ -122,7 +122,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
       </div>
 
       {/* Lease warnings banner */}
-      {expiringCount > 0 && filter !== 'expiring' && (
+      {expiringCount > 0 && filter \!== 'expiring' && (
         <Link
           href="/rent?filter=expiring"
           className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
@@ -150,10 +150,10 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
             <Wallet size={28} />
           </div>
           <h3 className="text-lg font-semibold text-slate-900">
-            {filter !== 'all' ? 'No tenants match this filter' : 'No active tenants'}
+            {filter \!== 'all' ? 'No tenants match this filter' : 'No active tenants'}
           </h3>
           <p className="mt-1 text-sm text-slate-600">
-            {filter !== 'all' ? 'Try a different filter.' : 'Add properties and tenants first.'}
+            {filter \!== 'all' ? 'Try a different filter.' : 'Add properties and tenants first.'}
           </p>
           {filter === 'all' && (
             <Link href="/properties" className="btn-primary mt-5 inline-flex">
@@ -203,7 +203,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                         {status === 'PENDING' && 'Pending'}
                         {status === 'OVERDUE' && 'Overdue'}
                       </span>
-                      {t.lease.tone !== 'none' && t.lease.tone !== 'ok' && (
+                      {t.lease.tone \!== 'none' && t.lease.tone \!== 'ok' && (
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold',
@@ -225,7 +225,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                         currentLeaseEnd={t.leaseEnd?.toISOString()}
                       />
                     )}
-                    {status !== 'PAID' && (
+                    {status \!== 'PAID' && (
                       <a
                         href={waUrl}
                         target="_blank"
@@ -270,8 +270,8 @@ function FilterLink({
       className={cn(
         'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
         active && tone === 'owed' && 'border-owed-500 bg-owed-500 text-white',
-        active && tone !== 'owed' && 'border-brand-500 bg-brand-500 text-white',
-        !active && 'border-border bg-white text-slate-700 hover:bg-slate-50',
+        active && tone \!== 'owed' && 'border-brand-500 bg-brand-500 text-white',
+        \!active && 'border-border bg-white text-slate-700 hover:bg-slate-50',
       )}
     >
       {label}

@@ -93,7 +93,7 @@ export default async function ReportsPage() {
   let occupancyStat: { occupied: number; total: number } | null = null;
   let rentThisMonthStat: { expected: number; collected: number; rate: number } | null = null;
 
-  if (!isPm) {
+  if (\!isPm) {
     const [topCustomers, topProducts] = await Promise.all([
       prisma.customer.findMany({
         where: { userId: user.id, totalPaid: { gt: 0 } },
@@ -298,14 +298,14 @@ export default async function ReportsPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         {/* ── Seller view: Top customers + Products ── */}
-        {!isPm && (
+        {\!isPm && (
           <>
             <section className="card p-5">
               <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
                 <Users size={16} className="text-brand-600" />
                 Top customers by revenue
               </h2>
-              {!topCustomersChart || topCustomersChart.labels.length === 0 ? (
+              {\!topCustomersChart || topCustomersChart.labels.length === 0 ? (
                 <p className="text-sm text-slate-500">No paid customers yet.</p>
               ) : (
                 <BarChart
@@ -321,9 +321,9 @@ export default async function ReportsPage() {
                 <Package size={16} className="text-brand-600" />
                 Best-selling products
               </h2>
-              {!topProductsChart || topProductsChart.labels.length === 0 ? (
+              {\!topProductsChart || topProductsChart.labels.length === 0 ? (
                 <p className="text-sm text-slate-500">
-                  No product line-items yet. Attach products to a payment to see what’s selling.
+                  No product line-items yet. Attach products to a payment to see what's selling.
                 </p>
               ) : (
                 <BarChart
@@ -345,7 +345,7 @@ export default async function ReportsPage() {
                 <Users2 size={16} className="text-brand-600" />
                 Top tenants by total rent paid
               </h2>
-              {!topTenantsChart || topTenantsChart.labels.length === 0 ? (
+              {\!topTenantsChart || topTenantsChart.labels.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   No rent payments yet. Record one to see rankings here.
                 </p>
@@ -363,7 +363,7 @@ export default async function ReportsPage() {
                 <Building2 size={16} className="text-brand-600" />
                 Collection by property this month
               </h2>
-              {!propertyCollectionChart || propertyCollectionChart.labels.length === 0 ? (
+              {\!propertyCollectionChart || propertyCollectionChart.labels.length === 0 ? (
                 <p className="text-sm text-slate-500">
                   Add properties and tenants to see per-property collection.
                 </p>

@@ -27,14 +27,14 @@ const invoiceSchema = z.object({
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const feature = requireFeature(user, 'invoices');
   if (feature) return feature;
 
   const body = await req.json();
   const parsed = invoiceSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       where: { id: { in: productIds }, userId: user.id },
       select: { id: true },
     });
-    if (owned.length !== productIds.length) {
+    if (owned.length \!== productIds.length) {
       return NextResponse.json(
         { error: 'One or more products do not exist in your catalog.' },
         { status: 400 },

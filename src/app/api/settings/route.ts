@@ -30,7 +30,7 @@ export async function POST(req: Request) {
 
   const body = await req.json();
   const parsed = settingsSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -49,13 +49,13 @@ export async function POST(req: Request) {
   // Only update fields that were actually sent. Previously every absent
   // field resolved to `undefined ? … : null`, silently wiping existing data.
   const data: Record<string, unknown> = {};
-  if (businessName !== undefined) data.businessName = businessName?.trim() || null;
-  if (whatsappNumber !== undefined) data.whatsappNumber = whatsappNumber?.trim() || null;
-  if (receiptFooter !== undefined) data.receiptFooter = receiptFooter?.trim() || null;
-  if (bankName !== undefined) data.bankName = bankName?.trim() || null;
-  if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
-  if (bankAccountName !== undefined) data.bankAccountName = bankAccountName?.trim() || null;
-  if (businessType !== undefined) data.businessType = businessType || user.businessType;
+  if (businessName \!== undefined) data.businessName = businessName?.trim() || null;
+  if (whatsappNumber \!== undefined) data.whatsappNumber = whatsappNumber?.trim() || null;
+  if (receiptFooter \!== undefined) data.receiptFooter = receiptFooter?.trim() || null;
+  if (bankName \!== undefined) data.bankName = bankName?.trim() || null;
+  if (bankAccountNumber \!== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
+  if (bankAccountName \!== undefined) data.bankAccountName = bankAccountName?.trim() || null;
+  if (businessType \!== undefined) data.businessType = businessType || user.businessType;
 
   await prisma.user.update({
     where: { id: user.id },

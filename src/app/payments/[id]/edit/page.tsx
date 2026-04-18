@@ -12,7 +12,7 @@ export default async function EditPaymentPage({ params }: { params: { id: string
   const payment = await prisma.payment.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!payment) notFound();
+  if (\!payment) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

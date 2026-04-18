@@ -25,16 +25,16 @@ export const GET = (_req: Request, ctx: { params: { id: string } }) =>
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const payment = await prisma.payment.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (!parsed.success) {
+  if (\!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -72,7 +72,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   // Recompute totals for whichever customer(s) are affected.
   await recomputeCustomerTotals(customerId);
-  if (prevCustomerId !== customerId) {
+  if (prevCustomerId \!== customerId) {
     await recomputeCustomerTotals(prevCustomerId);
   }
 
@@ -81,7 +81,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   // receipt already exists for this payment, it's a no-op.
   let receiptId: string | null = null;
   let receiptNumber: string | null = null;
-  if (status === 'PAID' && payment.status !== 'PAID') {
+  if (status === 'PAID' && payment.status \!== 'PAID') {
     try {
       const receipt = await receiptService.ensureForPayment(user.id, payment.id);
       receiptId = receipt.id;
@@ -97,12 +97,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const payment = await prisma.payment.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (\!payment) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.payment.delete({ where: { id: payment.id } });
   await recomputeCustomerTotals(payment.customerId);

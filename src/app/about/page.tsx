@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Wallet, Clock3, MessageCircle, Users } from 'lucide-react';
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: ‘About CashTraka — Built for Nigerian businesses that run on trust’ };
+export const metadata = { title: 'About CashTraka — Built for Nigerian businesses that run on trust' };
 
 export default function AboutPage() {
   return (
@@ -60,7 +60,7 @@ export default function AboutPage() {
 
       <h2 className="mt-10 text-xl font-bold text-ink">Get in touch</h2>
       <p>
-        We are always listening. Whether you have a feature request, a question, or you just want to tell us what is broken in your current workflow — we want to hear it.{‘ ‘}
+        We are always listening. Whether you have a feature request, a question, or you just want to tell us what is broken in your current workflow — we want to hear it.{' '}
         <Link href="/contact" className="font-semibold text-brand-600 hover:underline">
           Contact us
         </Link>

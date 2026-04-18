@@ -34,10 +34,10 @@ const PROTECTED_PREFIXES = [
 const AUTH_PAGES = ['/login', '/signup'];
 
 async function verify(token: string | undefined): Promise<string | null> {
-  if (!token) return null;
+  if (\!token) return null;
   const raw = process.env.AUTH_SECRET;
   // CRITICAL: never fall back to '' — that makes forged sessions trivial.
-  if (!raw) return null;
+  if (\!raw) return null;
   try {
     const secret = new TextEncoder().encode(raw);
     const { payload } = await jwtVerify(token, secret);
@@ -62,6 +62,8 @@ async function verify(token: string | undefined): Promise<string | null> {
  *     with no Origin header. Signature verification protects it.
  *   - /api/payments/claim/* — public "customer paid me" endpoint,
  *     intentionally origin-free.
+ *   - /api/pay/* — public PayLink confirmation endpoint.
+ *   - /api/cron/* — Vercel cron jobs, no browser origin.
  */
 const CSRF_EXEMPT_PREFIXES = [
   '/api/billing/webhook',
@@ -74,7 +76,7 @@ function sameOriginOk(req: NextRequest): boolean {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   const host = req.headers.get('host');
-  if (!host) return false;
+  if (\!host) return false;
   // Trusted matcher: the request host must match the Origin header's host.
   const sourceHost = origin
     ? safeHost(origin)
@@ -83,7 +85,7 @@ function sameOriginOk(req: NextRequest): boolean {
       : null;
   // Allow missing headers only for server-to-server / curl-without-origin
   // calls — but those get through SameSite so we explicitly deny.
-  if (!sourceHost) return false;
+  if (\!sourceHost) return false;
   return sourceHost === host;
 }
 
@@ -100,10 +102,10 @@ export async function middleware(req: NextRequest) {
 
   // ── CSRF check — any state-changing /api/* call must be same-origin ──
   const method = req.method.toUpperCase();
-  const isStateChanging = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+  const isStateChanging = method \!== 'GET' && method \!== 'HEAD' && method \!== 'OPTIONS';
   const isApi = pathname.startsWith('/api/');
   const isCsrfExempt = CSRF_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
-  if (isApi && isStateChanging && !isCsrfExempt && !sameOriginOk(req)) {
+  if (isApi && isStateChanging && \!isCsrfExempt && \!sameOriginOk(req)) {
     return NextResponse.json(
       { success: false, error: 'Blocked: cross-origin request rejected.' },
       { status: 403 },
@@ -119,7 +121,7 @@ export async function middleware(req: NextRequest) {
   );
   const isAuthPage = AUTH_PAGES.includes(pathname);
 
-  if (isProtected && !userId) {
+  if (isProtected && \!userId) {
     const url = req.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', pathname);
@@ -140,6 +142,6 @@ export const config = {
   // calls. The old matcher excluded /api entirely, leaving the origin
   // check dead code. We still skip Next internals + static assets.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|icon\\.svg|icon-.*\\.png|apple-touch-icon\\.png|manifest\\.webmanifest|logo\\.svg|sw\\.js).*)',
+    '/((?\!_next/static|_next/image|favicon.ico|icon\\.svg|icon-.*\\.png|apple-touch-icon\\.png|manifest\\.webmanifest|logo\\.svg|sw\\.js).*)',
   ],
 };

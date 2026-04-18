@@ -28,7 +28,7 @@ type Props = {
 
 export function MoreSheet({ open, onClose, isPropManager }: Props) {
   useEffect(() => {
-    if (!open) return;
+    if (\!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

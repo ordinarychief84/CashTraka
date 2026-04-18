@@ -64,7 +64,7 @@ export default async function DashboardPage() {
   const copy = copyFor(user.businessType);
   const isPm = isPropertyManager(user.businessType);
   const firstName = (user.principalName ?? user.name).split(' ')[0];
-  const isStaffPrincipal = !user.isOwner && Boolean(user.staffId);
+  const isStaffPrincipal = \!user.isOwner && Boolean(user.staffId);
 
   // Staff sees their own task queue front-and-centre. For the owner we
   // compute the same two numbers but render them differently (inside the
@@ -75,14 +75,14 @@ export default async function DashboardPage() {
           prisma.task.count({
             where: {
               userId: user.id,
-              assignedToId: user.staffId!,
+              assignedToId: user.staffId\!,
               status: { in: ['todo', 'in_progress'] },
             },
           }),
           prisma.task.count({
             where: {
               userId: user.id,
-              assignedToId: user.staffId!,
+              assignedToId: user.staffId\!,
               status: { in: ['todo', 'in_progress'] },
               dueDate: { lt: now, not: null },
             },
@@ -201,7 +201,6 @@ export default async function DashboardPage() {
       ? prisma.expense.aggregate({
           where: {
             userId: user.id,
-            // Only BUSINESS expenses reduce profit. Personal is out-of-pocket.
             kind: 'business',
             incurredOn: { gte: monthStart },
           },
@@ -247,9 +246,6 @@ export default async function DashboardPage() {
             userId: user.id,
             trackStock: true,
             archived: false,
-            // Prisma SQLite doesn't allow column-to-column comparison in
-            // `where`, so pull candidates via a raw count on a threshold.
-            // We rely on the low-stock alert check happening elsewhere too.
             stock: { lte: 3 },
           },
         }),
@@ -326,16 +322,12 @@ export default async function DashboardPage() {
   const unverifiedTotal = unverifiedAgg._sum.amount ?? 0;
   const monthExpenses = showExpenses ? expensesThisMonth._sum.amount ?? 0 : 0;
   const netProfit = monthRevenue - monthExpenses;
-  // Only report a margin when both revenue AND expenses have been logged —
-  // otherwise "100% margin" is misleading for sellers who haven't started
-  // recording expenses yet.
   const profitMargin =
     monthRevenue > 0 && monthExpenses > 0
       ? Math.round((netProfit / monthRevenue) * 100)
       : null;
 
-  // Collection rate — what fraction of what's been billed has been received.
-  // billed = revenue + outstanding; collected = revenue.
+  // Collection rate
   const totalBilled = monthRevenue + totalOwed;
   const collectionRate = totalBilled > 0 ? Math.round((monthRevenue / totalBilled) * 100) : null;
 
@@ -364,7 +356,6 @@ export default async function DashboardPage() {
     });
   }
   for (const d of topDebtors) {
-    // Skip top debtor if already captured by overdue (avoid duplicates)
     triage.push({
       id: `debtor-${d.id}`,
       severity: 'warning',
@@ -375,7 +366,7 @@ export default async function DashboardPage() {
       moneyImpact: d.totalOwed,
     });
   }
-  if (!isPm && lowStockCount > 0) {
+  if (\!isPm && lowStockCount > 0) {
     triage.push({
       id: 'low-stock',
       severity: 'warning',
@@ -425,7 +416,7 @@ export default async function DashboardPage() {
   const contributorRows = topContributors
     .filter((r) => r.customerId)
     .map((r) => ({
-      id: r.customerId!,
+      id: r.customerId\!,
       name: r.customerNameSnapshot,
       total: r._sum.amount ?? 0,
       transactions: r._count,
@@ -458,7 +449,7 @@ export default async function DashboardPage() {
               : copy.greetingSub}
           </p>
         </div>
-        {canWrite && !isStaffPrincipal && (
+        {canWrite && \!isStaffPrincipal && (
           <div className="flex flex-wrap gap-2">
             <Link
               href="/payments/new"
@@ -476,7 +467,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* ─── STAFF PRINCIPAL: My-tasks hero card (clear path to their work) ─── */}
+      {/* ─── STAFF PRINCIPAL: My-tasks hero card ─── */}
       {isStaffPrincipal && staffTaskCounts && (
         <Link
           href="/tasks"
@@ -542,7 +533,6 @@ export default async function DashboardPage() {
           />
         </div>
         <div className="grid gap-3 lg:col-span-5 lg:grid-cols-2">
-          {/* Money owed to you — always important for NG SMBs */}
           <KpiCard
             label={isPm ? 'Unpaid rent' : 'Money owed'}
             value={formatNaira(totalOwed)}
@@ -552,7 +542,6 @@ export default async function DashboardPage() {
             deltaSemantics="inverse"
             icon={<Clock3 size={13} />}
           />
-          {/* Collection rate — the KPI that matters most for cashflow */}
           <KpiCard
             label="Collection rate"
             value={collectionRate === null ? '—' : `${collectionRate}%`}
@@ -574,13 +563,12 @@ export default async function DashboardPage() {
             }
             icon={<Percent size={13} />}
           />
-          {/* Net profit (owners only — requires expenses) */}
           {showExpenses && (
             <KpiCard
               label={`Net profit · ${monthLabel}`}
               value={formatNaira(netProfit)}
               sub={
-                profitMargin !== null
+                profitMargin \!== null
                   ? `${profitMargin}% margin · ${monthLabel}`
                   : monthRevenue === 0
                     ? 'No revenue logged yet'
@@ -590,7 +578,6 @@ export default async function DashboardPage() {
               icon={<PiggyBank size={13} />}
             />
           )}
-          {/* Average transaction value */}
           <KpiCard
             label="Avg transaction"
             value={aov > 0 ? formatNaira(aov) : '—'}
@@ -604,10 +591,7 @@ export default async function DashboardPage() {
       {/* ─────────────────── ZONE 3 · ACTIVITY ─────────────────── */}
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
-          {/* Top contributors */}
           <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
-
-          {/* Partial collections progress */}
           {partialDebts.length > 0 && (
             <DebtProgressCards debts={partialDebts} businessType={user.businessType} />
           )}
@@ -647,7 +631,7 @@ export default async function DashboardPage() {
                 <dt className="text-slate-600">{heroLabel}</dt>
                 <dd className="num font-bold text-ink">
                   {formatNaira(monthRevenue)}
-                  {monthDelta !== null && (
+                  {monthDelta \!== null && (
                     <span
                       className={
                         'ml-2 text-[11px] font-semibold ' +
@@ -681,8 +665,6 @@ export default async function DashboardPage() {
             )}
           </section>
 
-          {/* Upgrade card — only for owners on Free, and only in the sidebar,
-              not stealing prime zone-1 real estate. */}
           {user.isOwner && (
             <UpgradeCard plan={user.plan} businessType={user.businessType} />
           )}

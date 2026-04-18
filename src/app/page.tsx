@@ -71,7 +71,7 @@ function Hero() {
             WhatsApp Sales & Cash Tracker
           </span>
           <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-            Stop losing money from customers who haven’t paid
+            Stop losing money from customers who haven't paid
           </h1>
           <p className="mt-4 text-lg text-slate-600 md:text-xl">
             CashTraka helps you track payments, know who owes you, and follow up in
@@ -135,18 +135,6 @@ function AudienceMarquee() {
 /* ---------------------- 2b. SOCIAL PROOF (trust stats) --------------------- */
 
 function SocialProof() {
-  /*
-   * Rebuilt layout. Previously each stat card was text-4xl on every
-   * viewport which made mobile feel bloated (the user screenshot showed
-   * the ₦ glyph nearly touching the card border). New shape:
-   *
-   *   mobile   : 3 cards stacked, tighter padding, text-3xl number
-   *   tablet   : 2 + 1 layout so the primary "₦150k+" card stays wide
-   *   desktop  : 3 equal columns with a subtle lift-on-hover
-   *
-   * Labels stay small, descriptions a single line, numbers scaled via
-   * a responsive clamp so they don't squash the card on narrow screens.
-   */
   const cards = [
     {
       label: 'Average seller recovers',
@@ -195,11 +183,9 @@ function SocialProof() {
                 key={c.label}
                 className={
                   'group relative flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-white p-5 text-center shadow-xs transition hover:-translate-y-1 hover:shadow-md md:p-6' +
-                  // Make the middle (primary) card pop slightly on tablet+
                   (i === 0 ? ' sm:col-span-2 lg:col-span-1' : '')
                 }
               >
-                {/* Soft accent glow on hover */}
                 <span
                   aria-hidden
                   className={
@@ -236,31 +222,31 @@ function Problem() {
   const pains = [
     {
       icon: AlertTriangle,
-      title: ‘”I sent it” — but nothing hit your account’,
-      body: ‘Fake screenshots. Forgotten transfers. You end up delivering goods on a promise, not a payment.’,
+      title: '"I sent it" — but nothing hit your account',
+      body: 'Fake screenshots. Forgotten transfers. You end up delivering goods on a promise, not a payment.',
     },
     {
       icon: Inbox,
-      title: ‘Yesterday’s order is buried under 300 messages’,
-      body: ‘WhatsApp was never built to run a business. Important details vanish in the scroll.’,
+      title: 'Yesterday\'s order is buried under 300 messages',
+      body: 'WhatsApp was never built to run a business. Important details vanish in the scroll.',
     },
     {
       icon: Clock3,
-      title: ‘”I’ll pay you tomorrow” — 3 weeks ago’,
-      body: ‘Without a system, debts slip through the cracks. You absorb the loss quietly.’,
+      title: '"I\'ll pay you tomorrow" — 3 weeks ago',
+      body: 'Without a system, debts slip through the cracks. You absorb the loss quietly.',
     },
     {
       icon: SearchX,
-      title: ‘Your best customer just bought from someone else’,
-      body: ‘No follow-up means no loyalty. The sellers who check in are the ones who keep the sale.’,
+      title: 'Your best customer just bought from someone else',
+      body: 'No follow-up means no loyalty. The sellers who check in are the ones who keep the sale.',
     },
   ];
   return (
     <Section
-      id=”problem”
-      eyebrow=”Sound familiar?”
-      title=”Running your business on WhatsApp alone is costing you real money”
-      subtitle=”Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It’s not a people problem — it’s a systems problem.”
+      id="problem"
+      eyebrow="Sound familiar?"
+      title="Running your business on WhatsApp alone is costing you real money"
+      subtitle="Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It's not a people problem — it's a systems problem."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -341,35 +327,35 @@ function Solution() {
 function DeepDives() {
   const items = [
     {
-      eyebrow: ‘Payments’,
-      title: ‘Every naira, accounted for’,
-      body: ‘Record cash and transfers the moment they land. Filter by status, search by name — and watch your daily total climb in real time.’,
+      eyebrow: 'Payments',
+      title: 'Every naira, accounted for',
+      body: 'Record cash and transfers the moment they land. Filter by status, search by name — and watch your daily total climb in real time.',
       bullets: [
-        ‘Paid or Pending status on every entry’,
-        ‘Instant search by name or phone’,
-        ‘Daily, weekly, and monthly totals at a glance’,
+        'Paid or Pending status on every entry',
+        'Instant search by name or phone',
+        'Daily, weekly, and monthly totals at a glance',
       ],
       visual: <PaymentsCard />,
     },
     {
-      eyebrow: ‘Debts’,
-      title: ‘Never forget who owes you again’,
-      body: ‘One list. One total. A WhatsApp reminder button beside every name. Outstanding debts stop being a guessing game.’,
+      eyebrow: 'Debts',
+      title: 'Never forget who owes you again',
+      body: 'One list. One total. A WhatsApp reminder button beside every name. Outstanding debts stop being a guessing game.',
       bullets: [
-        ‘Open and settled debts clearly separated’,
-        ‘Due dates flag what is overdue’,
-        ‘One-tap WhatsApp reminder — pre-written for you’,
+        'Open and settled debts clearly separated',
+        'Due dates flag what is overdue',
+        'One-tap WhatsApp reminder — pre-written for you',
       ],
       visual: <DebtsCard />,
     },
     {
-      eyebrow: ‘Follow-ups’,
-      title: ‘The easiest way to bring customers back’,
-      body: ‘Pick a customer, tap follow-up, tweak the message, and WhatsApp opens ready to send. Three seconds, done.’,
+      eyebrow: 'Follow-ups',
+      title: 'The easiest way to bring customers back',
+      body: 'Pick a customer, tap follow-up, tweak the message, and WhatsApp opens ready to send. Three seconds, done.',
       bullets: [
-        ‘Ready-made templates you can customise’,
-        ‘Your full customer list, already loaded’,
-        ‘No integrations — just your own WhatsApp’,
+        'Ready-made templates you can customise',
+        'Your full customer list, already loaded',
+        'No integrations — just your own WhatsApp',
       ],
       visual: <FollowUpCard />,
     },
@@ -470,9 +456,9 @@ function ValueSection() {
 
 function Objections() {
   const items = [
-    { title: ‘Zero spreadsheets’, body: ‘No formulas, no columns, no confusion. Just your money, in plain Naira, on one screen.’ },
-    { title: ‘Zero setup headaches’, body: ‘Sign up, log your first sale, and you are already ahead of 90% of sellers still using notebooks.’ },
-    { title: ‘Zero tech skills needed’, body: ‘If you can send a WhatsApp message, you can use CashTraka. It was built for phones first.’ },
+    { title: 'Zero spreadsheets', body: 'No formulas, no columns, no confusion. Just your money, in plain Naira, on one screen.' },
+    { title: 'Zero setup headaches', body: 'Sign up, log your first sale, and you are already ahead of 90% of sellers still using notebooks.' },
+    { title: 'Zero tech skills needed', body: 'If you can send a WhatsApp message, you can use CashTraka. It was built for phones first.' },
   ];
   return (
     <Section
@@ -696,7 +682,7 @@ function FollowUpCard() {
       </div>
       <div className="mt-4 text-xs font-medium text-slate-500">Message</div>
       <div className="mt-1 rounded-lg border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-700">
-        Hi Amaka, we have new stock available. Let me know if you’d like to order.
+        Hi Amaka, we have new stock available. Let me know if you'd like to order.
       </div>
       <button className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1fbd5b]">
         <MessageCircle size={16} />

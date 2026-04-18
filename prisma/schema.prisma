@@ -417,8 +417,9 @@ model RentPayment {
   @@index([userId, period])
 }
 
+
 /// Tracks lease-lifecycle reminders so the cron never double-sends.
-/// One row per (tenant × reminder type). Created lazily by the cron route.
+/// One row per (tenant x reminder type). Created lazily by the cron route.
 model LeaseReminder {
   id         String    @id @default(cuid())
   userId     String
@@ -437,62 +438,29 @@ model LeaseReminder {
 }
 
 // ---------- TEAM, ATTENDANCE & PAYROLL ----------
-//
-// Nigerian SMB payroll realities shape this model:
-//   - Staff are paid on fixed cycles (monthly for shop attendants, daily for
-//     casual labour, per-task for tailors/drivers) — NOT hourly.
-//   - Attendance is day-level: "did they show up?", not minute-level tracking.
-//   - Salary advances mid-cycle are extremely common.
-//   - Employers collect next-of-kin + bank details at hire.
 
-/// A staff member / helper who works for the seller.
 model StaffMember {
   id          String    @id @default(cuid())
   userId      String
   name        String
   phone       String?
-  /// 4-6 digit PIN — optional, for situations where staff self-mark attendance on a shared device.
   pin         String?
-  /// Human-readable job title ("Shop attendant", "Cashier", "Delivery").
   role        String?
-
-  /// ── Login + RBAC ─────────────────────────────────────────────────────
-  /// Unique email staff uses to log in. Optional — staff without login
-  /// are just payroll records (the original behaviour). Unique per OWNER;
-  /// different owners can have staff with the same email.
   email                String?
-  /// Bcrypt hash. Null until staff accepts their invite.
   passwordHash         String?
-  /// In-app permission level: "NONE" | "MANAGER" | "CASHIER" | "VIEWER".
-  /// NONE means the staff cannot log in at all — they're just a payroll record.
   accessRole           String    @default("NONE")
-  /// URL-safe random token the owner sends to the staff. Staff clicks it
-  /// to set their password. Null after acceptance.
   inviteToken          String?   @unique
   inviteExpiresAt      DateTime?
   lastLoginAt          DateTime?
-
-  /// Pay cycle: "monthly" | "weekly" | "daily" | "per_task"
   payType     String    @default("monthly")
-  /// Pay amount in naira (whole numbers, matching the rest of the app).
   payAmount   Int       @default(0)
-
-  /// When this person joined. Drives tenure + prorated first-month salary.
   startDate   DateTime?
-
-  /// Bank details for salary transfer (optional).
   bankName             String?
   bankAccountNumber    String?
   bankAccountName      String?
-
-  /// Next-of-kin details — standard Nigerian employment practice.
   nextOfKinName        String?
   nextOfKinPhone       String?
-
-  /// Free-form notes (ID card no., referee, guarantor, etc.).
   notes       String?
-
-  /// "active" | "inactive" (terminated, left).
   status      String    @default("active")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -507,15 +475,11 @@ model StaffMember {
   @@index([email])
 }
 
-/// One row per (staff, date). Lets the owner mark whether someone turned up
-/// that day. For daily-wage staff this is what payroll multiplies by.
 model Attendance {
   id        String   @id @default(cuid())
   userId    String
   staffId   String
-  /// Normalised to midnight UTC so uniqueness works cleanly.
   date      DateTime
-  /// "present" | "absent" | "half_day" | "leave"
   status    String   @default("present")
   note      String?
   createdAt DateTime @default(now())
@@ -527,17 +491,12 @@ model Attendance {
   @@index([userId, date])
 }
 
-/// Every payment the owner makes to a staff member. Salary is the big one,
-/// but advances / bonuses / commissions / reimbursements are all first-class.
 model StaffPayment {
   id           String    @id @default(cuid())
   userId       String
   staffId      String
-  /// "salary" | "advance" | "bonus" | "commission" | "reimbursement"
   kind         String
-  /// Amount in naira.
   amount       Int
-  /// Pay period this payment covers (optional — used for salary).
   periodStart  DateTime?
   periodEnd    DateTime?
   note         String?
@@ -553,7 +512,6 @@ model StaffPayment {
 
 // ---------- TASK MANAGEMENT ----------
 
-/// A task assigned to self or a staff member.
 model Task {
   id           String    @id @default(cuid())
   userId       String
@@ -565,16 +523,8 @@ model Task {
   status       String    @default("todo")
   dueDate      DateTime?
   completedAt  DateTime?
-  /// Who marked the task done — either the owner (when OWNER finishes
-  /// their own task) or the assigned StaffMember. Stored as a union:
-  ///   completedByKind = "owner" | "staff"
-  ///   completedById   = User.id  | StaffMember.id
-  /// Kept as free-text strings (no FK) so we don't complicate the schema
-  /// with a polymorphic relation. The UI resolves it for display.
   completedByKind String?
   completedById   String?
-  /// Optional short note the assignee leaves when completing. Shown to
-  /// the owner as a lightweight completion report ("Delivered, paid cash").
   completionNote  String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -588,7 +538,6 @@ model Task {
 
 // ---------- CHECKLISTS ----------
 
-/// A reusable checklist template (e.g. "Daily Opening", "Delivery Prep").
 model Checklist {
   id          String    @id @default(cuid())
   userId      String
@@ -605,7 +554,6 @@ model Checklist {
   @@index([userId])
 }
 
-/// A single item in a Checklist template.
 model ChecklistItem {
   id          String    @id @default(cuid())
   checklistId String
@@ -618,7 +566,6 @@ model ChecklistItem {
   @@index([checklistId])
 }
 
-/// A single execution of a Checklist (e.g. "Monday morning opening").
 model ChecklistRun {
   id          String    @id @default(cuid())
   userId      String
@@ -635,7 +582,6 @@ model ChecklistRun {
   @@index([userId, checklistId])
 }
 
-/// The result of a single item within a ChecklistRun.
 model ChecklistResult {
   id        String    @id @default(cuid())
   runId     String
@@ -652,21 +598,14 @@ model ChecklistResult {
 
 // ---------- RECEIPTS ----------
 
-/// A persisted receipt record. Created automatically when a payment is marked
-/// PAID (and optionally when a debt is cleared). Stores the generated PDF URL
-/// (on Cloudinary) and tracks email delivery status.
 model Receipt {
   id             String    @id @default(cuid())
   userId         String
   customerId     String?
   paymentId      String?   @unique
   debtId         String?   @unique
-  /// Human-readable number like "CT-00001", unique globally.
   receiptNumber  String    @unique
-  /// Hosted PDF URL (Cloudinary). Optional — may be null if storage failed;
-  /// the PDF can always be re-rendered on demand from the source records.
   pdfUrl         String?
-  /// "GENERATED" | "EMAILED" | "FAILED"
   status         String    @default("GENERATED")
   emailedTo      String?
   emailedAt      DateTime?
@@ -681,7 +620,6 @@ model Receipt {
 
 // ---------- ADMIN ----------
 
-/// A free-form note written by an admin about a user (for audit trail).
 model AdminNote {
   id            String   @id @default(cuid())
   adminUserId   String
@@ -695,8 +633,6 @@ model AdminNote {
   @@index([targetUserId, createdAt])
 }
 
-/// A key-value store for system-level configuration (feature flags, banners, etc.).
-/// Value is JSON-stringified so it can hold any shape.
 model SystemSetting {
   id         String   @id @default(cuid())
   key        String   @unique
@@ -705,21 +641,15 @@ model SystemSetting {
   createdAt  DateTime @default(now())
 }
 
-// ────────────────────────── BILLING ──────────────────────────
+// ---------- BILLING ----------
 
-/// One row per Paystack checkout attempt. We create it in `pending` state when
-/// the user clicks Upgrade, then mark `success`/`failed`/`abandoned` when the
-/// outcome is known (via webhook or /api/billing/verify).
 model PaymentAttempt {
   id                String   @id @default(cuid())
   userId            String
   targetPlan        String
-  /// Amount charged, in kobo (100 kobo = 1 NGN).
   amount            Int
   currency          String   @default("NGN")
-  /// Our generated reference sent to Paystack — unique across users.
   paystackReference String   @unique
-  /// "pending" | "success" | "failed" | "abandoned"
   status            String   @default("pending")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -731,8 +661,6 @@ model PaymentAttempt {
   @@index([status])
 }
 
-/// Raw Paystack webhook events, stored for audit and deduplication. The unique
-/// constraint on `paystackEventId` means replays are no-ops.
 model BillingEvent {
   id              String   @id @default(cuid())
   paystackEventId String   @unique
@@ -741,13 +669,9 @@ model BillingEvent {
   processedAt     DateTime @default(now())
 }
 
-/// Password-reset tokens. We never store the raw token — only its sha256 hash —
-/// so a dump of this table cannot be used to take over accounts. The raw token
-/// is mailed to the user once and never surfaced in our logs.
 model PasswordResetToken {
   id        String   @id @default(cuid())
   userId    String
-  /// sha256 hex digest of the raw reset token.
   tokenHash String   @unique
   expiresAt DateTime
   usedAt    DateTime?
@@ -766,11 +690,8 @@ model SupportTicket {
   userId      String
   subject     String
   description String
-  /// "open" | "in_progress" | "resolved" | "closed"
   status      String   @default("open")
-  /// "low" | "medium" | "high" | "urgent"
   priority    String   @default("medium")
-  /// Admin who is handling this ticket
   assignedTo  String?
   closedAt    DateTime?
   createdAt   DateTime @default(now())
@@ -790,7 +711,6 @@ model TicketReply {
   ticketId  String
   userId    String
   message   String
-  /// Whether this reply is from an admin
   isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
 
@@ -805,11 +725,9 @@ model TicketReply {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  /// "info" | "warning" | "success" | "error"
   type      String   @default("info")
   title     String
   message   String
-  /// Link to navigate to when clicked
   link      String?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -824,11 +742,9 @@ model Notification {
 model Refund {
   id                String   @id @default(cuid())
   userId            String
-  /// The PaymentAttempt this refund is for
   paymentAttemptId  String?
   amount            Int
   currency          String   @default("NGN")
-  /// "pending" | "approved" | "processed" | "rejected"
   status            String   @default("pending")
   reason            String
   adminNote         String?
@@ -850,7 +766,6 @@ model Refund {
 model AuditLog {
   id        String   @id @default(cuid())
   adminId   String
-  /// "user.suspend" | "user.reactivate" | "user.promote" | "user.demote" | "plan.override" | "refund.approve" | "refund.reject" | "ticket.assign" | "ticket.close" | "settings.update" | "notification.broadcast"
   action    String
   targetId  String?
   details   String?
@@ -866,35 +781,22 @@ model AuditLog {
 
 // ---------- PAYLINK (Payment Requests) ----------
 
-/// A payment request link that sellers share via WhatsApp. The customer
-/// opens /pay/[token] to see the amount owed and can mark it as paid.
-/// The seller confirms on their end (no online payment gateway for now).
 model PaymentRequest {
   id               String    @id @default(cuid())
   userId           String
   customerId       String?
-  /// URL-safe unique token for the public pay page.
   token            String    @unique @default(cuid())
-  /// Human-readable label like "PLK-00042".
   linkNumber       String    @unique
   customerName     String
   customerPhone    String
   amount           Int
-  /// Optional description of what the payment is for.
   description      String?
-  /// "pending" | "viewed" | "claimed" | "confirmed" | "expired" | "cancelled"
   status           String    @default("pending")
-  /// When the customer first opened the link.
   viewedAt         DateTime?
-  /// When the customer tapped "I've paid".
   claimedAt        DateTime?
-  /// When the seller confirmed payment received.
   confirmedAt      DateTime?
-  /// WhatsApp message sent timestamp.
   whatsappSentAt   DateTime?
-  /// Optional link to a Debt record this paylink was created from.
   debtId           String?
-  /// Expiry — links older than this are auto-expired by the collection engine.
   expiresAt        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

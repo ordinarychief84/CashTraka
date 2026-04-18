@@ -30,10 +30,7 @@ type Props = {
   userName?: string;
   businessType?: string | null;
   accessRole?: AccessRole;
-  /** Name of the actual principal — might be the staff's name, not the owner's. */
   principalName?: string;
-  /** When set, renders a number badge next to the "Tasks" nav link. Used on
-   *  staff-principal dashboards so they always see pending work at a glance. */
   pendingTaskCount?: number;
 };
 
@@ -48,27 +45,23 @@ export function AppShell({
 }: Props) {
   const isPropManager = businessType === 'property_manager';
 
-  // RBAC-aware visibility. Owners see everything; each other role gets a
-  // trimmed nav that matches what their permissions actually let them do.
   const show = {
     payments: can(accessRole, 'payments.read'),
     debts: can(accessRole, 'debts.read'),
     customers: can(accessRole, 'customers.read'),
-    products: can(accessRole, 'products.read') && !isPropManager,
+    products: can(accessRole, 'products.read') && \!isPropManager,
     expenses: can(accessRole, 'expenses.read'),
     team: can(accessRole, 'team.read'),
-    properties: can(accessRole, 'products.read') && isPropManager, // PM uses products perm bucket
+    properties: can(accessRole, 'products.read') && isPropManager,
     tasks: can(accessRole, 'tasks.read'),
-    checklists: can(accessRole, 'checklists.read') && !isPropManager,
+    checklists: can(accessRole, 'checklists.read') && \!isPropManager,
     reports: can(accessRole, 'reports.read'),
     settings: can(accessRole, 'settings.read'),
   };
 
   return (
     <div className="min-h-screen">
-      {/* Billing status banner — shows only when attention is needed */}
       <UpgradeBanner />
-      {/* ─── Desktop sidebar ─── */}
       <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col border-r border-border bg-white md:flex">
         <div className="flex h-16 items-center px-5 border-b border-border">
           <Link href="/dashboard" className="inline-flex items-center gap-2">
@@ -77,7 +70,6 @@ export function AppShell({
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
-          {/* Daily */}
           <SideLink href="/dashboard" icon={Home} label="Dashboard" />
           {show.payments && (
             <SideLink
@@ -102,7 +94,7 @@ export function AppShell({
           )}
 
           {/* Collections */}
-          {!isPropManager && show.payments && (
+          {\!isPropManager && show.payments && (
             <>
               <GroupLabel>Collections</GroupLabel>
               <SideLink href="/paylinks" icon={Send} label="PayLinks" />
@@ -110,13 +102,11 @@ export function AppShell({
             </>
           )}
 
-          {/* Business */}
           {(show.products || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.products && <SideLink href="/products" icon={Package} label="Products" />}
           {show.expenses && <SideLink href="/expenses" icon={Receipt} label="Expenses" />}
           {show.team && <SideLink href="/team" icon={Users2} label="Team" />}
 
-          {/* Property (conditional) */}
           {isPropManager && show.properties && (
             <>
               <GroupLabel>Property</GroupLabel>
@@ -125,7 +115,6 @@ export function AppShell({
             </>
           )}
 
-          {/* Operations */}
           {(show.tasks || show.checklists) && <GroupLabel>Operations</GroupLabel>}
           {show.tasks && (
             <SideLink
@@ -139,7 +128,6 @@ export function AppShell({
             <SideLink href="/checklists" icon={ClipboardList} label="Checklists" />
           )}
 
-          {/* Bottom items */}
           <div className="mt-auto" />
           {show.reports && <SideLink href="/reports" icon={BarChart3} label="Reports" />}
           {show.settings && <SideLink href="/settings" icon={SettingsIcon} label="Settings" />}
@@ -154,7 +142,7 @@ export function AppShell({
               Signed in as {principalName ?? userName}
             </div>
           )}
-          {accessRole !== 'OWNER' && (
+          {accessRole \!== 'OWNER' && (
             <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
               {ROLE_LABELS[accessRole]}
             </div>
@@ -171,14 +159,12 @@ export function AppShell({
         </div>
       </aside>
 
-      {/* ─── Desktop top bar (search) ─── */}
       <header className="sticky top-0 z-20 hidden h-14 border-b border-border bg-white/90 backdrop-blur md:block md:pl-56">
         <div className="flex h-full items-center px-6">
           <GlobalSearch />
         </div>
       </header>
 
-      {/* ─── Mobile top bar ─── */}
       <header className="sticky top-0 z-30 border-b border-border bg-white md:hidden">
         <div className="container-app flex h-14 items-center justify-between">
           <Link href="/dashboard" className="inline-flex items-center gap-2">
@@ -229,7 +215,6 @@ function SideLink({
   href: string;
   icon: typeof Home;
   label: string;
-  /** Optional number pill rendered after the label (e.g. pending task count). */
   badge?: number;
   badgeTone?: 'brand' | 'danger';
 }) {
@@ -240,7 +225,7 @@ function SideLink({
     >
       <Icon size={18} />
       <span className="flex-1">{label}</span>
-      {badge !== undefined && badge > 0 && (
+      {badge \!== undefined && badge > 0 && (
         <span
           className={
             'inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ' +

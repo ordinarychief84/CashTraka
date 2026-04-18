@@ -216,3 +216,6 @@ Every deployment creates a new Vercel deployment URL. To roll back:
 - Vercel dashboard → Project → Deployments → find the last-known-good one → **Promote to Production**.
 
 For schema rollbacks, Prisma migrations are forward-only. If you need to roll back a bad migration, you'll need to write an inverse migration. Don't delete from `prisma/migrations/` — that causes drift errors.
+
+
+<!-- deploy trigger 2026-04-18 -->

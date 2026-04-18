@@ -26,7 +26,7 @@ git add -A
 
 echo.
 echo [4/5] Committing changes...
-git commit -m "feat: complete CashTraka production build - billing, email, rent lifecycle, UI polish"
+git commit -m "feat: full admin panel rebuild - settings, roles, support, refunds, notifications, audit log"
 if %ERRORLEVEL% neq 0 (
     echo.
     echo NOTE: Nothing new to commit, or commit failed.

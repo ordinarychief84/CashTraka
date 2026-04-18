@@ -5,11 +5,17 @@ import {
   Users2,
   BarChart3,
   Mail,
+  Settings,
   CreditCard,
   LogOut,
   ArrowLeft,
   ShieldCheck,
   Menu,
+  Shield,
+  RefreshCw,
+  Headphones,
+  Bell,
+  ClipboardList,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
@@ -23,8 +29,14 @@ type Props = {
 const NAV_ITEMS = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/admin/users', icon: Users2, label: 'Users' },
+  { href: '/admin/roles', icon: Shield, label: 'Roles' },
+  { href: '/admin/support', icon: Headphones, label: 'Support' },
+  { href: '/admin/refunds', icon: RefreshCw, label: 'Refunds' },
+  { href: '/admin/notifications', icon: Bell, label: 'Notifications' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/admin/emails', icon: Mail, label: 'Email Logs' },
+  { href: '/admin/audit', icon: ClipboardList, label: 'Audit Log' },
+  { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];
 
 /**

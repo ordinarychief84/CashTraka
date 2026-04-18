@@ -92,6 +92,13 @@ model User {
   paymentAttempts      PaymentAttempt[]
   passwordResetTokens  PasswordResetToken[]
   leaseReminders       LeaseReminder[]
+  supportTickets       SupportTicket[]   @relation("UserTickets")
+  assignedTickets      SupportTicket[]   @relation("AssignedTickets")
+  ticketReplies        TicketReply[]
+  notifications        Notification[]
+  refunds              Refund[]          @relation("UserRefunds")
+  processedRefunds     Refund[]          @relation("ProcessedRefunds")
+  auditLogs            AuditLog[]        @relation("AuditLogAdmin")
 
   @@index([role])
   @@index([businessType])
@@ -714,7 +721,8 @@ model PaymentAttempt {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refunds Refund[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -746,4 +754,109 @@ model PasswordResetToken {
 
   @@index([userId, createdAt])
   @@index([expiresAt])
+}
+
+// ---------- SUPPORT & TICKETS ----------
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  subject     String
+  description String
+  /// "open" | "in_progress" | "resolved" | "closed"
+  status      String   @default("open")
+  /// "low" | "medium" | "high" | "urgent"
+  priority    String   @default("medium")
+  /// Admin who is handling this ticket
+  assignedTo  String?
+  closedAt    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  assignee    User?    @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
+  replies     TicketReply[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([assignedTo])
+}
+
+model TicketReply {
+  id        String   @id @default(cuid())
+  ticketId  String
+  userId    String
+  message   String
+  /// Whether this reply is from an admin
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
+}
+
+// ---------- NOTIFICATIONS ----------
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  /// "info" | "warning" | "success" | "error"
+  type      String   @default("info")
+  title     String
+  message   String
+  /// Link to navigate to when clicked
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+}
+
+// ---------- REFUNDS ----------
+
+model Refund {
+  id                String   @id @default(cuid())
+  userId            String
+  /// The PaymentAttempt this refund is for
+  paymentAttemptId  String?
+  amount            Int
+  currency          String   @default("NGN")
+  /// "pending" | "approved" | "processed" | "rejected"
+  status            String   @default("pending")
+  reason            String
+  adminNote         String?
+  processedBy       String?
+  processedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation("UserRefunds", fields: [userId], references: [id], onDelete: Cascade)
+  processor         User?    @relation("ProcessedRefunds", fields: [processedBy], references: [id], onDelete: SetNull)
+  paymentAttempt    PaymentAttempt? @relation(fields: [paymentAttemptId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+// ---------- AUDIT LOGGING ----------
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String
+  /// "user.suspend" | "user.reactivate" | "user.promote" | "user.demote" | "plan.override" | "refund.approve" | "refund.reject" | "ticket.assign" | "ticket.close" | "settings.update" | "notification.broadcast"
+  action    String
+  targetId  String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  admin     User     @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, createdAt])
+  @@index([action])
+  @@index([targetId])
 }

@@ -19,7 +19,7 @@ git add -A
 echo.
 
 echo [4/5] Committing changes...
-git commit -m "fix: remove backslash-escaped exclamation marks from 70 source files"
+git commit -m "fix: quote escaping in verify route and templates page"
 if %ERRORLEVEL% NEQ 0 (
     echo No new changes to commit, pushing existing commits...
 )

@@ -98,7 +98,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         parsed: alert,
         reason: !amountClose
           ? `Alert amount (₦${alert.amount.toLocaleString()}) doesn't match this payment (₦${payment.amount.toLocaleString()}).`
-          : 'The alert does not mention this payment's reference code, and the sender name does not match the customer. Double-check before confirming.',
+          : `The alert does not mention this payment's reference code, and the sender name does not match the customer. Double-check before confirming.`,
       },
       { status: 200 },
     );

@@ -1,28 +1,43 @@
 import Link from 'next/link';
-import { Wallet, MessageCircle } from 'lucide-react';
-import { guard } from '@/lib/guard';
+import { Wallet, MessageCircle, AlertTriangle, Clock } from 'lucide-react';
+import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { RentQuickActions } from '@/components/RentQuickActions';
+import { RenewLeaseDialog } from '@/components/RenewLeaseDialog';
 import { formatNaira } from '@/lib/format';
 import { displayPhone, waLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-type RentFilter = 'all' | 'paid' | 'pending' | 'overdue';
+type RentFilter = 'all' | 'paid' | 'pending' | 'overdue' | 'expiring';
 
 function parseFilter(v: string | undefined): RentFilter {
-  if (v === 'paid' || v === 'pending' || v === 'overdue' || v === 'all') return v;
+  if (v === 'paid' || v === 'pending' || v === 'overdue' || v === 'all' || v === 'expiring') return v;
   return 'all';
 }
 
 type SP = { filter?: RentFilter };
 
+/** Days between two dates (positive = future, negative = past). */
+function diffDays(a: Date, b: Date): number {
+  return Math.round((a.getTime() - b.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function leaseTag(leaseEnd: Date | null): { label: string; tone: 'ok' | 'warn' | 'danger' | 'none' } {
+  if (!leaseEnd) return { label: '', tone: 'none' };
+  const days = diffDays(leaseEnd, new Date());
+  if (days < -7) return { label: 'Notice to quit', tone: 'danger' };
+  if (days < 0) return { label: `Expired ${Math.abs(days)}d ago`, tone: 'danger' };
+  if (days <= 30) return { label: `Expires in ${days}d`, tone: 'warn' };
+  return { label: '', tone: 'ok' };
+}
+
 export default async function RentDashboardPage({ searchParams }: { searchParams: SP }) {
-  const user = await guard();
+  const user = await guardForBusinessType('rent');
   const currentPeriod = new Date().toISOString().slice(0, 7);
   const filter = parseFilter(searchParams.filter);
 
@@ -43,8 +58,9 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
   let totalExpected = 0;
   let totalCollected = 0;
   let totalOutstanding = 0;
+  let expiringCount = 0;
 
-  type TenantRow = (typeof tenants)[number] & { currentStatus: string };
+  type TenantRow = (typeof tenants)[number] & { currentStatus: string; lease: ReturnType<typeof leaseTag> };
   const rows: TenantRow[] = [];
 
   for (const t of tenants) {
@@ -66,7 +82,10 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
       totalOutstanding += t.rentAmount;
     }
 
-    rows.push({ ...t, currentStatus });
+    const lease = leaseTag(t.leaseEnd);
+    if (lease.tone === 'warn' || lease.tone === 'danger') expiringCount++;
+
+    rows.push({ ...t, currentStatus, lease });
   }
 
   const collectionRate = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
@@ -78,6 +97,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
         if (filter === 'paid') return r.currentStatus === 'PAID';
         if (filter === 'pending') return r.currentStatus === 'PENDING' || r.currentStatus === 'PARTIAL';
         if (filter === 'overdue') return r.currentStatus === 'OVERDUE';
+        if (filter === 'expiring') return r.lease.tone === 'warn' || r.lease.tone === 'danger';
         return true;
       });
 
@@ -94,12 +114,25 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
         <StatCard label="Collected" value={formatNaira(totalCollected)} tone="brand" sub={`${collectionRate}%`} />
         <StatCard label="Outstanding" value={formatNaira(totalOutstanding)} tone={totalOutstanding > 0 ? 'danger' : 'neutral'} />
         <StatCard
-          label="Collection rate"
-          value={`${collectionRate}%`}
-          tone={collectionRate >= 80 ? 'brand' : 'danger'}
-          sub={`${filtered.length} tenants`}
+          label="Leases expiring"
+          value={String(expiringCount)}
+          tone={expiringCount > 0 ? 'danger' : 'brand'}
+          sub={expiringCount > 0 ? 'Needs attention' : 'All good'}
         />
       </div>
+
+      {/* Lease warnings banner */}
+      {expiringCount > 0 && filter !== 'expiring' && (
+        <Link
+          href="/rent?filter=expiring"
+          className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+        >
+          <AlertTriangle size={18} className="shrink-0 text-amber-600" />
+          <span>
+            <strong>{expiringCount} lease{expiringCount > 1 ? 's' : ''}</strong> expiring soon or already expired — tap to view
+          </span>
+        </Link>
+      )}
 
       {/* Filters */}
       <div className="mb-4 flex flex-wrap gap-2">
@@ -107,6 +140,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
         <FilterLink current={filter} value="paid" label="Paid" />
         <FilterLink current={filter} value="pending" label="Pending" />
         <FilterLink current={filter} value="overdue" label="Overdue" tone="owed" />
+        <FilterLink current={filter} value="expiring" label={`Expiring (${expiringCount})`} tone="owed" />
       </div>
 
       {/* Tenant rows */}
@@ -154,7 +188,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                       {' · '}
                       {displayPhone(t.phone)}
                     </div>
-                    <div className="mt-1 flex items-center gap-3 text-xs">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                       <span className="num font-medium text-ink">{formatNaira(t.rentAmount)}</span>
                       <span
                         className={cn(
@@ -169,9 +203,28 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                         {status === 'PENDING' && 'Pending'}
                         {status === 'OVERDUE' && 'Overdue'}
                       </span>
+                      {t.lease.tone !== 'none' && t.lease.tone !== 'ok' && (
+                        <span
+                          className={cn(
+                            'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold',
+                            t.lease.tone === 'warn' && 'bg-amber-100 text-amber-800',
+                            t.lease.tone === 'danger' && 'bg-red-100 text-red-800',
+                          )}
+                        >
+                          {t.lease.tone === 'danger' ? <AlertTriangle size={10} /> : <Clock size={10} />}
+                          {t.lease.label}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
+                    {(t.lease.tone === 'warn' || t.lease.tone === 'danger') && (
+                      <RenewLeaseDialog
+                        tenantId={t.id}
+                        tenantName={t.name}
+                        currentLeaseEnd={t.leaseEnd?.toISOString()}
+                      />
+                    )}
                     {status !== 'PAID' && (
                       <a
                         href={waUrl}

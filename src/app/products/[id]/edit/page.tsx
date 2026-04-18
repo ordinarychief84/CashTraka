@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { guard } from '@/lib/guard';
+import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -8,7 +8,7 @@ import { ProductForm } from '@/components/ProductForm';
 export const dynamic = 'force-dynamic';
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
-  const user = await guard();
+  const user = await guardForBusinessType('products');
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: user.id },
   });

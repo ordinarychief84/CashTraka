@@ -1,4 +1,4 @@
-import { guard } from '@/lib/guard';
+import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 type SP = { propertyId?: string };
 
 export default async function NewTenantPage({ searchParams }: { searchParams: SP }) {
-  const user = await guard();
+  const user = await guardForBusinessType('tenants');
   const propertyId = searchParams.propertyId || '';
 
   const properties = await prisma.property.findMany({

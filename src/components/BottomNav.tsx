@@ -37,7 +37,7 @@ export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-white md:hidden">
         <div className="mx-auto grid max-w-screen-md grid-cols-5">
           <NavItem href="/dashboard" icon={Home} label="Home" active={isActive('/dashboard')} />
-          <NavItem href="/payments" icon={Wallet} label="Payments" active={isActive('/payments')} />
+          <NavItem href="/payments" icon={Wallet} label={isPropManager ? 'Rent' : 'Payments'} active={isActive('/payments')} />
 
           {/* Center FAB — Add button (hidden for read-only roles) */}
           <div className="flex items-center justify-center">
@@ -55,7 +55,7 @@ export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
             )}
           </div>
 
-          <NavItem href="/debts" icon={Clock3} label="Owed" active={isActive('/debts')} />
+          <NavItem href="/debts" icon={Clock3} label={isPropManager ? 'Unpaid' : 'Owed'} active={isActive('/debts')} />
 
           <button
             type="button"

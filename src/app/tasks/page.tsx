@@ -179,11 +179,11 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
       principalName={user.principalName}
     >
       <PageHeader
-        title={isStaffPrincipal ? 'My tasks' : 'Tasks'}
+        title={isStaffPrincipal ? 'My Tasks' : 'Task Management'}
         subtitle={
           isStaffPrincipal
             ? 'Work assigned to you. Tap a task to mark it done.'
-            : 'Track what needs doing and who is on it.'
+            : 'Create, assign and track tasks across your team.'
         }
         action={
           <Link href="/tasks/new" className="btn-primary">

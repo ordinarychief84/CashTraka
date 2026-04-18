@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Plus, Building2, MapPin, Users } from 'lucide-react';
-import { guard } from '@/lib/guard';
+import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -11,7 +11,7 @@ import { formatNaira } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 export default async function PropertiesPage() {
-  const user = await guard();
+  const user = await guardForBusinessType('properties');
   const currentPeriod = new Date().toISOString().slice(0, 7);
 
   const properties = await prisma.property.findMany({

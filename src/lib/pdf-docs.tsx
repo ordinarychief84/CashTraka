@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     marginBottom: 16,
   },
-  business: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: palette.ink },
+  business: { fontSize: 20, fontFamily: 'Helvetica-Bold', color: palette.brand },
   businessSub: { marginTop: 4, fontSize: 9, color: palette.slate500 },
   badge: {
     fontSize: 9,
@@ -154,11 +154,14 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.eyebrow}>Receipt</Text>
             <Text style={styles.business}>{data.business}</Text>
             {data.businessAddress ? (
               <Text style={styles.businessSub}>{data.businessAddress}</Text>
             ) : null}
+            {data.whatsappNumber ? (
+              <Text style={styles.businessSub}>Tel: {data.whatsappNumber}</Text>
+            ) : null}
+            <Text style={[styles.eyebrow, { marginTop: 6 }]}>Receipt</Text>
           </View>
           <View
             style={[
@@ -174,7 +177,7 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
         </View>
 
         <View style={styles.sectionBox}>
-          <Text style={styles.sectionTitle}>Issued to</Text>
+          <Text style={styles.sectionTitle}>Billed to</Text>
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Name</Text>
             <Text style={styles.kvValue}>{data.customerName}</Text>
@@ -228,12 +231,9 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
           <Text style={styles.totalAmount}>{formatNaira(data.amount)}</Text>
         </View>
 
-        {(data.receiptFooter || data.whatsappNumber) && (
+        {data.receiptFooter && (
           <View style={styles.footer}>
-            {data.receiptFooter ? <Text>{data.receiptFooter}</Text> : null}
-            {data.whatsappNumber ? (
-              <Text>WhatsApp: {data.whatsappNumber}</Text>
-            ) : null}
+            <Text>{data.receiptFooter}</Text>
           </View>
         )}
         <View style={{ marginTop: 20, textAlign: 'center' }}>

@@ -45,6 +45,9 @@ type CreateResult = {
   receiptNumber: string | null;
 };
 
+type LineItem = { description: string; quantity: string; unitPrice: string };
+const emptyItem = (): LineItem => ({ description: '', quantity: '1', unitPrice: '' });
+
 export function CreateReceiptDialog({
   open,
   onClose,
@@ -55,11 +58,17 @@ export function CreateReceiptDialog({
   const [stage, setStage] = useState<'form' | 'success' | 'error'>('form');
   const [name, setName] = useState(defaultCustomer?.name ?? '');
   const [phone, setPhone] = useState(defaultCustomer?.phone ?? '');
-  const [amount, setAmount] = useState('');
-  const [note, setNote] = useState('');
+  const [items, setItems] = useState<LineItem[]>([emptyItem()]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<CreateResult | null>(null);
+
+  // Compute total from line items
+  const totalAmount = items.reduce((sum, it) => {
+    const q = Number(it.quantity) || 0;
+    const p = Number(it.unitPrice) || 0;
+    return sum + q * p;
+  }, 0);
 
   if (!open) return null;
 
@@ -67,10 +76,21 @@ export function CreateReceiptDialog({
     setStage('form');
     setName(defaultCustomer?.name ?? '');
     setPhone(defaultCustomer?.phone ?? '');
-    setAmount('');
-    setNote('');
+    setItems([emptyItem()]);
     setError(null);
     setResult(null);
+  }
+
+  function updateItem(index: number, field: keyof LineItem, value: string) {
+    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [field]: value } : it)));
+  }
+
+  function addItem() {
+    setItems((prev) => [...prev, emptyItem()]);
+  }
+
+  function removeItem(index: number) {
+    setItems((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
   }
 
   function close() {
@@ -83,10 +103,21 @@ export function CreateReceiptDialog({
     if (submitting) return;
     setError(null);
 
-    const n = Number(amount);
     if (!name.trim()) return setError('Customer name is required');
     if (!phone.trim()) return setError('Phone is required so you can send the receipt');
-    if (!Number.isFinite(n) || n <= 0) return setError('Amount must be greater than zero');
+
+    // Validate items
+    const validItems = items.filter((it) => it.description.trim());
+    if (validItems.length === 0) return setError('Add at least one item');
+    for (const it of validItems) {
+      const q = Number(it.quantity);
+      const p = Number(it.unitPrice);
+      if (!q || q <= 0) return setError(`Quantity for "${it.description}" must be at least 1`);
+      if (!p || p <= 0) return setError(`Price for "${it.description}" must be greater than zero`);
+    }
+
+    const n = totalAmount;
+    if (n <= 0) return setError('Total amount must be greater than zero');
 
     setSubmitting(true);
     try {
@@ -95,17 +126,13 @@ export function CreateReceiptDialog({
         phone: phone.trim(),
         amount: n,
         status: 'PAID',
+        items: validItems.map((it) => ({
+          productId: null,
+          description: it.description.trim(),
+          unitPrice: Number(it.unitPrice),
+          quantity: Number(it.quantity),
+        })),
       };
-      if (note.trim()) {
-        payload.items = [
-          {
-            productId: null,
-            description: note.trim(),
-            unitPrice: n,
-            quantity: 1,
-          },
-        ];
-      }
       const res = await fetch('/api/payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,8 +166,7 @@ export function CreateReceiptDialog({
     if (!result) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
     const url = `${origin}/r/${result.id}`;
-    const n = Number(amount);
-    const msg = `Hi ${name}, here is your receipt from ${businessName} for ${formatNaira(n)}${
+    const msg = `Hi ${name}, here is your receipt from ${businessName} for ${formatNaira(totalAmount)}${
       result.receiptNumber ? ' (' + result.receiptNumber + ')' : ''
     }: ${url}\nThank you for your patronage!`;
     window.open(waLink(phone, msg), '_blank');
@@ -229,38 +255,77 @@ export function CreateReceiptDialog({
               </p>
             </div>
 
+            {/* ─── Line items ─── */}
             <div>
-              <label htmlFor="cr-amount" className="label">
-                Amount (₦)
-              </label>
-              <input
-                id="cr-amount"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                className="input num text-lg font-semibold"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-                required
-              />
+              <label className="label">Items</label>
+              <div className="space-y-2">
+                {items.map((item, idx) => (
+                  <div key={idx} className="flex items-start gap-2">
+                    <div className="flex-[3]">
+                      {idx === 0 && <span className="mb-1 block text-[10px] text-slate-400">Item name</span>}
+                      <input
+                        className="input text-sm"
+                        value={item.description}
+                        onChange={(e) => updateItem(idx, 'description', e.target.value)}
+                        placeholder="e.g. Rose perfume"
+                        required
+                      />
+                    </div>
+                    <div className="flex-[1]">
+                      {idx === 0 && <span className="mb-1 block text-[10px] text-slate-400">Qty</span>}
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        className="input text-sm text-center"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
+                        placeholder="1"
+                        required
+                      />
+                    </div>
+                    <div className="flex-[2]">
+                      {idx === 0 && <span className="mb-1 block text-[10px] text-slate-400">Price (₦)</span>}
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        className="input num text-sm"
+                        value={item.unitPrice}
+                        onChange={(e) => updateItem(idx, 'unitPrice', e.target.value)}
+                        placeholder="0"
+                        required
+                      />
+                    </div>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(idx)}
+                        className="mt-5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500"
+                        aria-label="Remove item"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={addItem}
+                className="mt-2 text-xs font-semibold text-brand-600 hover:text-brand-700"
+              >
+                + Add another item
+              </button>
             </div>
 
-            <div>
-              <label htmlFor="cr-note" className="label">
-                What was it for? (optional)
-              </label>
-              <input
-                id="cr-note"
-                className="input"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="e.g. 2 bottles of rose perfume"
-              />
-              <p className="mt-1 text-[11px] text-slate-500">
-                Shown as a line item on the receipt.
-              </p>
-            </div>
+            {/* Total preview */}
+            {totalAmount > 0 && (
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                <span className="text-xs font-semibold text-slate-500">TOTAL</span>
+                <span className="text-lg font-bold text-ink">{formatNaira(totalAmount)}</span>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -299,11 +364,11 @@ export function CreateReceiptDialog({
                       <span className="font-mono font-semibold">
                         {result.receiptNumber}
                       </span>{' '}
-                      · {name} · {formatNaira(Number(amount))}
+                      · {name} · {formatNaira(totalAmount)}
                     </>
                   ) : (
                     <>
-                      {name} · {formatNaira(Number(amount))}
+                      {name} · {formatNaira(totalAmount)}
                     </>
                   )}
                 </div>

@@ -129,7 +129,13 @@ select {
 }
 
 .card {
-  @apply bg-white rounded-xl border border-border shadow-xs;
+  @apply bg-white rounded-xl border border-border shadow-xs transition-shadow duration-200;
+}
+
+/* Interactive cards lift slightly on hover — subtle but feels polished */
+a.card:hover,
+button.card:hover {
+  @apply shadow-md;
 }
 
 .input {

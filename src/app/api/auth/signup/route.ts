@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       businessType: user.businessType,
     });
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') console.error(e);
+    console.error('SIGNUP_ERROR:', e instanceof Error ? e.message : e, e instanceof Error ? e.stack : '');
     return fail('Server error', 500);
   }
 }

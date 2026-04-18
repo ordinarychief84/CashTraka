@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { guard } from './guard';
 import { can, type Permission } from './rbac';
 import { effectivePlan, limitsFor, type Limits } from './plan-limits';
+import { canAccess } from './business-type';
 
 /**
  * Page-level RBAC guard. Use inside a server component to block pages that
@@ -41,6 +42,20 @@ export async function guardWithFeature(feature: BooleanFeature) {
   const limits = limitsFor(eff.plan);
   if (!limits[feature]) {
     redirect(`/dashboard?denied=feature:${encodeURIComponent(feature)}`);
+  }
+  return user;
+}
+
+/**
+ * Page-level business-type guard. Use for pages that are only relevant to
+ * a specific ICP (e.g. /products is seller-only, /properties is PM-only).
+ *
+ * Redirects to /dashboard if the user's businessType doesn't match.
+ */
+export async function guardForBusinessType(feature: string) {
+  const user = await guard();
+  if (!canAccess(feature, user.businessType)) {
+    redirect('/dashboard');
   }
   return user;
 }

@@ -574,7 +574,7 @@ export default async function DashboardPage() {
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
           {/* Top contributors */}
-          <TopContributors rows={contributorRows} monthLabel={monthLabel} />
+          <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
 
           {/* Partial collections progress */}
           {partialDebts.length > 0 && (

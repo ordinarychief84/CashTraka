@@ -120,7 +120,7 @@ export function AppShell({
             <SideLink
               href="/tasks"
               icon={ListTodo}
-              label="Tasks"
+              label="Task Management"
               badge={pendingTaskCount}
             />
           )}

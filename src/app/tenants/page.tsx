@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Users, MessageCircle } from 'lucide-react';
-import { guard } from '@/lib/guard';
+import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 
 export default async function TenantsPage({ searchParams }: { searchParams: { status?: string } }) {
-  const user = await guard();
+  const user = await guardForBusinessType('tenants');
   const filter = searchParams.status || 'active';
 
   const tenants = await prisma.tenant.findMany({

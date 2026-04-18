@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Pencil, MessageCircle, Building2 } from 'lucide-react';
+import { Pencil, MessageCircle, Building2, AlertTriangle, Clock } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
+import { RenewLeaseDialog } from '@/components/RenewLeaseDialog';
 import { formatNaira, formatDate } from '@/lib/format';
 import { displayPhone, waLink } from '@/lib/whatsapp';
 import { cn } from '@/lib/utils';
@@ -90,6 +91,32 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
           </div>
         </div>
       </div>
+
+      {/* Lease status banner */}
+      {(() => {
+        if (!tenant.leaseEnd) return null;
+        const days = Math.round((tenant.leaseEnd.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (days > 30) return null;
+        const expired = days <= 0;
+        return (
+          <div className={cn(
+            'mb-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium',
+            expired ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800',
+          )}>
+            {expired ? <AlertTriangle size={18} className="shrink-0" /> : <Clock size={18} className="shrink-0" />}
+            <span className="flex-1">
+              {expired
+                ? `Lease expired ${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''} ago on ${formatDate(tenant.leaseEnd)}. Contact tenant or renew the lease.`
+                : `Lease expires in ${days} day${days !== 1 ? 's' : ''} on ${formatDate(tenant.leaseEnd)}.`}
+            </span>
+            <RenewLeaseDialog
+              tenantId={tenant.id}
+              tenantName={tenant.name}
+              currentLeaseEnd={tenant.leaseEnd.toISOString()}
+            />
+          </div>
+        );
+      })()}
 
       {/* Stats */}
       <div className="mb-5 grid gap-3 sm:grid-cols-3">

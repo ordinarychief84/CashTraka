@@ -46,7 +46,7 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
     {
       label: 'Operations',
       items: [
-        { href: '/tasks', icon: ListTodo, label: 'Tasks' },
+        { href: '/tasks', icon: ListTodo, label: 'Task Management' },
         ...(isPropManager
           ? []
           : [{ href: '/checklists', icon: ClipboardList, label: 'Checklists' }]),

@@ -59,7 +59,6 @@ export function SettingsForm({ initial }: Props) {
   const dirty = useMemo(
     () =>
       form.businessName !== initial.businessName ||
-      form.businessType !== initial.businessType ||
       form.whatsappNumber !== initial.whatsappNumber ||
       form.receiptFooter !== initial.receiptFooter ||
       form.bankName !== initial.bankName ||
@@ -101,18 +100,6 @@ export function SettingsForm({ initial }: Props) {
     e.preventDefault();
     setError(null);
     setSaved(false);
-
-    // Confirm destructive switch — the UI shifts labels, nav items, and default
-    // routes. Data stays but "Customers" becomes "Tenants" and vice versa.
-    if (form.businessType !== initial.businessType) {
-      const goingToPm = form.businessType === 'property_manager';
-      const confirmed = confirm(
-        goingToPm
-          ? 'Switch to Landlord mode? Your dashboard, labels, and navigation will change (e.g. "Customers" will become "Tenants"). Existing data is preserved but some pages will move.'
-          : 'Switch to Small Business mode? Rent tracking will be hidden and the dashboard will use "Customers" and "Payments" labels. Existing data is preserved.',
-      );
-      if (!confirmed) return;
-    }
 
     if (!accountNumberValid) {
       setError('Account number should be 10 digits.');
@@ -161,9 +148,13 @@ export function SettingsForm({ initial }: Props) {
     <div className="space-y-5">
       {/* ─────────── Business profile ─────────── */}
       <Section
-        icon={Store}
+        icon={form.businessType === 'property_manager' ? Building2 : Store}
         title="Business profile"
-        description="How your business appears to customers on receipts, invoices and messages."
+        description={
+          form.businessType === 'property_manager'
+            ? 'How your business appears to tenants on rent receipts and invoices.'
+            : 'How your business appears to customers on receipts, invoices and messages.'
+        }
       >
         <form onSubmit={handleSave} className="space-y-5">
           <Field
@@ -181,35 +172,36 @@ export function SettingsForm({ initial }: Props) {
             />
           </Field>
 
-          <Field
-            id="businessType"
-            label="Solution"
-            hint="Pick the mode that matches what you do. You can switch later."
-          >
-            <div className="grid gap-2 sm:grid-cols-2">
-              <SolutionChoice
-                value="seller"
-                current={form.businessType}
-                onPick={() => update('businessType', 'seller')}
-                icon={Store}
-                label="Small Business"
-                sub="Shops, services, food, tailors"
-              />
-              <SolutionChoice
-                value="property_manager"
-                current={form.businessType}
-                onPick={() => update('businessType', 'property_manager')}
-                icon={Building2}
-                label="Landlord"
-                sub="Rent & property management"
-              />
+          {/* Read-only mode badge */}
+          <div>
+            <label className="text-sm font-semibold text-ink">Account type</label>
+            <div className="mt-1.5">
+              <span
+                className={
+                  'inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ' +
+                  (form.businessType === 'property_manager'
+                    ? 'border-brand-200 bg-brand-50 text-brand-700'
+                    : 'border-slate-200 bg-slate-50 text-slate-700')
+                }
+              >
+                {form.businessType === 'property_manager' ? (
+                  <Building2 size={16} />
+                ) : (
+                  <Store size={16} />
+                )}
+                {form.businessType === 'property_manager' ? 'Landlord' : 'Small Business'}
+              </span>
             </div>
-          </Field>
+          </div>
 
           <Field
             id="whatsappNumber"
             label="WhatsApp number"
-            hint="Shown on receipts so customers can reach you."
+            hint={
+              form.businessType === 'property_manager'
+                ? 'Shown on rent receipts so tenants can reach you.'
+                : 'Shown on receipts so customers can reach you.'
+            }
           >
             <input
               id="whatsappNumber"
@@ -233,7 +225,11 @@ export function SettingsForm({ initial }: Props) {
             id="receiptFooter"
             label="Receipt footer"
             optional
-            hint="Appears at the bottom of every receipt. Great for a thank-you note or return policy."
+            hint={
+              form.businessType === 'property_manager'
+                ? 'Appears at the bottom of every rent receipt. Great for a note about payment terms.'
+                : 'Appears at the bottom of every receipt. Great for a thank-you note or return policy.'
+            }
           >
             <textarea
               id="receiptFooter"
@@ -257,8 +253,9 @@ export function SettingsForm({ initial }: Props) {
               <div>
                 <h3 className="text-sm font-bold text-ink">Payment details</h3>
                 <p className="text-xs text-slate-600">
-                  Shown on your payment links and invoices so customers can pay
-                  into your account.
+                  {form.businessType === 'property_manager'
+                    ? 'Shown on rent invoices so tenants can pay into your account.'
+                    : 'Shown on your payment links and invoices so customers can pay into your account.'}
                 </p>
               </div>
             </div>
@@ -385,7 +382,11 @@ export function SettingsForm({ initial }: Props) {
       <Section
         icon={MessageSquare}
         title="Saved messages"
-        description="Re-use templates when you follow up on WhatsApp — so you don't type the same message twice."
+        description={
+          form.businessType === 'property_manager'
+            ? 'Re-use templates when you remind tenants about rent on WhatsApp.'
+            : 'Re-use templates when you follow up on WhatsApp — so you don\'t type the same message twice.'
+        }
       >
         <Link
           href="/templates"

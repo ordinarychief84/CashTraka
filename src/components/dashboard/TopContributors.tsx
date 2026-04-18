@@ -20,21 +20,25 @@ type Row = {
 export function TopContributors({
   rows,
   monthLabel,
+  isPm = false,
 }: {
   rows: Row[];
   monthLabel: string;
+  isPm?: boolean;
 }) {
+  const heading = isPm ? 'Top tenants' : 'Top customers';
+  const emptyMsg = isPm
+    ? 'No rent payments yet this month. Your top tenants will appear here as rent comes in.'
+    : 'No paid transactions yet this month. Your best customers will appear here as money comes in.';
+
   if (rows.length === 0) {
     return (
       <section className="card p-5">
         <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
           <Users size={16} className="text-slate-500" />
-          Top customers — {monthLabel}
+          {heading} — {monthLabel}
         </h2>
-        <p className="text-xs text-slate-500">
-          No paid transactions yet this month. Your best customers will appear
-          here as money comes in.
-        </p>
+        <p className="text-xs text-slate-500">{emptyMsg}</p>
       </section>
     );
   }
@@ -46,7 +50,7 @@ export function TopContributors({
     <section className="card p-5">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
         <Users size={16} className="text-brand-600" />
-        Top customers — {monthLabel}
+        {heading} — {monthLabel}
       </h2>
       <ul className="space-y-2">
         {rows.map((row, i) => {

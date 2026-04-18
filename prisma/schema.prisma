@@ -91,6 +91,7 @@ model User {
   adminNotesReceived   AdminNote[]       @relation("AdminNoteTarget")
   paymentAttempts      PaymentAttempt[]
   passwordResetTokens  PasswordResetToken[]
+  leaseReminders       LeaseReminder[]
 
   @@index([role])
   @@index([businessType])
@@ -377,7 +378,8 @@ model Tenant {
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  rentPayments  RentPayment[]
+  rentPayments    RentPayment[]
+  leaseReminders  LeaseReminder[]
 
   @@index([userId, status])
 }
@@ -403,6 +405,25 @@ model RentPayment {
 
   @@unique([tenantId, period])
   @@index([userId, period])
+}
+
+/// Tracks lease-lifecycle reminders so the cron never double-sends.
+/// One row per (tenant × reminder type). Created lazily by the cron route.
+model LeaseReminder {
+  id         String    @id @default(cuid())
+  userId     String
+  tenantId   String
+  /// "30_day_warning" | "expiry_day" | "post_expiry" | "notice_to_quit"
+  kind       String
+  sentAt     DateTime  @default(now())
+  /// "email" | "whatsapp" | "both"
+  channel    String    @default("email")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, kind])
+  @@index([userId])
 }
 
 // ---------- TEAM, ATTENDANCE & PAYROLL ----------

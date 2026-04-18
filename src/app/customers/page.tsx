@@ -55,7 +55,7 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
             name="q"
             defaultValue={q}
             placeholder="Search customers"
-            className="input \!pl-11"
+            className="input !pl-11"
           />
         </div>
       </form>

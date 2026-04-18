@@ -28,9 +28,9 @@ const patchSchema = z.object({
  */
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const ctx = await getAuthContext();
-  if (\!ctx) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!ctx) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const isStaff = \!ctx.isOwner;
+  const isStaff = !ctx.isOwner;
   const myStaffId = ctx.staff?.id ?? null;
 
   const task = await prisma.task.findFirst({
@@ -41,11 +41,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(isStaff ? { assignedToId: myStaffId ?? '__none__' } : {}),
     },
   });
-  if (\!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -58,11 +58,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   // attempt to edit anything else rather than silently dropping the fields.
   if (isStaff) {
     const hasRestrictedEdit =
-      title \!== undefined ||
-      description \!== undefined ||
-      assignedToId \!== undefined ||
-      priority \!== undefined ||
-      dueDate \!== undefined;
+      title !== undefined ||
+      description !== undefined ||
+      assignedToId !== undefined ||
+      priority !== undefined ||
+      dueDate !== undefined;
     if (hasRestrictedEdit) {
       return NextResponse.json(
         { error: 'You can only update the status of tasks assigned to you.' },
@@ -70,7 +70,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       );
     }
     // Also require tasks.write permission (Manager/Cashier have it, Viewer doesn't).
-    if (\!can(ctx.accessRole, 'tasks.write')) {
+    if (!can(ctx.accessRole, 'tasks.write')) {
       return NextResponse.json(
         { error: 'Your role does not allow changing task status.' },
         { status: 403 },
@@ -80,30 +80,30 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const data: Record<string, unknown> = {};
 
-  if (title \!== undefined) data.title = title.trim();
-  if (description \!== undefined) data.description = description || null;
-  if (assignedToId \!== undefined) {
+  if (title !== undefined) data.title = title.trim();
+  if (description !== undefined) data.description = description || null;
+  if (assignedToId !== undefined) {
     if (assignedToId) {
       const staff = await prisma.staffMember.findFirst({
         where: { id: assignedToId, userId: ctx.owner.id },
         select: { id: true },
       });
-      if (\!staff) {
+      if (!staff) {
         return NextResponse.json({ error: 'Staff not found' }, { status: 404 });
       }
     }
     data.assignedToId = assignedToId || null;
   }
-  if (priority \!== undefined) data.priority = priority;
-  if (dueDate \!== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
+  if (priority !== undefined) data.priority = priority;
+  if (dueDate !== undefined) data.dueDate = dueDate ? new Date(dueDate) : null;
 
-  if (status \!== undefined) {
+  if (status !== undefined) {
     data.status = status;
     if (status === 'done') {
       data.completedAt = new Date();
       data.completedByKind = isStaff ? 'staff' : 'owner';
       data.completedById = isStaff ? myStaffId : ctx.owner.id;
-      if (completionNote \!== undefined) {
+      if (completionNote !== undefined) {
         data.completionNote = completionNote || null;
       }
     } else if (task.status === 'done') {
@@ -113,7 +113,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data.completedById = null;
       data.completionNote = null;
     }
-  } else if (completionNote \!== undefined && task.status === 'done') {
+  } else if (completionNote !== undefined && task.status === 'done') {
     // Allow amending the note on an already-done task.
     data.completionNote = completionNote || null;
   }
@@ -129,12 +129,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   // Only the owner can delete tasks — not the assigned staff.
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const task = await prisma.task.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.task.delete({ where: { id: task.id } });
   return NextResponse.json({ ok: true });

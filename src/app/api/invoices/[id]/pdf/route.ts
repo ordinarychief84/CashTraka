@@ -15,7 +15,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: params.id, userId: user.id },
@@ -33,7 +33,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       items: true,
     },
   });
-  if (\!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const data: InvoiceData = {
     business: invoice.user.businessName || 'Seller',

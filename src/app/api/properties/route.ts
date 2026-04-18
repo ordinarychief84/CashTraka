@@ -13,14 +13,14 @@ const createSchema = z.object({
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const gate = await enforceQuota(user, 'create_property');
   if (gate) return gate;
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },

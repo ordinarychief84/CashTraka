@@ -36,11 +36,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   const member = await prisma.staffMember.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -48,7 +48,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   const d = parsed.data;
   const orNull = <T extends string>(v: T | undefined, current: T | null): T | null =>
-    v \!== undefined ? ((v as string) ? (v as T) : null) : current;
+    v !== undefined ? ((v as string) ? (v as T) : null) : current;
 
   await prisma.staffMember.update({
     where: { id: member.id },
@@ -60,7 +60,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       payType: d.payType ?? member.payType,
       payAmount: d.payAmount ?? member.payAmount,
       startDate:
-        d.startDate \!== undefined
+        d.startDate !== undefined
           ? d.startDate
             ? new Date(d.startDate)
             : null
@@ -92,7 +92,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
   const member = await prisma.staffMember.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!member) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Soft-delete by marking inactive (preserves attendance + payment history)
   await prisma.staffMember.update({

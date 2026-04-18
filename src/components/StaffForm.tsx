@@ -42,7 +42,7 @@ const PAY_TYPE_HELP: Record<string, string> = {
 };
 
 function dateInputValue(d: string | Date | null | undefined): string {
-  if (\!d) return '';
+  if (!d) return '';
   const date = typeof d === 'string' ? new Date(d) : d;
   if (Number.isNaN(date.getTime())) return '';
   return date.toISOString().slice(0, 10);
@@ -80,7 +80,7 @@ export function StaffForm({ initial, redirectTo = '/team' }: Props) {
     };
     try {
       const res = await fetch(
-        editing ? `/api/team/${initial\!.id}` : '/api/team',
+        editing ? `/api/team/${initial!.id}` : '/api/team',
         {
           method: editing ? 'PATCH' : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -88,7 +88,7 @@ export function StaffForm({ initial, redirectTo = '/team' }: Props) {
         },
       );
       const data = await res.json();
-      if (\!res.ok) throw new Error(data.error || 'Could not save');
+      if (!res.ok) throw new Error(data.error || 'Could not save');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
@@ -219,7 +219,7 @@ export function StaffForm({ initial, redirectTo = '/team' }: Props) {
               }
               disabled={payType === 'per_task'}
             />
-            {initial?.payAmount \!== undefined && initial.payAmount > 0 && (
+            {initial?.payAmount !== undefined && initial.payAmount > 0 && (
               <p className="mt-1 text-[11px] text-slate-500">
                 Currently {formatNaira(initial.payAmount)} {cycleLabel}.
               </p>

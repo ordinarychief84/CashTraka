@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Suspense } from 'react';
 import { Plus, Receipt, Briefcase, User as UserIcon, AlertTriangle } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
@@ -9,7 +8,6 @@ import { EmptyState } from '@/components/EmptyState';
 import { StatCard } from '@/components/StatCard';
 import { TimeRange } from '@/components/TimeRange';
 import { ExpenseRowActions } from '@/components/ExpenseRowActions';
-import { ExpenseSearchBar } from '@/components/ExpenseSearchBar';
 import { PersonalBudgetCard } from '@/components/PersonalBudgetCard';
 import { formatNaira, formatDate } from '@/lib/format';
 import { parseRange, rangeStart, RANGE_LABELS } from '@/lib/range';
@@ -19,7 +17,7 @@ export const dynamic = 'force-dynamic';
 
 type Kind = 'business' | 'personal' | 'all';
 
-type SP = { range?: string; kind?: string; q?: string; category?: string };
+type SP = { range?: string; kind?: string };
 
 function parseKind(k: string | undefined): Kind {
   if (k === 'business' || k === 'personal') return k;
@@ -27,8 +25,15 @@ function parseKind(k: string | undefined): Kind {
 }
 
 /**
- * Expenses page with the new business vs personal split,
- * plus search and category filter.
+ * Expenses page with the new business vs personal split.
+ *
+ * Top of page:
+ *   - Kind tabs (All / Business / Personal)
+ *   - Time range selector
+ *   - Stat cards broken out by kind
+ * If personal thresholds are set (weekly or monthly), shows a warning
+ * banner the moment the owner crosses one — so they see the overspend
+ * the NEXT time they open the app, without waiting for an email.
  */
 export default async function ExpensesPage({
   searchParams,
@@ -39,8 +44,6 @@ export default async function ExpensesPage({
   const range = parseRange(searchParams.range);
   const start = rangeStart(range);
   const kind = parseKind(searchParams.kind);
-  const searchQ = searchParams.q?.trim() || '';
-  const categoryFilter = searchParams.category || '';
 
   const now = new Date();
   const weekStart = new Date(now);
@@ -51,18 +54,6 @@ export default async function ExpensesPage({
   const kindFilter =
     kind === 'all' ? {} : { kind };
 
-  // Build search/category where clause
-  const searchWhere: Record<string, unknown> = {};
-  if (searchQ) {
-    searchWhere.OR = [
-      { category: { contains: searchQ, mode: 'insensitive' } },
-      { note: { contains: searchQ, mode: 'insensitive' } },
-    ];
-  }
-  if (categoryFilter) {
-    searchWhere.category = categoryFilter;
-  }
-
   const [expenses, rangeAgg, businessAgg, personalAgg, receivedAgg, personalWeekAgg, personalMonthAgg] =
     await Promise.all([
       prisma.expense.findMany({
@@ -70,7 +61,6 @@ export default async function ExpensesPage({
           userId: user.id,
           ...(start ? { incurredOn: { gte: start } } : {}),
           ...kindFilter,
-          ...searchWhere,
         },
         orderBy: { incurredOn: 'desc' },
         take: 200,
@@ -107,6 +97,8 @@ export default async function ExpensesPage({
         },
         _sum: { amount: true },
       }),
+      // Separate windows for threshold check — always compute on current
+      // week/month, regardless of the page's range filter.
       prisma.expense.aggregate({
         where: {
           userId: user.id,
@@ -129,14 +121,15 @@ export default async function ExpensesPage({
   const businessRange = businessAgg._sum.amount ?? 0;
   const personalRange = personalAgg._sum.amount ?? 0;
   const received = receivedAgg._sum.amount ?? 0;
+  // Profit only counts BUSINESS expenses — personal is out-of-pocket.
   const profit = received - businessRange;
 
   const personalWeek = personalWeekAgg._sum.amount ?? 0;
   const personalMonth = personalMonthAgg._sum.amount ?? 0;
   const weeklyBudget = user.personalBudgetWeekly ?? null;
   const monthlyBudget = user.personalBudgetMonthly ?? null;
-  const overWeek = weeklyBudget \!== null && personalWeek > weeklyBudget;
-  const overMonth = monthlyBudget \!== null && personalMonth > monthlyBudget;
+  const overWeek = weeklyBudget !== null && personalWeek > weeklyBudget;
+  const overMonth = monthlyBudget !== null && personalMonth > monthlyBudget;
 
   // Group by category within the current tab.
   const byCategory = new Map<string, number>();
@@ -162,7 +155,7 @@ export default async function ExpensesPage({
         }
       />
 
-      {/* ── Personal budget alerts ── */}
+      {/* ── Personal budget alerts (always visible if triggered) ── */}
       {(overWeek || overMonth) && (
         <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
           <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
@@ -172,18 +165,18 @@ export default async function ExpensesPage({
               {overWeek && (
                 <li>
                   This week: {formatNaira(personalWeek)} spent vs{' '}
-                  {formatNaira(weeklyBudget\!)} budget ·{' '}
+                  {formatNaira(weeklyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalWeek - weeklyBudget\!)} over
+                    {formatNaira(personalWeek - weeklyBudget!)} over
                   </strong>
                 </li>
               )}
               {overMonth && (
                 <li>
                   This month: {formatNaira(personalMonth)} spent vs{' '}
-                  {formatNaira(monthlyBudget\!)} budget ·{' '}
+                  {formatNaira(monthlyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalMonth - monthlyBudget\!)} over
+                    {formatNaira(personalMonth - monthlyBudget!)} over
                   </strong>
                 </li>
               )}
@@ -203,30 +196,25 @@ export default async function ExpensesPage({
         <KindTab
           label="All"
           active={kind === 'all'}
-          href={`/expenses${range \!== 'all' ? '?range=' + range : ''}`}
+          href={`/expenses${range !== 'all' ? '?range=' + range : ''}`}
         />
         <KindTab
           label="Business"
           icon={<Briefcase size={12} />}
           active={kind === 'business'}
-          href={`/expenses?kind=business${range \!== 'all' ? '&range=' + range : ''}`}
+          href={`/expenses?kind=business${range !== 'all' ? '&range=' + range : ''}`}
         />
         <KindTab
           label="Personal"
           icon={<UserIcon size={12} />}
           active={kind === 'personal'}
-          href={`/expenses?kind=personal${range \!== 'all' ? '&range=' + range : ''}`}
+          href={`/expenses?kind=personal${range !== 'all' ? '&range=' + range : ''}`}
         />
       </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <TimeRange value={range} basePath="/expenses" />
       </div>
-
-      {/* ── Search + category filter ── */}
-      <Suspense>
-        <ExpenseSearchBar />
-      </Suspense>
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
@@ -279,21 +267,13 @@ export default async function ExpensesPage({
         <EmptyState
           icon={Receipt}
           title={
-            searchQ
-              ? `No expenses match "${searchQ}"`
-              : categoryFilter
-                ? `No ${categoryFilter} expenses`
-                : kind === 'personal'
-                  ? 'No personal expenses yet'
-                  : kind === 'business'
-                    ? 'No business expenses yet'
-                    : 'No expenses yet'
+            kind === 'personal'
+              ? 'No personal expenses yet'
+              : kind === 'business'
+                ? 'No business expenses yet'
+                : 'No expenses yet'
           }
-          description={
-            searchQ || categoryFilter
-              ? 'Try adjusting your search or filter.'
-              : 'Log what you spend so you see real profit, not just revenue. Tag it Personal to track your out-of-pocket.'
-          }
+          description="Log what you spend so you see real profit, not just revenue. Tag it Personal to track your out-of-pocket."
           actionHref="/expenses/new"
           actionLabel="Add expense"
         />
@@ -320,7 +300,8 @@ export default async function ExpensesPage({
         </>
       )}
 
-      {/* ── Personal budget thresholds ── */}
+      {/* ── Personal budget thresholds (moved from /settings so it lives
+          next to the expenses it governs) ── */}
       <div className="mt-6">
         <PersonalBudgetCard
           initial={{

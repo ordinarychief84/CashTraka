@@ -194,7 +194,7 @@ export function effectivePlan(user: UserLike): {
   }
   if (status === 'trialing') {
     const expired =
-      \!user.trialEndsAt || user.trialEndsAt.getTime() <= now;
+      !user.trialEndsAt || user.trialEndsAt.getTime() <= now;
     return {
       plan: expired ? 'free' : user.plan,
       status,
@@ -203,7 +203,7 @@ export function effectivePlan(user: UserLike): {
   }
   if (status === 'active' || status === 'cancelled') {
     const expired =
-      \!user.currentPeriodEnd || user.currentPeriodEnd.getTime() <= now;
+      !user.currentPeriodEnd || user.currentPeriodEnd.getTime() <= now;
     return {
       plan: expired ? 'free' : user.plan,
       status,

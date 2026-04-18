@@ -65,7 +65,7 @@ export default async function ProductsPage() {
         <ul className="space-y-2">
           {products.map((p) => {
             const isLow = p.trackStock && p.stock <= p.lowStockAt;
-            const margin = p.cost \!= null ? p.price - p.cost : null;
+            const margin = p.cost != null ? p.price - p.cost : null;
             return (
               <li key={p.id} className="card p-4">
                 <div className="flex items-start justify-between gap-3">
@@ -78,7 +78,7 @@ export default async function ProductsPage() {
                       <span className="num rounded-full bg-brand-50 px-2 py-0.5 text-brand-700">
                         {formatNaira(p.price)}
                       </span>
-                      {margin \!== null && (
+                      {margin !== null && (
                         <span
                           className={cn(
                             'num rounded-full px-2 py-0.5',

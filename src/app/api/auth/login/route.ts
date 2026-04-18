@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     // stuffing without hurting legit users who mistyped their password.
     const ip = clientIp(req);
     const limited = rateLimit('login', ip, { max: 10, windowMs: 10 * 60_000 });
-    if (\!limited.allowed) {
+    if (!limited.allowed) {
       return fail(
         `Too many attempts. Try again in ${limited.retryAfter}s.`,
         429,
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
-    if (\!parsed.success) return validationFail(parsed.error);
+    if (!parsed.success) return validationFail(parsed.error);
 
     const { email, password } = parsed.data;
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       max: 8,
       windowMs: 15 * 60_000,
     });
-    if (\!byEmail.allowed) {
+    if (!byEmail.allowed) {
       return fail(
         `Too many attempts on this account. Try again in ${byEmail.retryAfter}s.`,
         429,
@@ -80,13 +80,13 @@ export async function POST(req: Request) {
       take: 5,
     });
     for (const staff of candidates) {
-      if (\!staff.passwordHash) continue;
+      if (!staff.passwordHash) continue;
       const matches = await verifyPassword(password, staff.passwordHash);
-      if (\!matches) continue;
+      if (!matches) continue;
       // Verify the owner is also in good standing — a suspended owner
       // means their staff can't get in either.
       const ownerAcct = await prisma.user.findUnique({ where: { id: staff.userId } });
-      if (\!ownerAcct || ownerAcct.isSuspended) {
+      if (!ownerAcct || ownerAcct.isSuspended) {
         return forbidden("This business's account is suspended. Contact the owner.");
       }
       await prisma.staffMember.update({
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
 
     return unauthorized('Invalid email or password');
   } catch (e) {
-    if (process.env.NODE_ENV \!== 'production') console.error(e);
+    if (process.env.NODE_ENV !== 'production') console.error(e);
     return fail('Server error', 500);
   }
 }

@@ -24,7 +24,7 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const signature = req.headers.get('x-paystack-signature') ?? '';
 
-  if (\!paystackService.verifyWebhookSignature(raw, signature)) {
+  if (!paystackService.verifyWebhookSignature(raw, signature)) {
     return NextResponse.json(
       { success: false, error: 'invalid_signature' },
       { status: 401 },
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   // Idempotency: use Paystack's event id if present, otherwise a SHA-256 hash
   // of the raw payload body. Either way, unique index dedupes replays.
   const eventId =
-    payload.id \!= null
+    payload.id != null
       ? `ps_${payload.id}`
       : `hash_${createHash('sha256').update(raw).digest('hex').slice(0, 32)}`;
 

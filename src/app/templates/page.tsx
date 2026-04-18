@@ -33,7 +33,7 @@ export default async function TemplatesPage() {
         <EmptyState
           icon={MessageSquare}
           title="No templates yet"
-          description="Save common messages like "Delivery confirmation", "Restock alert" or "Thank you"."
+          description="Save common messages like “Delivery confirmation”, “Restock alert” or “Thank you”."
           actionHref="/templates/new"
           actionLabel="Create your first template"
         />

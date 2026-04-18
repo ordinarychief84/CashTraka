@@ -47,7 +47,7 @@ export function Reveal({
 
   useEffect(() => {
     const el = ref.current;
-    if (\!el) return;
+    if (!el) return;
     // Respect reduced-motion — just show immediately.
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
       setVisible(true);
@@ -88,7 +88,7 @@ export function Reveal({
     transition: `transform ${duration}ms ${easing} ${delay}ms, opacity ${duration}ms ${easing} ${delay}ms, filter ${duration}ms ${easing} ${delay}ms`,
     opacity: visible ? 1 : 0,
     transform: visible ? 'translate3d(0, 0, 0) scale(1)' : hidden.transform,
-    filter: blur && \!visible ? 'blur(6px)' : 'blur(0)',
+    filter: blur && !visible ? 'blur(6px)' : 'blur(0)',
     willChange: visible ? 'auto' : 'transform, opacity',
   };
 

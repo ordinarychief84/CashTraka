@@ -220,7 +220,7 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
           </View>
         )}
 
-        {hasItems && itemsTotal \!== data.amount && (
+        {hasItems && itemsTotal !== data.amount && (
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Items subtotal</Text>
             <Text style={styles.kvValue}>{formatNaira(itemsTotal)}</Text>
@@ -365,7 +365,7 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
           <Text style={styles.totalAmount}>{formatNaira(data.total)}</Text>
         </View>
 
-        {\!isPaid && data.bank && data.bank.name && data.bank.accountNumber && (
+        {!isPaid && data.bank && data.bank.name && data.bank.accountNumber && (
           <View
             style={[
               styles.sectionBox,

@@ -65,3 +65,6 @@ export default async function AdminAnalyticsPage() {
           </div>
         </section>
       </div>
+    </AdminShell>
+  );
+}

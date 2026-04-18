@@ -33,7 +33,7 @@ export default async function PropertyDetailPage({ params }: { params: { id: str
     },
   });
 
-  if (\!property) notFound();
+  if (!property) notFound();
 
   function rentReminderMessage(tenantName: string, rentAmount: number, period: string, propertyName: string) {
     const month = new Date(period + '-01').toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });

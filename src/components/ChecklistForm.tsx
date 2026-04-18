@@ -24,7 +24,7 @@ export function ChecklistForm({ redirectTo = '/checklists' }: Props) {
     setItems((prev) => prev.map((v, idx) => (idx === i ? val : v)));
   }
   function removeItem(i: number) {
-    setItems((prev) => prev.filter((_, idx) => idx \!== i));
+    setItems((prev) => prev.filter((_, idx) => idx !== i));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -50,7 +50,7 @@ export function ChecklistForm({ redirectTo = '/checklists' }: Props) {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (\!res.ok) throw new Error(data.error || 'Could not save');
+      if (!res.ok) throw new Error(data.error || 'Could not save');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {

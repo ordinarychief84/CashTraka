@@ -12,7 +12,7 @@ export default async function EditProductPage({ params }: { params: { id: string
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!product) notFound();
+  if (!product) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

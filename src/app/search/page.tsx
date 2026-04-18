@@ -16,7 +16,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   const isPm = isPropertyManager(user.businessType);
   const q = (searchParams.q || '').trim();
 
-  if (\!q) {
+  if (!q) {
     return (
       <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
         <PageHeader
@@ -97,7 +97,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
-        title={`Results for "${q}"`}
+        title={`Results for “${q}”`}
         subtitle={`${totalHits} ${totalHits === 1 ? 'result' : 'results'}`}
       />
 
@@ -109,7 +109,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
         />
       ) : (
         <div className="space-y-6">
-          {\!isPm && customers.length > 0 && (
+          {!isPm && customers.length > 0 && (
             <Section title="Customers" icon={<Users size={16} />}>
               <ul className="card divide-y divide-border">
                 {customers.map((c) => (

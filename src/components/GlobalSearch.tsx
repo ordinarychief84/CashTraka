@@ -12,7 +12,7 @@ function Inner() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = q.trim();
-    if (\!trimmed) return;
+    if (!trimmed) return;
     router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   }
 

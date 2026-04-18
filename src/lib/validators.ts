@@ -95,19 +95,4 @@ export const productSchema = z.object({
 });
 
 export const templateSchema = z.object({
-  name: z.string().trim().min(1, 'Give this template a name'),
-  body: z.string().trim().min(1, 'Message body is required'),
-});
-
-export const invoiceSchema = z.object({
-  customerName: z.string().trim().min(1, 'Customer name is required'),
-  phone: phoneSchema,
-  customerEmail: z.string().email().optional().or(z.literal('')),
-  items: z.array(paymentItemSchema),
-  tax: z.coerce.number().int().nonnegative().default(0),
-  note: z.string().trim().optional().or(z.literal('')),
-});
-
-export const invoiceUpdateSchema = z.object({
-  status: z.enum(['DRAFT', 'SENT', 'PAID', 'CANCELLED']),
-});
+  name: z.string().trim().min(1, 'Give this template a nam

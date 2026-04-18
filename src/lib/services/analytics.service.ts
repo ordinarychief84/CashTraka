@@ -165,7 +165,6 @@ export const analyticsService = {
       recentSignups,
       recentPayments,
       recentCancellations,
-      platformExpensesAgg,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { createdAt: { gte: last7 } } }),
@@ -267,12 +266,6 @@ export const analyticsService = {
           currentPeriodEnd: true,
           updatedAt: true,
         },
-      }),
-      // Platform-wide expense totals this month
-      prisma.expense.aggregate({
-        where: { incurredOn: { gte: monthStart } },
-        _sum: { amount: true },
-        _count: true,
       }),
     ]);
 
@@ -386,8 +379,6 @@ export const analyticsService = {
         txnsThisMonth: gmvThisMonth._count,
         outstandingDebt,
         avgTxn: Math.round(avgTxnAgg._avg.amount ?? 0),
-        expensesThisMonth: platformExpensesAgg._sum.amount ?? 0,
-        expenseCount: platformExpensesAgg._count,
       },
       topTenants: topTenants.map((t) => ({
         userId: t.userId,
@@ -446,4 +437,17 @@ export const analyticsService = {
 
     for (const u of users) {
       const k = monthIndex(u.createdAt);
-      if (signupCounts.has(k)) signupCounts.set(k, (signupCounts.get(k) ?? 0) + 1);
+      if (signupCounts.has(k)) signupCounts.set(k, (signupCounts.get(k) ?? 0) + 1);
+    }
+    for (const p of payments) {
+      const k = monthIndex(p.createdAt);
+      if (revenueSums.has(k)) revenueSums.set(k, (revenueSums.get(k) ?? 0) + p.amount);
+    }
+
+    return {
+      labels,
+      signups: labels.map((l) => signupCounts.get(l) ?? 0),
+      revenue: labels.map((l) => revenueSums.get(l) ?? 0),
+    };
+  },
+};

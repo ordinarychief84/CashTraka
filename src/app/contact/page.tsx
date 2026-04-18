@@ -7,8 +7,8 @@ export default function ContactPage() {
   return (
     <LegalLayout title="Contact">
       <p>
-        We'd love to hear from you. Whether you need help, want to give feedback, or
-        are interested in a partnership, reach out and we'll get back to you.
+        We’d love to hear from you. Whether you need help, want to give feedback, or
+        are interested in a partnership, reach out and we’ll get back to you.
       </p>
       <p>
         Email:{' '}

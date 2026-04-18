@@ -11,16 +11,16 @@ const patchSchema = productSchema.partial().extend({
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = patchSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -63,12 +63,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Soft delete by archiving — preserves line-item history.
   await prisma.product.update({

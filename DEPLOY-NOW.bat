@@ -19,7 +19,7 @@ git add -A
 echo.
 
 echo [4/5] Committing changes...
-git commit -m "fix: quote escaping in verify route and templates page"
+git commit -m "fix: email service syntax - add comma after sendVerificationOtp method"
 if %ERRORLEVEL% NEQ 0 (
     echo No new changes to commit, pushing existing commits...
 )

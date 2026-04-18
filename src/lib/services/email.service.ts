@@ -179,7 +179,7 @@ export const emailService = {
    * ══════════════════════════════════════════════════════════════════════ */
   async sendVerificationOtp(args: { to: string; name: string; code: string }): Promise<SendResult> {
     const firstName = args.name.split(' ')[0];
-    return this.send({
+    return send({
       to: args.to,
       subject: `${args.code} is your CashTraka verification code`,
       html: layout(
@@ -199,7 +199,7 @@ export const emailService = {
          </p>`,
       ),
     });
-  }
+  },
 
 
   /* ══════════════════════════════════════════════════════════════════════

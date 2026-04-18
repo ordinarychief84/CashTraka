@@ -4,6 +4,7 @@ import { signupSchema } from '@/lib/validators';
 import { ok, fail, validationFail } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { isWeakPassword } from '@/lib/password-policy';
+import { emailService } from '@/lib/services/email.service';
 
 export async function POST(req: Request) {
   try {
@@ -47,6 +48,12 @@ export async function POST(req: Request) {
     });
 
     await setSessionCookie(user.id);
+
+    // Fire-and-forget welcome email
+    emailService
+      .sendWelcome({ to: user.email, name: user.name, businessType: user.businessType })
+      .catch(() => null);
+
     return ok({
       id: user.id,
       email: user.email,

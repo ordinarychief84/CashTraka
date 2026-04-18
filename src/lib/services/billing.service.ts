@@ -215,12 +215,14 @@ export const billingService = {
     });
 
     emailService
-      .sendPaymentSucceeded?.({
+      .sendSubscriptionReceipt?.({
         to: user.email,
         name: user.name,
         plan: pricing.label,
         amountKobo: verify.data.amount,
+        reference,
         currentPeriodEnd,
+        businessName: user.businessName || undefined,
       })
       .catch(() => null);
 
@@ -294,6 +296,8 @@ export const billingService = {
    */
   async expireTrialIfNeeded(user: {
     id: string;
+    email?: string;
+    name?: string;
     plan: string;
     subscriptionStatus: string | null;
     trialEndsAt: Date | null;
@@ -302,6 +306,8 @@ export const billingService = {
     if (!user.trialEndsAt) return;
     if (user.trialEndsAt.getTime() > Date.now()) return;
 
+    const planLabel = PLAN_LABELS[user.plan as keyof typeof PLAN_LABELS] ?? user.plan;
+
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -309,6 +315,13 @@ export const billingService = {
         subscriptionStatus: 'free',
       },
     });
+
+    // Send trial expired email if we have the user's details
+    if (user.email && user.name) {
+      emailService
+        .sendTrialExpired({ to: user.email, name: user.name, plan: planLabel })
+        .catch(() => null);
+    }
   },
 
   /**

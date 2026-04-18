@@ -16,7 +16,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
   const { user, totals, recentActivity, notes } = await adminService.userDetail(params.id);
 
   return (
-    <AdminShell adminName={admin.name}>
+    <AdminShell adminName={admin.name} activePath="/admin/users">
       <Link
         href="/admin/users"
         className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-ink"

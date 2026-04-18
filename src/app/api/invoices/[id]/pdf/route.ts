@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { InvoiceDoc, type InvoiceData } from '@/lib/pdf-docs';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -9,15 +10,15 @@ export const runtime = 'nodejs';
 /**
  * GET /api/invoices/[id]/pdf → streams a PDF of the invoice.
  *
- * SECURITY: only accepts the cuid `id`, NOT the sequential invoiceNumber.
- * The sequential number (INV-00042) is guessable and would let an attacker
- * enumerate invoices across tenants. The public /invoice/[number] page
- * renders HTML for sharing; this PDF endpoint is the high-value target so
- * we lock it to the non-guessable cuid.
+ * SECURITY: requires authentication AND ownership check.
+ * Only accepts the cuid `id`, NOT the sequential invoiceNumber.
  */
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const invoice = await prisma.invoice.findFirst({
-    where: { id: params.id },
+    where: { id: params.id, userId: user.id },
     include: {
       user: {
         select: {

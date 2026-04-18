@@ -6,6 +6,7 @@ import { upsertCustomer } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { nextInvoiceNumber } from '@/lib/invoice-number';
 import { requireFeature } from '@/lib/gate';
+import { emailService } from '@/lib/services/email.service';
 
 const itemSchema = z.object({
   productId: z.string().optional().nullable(),
@@ -91,6 +92,21 @@ export async function POST(req: Request) {
       },
     },
   });
+
+  // Send invoice email if customer has an email address
+  if (customerEmail) {
+    emailService
+      .sendInvoice({
+        to: customerEmail,
+        customerName,
+        business: user.businessName || user.name,
+        invoiceNumber,
+        amount: total,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        invoiceUrl: `/invoice/${invoiceNumber}`,
+      })
+      .catch(() => null);
+  }
 
   return NextResponse.json({ id: invoice.id, invoiceNumber });
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { paystackService } from '@/lib/services/paystack.service';
 import { billingService } from '@/lib/services/billing.service';
@@ -50,12 +51,12 @@ export async function POST(req: Request) {
     );
   }
 
-  // Idempotency: use Paystack's event id if present, otherwise a digest of
-  // (event + reference + ts). Either way, unique index dedupes.
+  // Idempotency: use Paystack's event id if present, otherwise a SHA-256 hash
+  // of the raw payload body. Either way, unique index dedupes replays.
   const eventId =
     payload.id != null
       ? `ps_${payload.id}`
-      : `${payload.event}_${payload.data?.reference ?? ''}_${Date.now()}`;
+      : `hash_${createHash('sha256').update(raw).digest('hex').slice(0, 32)}`;
 
   try {
     await prisma.billingEvent.create({
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
     // Genuine DB failure — return 500 so Paystack retries instead of
     // marking the event as delivered. Without this, billing events are
     // silently lost during outages.
-    if (process.env.NODE_ENV !== 'production') console.error(e);
+    console.error('WEBHOOK_ERROR:', e?.message ?? e);
     return NextResponse.json(
       { success: false, error: 'internal_error' },
       { status: 500 },
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
         break;
     }
   } catch (e) {
-    if (process.env.NODE_ENV !== 'production') console.error(e);
+    console.error('WEBHOOK_ERROR:', e?.message ?? e);
     // Return 200 anyway so Paystack doesn't retry forever. The event is
     // logged in BillingEvent; we can replay manually if needed.
   }

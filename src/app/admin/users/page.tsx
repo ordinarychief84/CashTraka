@@ -22,7 +22,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
   const { rows, pagination } = await adminService.listUsers(searchParams);
 
   return (
-    <AdminShell adminName={admin.name}>
+    <AdminShell adminName={admin.name} activePath="/admin/users">
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-ink">Users</h1>

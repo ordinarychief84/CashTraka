@@ -19,7 +19,7 @@ export default async function AdminAnalyticsPage() {
   });
 
   return (
-    <AdminShell adminName={admin.name}>
+    <AdminShell adminName={admin.name} activePath="/admin/analytics">
       <div className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-ink">Analytics</h1>
         <p className="mt-1 text-sm text-slate-600">Last 6 months of growth.</p>

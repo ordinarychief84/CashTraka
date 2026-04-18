@@ -111,7 +111,7 @@ export default async function AdminDashboardPage() {
   }
 
   return (
-    <AdminShell adminName={admin.name}>
+    <AdminShell adminName={admin.name} activePath="/admin/dashboard">
       {/* ── Header ── */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>

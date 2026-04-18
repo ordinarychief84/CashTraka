@@ -133,6 +133,8 @@ export default async function DashboardPage() {
     remindersDue,
     lowStockCount,
     topContributors,
+    claimedPaylinkCount,
+    pendingPaylinkCount,
   ] = await Promise.all([
     // This week's PAID payments (for hero total + sparkline + transaction count)
     prisma.payment.findMany({
@@ -264,6 +266,14 @@ export default async function DashboardPage() {
       orderBy: { _sum: { amount: 'desc' } },
       take: 5,
     }),
+    // PayLinks: claimed (need confirmation)
+    prisma.paymentRequest.count({
+      where: { userId: user.id, status: 'claimed' },
+    }),
+    // PayLinks: pending/viewed
+    prisma.paymentRequest.count({
+      where: { userId: user.id, status: { in: ['pending', 'viewed'] } },
+    }),
   ]);
 
   // ── Derived metrics ────────────────────────────────────────────────────
@@ -387,6 +397,27 @@ export default async function DashboardPage() {
       title: `Bring back ${q.name}`,
       subtitle: `No activity for ${days} days`,
       href: `/follow-up?customerId=${q.id}`,
+    });
+  }
+  // PayLink alerts
+  if (claimedPaylinkCount > 0) {
+    triage.push({
+      id: 'paylinks-claimed',
+      severity: 'critical',
+      icon: '💳',
+      title: `${claimedPaylinkCount} PayLink${claimedPaylinkCount > 1 ? 's' : ''} claimed — confirm payment`,
+      subtitle: 'Customers say they\'ve paid. Tap to confirm.',
+      href: '/paylinks?status=claimed',
+    });
+  }
+  if (pendingPaylinkCount > 0) {
+    triage.push({
+      id: 'paylinks-pending',
+      severity: 'info',
+      icon: '📤',
+      title: `${pendingPaylinkCount} pending PayLink${pendingPaylinkCount > 1 ? 's' : ''}`,
+      subtitle: 'Waiting for customer action',
+      href: '/paylinks',
     });
   }
 

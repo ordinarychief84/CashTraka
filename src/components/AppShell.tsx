@@ -15,6 +15,8 @@ import {
   Building2,
   Key,
   Settings as SettingsIcon,
+  Send,
+  Target,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -97,6 +99,15 @@ export function AppShell({
               icon={Users}
               label={isPropManager ? 'Tenants' : 'Customers'}
             />
+          )}
+
+          {/* Collections */}
+          {!isPropManager && show.payments && (
+            <>
+              <GroupLabel>Collections</GroupLabel>
+              <SideLink href="/paylinks" icon={Send} label="PayLinks" />
+              <SideLink href="/collections" icon={Target} label="Collections" />
+            </>
           )}
 
           {/* Business */}

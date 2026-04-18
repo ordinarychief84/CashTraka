@@ -283,10 +283,145 @@ export const emailService = {
 
     const body = `
       <div style="text-align:center;margin-bottom:24px;">
-        <div style="display:inline-block;background:#ECFDF5;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">✓</div>
+        <div style="display:inline-block;background:#ECFDF5;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">&#10003;</div>
         <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Payment successful</h1>
         <p style="margin:0;font-size:14px;color:#475569;">Thank you, ${esc(args.name)}. Your subscription is active.</p>
       </div>
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:20px;">
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Plan</td>
+          <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${esc(args.plan)}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Amount</td>
+          <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${amount}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Date</td>
+          <td style="padding:8px 0;font-size:14px;color:#1A1A1A;text-align:right;">${today}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Renews</td>
+          <td style="padding:8px 0;font-size:14px;color:#1A1A1A;text-align:right;">${renewDate}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Reference</td>
+          <td style="padding:8px 0;font-size:12px;font-family:monospace;color:#64748B;text-align:right;">${esc(args.reference)}</td>
+        </tr>
+      </table>
+
+      ${ctaButton('Go to dashboard', appUrl + '/dashboard')}
+
+      <p style="margin:0;font-size:13px;color:#94A3B8;">
+        Manage your subscription in ${link('Settings', appUrl + '/settings')}.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: `CashTraka — Payment receipt for ${args.plan}`,
+      html: layout(body, { preheader: `Your ${args.plan} subscription is now active.` }),
+    });
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════
+   *  3. DAILY PULSE — morning summary email
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendDailyPulse(args: {
+    to: string;
+    name: string;
+    todayRevenue: number;
+    revenueDelta: number;
+    totalOwed: number;
+    overdueDebts: number;
+    claimedPaylinks: number;
+    remindersDueToday: number;
+    topDebtors: { name: string; amount: number }[];
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const today = fmtDate(new Date());
+
+    const deltaColor = args.revenueDelta >= 0 ? '#16A34A' : '#DC2626';
+    const deltaSign = args.revenueDelta >= 0 ? '+' : '';
+
+    let alertItems = '';
+    if (args.claimedPaylinks > 0)
+      alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.claimedPaylinks} PayLink(s) claimed — awaiting your confirmation</li>`;
+    if (args.overdueDebts > 0)
+      alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.overdueDebts} overdue debt(s) need follow-up</li>`;
+    if (args.remindersDueToday > 0)
+      alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.remindersDueToday} reminder(s) due today</li>`;
+
+    let debtorRows = '';
+    for (const d of args.topDebtors.slice(0, 3)) {
+      debtorRows += `<tr>
+        <td style="padding:6px 0;font-size:13px;color:#475569;">${esc(d.name)}</td>
+        <td style="padding:6px 0;font-size:13px;font-weight:600;color:#1A1A1A;text-align:right;">${naira(d.amount)}</td>
+      </tr>`;
+    }
+
+    const body = `
+      <h1 style="margin:0 0 4px;font-size:20px;font-weight:800;color:#1A1A1A;">Good morning, ${esc(args.name)}</h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#94A3B8;">${today}</p>
+
+      <div style="background:#F0FDF4;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:13px;color:#64748B;">Today's Revenue</p>
+        <p style="margin:0;font-size:28px;font-weight:800;color:#1A1A1A;">${naira(args.todayRevenue)}</p>
+        <p style="margin:4px 0 0;font-size:13px;color:${deltaColor};font-weight:600;">${deltaSign}${args.revenueDelta}% vs yesterday</p>
+      </div>
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:20px;">
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Outstanding Debts</td>
+          <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${naira(args.totalOwed)}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Overdue</td>
+          <td style="padding:8px 0;font-size:14px;font-weight:700;color:${args.overdueDebts > 0 ? '#DC2626' : '#1A1A1A'};text-align:right;">${args.overdueDebts}</td>
+        </tr>
+      </table>
+
+      ${alertItems ? `
+      <div style="background:#FFF7ED;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#C2410C;text-transform:uppercase;">Needs Your Attention</p>
+        <ul style="margin:0;padding-left:18px;">${alertItems}</ul>
+      </div>` : ''}
+
+      ${debtorRows ? `
+      ${DIVIDER}
+      <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1A1A1A;text-transform:uppercase;">Top Debtors</p>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">${debtorRows}</table>` : ''}
+
+      ${ctaButton('Open Dashboard', appUrl + '/dashboard')}`;
+
+    return send({
+      to: args.to,
+      subject: `Your Daily Pulse — ${naira(args.todayRevenue)} today`,
+      html: layout(body, { preheader: `${naira(args.todayRevenue)} today · ${args.overdueDebts} overdue` }),
+    });
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════
+   *  4. PASSWORD RESET — sent when user requests a password reset
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendPasswordReset(args: { to: string; name: string; resetUrl: string }): Promise<SendResult> {
+    const body = `
+      <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1A1A1A;">Reset your password</h1>
+      <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
+        Hi ${esc(args.name)}, we received a request to reset your CashTraka password. Click below to set a new one:
+      </p>
+      ${ctaButton('Reset password', args.resetUrl)}
+      <p style="margin:0;font-size:13px;color:#94A3B8;">
+        This link expires in 1 hour. If you didn't request this, ignore this email.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: 'CashTraka — Reset your password',
+      html: layout(body, { preheader: 'Reset your CashTraka password' }),
+    });
+  },
+};
 
       ${DIVIDER}
 

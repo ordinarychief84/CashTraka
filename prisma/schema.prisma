@@ -99,6 +99,7 @@ model User {
   refunds              Refund[]          @relation("UserRefunds")
   processedRefunds     Refund[]          @relation("ProcessedRefunds")
   auditLogs            AuditLog[]        @relation("AuditLogAdmin")
+  paymentRequests      PaymentRequest[]
 
   @@index([role])
   @@index([businessType])
@@ -124,6 +125,7 @@ model Customer {
   payments         Payment[]
   debts            Debt[]
   invoices         Invoice[]
+  paymentRequests  PaymentRequest[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -859,4 +861,49 @@ model AuditLog {
   @@index([adminId, createdAt])
   @@index([action])
   @@index([targetId])
+}
+
+// ---------- PAYLINK (Payment Requests) ----------
+
+/// A payment request link that sellers share via WhatsApp. The customer
+/// opens /pay/[token] to see the amount owed and can mark it as paid.
+/// The seller confirms on their end (no online payment gateway for now).
+model PaymentRequest {
+  id               String    @id @default(cuid())
+  userId           String
+  customerId       String?
+  /// URL-safe unique token for the public pay page.
+  token            String    @unique @default(cuid())
+  /// Human-readable label like "PLK-00042".
+  linkNumber       String    @unique
+  customerName     String
+  customerPhone    String
+  amount           Int
+  /// Optional description of what the payment is for.
+  description      String?
+  /// "pending" | "viewed" | "claimed" | "confirmed" | "expired" | "cancelled"
+  status           String    @default("pending")
+  /// When the customer first opened the link.
+  viewedAt         DateTime?
+  /// When the customer tapped "I've paid".
+  claimedAt        DateTime?
+  /// When the seller confirmed payment received.
+  confirmedAt      DateTime?
+  /// WhatsApp message sent timestamp.
+  whatsappSentAt   DateTime?
+  /// Optional link to a Debt record this paylink was created from.
+  debtId           String?
+  /// Expiry — links older than this are auto-expired by the collection engine.
+  expiresAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer         Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([token])
+  @@index([debtId])
+  @@index([expiresAt, status])
 }

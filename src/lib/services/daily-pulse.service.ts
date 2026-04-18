@@ -1,0 +1,122 @@
+/**
+ * Daily Pulse Service — CashTraka
+ *
+ * Computes a daily business summary for a user:
+ *   - Today's revenue
+ *   - Outstanding debts & overdue count
+ *   - Pending paylinks (especially claimed ones needing confirmation)
+ *   - Reminders due today
+ *   - Follow-up items
+ *
+ * Used by:
+ *   1. GET /api/daily-pulse — on-demand for dashboard card
+ *   2. /api/cron/daily-pulse — daily email at 7 AM WAT
+ */
+
+import { prisma } from '@/lib/prisma';
+
+export type DailyPulseData = {
+  todayRevenue: number;
+  yesterdayRevenue: number;
+  revenueDelta: number; // percentage change
+  totalOwed: number;
+  overdueDebts: number;
+  pendingPaylinks: number;
+  claimedPaylinks: number; // need seller confirmation
+  remindersDueToday: number;
+  quietCustomers: number; // no activity in 30+ days
+  topDebtors: { name: string; phone: string; amount: number }[];
+};
+
+function startOfDay(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+export async function computeDailyPulse(userId: string): Promise<DailyPulseData> {
+  const now = new Date();
+  const todayStart = startOfDay(now);
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+  const thirtyDaysAgo = new Date(now);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const [
+    todayPayments,
+    yesterdayPayments,
+    openDebts,
+    overdueDebts,
+    pendingPaylinks,
+    claimedPaylinks,
+    remindersDue,
+    quietCustomers,
+    topDebtors,
+  ] = await Promise.all([
+    // Today's revenue
+    prisma.payment.aggregate({
+      where: { userId, createdAt: { gte: todayStart }, status: 'PAID' },
+      _sum: { amount: true },
+    }),
+    // Yesterday's revenue
+    prisma.payment.aggregate({
+      where: { userId, createdAt: { gte: yesterdayStart, lt: todayStart }, status: 'PAID' },
+      _sum: { amount: true },
+    }),
+    // Total outstanding debts
+    prisma.debt.aggregate({
+      where: { userId, status: 'OPEN' },
+      _sum: { amountOwed: true },
+    }),
+    // Overdue debts (past due date, still open)
+    prisma.debt.count({
+      where: { userId, status: 'OPEN', dueDate: { lt: now } },
+    }),
+    // Pending paylinks
+    prisma.paymentRequest.count({
+      where: { userId, status: { in: ['pending', 'viewed'] } },
+    }),
+    // Claimed paylinks needing confirmation
+    prisma.paymentRequest.count({
+      where: { userId, status: 'claimed' },
+    }),
+    // Reminders due today
+    prisma.reminderSchedule.count({
+      where: { userId, enabled: true, nextDueAt: { lte: now } },
+    }),
+    // Quiet customers (no activity in 30+ days)
+    prisma.customer.count({
+      where: { userId, lastActivityAt: { lt: thirtyDaysAgo } },
+    }),
+    // Top 5 debtors
+    prisma.debt.findMany({
+      where: { userId, status: 'OPEN' },
+      orderBy: { amountOwed: 'desc' },
+      take: 5,
+      select: { customerNameSnapshot: true, phoneSnapshot: true, amountOwed: true, amountPaid: true },
+    }),
+  ]);
+
+  const todayRev = todayPayments._sum.amount || 0;
+  const yesterdayRev = yesterdayPayments._sum.amount || 0;
+  const delta = yesterdayRev > 0
+    ? Math.round(((todayRev - yesterdayRev) / yesterdayRev) * 100)
+    : todayRev > 0 ? 100 : 0;
+
+  return {
+    todayRevenue: todayRev,
+    yesterdayRevenue: yesterdayRev,
+    revenueDelta: delta,
+    totalOwed: openDebts._sum.amountOwed || 0,
+    overdueDebts,
+    pendingPaylinks,
+    claimedPaylinks,
+    remindersDueToday: remindersDue,
+    quietCustomers,
+    topDebtors: topDebtors.map((d) => ({
+      name: d.customerNameSnapshot,
+      phone: d.phoneSnapshot,
+      amount: d.amountOwed - d.amountPaid,
+    })),
+  };
+}

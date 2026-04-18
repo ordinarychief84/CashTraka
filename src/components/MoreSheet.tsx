@@ -15,6 +15,8 @@ import {
   Key,
   Users,
   MessageCircle,
+  Send,
+  Target,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +45,17 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
         { href: '/team', icon: Users2, label: 'Team' },
       ],
     },
+    ...(isPropManager
+      ? []
+      : [
+          {
+            label: 'Collections',
+            items: [
+              { href: '/paylinks', icon: Send, label: 'PayLinks' },
+              { href: '/collections', icon: Target, label: 'Collections' },
+            ],
+          },
+        ]),
     {
       label: 'Operations',
       items: [

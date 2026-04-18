@@ -26,7 +26,7 @@ git add -A
 
 echo.
 echo [4/5] Committing changes...
-git commit -m "feat: full admin panel rebuild - settings, roles, support, refunds, notifications, audit log"
+git commit -m "feat: add PayLink, Daily Pulse, Smart Collection Engine + admin panel rebuild"
 if %ERRORLEVEL% neq 0 (
     echo.
     echo NOTE: Nothing new to commit, or commit failed.

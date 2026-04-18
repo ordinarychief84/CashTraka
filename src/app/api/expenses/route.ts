@@ -7,7 +7,7 @@ import { expenseService } from '@/lib/services/expense.service';
 
 export async function GET(req: Request) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const feature = requireFeature(user, 'expenses');
   if (feature) return feature;
@@ -36,14 +36,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const feature = requireFeature(user, 'expenses');
   if (feature) return feature;
 
   const body = await req.json();
   const parsed = expenseSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },

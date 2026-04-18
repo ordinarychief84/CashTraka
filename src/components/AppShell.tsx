@@ -49,12 +49,12 @@ export function AppShell({
     payments: can(accessRole, 'payments.read'),
     debts: can(accessRole, 'debts.read'),
     customers: can(accessRole, 'customers.read'),
-    products: can(accessRole, 'products.read') && \!isPropManager,
+    products: can(accessRole, 'products.read') && !isPropManager,
     expenses: can(accessRole, 'expenses.read'),
     team: can(accessRole, 'team.read'),
     properties: can(accessRole, 'products.read') && isPropManager,
     tasks: can(accessRole, 'tasks.read'),
-    checklists: can(accessRole, 'checklists.read') && \!isPropManager,
+    checklists: can(accessRole, 'checklists.read') && !isPropManager,
     reports: can(accessRole, 'reports.read'),
     settings: can(accessRole, 'settings.read'),
   };
@@ -94,7 +94,7 @@ export function AppShell({
           )}
 
           {/* Collections */}
-          {\!isPropManager && show.payments && (
+          {!isPropManager && show.payments && (
             <>
               <GroupLabel>Collections</GroupLabel>
               <SideLink href="/paylinks" icon={Send} label="PayLinks" />
@@ -142,7 +142,7 @@ export function AppShell({
               Signed in as {principalName ?? userName}
             </div>
           )}
-          {accessRole \!== 'OWNER' && (
+          {accessRole !== 'OWNER' && (
             <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
               {ROLE_LABELS[accessRole]}
             </div>
@@ -225,7 +225,7 @@ function SideLink({
     >
       <Icon size={18} />
       <span className="flex-1">{label}</span>
-      {badge \!== undefined && badge > 0 && (
+      {badge !== undefined && badge > 0 && (
         <span
           className={
             'inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ' +

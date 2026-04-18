@@ -9,7 +9,7 @@ import { emailService } from '@/lib/services/email.service';
  */
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
-  if (authHeader \!== `Bearer ${process.env.CRON_SECRET}`) {
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -29,14 +29,14 @@ export async function GET(req: Request) {
 
   for (const user of endingSoon) {
     const daysLeft = Math.ceil(
-      (user.trialEndsAt\!.getTime() - now.getTime()) / (24 * 60 * 60 * 1000),
+      (user.trialEndsAt!.getTime() - now.getTime()) / (24 * 60 * 60 * 1000),
     );
     try {
       await emailService.sendTrialEndingSoon({
         to: user.email,
         name: user.name,
         plan: user.plan,
-        trialEndsAt: user.trialEndsAt\!,
+        trialEndsAt: user.trialEndsAt!,
         daysLeft,
       });
       stats.endingSoonSent++;

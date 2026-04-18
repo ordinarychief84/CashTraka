@@ -39,7 +39,7 @@ export function VerifyEmailForm() {
   }
 
   function handleKeyDown(index: number, e: React.KeyboardEvent) {
-    if (e.key === 'Backspace' && \!digits[index] && index > 0) {
+    if (e.key === 'Backspace' && !digits[index] && index > 0) {
       refs.current[index - 1]?.focus();
     }
   }
@@ -47,7 +47,7 @@ export function VerifyEmailForm() {
   function handlePaste(e: React.ClipboardEvent) {
     e.preventDefault();
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (\!pasted) return;
+    if (!pasted) return;
     const next = [...digits];
     for (let i = 0; i < pasted.length; i++) {
       next[i] = pasted[i];
@@ -70,7 +70,7 @@ export function VerifyEmailForm() {
         body: JSON.stringify({ code }),
       });
       const data = await res.json();
-      if (\!res.ok) throw new Error(data.error || 'Verification failed');
+      if (!res.ok) throw new Error(data.error || 'Verification failed');
       // Success — go to onboarding
       router.push('/onboarding');
       router.refresh();
@@ -88,7 +88,7 @@ export function VerifyEmailForm() {
     try {
       const res = await fetch('/api/auth/resend-otp', { method: 'POST' });
       const data = await res.json();
-      if (\!res.ok) throw new Error(data.error || 'Could not resend');
+      if (!res.ok) throw new Error(data.error || 'Could not resend');
       setResendCooldown(60);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not resend');

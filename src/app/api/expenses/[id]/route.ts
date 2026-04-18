@@ -9,26 +9,26 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const expense = await expenseService.get(user.id, params.id);
-  if (\!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   return NextResponse.json(expense);
 }
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const expense = await prisma.expense.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
   const parsed = expenseSchema.partial().safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -52,12 +52,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const expense = await prisma.expense.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!expense) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   await prisma.expense.delete({ where: { id: expense.id } });
   return NextResponse.json({ ok: true });

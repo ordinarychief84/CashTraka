@@ -64,7 +64,7 @@ export default async function DashboardPage() {
   const copy = copyFor(user.businessType);
   const isPm = isPropertyManager(user.businessType);
   const firstName = (user.principalName ?? user.name).split(' ')[0];
-  const isStaffPrincipal = \!user.isOwner && Boolean(user.staffId);
+  const isStaffPrincipal = !user.isOwner && Boolean(user.staffId);
 
   // Staff sees their own task queue front-and-centre. For the owner we
   // compute the same two numbers but render them differently (inside the
@@ -75,14 +75,14 @@ export default async function DashboardPage() {
           prisma.task.count({
             where: {
               userId: user.id,
-              assignedToId: user.staffId\!,
+              assignedToId: user.staffId!,
               status: { in: ['todo', 'in_progress'] },
             },
           }),
           prisma.task.count({
             where: {
               userId: user.id,
-              assignedToId: user.staffId\!,
+              assignedToId: user.staffId!,
               status: { in: ['todo', 'in_progress'] },
               dueDate: { lt: now, not: null },
             },
@@ -366,7 +366,7 @@ export default async function DashboardPage() {
       moneyImpact: d.totalOwed,
     });
   }
-  if (\!isPm && lowStockCount > 0) {
+  if (!isPm && lowStockCount > 0) {
     triage.push({
       id: 'low-stock',
       severity: 'warning',
@@ -416,7 +416,7 @@ export default async function DashboardPage() {
   const contributorRows = topContributors
     .filter((r) => r.customerId)
     .map((r) => ({
-      id: r.customerId\!,
+      id: r.customerId!,
       name: r.customerNameSnapshot,
       total: r._sum.amount ?? 0,
       transactions: r._count,
@@ -449,7 +449,7 @@ export default async function DashboardPage() {
               : copy.greetingSub}
           </p>
         </div>
-        {canWrite && \!isStaffPrincipal && (
+        {canWrite && !isStaffPrincipal && (
           <div className="flex flex-wrap gap-2">
             <Link
               href="/payments/new"
@@ -577,7 +577,7 @@ export default async function DashboardPage() {
               label={`Net profit · ${monthLabel}`}
               value={formatNaira(netProfit)}
               sub={
-                profitMargin \!== null
+                profitMargin !== null
                   ? `${profitMargin}% margin · ${monthLabel}`
                   : monthRevenue === 0
                     ? 'No revenue logged yet'
@@ -640,7 +640,7 @@ export default async function DashboardPage() {
                 <dt className="text-slate-600">{heroLabel}</dt>
                 <dd className="num font-bold text-ink">
                   {formatNaira(monthRevenue)}
-                  {monthDelta \!== null && (
+                  {monthDelta !== null && (
                     <span
                       className={
                         'ml-2 text-[11px] font-semibold ' +

@@ -23,11 +23,11 @@ function computeNextDue(frequency: string, intervalDays: number): Date {
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
-  if (\!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json();
   const parsed = createSchema.safeParse(body);
-  if (\!parsed.success) {
+  if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message || 'Invalid input' },
       { status: 400 },
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   const debt = await prisma.debt.findFirst({
     where: { id: debtId, userId: user.id, status: 'OPEN' },
   });
-  if (\!debt) {
+  if (!debt) {
     return NextResponse.json(
       { error: 'Debt not found or already paid' },
       { status: 404 },

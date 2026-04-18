@@ -27,7 +27,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     e.preventDefault();
     setError(null);
 
-    if (mode === 'signup' && \!termsAccepted) {
+    if (mode === 'signup' && !termsAccepted) {
       setError('Please accept the Terms of Service and Privacy Policy to continue.');
       return;
     }
@@ -51,7 +51,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (\!res.ok) throw new Error(data?.error || 'Something went wrong');
+      if (!res.ok) throw new Error(data?.error || 'Something went wrong');
 
       const role =
         data?.data?.role ??

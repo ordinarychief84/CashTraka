@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function VerifyEmailPage() {
   const user = await getCurrentUser();
-  if (\!user) redirect('/login');
+  if (!user) redirect('/login');
   if (user.emailVerified) redirect('/onboarding');
 
   // Mask the email for display: "s****e@gmail.com"

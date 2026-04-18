@@ -12,7 +12,7 @@ export default async function EditStaffPage({ params }: { params: { id: string }
   const member = await prisma.staffMember.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!member) notFound();
+  if (!member) notFound();
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>

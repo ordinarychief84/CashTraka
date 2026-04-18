@@ -26,7 +26,7 @@ export default async function PublicInvoicePage({ params }: Props) {
       items: true,
     },
   });
-  if (\!invoice) notFound();
+  if (!invoice) notFound();
 
   const business = invoice.user.businessName || 'Seller';
   const hasBank = invoice.user.bankName && invoice.user.bankAccountNumber;
@@ -101,7 +101,7 @@ export default async function PublicInvoicePage({ params }: Props) {
             </div>
           </div>
 
-          {hasBank && invoice.status \!== 'PAID' && invoice.status \!== 'CANCELLED' && (
+          {hasBank && invoice.status !== 'PAID' && invoice.status !== 'CANCELLED' && (
             <div className="mx-6 my-5 rounded-xl border border-brand-100 bg-brand-50/60 p-4">
               <div className="text-xs font-semibold uppercase tracking-wide text-brand-700">Pay to</div>
               <div className="mt-2 space-y-1 text-sm">

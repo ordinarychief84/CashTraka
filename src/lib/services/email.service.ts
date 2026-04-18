@@ -22,7 +22,7 @@ async function send(args: {
 }): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  if (\!apiKey || \!from) {
+  if (!apiKey || !from) {
     return { ok: false, error: 'Email is not configured (RESEND_API_KEY/RESEND_FROM_EMAIL missing)' };
   }
   try {
@@ -41,7 +41,7 @@ async function send(args: {
       }),
     });
     const data = await res.json().catch(() => ({}));
-    if (\!res.ok) {
+    if (!res.ok) {
       return { ok: false, error: data?.message || data?.error?.message || `Resend ${res.status}` };
     }
     return { ok: true, id: data?.id };
@@ -51,7 +51,7 @@ async function send(args: {
 }
 
 function esc(s: string | null | undefined): string {
-  if (\!s) return '';
+  if (!s) return '';
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
@@ -114,20 +114,20 @@ function layout(body: string, options?: { preheader?: string }): string {
     ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;overflow:hidden;mso-hide:all;">${esc(options.preheader)}</div>`
     : '';
 
-  return `<\!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
-  <\!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><\![endif]-->
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
   <style>
     body,table,td{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,sans-serif;}
     a{text-decoration:none;}
     @media only screen and (max-width:600px){
-      .email-container{width:100%\!important;padding:12px\!important;}
-      .inner{padding:20px 16px\!important;}
+      .email-container{width:100%!important;padding:12px!important;}
+      .inner{padding:20px 16px!important;}
     }
   </style>
 </head>
@@ -137,19 +137,19 @@ function layout(body: string, options?: { preheader?: string }): string {
     <tr>
       <td align="center" style="padding:24px 16px;">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="email-container" style="max-width:560px;width:100%;">
-          <\!-- Logo -->
+          <!-- Logo -->
           <tr>
             <td>
               ${LOGO_HTML}
             </td>
           </tr>
-          <\!-- Body card -->
+          <!-- Body card -->
           <tr>
             <td class="inner" style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:16px;padding:32px 28px;">
               ${body}
             </td>
           </tr>
-          <\!-- Footer -->
+          <!-- Footer -->
           <tr>
             <td style="padding:24px 0;text-align:center;">
               <p style="margin:0 0 8px;font-size:12px;color:#94A3B8;">
@@ -477,7 +477,7 @@ export const emailService = {
     const body = `
       <div style="text-align:center;margin-bottom:24px;">
         <div style="display:inline-block;background:#FEF9C3;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">🎉</div>
-        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Your ${esc(args.plan)} trial is live\!</h1>
+        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Your ${esc(args.plan)} trial is live!</h1>
         <p style="margin:0;font-size:14px;color:#475569;">14 days of full access, no payment required.</p>
       </div>
 
@@ -700,7 +700,7 @@ export const emailService = {
     const body = `
       <div style="text-align:center;margin-bottom:24px;">
         <div style="display:inline-block;background:#ECFDF5;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">🚀</div>
-        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Plan upgraded\!</h1>
+        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Plan upgraded!</h1>
       </div>
 
       <p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.6;">
@@ -709,7 +709,7 @@ export const emailService = {
       </p>
 
       <p style="margin:0 0 20px;font-size:14px;color:#475569;line-height:1.6;">
-        All the features of your new plan are available right now. Enjoy\!
+        All the features of your new plan are available right now. Enjoy!
       </p>
 
       ${ctaButton('Explore your new features', appUrl + '/dashboard')}`;
@@ -908,7 +908,7 @@ export const emailService = {
       </table>
 
       <p style="margin:20px 0 0;font-size:14px;color:#475569;line-height:1.6;">
-        Hi ${esc(args.name)}, here's what happened in your business this week. Keep the momentum going\!
+        Hi ${esc(args.name)}, here's what happened in your business this week. Keep the momentum going!
       </p>
 
       ${ctaButton('View full reports', appUrl + '/reports')}`;

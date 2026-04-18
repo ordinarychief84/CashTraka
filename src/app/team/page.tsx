@@ -77,7 +77,7 @@ export default async function TeamPage() {
   }, 0);
 
   const paidThisMonth = paymentsThisMonth
-    .filter((p) => p.kind \!== 'advance' && p.kind \!== 'reimbursement')
+    .filter((p) => p.kind !== 'advance' && p.kind !== 'reimbursement')
     .reduce((s, p) => s + p.amount, 0);
 
   return (
@@ -151,13 +151,13 @@ export default async function TeamPage() {
                           {s.role}
                         </span>
                       )}
-                      {s.accessRole \!== 'NONE' && (
+                      {s.accessRole !== 'NONE' && (
                         <span className="inline-flex items-center rounded-full bg-brand-50 px-2 py-0.5 font-bold text-brand-700">
                           {ROLE_LABELS[s.accessRole as AccessRole]}
                         </span>
                       )}
                       {s.phone && <span>{s.phone}</span>}
-                      {s.payType \!== 'per_task' && s.payAmount > 0 ? (
+                      {s.payType !== 'per_task' && s.payAmount > 0 ? (
                         <span className="font-semibold text-ink">
                           {formatNaira(s.payAmount)}
                           <span className="font-normal text-slate-500">{cycle}</span>

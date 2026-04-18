@@ -22,7 +22,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   const customer = await prisma.customer.findFirst({
     where: { id: params.id, userId: user.id },
   });
-  if (\!customer) notFound();
+  if (!customer) notFound();
 
   const [payments, debts] = await Promise.all([
     prisma.payment.findMany({

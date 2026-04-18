@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function OnboardingPage() {
   const user = await getCurrentUser();
-  if (\!user) redirect('/login');
-  if (\!user.emailVerified) redirect('/verify-email');
+  if (!user) redirect('/login');
+  if (!user.emailVerified) redirect('/verify-email');
   if (user.onboardingCompleted) redirect('/dashboard');
 
   const isPm = user.businessType === 'property_manager';

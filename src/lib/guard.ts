@@ -19,15 +19,15 @@ export async function guard(options: {
 } = {}) {
   const { requireOnboarded = true, requireVerified = true } = options;
   const ctx = await getAuthContext();
-  if (\!ctx) redirect('/login');
+  if (!ctx) redirect('/login');
 
   // Email verification gate — owners must verify before proceeding.
   // Staff skip this since they were invited by a verified owner.
-  if (requireVerified && ctx.isOwner && \!ctx.owner.emailVerified) {
+  if (requireVerified && ctx.isOwner && !ctx.owner.emailVerified) {
     redirect('/verify-email');
   }
 
-  if (requireOnboarded && ctx.isOwner && \!ctx.owner.onboardingCompleted) {
+  if (requireOnboarded && ctx.isOwner && !ctx.owner.onboardingCompleted) {
     redirect('/onboarding');
   }
 

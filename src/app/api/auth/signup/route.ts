@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     // Rate limit — 5 new accounts per IP per hour
     const ip = clientIp(req);
     const limited = rateLimit('signup', ip, { max: 5, windowMs: 60 * 60_000 });
-    if (\!limited.allowed) {
+    if (!limited.allowed) {
       return fail(
         `Too many sign-ups from this network. Try again in ${Math.ceil(limited.retryAfter / 60)} min.`,
         429,
@@ -31,12 +31,12 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const parsed = signupSchema.safeParse(body);
-    if (\!parsed.success) return validationFail(parsed.error);
+    if (!parsed.success) return validationFail(parsed.error);
 
     const { name, email, password, businessType, termsAccepted } = parsed.data;
 
     // Terms & Privacy must be accepted
-    if (\!termsAccepted) {
+    if (!termsAccepted) {
       return fail('You must accept the Terms of Service and Privacy Policy.', 422);
     }
 

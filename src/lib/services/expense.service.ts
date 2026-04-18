@@ -64,18 +64,18 @@ export const expenseService = {
     const existing = await prisma.expense.findFirst({
       where: { id, userId },
     });
-    if (\!existing) return null;
+    if (!existing) return null;
 
     return prisma.expense.update({
       where: { id },
       data: {
-        ...(data.amount \!== undefined && { amount: data.amount }),
-        ...(data.category \!== undefined && { category: data.category }),
-        ...(data.note \!== undefined && { note: data.note || null }),
-        ...(data.incurredOn \!== undefined && {
+        ...(data.amount !== undefined && { amount: data.amount }),
+        ...(data.category !== undefined && { category: data.category }),
+        ...(data.note !== undefined && { note: data.note || null }),
+        ...(data.incurredOn !== undefined && {
           incurredOn: new Date(data.incurredOn),
         }),
-        ...(data.kind \!== undefined && { kind: data.kind }),
+        ...(data.kind !== undefined && { kind: data.kind }),
       },
     });
   },

@@ -19,7 +19,7 @@ function generateOtp(): string {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (\!user) {
+    if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     if (user.emailVerified) {
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
       max: 3,
       windowMs: 10 * 60_000,
     });
-    if (\!limited.allowed) {
+    if (!limited.allowed) {
       return NextResponse.json(
         { error: `Please wait ${Math.ceil(limited.retryAfter / 60)} min before requesting again.` },
         { status: 429 },

@@ -71,7 +71,7 @@ export function ExpenseSearchBar() {
       <div className="flex flex-wrap gap-1.5">
         <Chip
           label="All"
-          active={\!currentCat}
+          active={!currentCat}
           onClick={() => push({ category: '' })}
         />
         {CATEGORIES.map((cat) => (

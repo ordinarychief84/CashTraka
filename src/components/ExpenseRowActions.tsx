@@ -17,7 +17,7 @@ export function ExpenseRowActions({ id }: { id: string }) {
       icon: <Trash2 size={16} />,
       danger: true,
       onClick: async () => {
-        if (\!confirm('Delete this expense? This cannot be undone.')) return;
+        if (!confirm('Delete this expense? This cannot be undone.')) return;
         await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
         router.refresh();
       },

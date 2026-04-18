@@ -135,8 +135,8 @@ export default async function ExpensesPage({
   const personalMonth = personalMonthAgg._sum.amount ?? 0;
   const weeklyBudget = user.personalBudgetWeekly ?? null;
   const monthlyBudget = user.personalBudgetMonthly ?? null;
-  const overWeek = weeklyBudget \!== null && personalWeek > weeklyBudget;
-  const overMonth = monthlyBudget \!== null && personalMonth > monthlyBudget;
+  const overWeek = weeklyBudget !== null && personalWeek > weeklyBudget;
+  const overMonth = monthlyBudget !== null && personalMonth > monthlyBudget;
 
   // Group by category within the current tab.
   const byCategory = new Map<string, number>();
@@ -172,18 +172,18 @@ export default async function ExpensesPage({
               {overWeek && (
                 <li>
                   This week: {formatNaira(personalWeek)} spent vs{' '}
-                  {formatNaira(weeklyBudget\!)} budget ·{' '}
+                  {formatNaira(weeklyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalWeek - weeklyBudget\!)} over
+                    {formatNaira(personalWeek - weeklyBudget!)} over
                   </strong>
                 </li>
               )}
               {overMonth && (
                 <li>
                   This month: {formatNaira(personalMonth)} spent vs{' '}
-                  {formatNaira(monthlyBudget\!)} budget ·{' '}
+                  {formatNaira(monthlyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalMonth - monthlyBudget\!)} over
+                    {formatNaira(personalMonth - monthlyBudget!)} over
                   </strong>
                 </li>
               )}
@@ -203,19 +203,19 @@ export default async function ExpensesPage({
         <KindTab
           label="All"
           active={kind === 'all'}
-          href={`/expenses${range \!== 'all' ? '?range=' + range : ''}`}
+          href={`/expenses${range !== 'all' ? '?range=' + range : ''}`}
         />
         <KindTab
           label="Business"
           icon={<Briefcase size={12} />}
           active={kind === 'business'}
-          href={`/expenses?kind=business${range \!== 'all' ? '&range=' + range : ''}`}
+          href={`/expenses?kind=business${range !== 'all' ? '&range=' + range : ''}`}
         />
         <KindTab
           label="Personal"
           icon={<UserIcon size={12} />}
           active={kind === 'personal'}
-          href={`/expenses?kind=personal${range \!== 'all' ? '&range=' + range : ''}`}
+          href={`/expenses?kind=personal${range !== 'all' ? '&range=' + range : ''}`}
         />
       </div>
 

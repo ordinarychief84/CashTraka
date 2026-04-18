@@ -27,7 +27,7 @@ export async function nextInvoiceNumber(userId: string): Promise<string> {
     const collision = await prisma.invoice.findUnique({
       where: { invoiceNumber: candidate },
     });
-    if (\!collision) return candidate;
+    if (!collision) return candidate;
   }
 
   // Namespace fallback: cuid-tail derived prefix.

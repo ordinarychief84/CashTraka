@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
     where: { token: code },
     select: { customerName: true, amount: true },
   });
-  if (\!pl) return { title: 'Payment Not Found' };
+  if (!pl) return { title: 'Payment Not Found' };
   return {
     title: `Pay ₦${pl.amount.toLocaleString('en-NG')} — CashTraka`,
     description: `Payment request for ${pl.customerName}`,
@@ -34,9 +34,9 @@ export default async function PayPage({ params }: { params: Promise<{ code: stri
     },
   });
 
-  if (\!pl) notFound();
+  if (!pl) notFound();
 
-  if (\!pl.viewedAt) {
+  if (!pl.viewedAt) {
     await prisma.paymentRequest.update({
       where: { id: pl.id },
       data: { status: 'viewed', viewedAt: new Date() },

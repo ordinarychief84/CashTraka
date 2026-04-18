@@ -11,7 +11,7 @@ function sha256(input: string): string {
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();
-    if (\!user) {
+    if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     if (user.emailVerified) {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       max: 10,
       windowMs: 15 * 60_000,
     });
-    if (\!limited.allowed) {
+    if (!limited.allowed) {
       return NextResponse.json(
         { error: 'Too many attempts. Please wait a few minutes.' },
         { status: 429 },
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const code = String(body.code || '').trim();
-    if (\!/^\d{6}$/.test(code)) {
+    if (!/^\d{6}$/.test(code)) {
       return NextResponse.json({ error: 'Enter a valid 6-digit code' }, { status: 400 });
     }
 
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    if (\!verification) {
+    if (!verification) {
       return NextResponse.json(
         { error: 'No valid code found. Please request a new one.' },
         { status: 400 },
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     const codeHash = sha256(code);
-    if (codeHash \!== verification.codeHash) {
+    if (codeHash !== verification.codeHash) {
       // Increment attempts
       await prisma.emailVerification.update({
         where: { id: verification.id },

@@ -7,6 +7,7 @@ const SESSION_COOKIE = 'cashtraka_session';
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/onboarding',
+  '/verify-email',
   '/payments',
   '/debts',
   '/customers',

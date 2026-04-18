@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth';
 import { can, ASSIGNABLE_ROLES, type AccessRole } from '@/lib/rbac';
 import { handled, ok, fail, forbidden, validationFail } from '@/lib/api-response';
+import { emailService } from '@/lib/services/email.service';
 
 export const runtime = 'nodejs';
 
@@ -67,6 +68,13 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
 
     const baseUrl =
       process.env.APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';
+    // Send invite email (fire-and-forget)
+    emailService.raw({
+      to: email,
+      subject: `You're invited to join ${auth.owner.businessName || auth.owner.name} on CashTraka`,
+      html: `<p>Hi,</p><p>${auth.owner.name} has invited you to join their team on CashTraka as a <strong>${accessRole}</strong>.</p><p>Click the link below to set your password and accept the invite:</p><p><a href="${baseUrl}/accept-invite/${token}">Accept Invitation</a></p><p>This link expires in 7 days.</p>`,
+    }).catch(() => null);
+
     return ok({
       inviteUrl: `${baseUrl}/accept-invite/${token}`,
       expiresAt: expires,

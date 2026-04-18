@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { BUSINESS_TYPES, type BusinessType } from '@/lib/business-type';
 import { cn } from '@/lib/utils';
 
@@ -20,19 +21,27 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [businessType, setBusinessType] = useState<BusinessType>(
     initialType === 'property_manager' ? 'property_manager' : 'seller',
   );
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+
+    if (mode === 'signup' && \!termsAccepted) {
+      setError('Please accept the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
+
     setSubmitting(true);
     const form = new FormData(e.currentTarget);
-    const payload: Record<string, string> = {
+    const payload: Record<string, string | boolean> = {
       email: String(form.get('email') || ''),
       password: String(form.get('password') || ''),
     };
     if (mode === 'signup') {
       payload.name = String(form.get('name') || '');
       payload.businessType = businessType;
+      payload.termsAccepted = termsAccepted;
     }
 
     try {
@@ -42,13 +51,23 @@ export function AuthForm({ mode }: { mode: Mode }) {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Something went wrong');
-      // Envelope: { success, data: { role, ... } }. Legacy signup returns { id, ... } at top level.
+      if (\!res.ok) throw new Error(data?.error || 'Something went wrong');
+
       const role =
         data?.data?.role ??
         (data && typeof data === 'object' && 'role' in data ? data.role : undefined);
-      let dest = mode === 'signup' ? '/onboarding' : next;
+      const requiresVerification =
+        data?.data?.requiresVerification ?? data?.requiresVerification;
+
+      let dest: string;
+      if (mode === 'signup') {
+        // New signup → email verification first
+        dest = requiresVerification ? '/verify-email' : '/onboarding';
+      } else {
+        dest = next;
+      }
       if (role === 'ADMIN') dest = '/admin/dashboard';
+
       router.push(dest);
       router.refresh();
     } catch (err) {
@@ -119,6 +138,40 @@ export function AuthForm({ mode }: { mode: Mode }) {
           placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter your password'}
         />
       </div>
+
+      {/* Terms & Privacy checkbox — signup only */}
+      {mode === 'signup' && (
+        <label className="flex items-start gap-2.5 cursor-pointer group">
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => {
+              setTermsAccepted(e.target.checked);
+              if (e.target.checked) setError(null);
+            }}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+          />
+          <span className="text-sm text-slate-600 leading-snug">
+            I agree to the{' '}
+            <Link
+              href="/terms"
+              target="_blank"
+              className="font-semibold text-brand-700 underline hover:text-brand-800"
+            >
+              Terms of Service
+            </Link>{' '}
+            and{' '}
+            <Link
+              href="/privacy"
+              target="_blank"
+              className="font-semibold text-brand-700 underline hover:text-brand-800"
+            >
+              Privacy Policy
+            </Link>
+          </span>
+        </label>
+      )}
+
       {error && (
         <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
       )}

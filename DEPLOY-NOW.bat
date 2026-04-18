@@ -16,10 +16,9 @@ if errorlevel 1 (
 
 echo.
 echo Committing...
-git commit -m "feat: PayLinks, Daily Pulse, Collections + marketing copy + truncated file fixes"
+git commit -m "feat: OTP verification, terms checkbox, email triggers + PayLinks, Daily Pulse, Collections"
 if errorlevel 1 (
-    echo NOTE: Nothing new to commit, or commit failed.
-    echo Trying to push existing commits...
+    echo NOTE: Nothing new to commit. Pushing existing commits...
 )
 
 echo.

@@ -174,6 +174,33 @@ const DIVIDER = '<hr style="border:none;border-top:1px solid #E5E7EB;margin:24px
 /* ─── Email flows ─────────────────────────────────────────────────────── */
 
 export const emailService = {
+  /* ══════════════════════════════════════════════════════════════════════
+   *  0. OTP VERIFICATION — sent on signup for email verification
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendVerificationOtp(args: { to: string; name: string; code: string }): Promise<SendResult> {
+    const firstName = args.name.split(' ')[0];
+    return this.send({
+      to: args.to,
+      subject: `${args.code} is your CashTraka verification code`,
+      html: layout(
+        `<div style="text-align:center;padding:32px 0 16px">
+           <div style="font-size:14px;color:#64748b;margin-bottom:8px">Your verification code</div>
+           <div style="font-size:40px;font-weight:900;letter-spacing:8px;color:#0f172a;font-family:monospace;padding:16px 0">
+             ${esc(args.code)}
+           </div>
+           <div style="font-size:13px;color:#94a3b8;margin-top:4px">This code expires in 10 minutes</div>
+         </div>
+         <p style="font-size:15px;color:#334155;margin-top:24px">
+           Hi ${esc(firstName)}, welcome to CashTraka! Enter the code above in the
+           app to verify your email and finish setting up your account.
+         </p>
+         <p style="font-size:13px;color:#94a3b8;margin-top:20px">
+           If you didn't create a CashTraka account, please ignore this email.
+         </p>`,
+      ),
+    });
+  }
+
 
   /* ══════════════════════════════════════════════════════════════════════
    *  1. WELCOME EMAIL — sent on signup

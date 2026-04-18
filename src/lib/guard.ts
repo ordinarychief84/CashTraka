@@ -5,28 +5,29 @@ import type { AccessRole } from './rbac';
 
 /**
  * Require an authenticated principal (owner or staff). Returns a user-like
- * object shaped for existing page consumers (still keyed by OWNER's id so
- * data queries remain owner-scoped) plus RBAC metadata:
- *
- *   - `accessRole`    OWNER | MANAGER | CASHIER | VIEWER — what the logged-in
- *                     principal can do.
- *   - `isOwner`       convenience flag.
- *   - `principalName` name shown in the header (owner's name or staff's name).
- *   - `staffId`       present only when a staff is logged in; used by some
- *                     pages that want to show "signed in as Emeka" etc.
+ * object shaped for existing page consumers.
  *
  * Side effects:
  *   - redirects to /login if no session
- *   - redirects to /onboarding if owner hasn't finished onboarding (staff
- *     accept-invite flow bypasses this; staff never have to onboard)
- *   - opportunistically expires stale trials so downstream reads see a
- *     post-downgrade world
+ *   - redirects to /verify-email if owner hasn't verified email yet
+ *   - redirects to /onboarding if owner hasn't finished onboarding
+ *   - opportunistically expires stale trials
  */
-export async function guard(options: { requireOnboarded?: boolean } = {}) {
-  const { requireOnboarded = true } = options;
+export async function guard(options: {
+  requireOnboarded?: boolean;
+  requireVerified?: boolean;
+} = {}) {
+  const { requireOnboarded = true, requireVerified = true } = options;
   const ctx = await getAuthContext();
-  if (!ctx) redirect('/login');
-  if (requireOnboarded && ctx.isOwner && !ctx.owner.onboardingCompleted) {
+  if (\!ctx) redirect('/login');
+
+  // Email verification gate — owners must verify before proceeding.
+  // Staff skip this since they were invited by a verified owner.
+  if (requireVerified && ctx.isOwner && \!ctx.owner.emailVerified) {
+    redirect('/verify-email');
+  }
+
+  if (requireOnboarded && ctx.isOwner && \!ctx.owner.onboardingCompleted) {
     redirect('/onboarding');
   }
 
@@ -42,8 +43,6 @@ export async function guard(options: { requireOnboarded?: boolean } = {}) {
     o.subscriptionStatus = 'free';
   }
 
-  // Expose the owner's fields at the top level for back-compat with pages
-  // that read `user.businessName`, `user.businessType`, etc.
   return {
     ...o,
     accessRole: ctx.accessRole as AccessRole,

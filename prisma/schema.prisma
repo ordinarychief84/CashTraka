@@ -66,6 +66,10 @@ model User {
   personalBudgetMonthly    Int?
 
   onboardingCompleted  Boolean   @default(false)
+  /// Whether the user has verified their email via OTP.
+  emailVerified        Boolean   @default(false)
+  /// Timestamp when user accepted Terms & Privacy Policy.
+  termsAcceptedAt      DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
@@ -101,6 +105,7 @@ model User {
   processedRefunds     Refund[]          @relation("ProcessedRefunds")
   auditLogs            AuditLog[]        @relation("AuditLogAdmin")
   paymentRequests      PaymentRequest[]
+  emailVerifications   EmailVerification[]
 
   @@index([role])
   @@index([businessType])
@@ -809,4 +814,22 @@ model PaymentRequest {
   @@index([token])
   @@index([debtId])
   @@index([expiresAt, status])
+}
+
+// ---------- EMAIL VERIFICATION ----------
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String
+  /// SHA-256 hash of the 6-digit OTP code.
+  codeHash  String
+  /// How many wrong attempts have been made (lock after 5).
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }

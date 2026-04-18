@@ -5,6 +5,7 @@ export const signupSchema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   businessType: z.enum(['seller', 'property_manager']).optional().default('seller'),
+  termsAccepted: z.boolean().optional().default(false),
 });
 
 export const loginSchema = z.object({
@@ -94,6 +95,4 @@ export const productSchema = z.object({
 });
 
 export const templateSchema = z.object({
-  name: z.string().trim().min(1, 'Give this template a name').max(60),
-  body: z.string().trim().min(3, 'Message body is too short').max(1000),
-});
+  name: z.string().trim().min(1, 'Give this template a nam

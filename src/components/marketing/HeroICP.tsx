@@ -12,22 +12,22 @@ type IC = 'seller' | 'property_manager';
 
 const COPY = {
   seller: {
-    eyebrow: 'WhatsApp Sales & Cash Tracker',
-    headline: 'Stop losing money from customers who haven’t paid',
+    eyebrow: ‘The #1 Payment Tracker for Nigerian Sellers’,
+    headline: ‘Know who paid. Know who owes. Collect what is yours.’,
     sub:
-      'Track payments, verify transfers with your bank alert, send professional invoices and auto receipts, chase debts over WhatsApp — all in one place.',
-    ctaPrimary: 'Start free',
-    ctaSecondary: 'See how it works',
-    ctaHref: '/signup?type=seller',
+      ‘CashTraka replaces your notebook, your spreadsheet, and your memory. Track every payment, send invoices, chase debts via WhatsApp, and never lose another naira.’,
+    ctaPrimary: ‘Start free — no card needed’,
+    ctaSecondary: ‘See how it works’,
+    ctaHref: ‘/signup?type=seller’,
   },
   property_manager: {
-    eyebrow: 'Rent & Property Tracker',
-    headline: 'Collect rent on time. Know who’s behind.',
+    eyebrow: ‘The Smartest Rent Tracker for Nigerian Landlords’,
+    headline: ‘Every tenant. Every unit. Every naira collected.’,
     sub:
-      'Track every tenant, every unit, every rent cycle. Send WhatsApp rent reminders, verify payments with your bank alert, and issue receipts automatically.',
-    ctaPrimary: 'Start free',
-    ctaSecondary: 'See how it works',
-    ctaHref: '/signup?type=property_manager',
+      ‘Track rent across all your properties, send automatic WhatsApp reminders, verify bank payments, and issue receipts — without lifting a finger.’,
+    ctaPrimary: ‘Start free — no card needed’,
+    ctaSecondary: ‘See how it works’,
+    ctaHref: ‘/signup?type=property_manager’,
   },
 };
 

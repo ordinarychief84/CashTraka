@@ -25,6 +25,8 @@ const PROTECTED_PREFIXES = [
   '/tasks',
   '/checklists',
   '/team',
+  '/paylinks',
+  '/collections',
   // Admin — role check is enforced inside each page/route via requireAdmin().
   '/admin',
 ];
@@ -64,6 +66,8 @@ async function verify(token: string | undefined): Promise<string | null> {
 const CSRF_EXEMPT_PREFIXES = [
   '/api/billing/webhook',
   '/api/payments/claim/',
+  '/api/pay/',
+  '/api/cron/',
 ];
 
 function sameOriginOk(req: NextRequest): boolean {

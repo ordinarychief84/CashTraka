@@ -2,60 +2,65 @@ import Link from 'next/link';
 import { Wallet, Clock3, MessageCircle, Users } from 'lucide-react';
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: 'About us — CashTraka' };
+export const metadata = { title: ‘About CashTraka — Built for Nigerian businesses that run on trust’ };
 
 export default function AboutPage() {
   return (
     <LegalLayout title="About CashTraka">
       <p className="text-lg">
-        CashTraka is a simple tool that helps small businesses and landlords in Nigeria
-        know who paid, know who owes, and follow up quickly.
+        CashTraka is the payment tracking system built for how Nigerian businesses actually work — on a phone, between WhatsApp messages, sometimes while packing an order.
       </p>
 
-      <h2 className="mt-10 text-xl font-bold text-ink">Why we built it</h2>
+      <h2 className="mt-10 text-xl font-bold text-ink">The problem we saw</h2>
       <p>
-        Most sellers on WhatsApp are not losing money because they don’t have
-        customers — they’re losing it because orders get buried in chats,
-        payments go unconfirmed, and promised instalments quietly slip away.
-        Spreadsheets and bookkeeping apps aren’t built for the way a seller
-        actually works: on a phone, between conversations, sometimes while
-        packing an order.
+        Millions of small businesses and landlords across Nigeria run on trust. A customer says "I sent it." A tenant says "I paid last Tuesday." And you are left scrolling through chats, checking bank apps, and hoping your memory is right.
       </p>
       <p>
-        We wanted a tool a seller could open the moment they get a transfer
-        alert, log it, and move on — and one that would remind them, a week
-        later, that Chidi still owes ₦7,500.
+        The problem is not that these businesses lack customers. It is that payments slip through the cracks. Debts get forgotten. Regulars drift to the next seller because nobody followed up. Notebooks fill up, spreadsheets get abandoned, and expensive accounting software sits unused because it was never designed for someone selling on WhatsApp.
       </p>
 
-      <h2 className="mt-10 text-xl font-bold text-ink">What CashTraka does</h2>
+      <h2 className="mt-10 text-xl font-bold text-ink">What we built</h2>
+      <p>
+        CashTraka is a single system that replaces the notebook, the spreadsheet, and the group of apps that never quite worked together. It is designed for one-handed use on a phone, and every feature is built to take seconds, not minutes.
+      </p>
       <ul className="space-y-3">
         <Point icon={<Wallet className="text-brand-600" size={18} />}>
-          Record payments in seconds — cash or transfer, paid or pending.
+          Record every payment the moment it lands — cash or transfer, with a clear Paid or Pending status.
         </Point>
         <Point icon={<Clock3 className="text-owed-600" size={18} />}>
-          Keep a live list of everyone who owes you, with a running total.
+          See every outstanding debt in one list, with running totals, due dates, and overdue alerts.
         </Point>
         <Point icon={<MessageCircle className="text-[#128C7E]" size={18} />}>
-          Send reminders and follow-ups through your own WhatsApp — no new
-          account, no integration.
+          Send payment reminders, follow-ups, and payment links through WhatsApp — no integrations, no apps to connect.
         </Point>
         <Point icon={<Users className="text-brand-600" size={18} />}>
-          Build a customer list automatically, so no one gets forgotten.
+          Build your customer book automatically. Every buyer is saved. Every interaction is tracked.
         </Point>
       </ul>
 
+      <h2 className="mt-10 text-xl font-bold text-ink">Who it is for</h2>
+      <p>
+        CashTraka serves two groups that share the same core challenge — tracking money that moves through trust and conversation.
+      </p>
+      <p>
+        <strong>Small business owners</strong> — beauty sellers, fashion brands, food vendors, thrift shops, phone accessory sellers, tailors, and anyone who sells through WhatsApp, Instagram, or in person.
+      </p>
+      <p>
+        <strong>Landlords and property managers</strong> — from a single building to a portfolio of properties. Track rent, remind tenants, verify payments, and issue receipts automatically.
+      </p>
+
       <h2 className="mt-10 text-xl font-bold text-ink">What we believe</h2>
       <ul className="list-disc space-y-2 pl-5">
-        <li>Simple beats clever. A seller should never need a tutorial.</li>
-        <li>The phone is the office. Everything works one-handed.</li>
-        <li>Your customers and your records belong to you — always exportable.</li>
-        <li>Fewer features, done well, outlast feature-bloated platforms.</li>
+        <li>Simple beats clever. If you need a tutorial, the product has failed.</li>
+        <li>The phone is the office. Every feature works one-handed, on any device.</li>
+        <li>Your data belongs to you. Always exportable, never locked in.</li>
+        <li>A few features done well will always beat a bloated platform that nobody uses.</li>
+        <li>Nigerian businesses deserve tools built for the way they actually operate — not tools ported from a different market.</li>
       </ul>
 
       <h2 className="mt-10 text-xl font-bold text-ink">Get in touch</h2>
       <p>
-        We’d love to hear from you — whether you have a question, a request,
-        or you want to tell us what’s broken in your current workflow.{' '}
+        We are always listening. Whether you have a feature request, a question, or you just want to tell us what is broken in your current workflow — we want to hear it.{‘ ‘}
         <Link href="/contact" className="font-semibold text-brand-600 hover:underline">
           Contact us
         </Link>
@@ -63,7 +68,7 @@ export default function AboutPage() {
       </p>
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <Link href="/signup" className="btn-primary">Start free</Link>
+        <Link href="/signup" className="btn-primary">Start free — no card needed</Link>
         <Link href="/" className="btn-secondary">Back to home</Link>
       </div>
     </LegalLayout>

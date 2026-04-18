@@ -19,11 +19,11 @@ export function SolutionsPath() {
               Two solutions · one platform
             </span>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Which one are you?
+              Built for your kind of business
             </h2>
             <p className="mt-3 text-slate-600">
-              CashTraka comes in two flavours. Pick the one that matches your
-              business and jump straight into the product tour.
+              Whether you sell products or collect rent, CashTraka adapts to the way
+              you work. Pick your path and see what is included.
             </p>
           </div>
         </Reveal>
@@ -35,7 +35,7 @@ export function SolutionsPath() {
               accent="brand"
               kicker="For Small Business"
               title="CashTraka for Business"
-              desc="Shops, food, services, tailors — verify payments, issue invoices & receipts, chase debts on WhatsApp."
+              desc="For sellers, vendors, tailors, and service providers — verify every transfer, issue invoices and receipts, and chase debts on WhatsApp without the awkwardness."
               features={[
                 'Bank-alert payment verification',
                 'Professional invoices & auto receipts',
@@ -52,7 +52,7 @@ export function SolutionsPath() {
               accent="success"
               kicker="For Landlords"
               title="CashTraka for Landlords"
-              desc="Landlords, property managers, estate agents — track rent across every property and tenant, auto-remind on WhatsApp."
+              desc="For landlords, property managers, and estate agents — track rent across every unit, send automatic reminders, and know exactly who is behind."
               features={[
                 'Rent tracker with collection-rate KPI',
                 'Auto WhatsApp rent reminders',

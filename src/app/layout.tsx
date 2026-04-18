@@ -3,9 +3,9 @@ import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
 
 export const metadata: Metadata = {
-  title: 'CashTraka — Know who paid, know who owes',
+  title: 'CashTraka — Know who paid. Know who owes. Collect everything.',
   description:
-    'CashTraka helps small businesses and landlords track payments, see who owes them, and follow up in seconds.',
+    'The #1 payment tracker for Nigerian small businesses and landlords. Track payments, chase debts via WhatsApp, send payment links, issue receipts — all from your phone.',
   // PWA metadata
   applicationName: 'CashTraka',
   manifest: '/manifest.webmanifest',

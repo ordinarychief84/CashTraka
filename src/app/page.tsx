@@ -98,16 +98,17 @@ function Hero() {
 function AudienceMarquee() {
   const chips = [
     'Beauty sellers',
-    'Fashion sellers',
-    'Resellers',
+    'Fashion brands',
+    'Phone accessory shops',
     'Skincare brands',
     'Food vendors',
-    'Thrift shops',
+    'Thrift stores',
     'Perfume sellers',
-    'Property managers',
     'Landlords',
-    'Rental agents',
-    'Small business owners',
+    'Property managers',
+    'Hair & wig sellers',
+    'Tailors & designers',
+    'Electronics resellers',
   ];
   const items = chips.map((c, i) => (
     <span
@@ -122,7 +123,7 @@ function AudienceMarquee() {
       <div className="container-app mb-4">
         <Reveal from="zoom" distance={10}>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Built for real businesses & landlords
+            Trusted by businesses across Nigeria
           </p>
         </Reveal>
       </div>
@@ -181,10 +182,10 @@ function SocialProof() {
       <div className="container-app">
         <Reveal from="up" blur>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-brand-600">
-            Built by sellers · for sellers
+            Real results · Real businesses
           </p>
           <h2 className="mx-auto mt-3 max-w-2xl text-center text-2xl font-black tracking-tight text-ink md:text-3xl">
-            The tool Nigerian SMBs lean on to recover real money
+            Numbers that speak for themselves
           </h2>
         </Reveal>
         <ul className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -235,31 +236,31 @@ function Problem() {
   const pains = [
     {
       icon: AlertTriangle,
-      title: 'Customers say they paid — but did they?',
-      body: 'Screenshots, vague receipts, half-replied chats. You’re guessing, not confirming.',
+      title: ‘”I sent it” — but nothing hit your account’,
+      body: ‘Fake screenshots. Forgotten transfers. You end up delivering goods on a promise, not a payment.’,
     },
     {
       icon: Inbox,
-      title: 'Chats get buried and lost',
-      body: 'The order from yesterday is already 200 messages up. Something important slipped.',
+      title: ‘Yesterday’s order is buried under 300 messages’,
+      body: ‘WhatsApp was never built to run a business. Important details vanish in the scroll.’,
     },
     {
       icon: Clock3,
-      title: 'Debts you forget to follow up on',
-      body: '“I’ll pay tomorrow” becomes next month. You carry the loss, not them.',
+      title: ‘”I’ll pay you tomorrow” — 3 weeks ago’,
+      body: ‘Without a system, debts slip through the cracks. You absorb the loss quietly.’,
     },
     {
       icon: SearchX,
-      title: 'Repeat customers disappear',
-      body: 'You never followed up. They went and bought from someone else.',
+      title: ‘Your best customer just bought from someone else’,
+      body: ‘No follow-up means no loyalty. The sellers who check in are the ones who keep the sale.’,
     },
   ];
   return (
     <Section
-      id="problem"
-      eyebrow="The problem"
-      title="If you run a business on WhatsApp alone, you're already losing money"
-      subtitle="Customers or tenants say they have paid but you are not sure. People owe you and you forget to follow up. Regulars drift away because you never check in. Important chats get buried and lost."
+      id=”problem”
+      eyebrow=”Sound familiar?”
+      title=”Running your business on WhatsApp alone is costing you real money”
+      subtitle=”Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It’s not a people problem — it’s a systems problem.”
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -278,7 +279,7 @@ function Problem() {
       </Stagger>
       <Reveal delay={400} from="zoom" distance={14}>
         <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
-          You are not running a system. You are reacting to messages.
+          You are not lazy. You just do not have a system yet.
         </p>
       </Reveal>
     </Section>
@@ -291,42 +292,42 @@ function Solution() {
   const features = [
     {
       icon: <Wallet size={22} />,
-      title: 'Track every payment',
-      body: 'Know who paid and when. No confusion.',
+      title: 'Record payments in seconds',
+      body: 'Cash or transfer — log it the moment money lands. Always know who paid and who did not.',
     },
     {
       icon: <Clock3 size={22} />,
-      title: 'See who owes you instantly',
-      body: 'All your debtors in one place with total amount owed.',
+      title: 'See every outstanding debt',
+      body: 'One screen shows everyone who owes you, how much, and how long it has been.',
     },
     {
       icon: <MessageCircle size={22} />,
-      title: 'Follow up in seconds',
-      body: 'Send reminders and messages directly through WhatsApp.',
+      title: 'Chase debts via WhatsApp',
+      body: 'One tap sends a polite reminder straight to the customer — no typing, no awkwardness.',
     },
     {
       icon: <Users size={22} />,
-      title: 'Build your customer list automatically',
-      body: 'Every buyer is saved. No more lost contacts.',
+      title: 'Auto-build your customer book',
+      body: 'Every buyer gets saved automatically. Search by name or phone in one box.',
     },
     {
       icon: <RefreshCcw size={22} />,
-      title: 'Bring back quiet customers',
-      body: 'One tap to restart a conversation with an old buyer.',
+      title: 'Win back quiet customers',
+      body: 'See who has not bought in a while and re-engage them with one tap.',
     },
     {
       icon: <Shield size={22} />,
-      title: 'One source of truth',
-      body: 'Your whole business on one screen, not across 200 chats.',
+      title: 'Your whole business, one screen',
+      body: 'Payments, debts, customers, invoices, receipts — no more hunting across 200 chats.',
     },
   ];
   return (
     <Section
       id="solutions"
       tone="muted"
-      eyebrow="The solution"
-      title="CashTraka gives you control over your sales and cash"
-      subtitle="Instead of guessing, you know exactly what is happening in your business."
+      eyebrow="Meet CashTraka"
+      title="The system your business has been missing"
+      subtitle="Stop guessing. Start knowing exactly who paid, who owes, and what to do next."
     >
       <Reveal>
         <FeatureCarousel items={features} />
@@ -340,35 +341,35 @@ function Solution() {
 function DeepDives() {
   const items = [
     {
-      eyebrow: 'Payments',
-      title: 'Log a sale the moment money lands',
-      body: 'Record cash and transfers with one tap. Filter to see only the payments you’re still waiting on.',
+      eyebrow: ‘Payments’,
+      title: ‘Every naira, accounted for’,
+      body: ‘Record cash and transfers the moment they land. Filter by status, search by name — and watch your daily total climb in real time.’,
       bullets: [
-        'Paid or Pending status on every entry',
-        'Search by name or phone in one box',
-        'Totals update in real time',
+        ‘Paid or Pending status on every entry’,
+        ‘Instant search by name or phone’,
+        ‘Daily, weekly, and monthly totals at a glance’,
       ],
       visual: <PaymentsCard />,
     },
     {
-      eyebrow: 'Debts',
-      title: 'See everyone who still owes you — at a glance',
-      body: 'One list, one total, and a WhatsApp reminder button beside every name. No more forgotten balances.',
+      eyebrow: ‘Debts’,
+      title: ‘Never forget who owes you again’,
+      body: ‘One list. One total. A WhatsApp reminder button beside every name. Outstanding debts stop being a guessing game.’,
       bullets: [
-        'Open and paid debts clearly separated',
-        'Optional due dates to flag what’s late',
-        'One-tap prefilled reminder in WhatsApp',
+        ‘Open and settled debts clearly separated’,
+        ‘Due dates flag what is overdue’,
+        ‘One-tap WhatsApp reminder — pre-written for you’,
       ],
       visual: <DebtsCard />,
     },
     {
-      eyebrow: 'Follow-ups',
-      title: 'Turn chats into repeat sales',
-      body: 'Pick a customer, tap follow-up, tweak the message, and open WhatsApp ready to send. That’s the whole workflow.',
+      eyebrow: ‘Follow-ups’,
+      title: ‘The easiest way to bring customers back’,
+      body: ‘Pick a customer, tap follow-up, tweak the message, and WhatsApp opens ready to send. Three seconds, done.’,
       bullets: [
-        'Default templates you can edit',
-        'Your customer list is already in there',
-        'Nothing to connect — just uses your WhatsApp',
+        ‘Ready-made templates you can customise’,
+        ‘Your full customer list, already loaded’,
+        ‘No integrations — just your own WhatsApp’,
       ],
       visual: <FollowUpCard />,
     },
@@ -386,26 +387,26 @@ function HowItWorks() {
   const steps = [
     {
       n: 1,
-      title: 'Add a payment or a debtor',
-      body: 'Takes less than 10 seconds.',
+      title: 'Record a payment or add a debtor',
+      body: 'Takes 10 seconds. Customer is saved automatically.',
     },
     {
       n: 2,
-      title: 'CashTraka saves your customer automatically',
-      body: 'No manual tracking needed.',
+      title: 'See your dashboard light up',
+      body: 'Totals, debts, overdue alerts — all in one place.',
     },
     {
       n: 3,
-      title: 'Send reminders or follow-ups through WhatsApp',
-      body: 'Recover money and close more sales.',
+      title: 'Follow up and collect via WhatsApp',
+      body: 'Send payment links, reminders, and re-engagement messages with one tap.',
     },
   ];
   return (
     <Section
       id="how-it-works"
       tone="muted"
-      eyebrow="How it works"
-      title="Simple. Fast. Works from day one."
+      eyebrow="3 steps"
+      title="Set up in minutes. See results the same day."
     >
       <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
         {/* Desktop connector line — animated gradient sweep */}
@@ -438,16 +439,16 @@ function HowItWorks() {
 
 function ValueSection() {
   const wins = [
-    { icon: RefreshCcw, label: 'Recover money you forgot' },
-    { icon: MessageCircle, label: 'Remind customers who still owe you' },
-    { icon: PhoneCall, label: 'Bring back customers who have not bought in a while' },
-    { icon: Shield, label: 'Stop missing payments and losing track' },
+    { icon: RefreshCcw, label: 'Recover debts you thought were lost' },
+    { icon: MessageCircle, label: 'Send payment reminders without the awkwardness' },
+    { icon: PhoneCall, label: 'Re-engage customers before they forget you' },
+    { icon: Shield, label: 'Know your exact cash position at any moment' },
   ];
   return (
     <Section
-      eyebrow="The value"
-      title="Make more money without finding new customers"
-      subtitle="Most sellers do not need more customers. They need to manage the ones they already have."
+      eyebrow="The real value"
+      title="You do not need more customers — you need to keep the ones you have"
+      subtitle="The money is already in your business. CashTraka helps you collect it, track it, and grow it."
     >
       <Stagger step={90} from="left" className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
         {wins.map((w) => (
@@ -469,15 +470,15 @@ function ValueSection() {
 
 function Objections() {
   const items = [
-    { title: 'No spreadsheets', body: 'You won’t touch a formula. Everything is on screen, in plain Naira.' },
-    { title: 'No complex setup', body: 'Create an account and you’re taking your first payment in minutes.' },
-    { title: 'No technical knowledge', body: 'Tap, type, done. Built for phones first.' },
+    { title: ‘Zero spreadsheets’, body: ‘No formulas, no columns, no confusion. Just your money, in plain Naira, on one screen.’ },
+    { title: ‘Zero setup headaches’, body: ‘Sign up, log your first sale, and you are already ahead of 90% of sellers still using notebooks.’ },
+    { title: ‘Zero tech skills needed’, body: ‘If you can send a WhatsApp message, you can use CashTraka. It was built for phones first.’ },
   ];
   return (
     <Section
       tone="muted"
-      eyebrow="We keep it simple"
-      title="You do not need another complicated tool"
+      eyebrow="Built for real life"
+      title="No learning curve. No complicated software. Just results."
     >
       <Stagger step={100} from="zoom" distance={18} className="grid gap-4 md:grid-cols-3">
         {items.map((it) => (
@@ -508,8 +509,8 @@ function Pricing() {
     <Section
       id="pricing"
       eyebrow="Pricing"
-      title="Simple pricing that pays for itself"
-      subtitle="If CashTraka helps you recover one payment, it has already paid for itself."
+      title="One recovered debt pays for a whole year"
+      subtitle="Start free. Upgrade when your business is ready. No contracts, cancel anytime."
     >
       <Reveal>
         <div className="mx-auto max-w-3xl">
@@ -557,9 +558,9 @@ function FinalCTA() {
             />
             <div className="relative">
               <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-                You already did the hard part. You got the customers.
+                Your customers are already there. Your money should be too.
               </h2>
-              <p className="mt-3 text-lg text-white/90">Now stop losing money from them.</p>
+              <p className="mt-3 text-lg text-white/90">Join thousands of Nigerian businesses that stopped guessing and started collecting.</p>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
                 <Link
                   href="/signup"
@@ -577,7 +578,7 @@ function FinalCTA() {
                 </Link>
               </div>
               <p className="mt-4 text-sm text-white/80">
-                Set up in minutes. See value the same day.
+                Free plan available. Set up in under 5 minutes. No card required.
               </p>
             </div>
           </div>
@@ -739,11 +740,11 @@ function PropertyManagerSpotlight() {
               Also built for property managers
             </span>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Collect rent on time. Know who's behind.
+              Every tenant. Every unit. Every naira collected.
             </h2>
             <p className="mt-3 text-slate-600 md:text-lg">
-              Stop chasing tenants in group chats. Give every property a clean
-              ledger and let CashTraka handle reminders and receipts.
+              No more chasing tenants in group chats. CashTraka gives every property a clean
+              ledger, sends rent reminders automatically, and issues receipts the moment payment lands.
             </p>
           </div>
         </Reveal>

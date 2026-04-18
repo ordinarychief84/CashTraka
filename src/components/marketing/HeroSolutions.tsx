@@ -66,10 +66,10 @@ export function HeroSolutions() {
             {/* Headline */}
             <Reveal from="up" delay={140}>
               <h1 className="mt-4 text-5xl font-black leading-[1.04] tracking-tight text-ink md:text-6xl lg:text-[4.25rem]">
-                Stop chasing payments.{' '}
+                Know who paid. Know who owes.{' '}
                 <span className="relative inline-block">
                   <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-success-600 bg-clip-text text-transparent">
-                    Start receiving
+                    Collect everything
                   </span>
                   {/* underline swoosh */}
                   <svg
@@ -100,9 +100,9 @@ export function HeroSolutions() {
             {/* Sub */}
             <Reveal from="up" delay={200}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
-                CashTraka verifies payments against your real bank alert,
-                auto-issues receipts, and chases debts on WhatsApp — built for
-                Nigerian small businesses and landlords.
+                CashTraka is the all-in-one payment tracker for Nigerian businesses
+                and landlords. Verify transfers, issue receipts, chase debts on
+                WhatsApp, and send payment links — all from your phone.
               </p>
             </Reveal>
 

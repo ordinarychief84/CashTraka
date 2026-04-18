@@ -346,6 +346,7 @@ export const emailService = {
     claimedPaylinks: number;
     remindersDueToday: number;
     topDebtors: { name: string; amount: number }[];
+    yesterdaySpent?: number;
   }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || '';
     const today = fmtDate(new Date());
@@ -385,6 +386,10 @@ export const emailService = {
           <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${naira(args.totalOwed)}</td>
         </tr>
         <tr>
+        <tr>
+          <td style="padding:8px 0;font-size:14px;color:#475569;">Business Expenses (yesterday)</td>
+          <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${args.yesterdaySpent ? naira(args.yesterdaySpent) : naira(0)}</td>
+        </tr>
           <td style="padding:8px 0;font-size:14px;color:#475569;">Overdue</td>
           <td style="padding:8px 0;font-size:14px;font-weight:700;color:${args.overdueDebts > 0 ? '#DC2626' : '#1A1A1A'};text-align:right;">${args.overdueDebts}</td>
         </tr>

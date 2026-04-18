@@ -7,6 +7,7 @@
  *   - Pending paylinks (especially claimed ones needing confirmation)
  *   - Reminders due today
  *   - Follow-up items
+ *   - Yesterday's business expense total
  *
  * Used by:
  *   1. GET /api/daily-pulse — on-demand for dashboard card
@@ -26,6 +27,7 @@ export type DailyPulseData = {
   remindersDueToday: number;
   quietCustomers: number; // no activity in 30+ days
   topDebtors: { name: string; phone: string; amount: number }[];
+  yesterdaySpent: number; // business expenses yesterday
 };
 
 function startOfDay(d: Date): Date {
@@ -52,6 +54,7 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     remindersDue,
     quietCustomers,
     topDebtors,
+    yesterdayExpenses,
   ] = await Promise.all([
     // Today's revenue
     prisma.payment.aggregate({
@@ -95,6 +98,15 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
       take: 5,
       select: { customerNameSnapshot: true, phoneSnapshot: true, amountOwed: true, amountPaid: true },
     }),
+    // Yesterday's business expenses
+    prisma.expense.aggregate({
+      where: {
+        userId,
+        kind: 'business',
+        incurredOn: { gte: yesterdayStart, lt: todayStart },
+      },
+      _sum: { amount: true },
+    }),
   ]);
 
   const todayRev = todayPayments._sum.amount || 0;
@@ -118,5 +130,6 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
       phone: d.phoneSnapshot,
       amount: d.amountOwed - d.amountPaid,
     })),
+    yesterdaySpent: yesterdayExpenses._sum.amount ?? 0,
   };
 }

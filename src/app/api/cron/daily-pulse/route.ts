@@ -64,6 +64,7 @@ export async function GET(req: Request) {
         claimedPaylinks: pulse.claimedPaylinks,
         remindersDueToday: pulse.remindersDueToday,
         topDebtors: pulse.topDebtors,
+        yesterdaySpent: pulse.yesterdaySpent,
       });
 
       if (result.ok) sent++;

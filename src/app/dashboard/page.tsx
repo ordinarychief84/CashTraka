@@ -463,6 +463,15 @@ export default async function DashboardPage() {
               variant="primary"
               label="Create receipt"
             />
+            {showExpenses && (
+              <Link
+                href="/expenses/new"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+              >
+                <Receipt size={15} />
+                Add expense
+              </Link>
+            )}
           </div>
         )}
       </div>

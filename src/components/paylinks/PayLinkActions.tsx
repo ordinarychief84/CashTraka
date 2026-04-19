@@ -87,11 +87,7 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
           <button
             onClick={() => setShowEmailInput(!showEmailInput)}
             title={emailSent ? 'Email sent!' : 'Send via Email'}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-              emailSent
-                ? 'text-green-600 bg-green-50'
-                : 'text-blue-600 hover:bg-blue-50'
-            }`}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg ${emailSent ? 'text-green-600 bg-green-50' : 'text-blue-600 hover:bg-blue-50'}`}
           >
             {emailSent ? <Check size={14} /> : <Mail size={16} />}
           </button>

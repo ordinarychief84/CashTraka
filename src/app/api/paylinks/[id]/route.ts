@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({ ...paylink, whatsappLink: waLink });
 }
 
-/** PATCH /api/paylinks/[id] — update status (confirm, cancel, mark WA sent) */
+/** PATCH /api/paylinks/[id] — update status (confirm, cancel, mark WA sent, email sent) */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -58,7 +58,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           return NextResponse.json({ error: 'Valid customer email is required' }, { status: 400 });
         }
 
-        // Fetch the paylink details for the email
         const paylink = await prisma.paymentRequest.findFirst({
           where: { id, userId: user.id },
         });
@@ -67,7 +66,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         const appUrl = process.env.APP_URL || 'https://cashtraka.co';
         const payUrl = `${appUrl}/pay/${paylink.token}`;
 
-        // Send the email
         const emailResult = await emailService.sendPayLink({
           to: customerEmail,
           customerName: paylink.customerName,
@@ -82,7 +80,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           return NextResponse.json({ error: emailResult.error || 'Failed to send email' }, { status: 500 });
         }
 
-        // Mark email sent and store customer email
         const result = await prisma.paymentRequest.update({
           where: { id, userId: user.id },
           data: { emailSentAt: new Date(), customerEmail },
@@ -90,7 +87,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         return NextResponse.json(result);
       }
       default:
-        return NextResponse.json({ error: 'Invalid action. Use: confirm, cancel, whatsapp_sent, email_sent' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch {
     return NextResponse.json({ error: 'Failed to update paylink' }, { status: 500 });

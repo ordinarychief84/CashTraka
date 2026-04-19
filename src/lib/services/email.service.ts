@@ -997,11 +997,11 @@ export const emailService = {
     }
 
     const body = `
-      <\!-- Hero section with warm gradient feel -->
+      <!-- Hero section with warm gradient feel -->
       <div style="text-align:center;margin-bottom:28px;">
         <div style="font-size:48px;line-height:1;margin-bottom:12px;">${heroEmoji}</div>
         <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#1A1A1A;line-height:1.2;">
-          Hey ${esc(firstName)}, welcome aboard\!
+          Hey ${esc(firstName)}, welcome aboard!
         </h1>
         <p style="margin:0;font-size:15px;color:#64748B;line-height:1.5;">
           ${heroSubtitle}
@@ -1010,7 +1010,7 @@ export const emailService = {
 
       ${DIVIDER}
 
-      <\!-- Personal note from the team -->
+      <!-- Personal note from the team -->
       <div style="background:linear-gradient(135deg,#F0FDF4 0%,#ECFEFF 100%);background-color:#F0FDF4;border-radius:14px;padding:24px;margin-bottom:24px;">
         <p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.7;">
           We built CashTraka because ${isPM
@@ -1026,7 +1026,7 @@ export const emailService = {
         </p>
       </div>
 
-      <\!-- Feature highlights -->
+      <!-- Feature highlights -->
       <div style="margin-bottom:24px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00B8E8;margin-bottom:12px;">What you can do right now</div>
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -1038,7 +1038,7 @@ export const emailService = {
 
       ${DIVIDER}
 
-      <\!-- Social proof / trust signal -->
+      <!-- Social proof / trust signal -->
       <div style="text-align:center;padding:16px 0 8px;">
         <p style="margin:0 0 6px;font-size:20px;font-weight:800;color:#1A1A1A;">Join hundreds of Nigerian businesses</p>
         <p style="margin:0;font-size:13px;color:#94A3B8;">
@@ -1048,7 +1048,7 @@ export const emailService = {
 
       ${DIVIDER}
 
-      <\!-- Quick help section -->
+      <!-- Quick help section -->
       <div style="background:#F8FAFC;border-radius:12px;padding:20px;margin-top:8px;">
         <div style="font-size:13px;font-weight:700;color:#1A1A1A;margin-bottom:10px;">Need help getting started?</div>
         <table cellpadding="0" cellspacing="0" border="0" width="100%">

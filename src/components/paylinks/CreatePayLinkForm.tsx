@@ -53,8 +53,7 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
     setCustomerPhone(d.phone);
     setAmount(String(d.remaining));
     setDebtId(d.id);
-    setDescription(`Outstanding balance`);
-    // Try to find matching customer
+    setDescription('Outstanding balance');
     const match = customers.find((c) => c.phone === d.phone);
     if (match) setCustomerId(match.id);
   }
@@ -101,7 +100,6 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
     const appUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const payUrl = `${appUrl}/pay/${result.token}`;
 
-    // Build WhatsApp link
     let phone = customerPhone.replace(/\s+/g, '');
     if (phone.startsWith('0')) phone = '234' + phone.slice(1);
     if (!phone.startsWith('+')) phone = '+' + phone;
@@ -169,8 +167,11 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
                         const d = await res.json().catch(() => ({}));
                         setEmailErr(d.error || 'Failed to send');
                       }
-                    } catch { setEmailErr('Network error'); }
-                    finally { setEmailSending(false); }
+                    } catch {
+                      setEmailErr('Network error');
+                    } finally {
+                      setEmailSending(false);
+                    }
                   }}
                   disabled={emailSending}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
@@ -189,9 +190,7 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
           )}
 
           <button
-            onClick={() => {
-              navigator.clipboard.writeText(payUrl);
-            }}
+            onClick={() => { navigator.clipboard.writeText(payUrl); }}
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             <Link2 size={18} />
@@ -210,7 +209,6 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Quick fill from debt */}
       {debts.length > 0 && (
         <div className="rounded-xl border bg-amber-50 p-4">
           <p className="text-xs font-semibold text-amber-700 mb-2">Quick: Create from outstanding debt</p>
@@ -229,7 +227,6 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
         </div>
       )}
 
-      {/* Customer selection */}
       <div className="relative">
         <label className="mb-1.5 block text-sm font-medium text-slate-700">
           <User size={14} className="inline mr-1" />

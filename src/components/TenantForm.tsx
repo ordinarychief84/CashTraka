@@ -26,7 +26,7 @@ export function TenantForm({ propertyId, properties, prefill, initial }: Props) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const isEdit = \!\!initial;
+  const isEdit = !!initial;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,7 +56,7 @@ export function TenantForm({ propertyId, properties, prefill, initial }: Props) 
         body: JSON.stringify(payload),
       });
 
-      if (\!res.ok) {
+      if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Something went wrong');
         setSaving(false);
@@ -80,8 +80,8 @@ export function TenantForm({ propertyId, properties, prefill, initial }: Props) 
   const resolvedPropertyId = propertyId || initial?.propertyId || '';
   const defaultName = initial?.name || prefill?.name || '';
   const defaultPhone = initial?.phone || prefill?.phone || '';
-  const nameReadonly = \!\!prefill && \!isEdit;
-  const phoneReadonly = \!\!prefill && \!isEdit;
+  const nameReadonly = !!prefill && !isEdit;
+  const phoneReadonly = !!prefill && !isEdit;
 
   return (
     <form onSubmit={handleSubmit} className="card space-y-4 p-5">

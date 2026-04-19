@@ -921,5 +921,167 @@ export const emailService = {
   },
 
   /** Low-level escape hatch so other services can send arbitrary transactional mail. */
+
+  /* ══════════════════════════════════════════════════════════════════════
+   *  15. DELAYED WELCOME — sent 30 min after signup (warm onboarding)
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendDelayedWelcome(args: {
+    to: string;
+    name: string;
+    businessType?: string;
+    businessName?: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || 'https://cashtraka.vercel.app';
+    const firstName = args.name.split(' ')[0];
+    const isPM = args.businessType === 'property_manager';
+
+    const heroEmoji = isPM ? '🏠' : '💰';
+    const heroSubtitle = isPM
+      ? 'Your property management just got easier.'
+      : 'Your business finances just got clearer.';
+
+    const featureCards = isPM
+      ? [
+          {
+            icon: '🏢',
+            title: 'Property Dashboard',
+            desc: 'See all your buildings, units, and occupancy at a glance.',
+          },
+          {
+            icon: '🔔',
+            title: 'Automatic Rent Reminders',
+            desc: 'CashTraka sends reminders before lease expiry — so you never miss a renewal.',
+          },
+          {
+            icon: '📊',
+            title: 'Financial Reports',
+            desc: 'Track rent income, expenses, and profitability per property.',
+          },
+        ]
+      : [
+          {
+            icon: '📱',
+            title: 'Record Sales Instantly',
+            desc: 'Log payments in seconds and see your revenue grow in real time.',
+          },
+          {
+            icon: '📧',
+            title: 'Send Receipts in One Tap',
+            desc: 'Professional receipts via WhatsApp or email — your customers will love it.',
+          },
+          {
+            icon: '📈',
+            title: 'Know Your Numbers',
+            desc: 'Real profit, not just revenue. Track expenses, debts, and growth trends.',
+          },
+        ];
+
+    let featureHTML = '';
+    for (const f of featureCards) {
+      featureHTML += `
+      <tr>
+        <td style="padding:12px 0;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%">
+            <tr>
+              <td width="48" style="vertical-align:top;">
+                <div style="width:44px;height:44px;background:#F0FDF4;border-radius:12px;text-align:center;line-height:44px;font-size:22px;">${f.icon}</div>
+              </td>
+              <td style="padding-left:14px;vertical-align:top;">
+                <div style="font-size:15px;font-weight:700;color:#1A1A1A;margin-bottom:2px;">${esc(f.title)}</div>
+                <div style="font-size:13px;color:#64748B;line-height:1.5;">${esc(f.desc)}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
+    }
+
+    const body = `
+      <\!-- Hero section with warm gradient feel -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="font-size:48px;line-height:1;margin-bottom:12px;">${heroEmoji}</div>
+        <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#1A1A1A;line-height:1.2;">
+          Hey ${esc(firstName)}, welcome aboard\!
+        </h1>
+        <p style="margin:0;font-size:15px;color:#64748B;line-height:1.5;">
+          ${heroSubtitle}
+        </p>
+      </div>
+
+      ${DIVIDER}
+
+      <\!-- Personal note from the team -->
+      <div style="background:linear-gradient(135deg,#F0FDF4 0%,#ECFEFF 100%);background-color:#F0FDF4;border-radius:14px;padding:24px;margin-bottom:24px;">
+        <p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.7;">
+          We built CashTraka because ${isPM
+            ? "managing properties in Nigeria shouldn't mean drowning in spreadsheets and chasing tenants for rent."
+            : "too many Nigerian business owners work hard every day but can't tell you their real profit at the end of the month."
+          }
+        </p>
+        <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;">
+          ${isPM
+            ? 'With CashTraka, you get a purpose-built system that tracks every unit, every tenant, every payment — and reminds you before things slip through the cracks.'
+            : 'CashTraka gives you one place to record sales, track who owes you, manage expenses, and see exactly where your money goes. No accounting degree needed.'
+          }
+        </p>
+      </div>
+
+      <\!-- Feature highlights -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00B8E8;margin-bottom:12px;">What you can do right now</div>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          ${featureHTML}
+        </table>
+      </div>
+
+      ${ctaButton('Open your dashboard', appUrl + '/dashboard')}
+
+      ${DIVIDER}
+
+      <\!-- Social proof / trust signal -->
+      <div style="text-align:center;padding:16px 0 8px;">
+        <p style="margin:0 0 6px;font-size:20px;font-weight:800;color:#1A1A1A;">Join hundreds of Nigerian businesses</p>
+        <p style="margin:0;font-size:13px;color:#94A3B8;">
+          ${isPM ? 'Property managers across Lagos, Abuja, and Port Harcourt trust CashTraka.' : 'From market sellers to tech startups — CashTraka works for every business size.'}
+        </p>
+      </div>
+
+      ${DIVIDER}
+
+      <\!-- Quick help section -->
+      <div style="background:#F8FAFC;border-radius:12px;padding:20px;margin-top:8px;">
+        <div style="font-size:13px;font-weight:700;color:#1A1A1A;margin-bottom:10px;">Need help getting started?</div>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding:4px 0;font-size:13px;">
+              ${link('Visit our help center', appUrl + '/contact')}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:4px 0;font-size:13px;">
+              Just reply to this email — a real human will respond
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <p style="margin:24px 0 0;font-size:14px;color:#475569;text-align:center;line-height:1.6;">
+        We're rooting for your success. 🙌<br>
+        <strong style="color:#1A1A1A;">— The CashTraka Team</strong>
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: isPM
+        ? `${firstName}, your property management toolkit is ready`
+        : `${firstName}, your business dashboard is ready`,
+      html: layout(body, {
+        preheader: isPM
+          ? 'Properties, tenants, rent tracking — all set up and waiting for you.'
+          : 'Payments, receipts, expenses — everything you need to run your business smarter.',
+      }),
+    });
+  },
+
   raw: send,
 };

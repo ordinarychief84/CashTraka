@@ -112,3 +112,16 @@ function Chip({
     </button>
   );
 }
+on
+      onClick={onClick}
+      className={cn(
+        'rounded-full border px-2.5 py-1 text-[11px] font-semibold transition',
+        active
+          ? 'border-brand-500 bg-brand-50 text-brand-700'
+          : 'border-border bg-white text-slate-500 hover:bg-slate-50',
+      )}
+    >
+      {label}
+    </button>
+  );
+}

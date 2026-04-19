@@ -70,6 +70,8 @@ model User {
   emailVerified        Boolean   @default(false)
   /// Timestamp when user accepted Terms & Privacy Policy.
   termsAcceptedAt      DateTime?
+  /// Timestamp when the delayed welcome email was sent (30 min after signup).
+  welcomeEmailSentAt   DateTime?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

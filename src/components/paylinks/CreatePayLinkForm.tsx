@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2 } from 'lucide-react';
+import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2, Mail } from 'lucide-react';
 
 type Customer = { id: string; name: string; phone: string };
 type DebtItem = { id: string; customerName: string; phone: string; remaining: number };
@@ -25,9 +25,13 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
   const [debtId, setDebtId] = useState(prefill?.debtId || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState<{ token: string; linkNumber: string } | null>(null);
+  const [result, setResult] = useState<{ token: string; linkNumber: string; id: string } | null>(null);
   const [showCustomers, setShowCustomers] = useState(false);
   const [search, setSearch] = useState('');
+  const [customerEmailInput, setCustomerEmailInput] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSentOk, setEmailSentOk] = useState(false);
+  const [emailErr, setEmailErr] = useState('');
 
   const filtered = search.length > 0
     ? customers.filter((c) =>
@@ -85,7 +89,7 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
       }
 
       const data = await res.json();
-      setResult({ token: data.token, linkNumber: data.linkNumber });
+      setResult({ token: data.token, linkNumber: data.linkNumber, id: data.id });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -133,6 +137,57 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
             <MessageCircle size={18} />
             Send via WhatsApp
           </a>
+
+          {/* Send via Email */}
+          {!emailSentOk ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={customerEmailInput}
+                  onChange={(e) => { setCustomerEmailInput(e.target.value); setEmailErr(''); }}
+                  placeholder="Customer email address"
+                  className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none"
+                />
+                <button
+                  onClick={async () => {
+                    if (!customerEmailInput || !customerEmailInput.includes('@')) {
+                      setEmailErr('Enter a valid email');
+                      return;
+                    }
+                    setEmailSending(true);
+                    setEmailErr('');
+                    try {
+                      const res = await fetch(`/api/paylinks/${result.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'email_sent', customerEmail: customerEmailInput }),
+                      });
+                      if (res.ok) {
+                        setEmailSentOk(true);
+                      } else {
+                        const d = await res.json().catch(() => ({}));
+                        setEmailErr(d.error || 'Failed to send');
+                      }
+                    } catch { setEmailErr('Network error'); }
+                    finally { setEmailSending(false); }
+                  }}
+                  disabled={emailSending}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <Mail size={16} />
+                  {emailSending ? 'Sending...' : 'Email'}
+                </button>
+              </div>
+              {emailErr && <p className="text-xs text-red-500 text-center">{emailErr}</p>}
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-700">
+              <Mail size={16} />
+              Email sent successfully!
+            </div>
+          )}
+
           <button
             onClick={() => {
               navigator.clipboard.writeText(payUrl);

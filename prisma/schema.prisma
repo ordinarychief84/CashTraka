@@ -811,6 +811,8 @@ model PaymentRequest {
   claimedAt        DateTime?
   confirmedAt      DateTime?
   whatsappSentAt   DateTime?
+  emailSentAt      DateTime?
+  customerEmail    String?
   debtId           String?
   expiresAt        DateTime?
   createdAt        DateTime  @default(now())

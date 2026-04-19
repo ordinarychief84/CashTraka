@@ -36,7 +36,7 @@ export default async function PayLinksPage() {
         <div>
           <h1 className="text-xl font-bold text-slate-900">PayLinks</h1>
           <p className="text-sm text-slate-500">
-            Send payment request links via WhatsApp — customers tap to pay
+            Send payment request links via WhatsApp or Email — customers tap to pay
           </p>
         </div>
         <Link
@@ -135,6 +135,7 @@ export default async function PayLinksPage() {
                     status={pl.status}
                     whatsappLink={waLink}
                     payUrl={payUrl}
+                    customerEmail={pl.customerEmail}
                   />
                 </div>
               );

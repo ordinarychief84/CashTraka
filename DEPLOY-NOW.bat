@@ -20,7 +20,7 @@ git add -A
 echo.
 
 echo [4/5] Committing changes...
-git commit -m "feat: add delayed welcome email 30 min after signup + expense management redesign"
+git commit -m "feat: multi-unit tenants, PayLink email delivery, welcome email"
 if %ERRORLEVEL% NEQ 0 (
     echo No new changes to commit, pushing existing commits...
 )
@@ -44,8 +44,8 @@ echo   SUCCESS\! Changes pushed to GitHub.
 echo   Vercel will auto-deploy from main branch.
 echo ============================================
 echo.
-echo IMPORTANT: After deploy, run the Prisma migration:
-echo   The new welcomeEmailSentAt field and expense fields
-echo   will be applied automatically by Vercel's build.
+echo IMPORTANT: After deploy, Prisma migration runs automatically.
+echo   New fields: welcomeEmailSentAt, emailSentAt, customerEmail
+echo   will be applied by Vercel's build.
 echo.
 pause

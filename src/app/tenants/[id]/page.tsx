@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Pencil, MessageCircle, Building2, AlertTriangle, Clock } from 'lucide-react';
+import { Pencil, MessageCircle, Building2, AlertTriangle, Clock, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -29,13 +29,23 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
 
   if (!tenant) notFound();
 
+  // Find other units rented by the same tenant (same phone number)
+  const otherUnits = await prisma.tenant.findMany({
+    where: {
+      userId: user.id,
+      phone: tenant.phone,
+      id: { not: tenant.id },
+    },
+    include: { property: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
   const totalPaid = tenant.rentPayments
     .filter((p) => p.status === 'PAID' || p.status === 'PARTIAL')
     .reduce((s, p) => s + p.amount, 0);
 
   const overdueCount = tenant.rentPayments.filter((p) => p.status === 'OVERDUE').length;
 
-  // Build reminder message
   const month = new Date(currentPeriod + '-01').toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });
   const reminderMsg = `Hi ${tenant.name}, your rent of ${formatNaira(tenant.rentAmount)} for ${month} at ${tenant.property.name} is due. Kindly make payment. Thank you.`;
   const waUrl = waLink(tenant.phone, reminderMsg);
@@ -44,13 +54,21 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader
         title={tenant.name}
-        subtitle={`${tenant.property.name}${tenant.unitLabel ? ' · ' + tenant.unitLabel : ''}`}
+        subtitle={`${tenant.property.name}${tenant.unitLabel ? ' \u00b7 ' + tenant.unitLabel : ''}`}
         backHref={`/properties/${tenant.propertyId}`}
         action={
           <div className="flex items-center gap-2">
+            <Link
+              href={`/tenants/new?fromTenant=${tenant.id}`}
+              className="btn-secondary"
+              title="Add another unit for this tenant"
+            >
+              <Plus size={16} />
+              Add unit
+            </Link>
             <a href={waUrl} target="_blank" rel="noopener noreferrer" className="btn-wa">
               <MessageCircle size={16} />
-              Send reminder
+              Remind
             </a>
             <Link href={`/tenants/${tenant.id}/edit`} className="btn-secondary">
               <Pencil size={16} />
@@ -58,6 +76,32 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
           </div>
         }
       />
+
+      {/* Other units by this tenant */}
+      {otherUnits.length > 0 && (
+        <div className="mb-5 rounded-xl border border-brand-200 bg-brand-50/50 p-4">
+          <div className="mb-2 text-xs font-bold uppercase tracking-wide text-brand-700">
+            This tenant rents {otherUnits.length + 1} units
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-400 bg-white px-3 py-1.5 text-xs font-semibold text-brand-700">
+              <Building2 size={12} />
+              {tenant.property.name}{tenant.unitLabel ? ` \u00b7 ${tenant.unitLabel}` : ''} &mdash; {formatNaira(tenant.rentAmount)}
+              <span className="text-brand-400">(viewing)</span>
+            </span>
+            {otherUnits.map((u) => (
+              <Link
+                key={u.id}
+                href={`/tenants/${u.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:border-brand-300 hover:bg-brand-50 transition"
+              >
+                <Building2 size={12} />
+                {u.property.name}{u.unitLabel ? ` \u00b7 ${u.unitLabel}` : ''} &mdash; {formatNaira(u.rentAmount)}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Profile info */}
       <div className="card mb-5 p-5">

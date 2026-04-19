@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 type Props = {
   propertyId?: string;
   properties?: { id: string; name: string }[];
+  prefill?: { name: string; phone: string };
   initial?: {
     id: string;
     propertyId: string;
@@ -20,12 +21,12 @@ type Props = {
   };
 };
 
-export function TenantForm({ propertyId, properties, initial }: Props) {
+export function TenantForm({ propertyId, properties, prefill, initial }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const isEdit = !!initial;
+  const isEdit = \!\!initial;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,7 +56,7 @@ export function TenantForm({ propertyId, properties, initial }: Props) {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+      if (\!res.ok) {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Something went wrong');
         setSaving(false);
@@ -77,6 +78,10 @@ export function TenantForm({ propertyId, properties, initial }: Props) {
   }
 
   const resolvedPropertyId = propertyId || initial?.propertyId || '';
+  const defaultName = initial?.name || prefill?.name || '';
+  const defaultPhone = initial?.phone || prefill?.phone || '';
+  const nameReadonly = \!\!prefill && \!isEdit;
+  const phoneReadonly = \!\!prefill && \!isEdit;
 
   return (
     <form onSubmit={handleSubmit} className="card space-y-4 p-5">
@@ -112,8 +117,9 @@ export function TenantForm({ propertyId, properties, initial }: Props) {
           name="name"
           type="text"
           required
-          defaultValue={initial?.name || ''}
-          className="input"
+          defaultValue={defaultName}
+          readOnly={nameReadonly}
+          className={`input ${nameReadonly ? 'bg-slate-50 text-slate-600' : ''}`}
           placeholder="e.g. Chinedu Okeke"
         />
       </div>
@@ -125,8 +131,9 @@ export function TenantForm({ propertyId, properties, initial }: Props) {
           name="phone"
           type="tel"
           required
-          defaultValue={initial?.phone || ''}
-          className="input"
+          defaultValue={defaultPhone}
+          readOnly={phoneReadonly}
+          className={`input ${phoneReadonly ? 'bg-slate-50 text-slate-600' : ''}`}
           placeholder="e.g. 08012345678"
         />
       </div>
@@ -139,7 +146,7 @@ export function TenantForm({ propertyId, properties, initial }: Props) {
           type="text"
           defaultValue={initial?.unitLabel || ''}
           className="input"
-          placeholder="e.g. Flat 3B"
+          placeholder="e.g. Flat 3B, Warehouse A"
         />
       </div>
 

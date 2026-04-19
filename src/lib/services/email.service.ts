@@ -1083,5 +1083,60 @@ export const emailService = {
     });
   },
 
+  /** #16 — PayLink email: send payment request link to customer via email */
+  async sendPayLink(args: {
+    to: string;
+    customerName: string;
+    amount: number;
+    businessName: string;
+    description?: string;
+    payUrl: string;
+    linkNumber: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
+    const firstName = args.customerName.split(' ')[0];
+    const desc = args.description ? `<p style="margin:8px 0 0;font-size:14px;color:#64748B;">For: ${esc(args.description)}</p>` : '';
+
+    const body = `
+      <h1 style="margin:0;font-size:22px;font-weight:800;color:#1A1A1A;line-height:1.3;">
+        Hi ${esc(firstName)}, you have a payment request
+      </h1>
+      <p style="margin:12px 0 0;font-size:15px;color:#475569;line-height:1.6;">
+        <strong style="color:#1A1A1A;">${esc(args.businessName)}</strong> has sent you a payment request.
+      </p>
+
+      <!-- Amount card -->
+      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:20px;margin:20px 0;text-align:center;">
+        <div style="font-size:12px;font-weight:600;color:#15803D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Amount Due</div>
+        <div style="font-size:32px;font-weight:800;color:#166534;">${naira(args.amount)}</div>
+        ${desc}
+        <div style="margin-top:8px;font-size:12px;color:#64748B;">Ref: ${esc(args.linkNumber)}</div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;">
+        ${ctaButton('View Payment Details', args.payUrl)}
+      </div>
+
+      <p style="margin:16px 0 0;font-size:13px;color:#94A3B8;text-align:center;line-height:1.5;">
+        Click the button above to view payment details and confirm once paid.
+      </p>
+
+      <div style="border-top:1px solid #E2E8F0;margin:24px 0 16px;"></div>
+
+      <p style="margin:0;font-size:12px;color:#94A3B8;line-height:1.5;">
+        This payment request was sent via ${link('CashTraka', appUrl)}.
+        If you did not expect this, you can safely ignore this email.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: `Payment request of ${naira(args.amount)} from ${args.businessName}`,
+      html: layout(body, {
+        preheader: `${args.businessName} is requesting ${naira(args.amount)} from you.`,
+      }),
+    });
+  },
+
   raw: send,
 };

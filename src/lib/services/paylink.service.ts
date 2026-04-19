@@ -149,6 +149,14 @@ export const paylinkService = {
     });
   },
 
+  /** Mark email as sent */
+  async markEmailSent(id: string, userId: string) {
+    return prisma.paymentRequest.update({
+      where: { id, userId },
+      data: { emailSentAt: new Date() },
+    });
+  },
+
   /** Expire old pending/viewed links past their expiresAt */
   async expireStale() {
     return prisma.paymentRequest.updateMany({

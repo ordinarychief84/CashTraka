@@ -194,25 +194,3 @@ export function AuthForm({ mode }: { mode: Mode }) {
     </form>
   );
 }
-            </Link>{' '}
-            and{' '}
-            <Link
-              href="/privacy"
-              target="_blank"
-              className="font-semibold text-brand-700 underline hover:text-brand-800"
-            >
-              Privacy Policy
-            </Link>
-          </span>
-        </label>
-      )}
-
-      {error && (
-        <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
-      )}
-      <button className="btn-primary w-full" disabled={submitting}>
-        {submitting ? 'Please wait…' : mode === 'signup' ? 'Create account' : 'Log in'}
-      </button>
-    </form>
-  );
-}

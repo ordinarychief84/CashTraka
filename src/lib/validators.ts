@@ -63,25 +63,65 @@ export const verifyAlertSchema = z.object({
   text: z.string().optional(),
 });
 
-const expenseCategories = [
-  'Stock',
-  'Delivery',
-  'Packaging',
-  'Data',
-  'Wages',
-  'Rent',
-  'Transport',
-  'Other',
+/* ── Business expense categories ── */
+const businessExpenseCategories = [
+  'Inventory / Stock',
+  'Rent / Lease',
+  'Salaries / Wages',
+  'Utilities',
+  'Marketing / Ads',
+  'Equipment',
+  'Transport / Logistics',
+  'Packaging / Supplies',
+  'Professional Services',
+  'Insurance',
+  'Taxes / Levies',
+  'Maintenance / Repairs',
+  'Software / Subscriptions',
+  'Miscellaneous',
 ] as const;
-export type ExpenseCategory = (typeof expenseCategories)[number];
-export const EXPENSE_CATEGORIES = expenseCategories;
+
+/* ── Personal expense categories ── */
+const personalExpenseCategories = [
+  'Food / Meals',
+  'Transport / Fuel',
+  'Airtime / Data',
+  'Health / Medical',
+  'Family / Dependents',
+  'Clothing',
+  'Entertainment',
+  'Education',
+  'Personal Care',
+  'Gifts / Donations',
+  'Savings / Investments',
+  'Miscellaneous',
+] as const;
+
+/* ── Combined (for schema validation) ── */
+const allExpenseCategories = [
+  ...businessExpenseCategories,
+  ...personalExpenseCategories,
+] as const;
+
+// Deduplicate for Zod enum (Miscellaneous appears in both)
+const uniqueExpenseCategories = [...new Set(allExpenseCategories)] as unknown as readonly [string, ...string[]];
+
+export type ExpenseCategory = (typeof allExpenseCategories)[number];
+export const EXPENSE_CATEGORIES = uniqueExpenseCategories;
+export const BUSINESS_EXPENSE_CATEGORIES = businessExpenseCategories;
+export const PERSONAL_EXPENSE_CATEGORIES = personalExpenseCategories;
 
 export const expenseSchema = z.object({
   amount: z.coerce.number().int().positive('Amount must be greater than 0'),
-  category: z.enum(expenseCategories),
+  category: z.string().trim().min(1, 'Category is required'),
   note: z.string().trim().max(200).optional().or(z.literal('')),
   incurredOn: z.string().optional(),
   kind: z.enum(['business', 'personal']).default('business'),
+  paymentMethod: z.enum(['cash', 'transfer', 'card', 'pos', 'other']).optional(),
+  vendor: z.string().trim().max(100).optional().or(z.literal('')),
+  isRecurring: z.boolean().optional().default(false),
+  receiptRef: z.string().trim().max(100).optional().or(z.literal('')),
+  taxDeductible: z.boolean().optional().default(false),
 });
 
 export const productSchema = z.object({

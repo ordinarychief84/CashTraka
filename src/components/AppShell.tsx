@@ -104,7 +104,7 @@ export function AppShell({
 
           {(show.products || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.products && <SideLink href="/products" icon={Package} label="Products" />}
-          {show.expenses && <SideLink href="/expenses" icon={Receipt} label="Expenses" />}
+          {show.expenses && <SideLink href="/expenses" icon={Receipt} label="Expense Mgt" />}
           {show.team && <SideLink href="/team" icon={Users2} label="Team" />}
 
           {isPropManager && show.properties && (

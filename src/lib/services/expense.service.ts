@@ -35,6 +35,11 @@ export const expenseService = {
       note?: string | null;
       incurredOn?: string;
       kind?: string;
+      paymentMethod?: string | null;
+      vendor?: string | null;
+      isRecurring?: boolean;
+      receiptRef?: string | null;
+      taxDeductible?: boolean;
     },
   ): Promise<Expense> {
     return prisma.expense.create({
@@ -45,6 +50,11 @@ export const expenseService = {
         note: data.note || null,
         incurredOn: data.incurredOn ? new Date(data.incurredOn) : new Date(),
         kind: data.kind ?? 'business',
+        paymentMethod: data.paymentMethod || null,
+        vendor: data.vendor || null,
+        isRecurring: data.isRecurring ?? false,
+        receiptRef: data.receiptRef || null,
+        taxDeductible: data.taxDeductible ?? false,
       },
     });
   },
@@ -59,6 +69,11 @@ export const expenseService = {
       note: string | null;
       incurredOn: string;
       kind: string;
+      paymentMethod: string | null;
+      vendor: string | null;
+      isRecurring: boolean;
+      receiptRef: string | null;
+      taxDeductible: boolean;
     }>,
   ): Promise<Expense | null> {
     const existing = await prisma.expense.findFirst({
@@ -76,6 +91,11 @@ export const expenseService = {
           incurredOn: new Date(data.incurredOn),
         }),
         ...(data.kind !== undefined && { kind: data.kind }),
+        ...(data.paymentMethod !== undefined && { paymentMethod: data.paymentMethod }),
+        ...(data.vendor !== undefined && { vendor: data.vendor }),
+        ...(data.isRecurring !== undefined && { isRecurring: data.isRecurring }),
+        ...(data.receiptRef !== undefined && { receiptRef: data.receiptRef }),
+        ...(data.taxDeductible !== undefined && { taxDeductible: data.taxDeductible }),
       },
     });
   },
@@ -106,6 +126,7 @@ export const expenseService = {
       where.OR = [
         { category: { contains: filters.search, mode: 'insensitive' } },
         { note: { contains: filters.search, mode: 'insensitive' } },
+        { vendor: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 

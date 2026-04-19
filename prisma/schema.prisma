@@ -232,19 +232,27 @@ model Product {
 // ---------- EXPENSES ----------
 
 model Expense {
-  id          String   @id @default(cuid())
-  userId      String
-  amount      Int
-  category    String
-  note        String?
-  /// "business" (default) or "personal" — lets the owner track
-  /// out-of-pocket personal spending alongside the business books.
-  /// Personal expenses never show up in profit reports.
-  kind        String   @default("business")
-  incurredOn  DateTime @default(now())
-  createdAt   DateTime @default(now())
+  id             String   @id @default(cuid())
+  userId         String
+  amount         Int
+  category       String
+  note           String?
+  /// "business" (default) or "personal"
+  kind           String   @default("business")
+  /// Payment method: cash, transfer, card, pos, other
+  paymentMethod  String?
+  /// Vendor / payee name
+  vendor         String?
+  /// Whether this is a recurring expense
+  isRecurring    Boolean  @default(false)
+  /// Receipt or reference number
+  receiptRef     String?
+  /// Whether this expense is tax-deductible (business only)
+  taxDeductible  Boolean  @default(false)
+  incurredOn     DateTime @default(now())
+  createdAt      DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, incurredOn])
   @@index([userId, kind, incurredOn])
@@ -807,29 +815,4 @@ model PaymentRequest {
   updatedAt        DateTime  @updatedAt
 
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer         Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-
-  @@index([userId, status])
-  @@index([userId, createdAt])
-  @@index([token])
-  @@index([debtId])
-  @@index([expiresAt, status])
-}
-
-// ---------- EMAIL VERIFICATION ----------
-
-model EmailVerification {
-  id        String   @id @default(cuid())
-  userId    String
-  /// SHA-256 hash of the 6-digit OTP code.
-  codeHash  String
-  /// How many wrong attempts have been made (lock after 5).
-  attempts  Int      @default(0)
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime @default(now())
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt])
-}
+  customer         Customer? @relation(fields: [customerId], referenc

@@ -4,17 +4,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useRef, useTransition } from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const CATEGORIES = [
-  'Stock',
-  'Delivery',
-  'Packaging',
-  'Data',
-  'Wages',
-  'Rent',
-  'Transport',
-  'Other',
-] as const;
+import {
+  BUSINESS_EXPENSE_CATEGORIES,
+  PERSONAL_EXPENSE_CATEGORIES,
+} from '@/lib/validators';
 
 export function ExpenseSearchBar() {
   const router = useRouter();
@@ -24,6 +17,15 @@ export function ExpenseSearchBar() {
 
   const currentQ = sp.get('q') ?? '';
   const currentCat = sp.get('category') ?? '';
+  const currentKind = sp.get('kind') ?? '';
+
+  // Show relevant categories based on the active kind tab
+  const categories =
+    currentKind === 'personal'
+      ? PERSONAL_EXPENSE_CATEGORIES
+      : currentKind === 'business'
+        ? BUSINESS_EXPENSE_CATEGORIES
+        : [...new Set([...BUSINESS_EXPENSE_CATEGORIES, ...PERSONAL_EXPENSE_CATEGORIES])];
 
   function push(params: Record<string, string>) {
     const next = new URLSearchParams(sp.toString());
@@ -74,7 +76,7 @@ export function ExpenseSearchBar() {
           active={!currentCat}
           onClick={() => push({ category: '' })}
         />
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <Chip
             key={cat}
             label={cat}

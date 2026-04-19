@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Eye, EyeOff } from 'lucide-react';
 import { BUSINESS_TYPES, type BusinessType } from '@/lib/business-type';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
     'seller';
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [businessType, setBusinessType] = useState<BusinessType>(
     initialType === 'property_manager' ? 'property_manager' : 'seller',
   );
@@ -128,15 +130,26 @@ export function AuthForm({ mode }: { mode: Mode }) {
       </div>
       <div>
         <label htmlFor="password" className="label">Password</label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          className="input"
-          required
-          minLength={mode === 'signup' ? 8 : 1}
-          placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter your password'}
-        />
+        <div className="relative">
+          <input
+            id="password"
+            name="password"
+            type={showPassword ? 'text' : 'password'}
+            className="input pr-10"
+            required
+            minLength={mode === 'signup' ? 8 : 1}
+            placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter your password'}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+            tabIndex={-1}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
       </div>
 
       {/* Terms & Privacy checkbox — signup only */}
@@ -181,3 +194,4 @@ export function AuthForm({ mode }: { mode: Mode }) {
     </form>
   );
 }
+        

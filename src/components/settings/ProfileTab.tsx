@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Store, Building2, Check, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Store, Building2, Check, CheckCircle2, AlertCircle, MapPin } from "lucide-react";
 
 type Props = {
   initial: {
     name: string;
     businessName: string;
+    businessAddress: string;
     whatsappNumber: string;
     receiptFooter: string;
     businessType: string;
@@ -24,15 +25,16 @@ export function ProfileTab({ initial }: Props) {
 
   const dirty = useMemo(
     () =>
-      form.name !== initial.name ||
-      form.businessName !== initial.businessName ||
-      form.whatsappNumber !== initial.whatsappNumber ||
-      form.receiptFooter !== initial.receiptFooter,
+      form.name \!== initial.name ||
+      form.businessName \!== initial.businessName ||
+      form.businessAddress \!== initial.businessAddress ||
+      form.whatsappNumber \!== initial.whatsappNumber ||
+      form.receiptFooter \!== initial.receiptFooter,
     [form, initial],
   );
 
   useEffect(() => {
-    if (!saved) return;
+    if (\!saved) return;
     const t = setTimeout(() => setSaved(false), 3000);
     return () => clearTimeout(t);
   }, [saved]);
@@ -62,21 +64,22 @@ export function ProfileTab({ initial }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           businessName: form.businessName.trim(),
+          businessAddress: form.businessAddress.trim(),
           whatsappNumber: form.whatsappNumber.trim(),
           receiptFooter: form.receiptFooter.trim(),
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not save');
+      if (\!res.ok) throw new Error(data.error || 'Could not save');
 
       // Also update the user name if changed
-      if (form.name !== initial.name) {
+      if (form.name \!== initial.name) {
         const nameRes = await fetch('/api/user/profile', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: form.name.trim() }),
         });
-        if (!nameRes.ok) {
+        if (\!nameRes.ok) {
           const nd = await nameRes.json().catch(() => ({}));
           throw new Error(nd.error || 'Could not update name');
         }
@@ -136,6 +139,23 @@ export function ProfileTab({ initial }: Props) {
           <p className="mt-1 text-xs text-slate-500">Displayed on every receipt and invoice.</p>
         </div>
 
+        {/* Business address */}
+        <div>
+          <label htmlFor="businessAddress" className="flex items-center justify-between text-sm font-semibold text-slate-700 mb-1.5">
+            <span>Business address</span>
+            <span className="text-xs font-normal text-slate-400">Optional</span>
+          </label>
+          <input
+            id="businessAddress"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
+            value={form.businessAddress}
+            onChange={(e) => update('businessAddress', e.target.value)}
+            placeholder="e.g. 15 Admiralty Way, Lekki Phase 1, Lagos"
+            maxLength={200}
+          />
+          <p className="mt-1 text-xs text-slate-500">Shown on receipts and invoices below your business name.</p>
+        </div>
+
         {/* Account type badge */}
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">Account type</label>
@@ -183,7 +203,7 @@ export function ProfileTab({ initial }: Props) {
             value={form.receiptFooter}
             onChange={(e) => update('receiptFooter', e.target.value)}
             maxLength={200}
-            placeholder="e.g. Thank you for shopping with us!"
+            placeholder="e.g. Thank you for shopping with us\!"
           />
           <p className="mt-1 text-right text-xs text-slate-400">{form.receiptFooter.length}/200</p>
         </div>
@@ -216,7 +236,7 @@ export function ProfileTab({ initial }: Props) {
           )}
           <button
             type="submit"
-            disabled={saving || !dirty}
+            disabled={saving || \!dirty}
             className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : 'Save changes'}

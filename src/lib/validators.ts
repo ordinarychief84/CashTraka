@@ -45,6 +45,7 @@ export const debtSchema = z.object({
 
 export const settingsSchema = z.object({
   businessName: z.string().trim().max(100).optional().or(z.literal('')),
+  businessAddress: z.string().trim().max(200).optional().or(z.literal('')),
   whatsappNumber: z.string().trim().max(30).optional().or(z.literal('')),
   receiptFooter: z.string().trim().max(200).optional().or(z.literal('')),
   bankName: z.string().trim().max(60).optional().or(z.literal('')),

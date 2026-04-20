@@ -10,9 +10,9 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
     where: { token: code },
     select: { customerName: true, amount: true },
   });
-  if (!pl) return { title: 'Payment Not Found' };
+  if (\!pl) return { title: 'Payment Not Found' };
   return {
-    title: `Pay ₦${pl.amount.toLocaleString('en-NG')} — CashTraka`,
+    title: `Pay \u20a6${pl.amount.toLocaleString('en-NG')} \u2014 CashTraka`,
     description: `Payment request for ${pl.customerName}`,
   };
 }
@@ -26,6 +26,7 @@ export default async function PayPage({ params }: { params: Promise<{ code: stri
         select: {
           name: true,
           businessName: true,
+          businessAddress: true,
           bankName: true,
           bankAccountNumber: true,
           bankAccountName: true,
@@ -34,9 +35,9 @@ export default async function PayPage({ params }: { params: Promise<{ code: stri
     },
   });
 
-  if (!pl) notFound();
+  if (\!pl) notFound();
 
-  if (!pl.viewedAt) {
+  if (\!pl.viewedAt) {
     await prisma.paymentRequest.update({
       where: { id: pl.id },
       data: { status: 'viewed', viewedAt: new Date() },
@@ -61,13 +62,16 @@ export default async function PayPage({ params }: { params: Promise<{ code: stri
           <h1 className="text-lg font-bold text-slate-900">
             {pl.user.businessName || pl.user.name}
           </h1>
+          {pl.user.businessAddress && (
+            <p className="mt-0.5 text-xs text-slate-400">{pl.user.businessAddress}</p>
+          )}
         </div>
 
         <div className="rounded-2xl border bg-white p-6 shadow-lg">
           <div className="mb-6 text-center">
             <p className="text-sm text-slate-500 mb-1">Amount Due</p>
             <p className="text-4xl font-extrabold text-slate-900">
-              ₦{pl.amount.toLocaleString('en-NG')}
+              \u20a6{pl.amount.toLocaleString('en-NG')}
             </p>
             {pl.description && (
               <p className="mt-2 text-sm text-slate-600">{pl.description}</p>
@@ -114,7 +118,7 @@ export default async function PayPage({ params }: { params: Promise<{ code: stri
         </div>
 
         <p className="mt-6 text-center text-xs text-slate-400">
-          Powered by CashTraka · Secure payment requests
+          Powered by CashTraka \u00b7 Secure payment requests
         </p>
       </div>
     </div>

@@ -13,6 +13,7 @@ export default async function SettingsPage() {
   const initialProfile = {
     name: user.name || '',
     businessName: user.businessName || '',
+    businessAddress: user.businessAddress || '',
     whatsappNumber: user.whatsappNumber || '',
     receiptFooter: user.receiptFooter || '',
     businessType: user.businessType || 'seller',

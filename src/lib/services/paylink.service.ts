@@ -11,8 +11,17 @@ import { prisma } from '@/lib/prisma';
 // ── Link number generation ────────────────────────────────────────────
 
 async function nextLinkNumber(userId: string): Promise<string> {
-  const count = await prisma.paymentRequest.count({ where: { userId } });
-  return `PLK-${String(count + 1).padStart(5, '0')}`;
+  // Find the highest existing linkNumber for this user to avoid duplicates
+  const latest = await prisma.paymentRequest.findFirst({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    select: { linkNumber: true },
+  });
+  if (latest?.linkNumber) {
+    const num = parseInt(latest.linkNumber.replace('PLK-', ''), 10) || 0;
+    return `PLK-${String(num + 1).padStart(5, '0')}`;
+  }
+  return 'PLK-00001';
 }
 
 // ── WhatsApp deep link ────────────────────────────────────────────────

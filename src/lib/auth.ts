@@ -27,7 +27,7 @@ import type { AccessRole } from './rbac';
  */
 
 const SESSION_COOKIE = 'cashtraka_session';
-const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days (tighter for financial app)
 
 function getSecret() {
   const s = process.env.AUTH_SECRET;
@@ -36,7 +36,7 @@ function getSecret() {
 }
 
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, 12);
 }
 
 export async function verifyPassword(password: string, hash: string) {
@@ -75,7 +75,7 @@ export async function setOwnerSession(userId: string) {
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     path: '/',
     maxAge: SESSION_MAX_AGE,
   });
@@ -86,7 +86,7 @@ export async function setStaffSession(staffId: string) {
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     path: '/',
     maxAge: SESSION_MAX_AGE,
   });
@@ -97,7 +97,7 @@ export async function setAdminStaffSession(adminStaffId: string) {
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     path: '/',
     maxAge: SESSION_MAX_AGE,
   });
@@ -135,7 +135,7 @@ export function clearSessionCookie() {
     maxAge: 0,
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
   });
 }
 
@@ -185,7 +185,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (!staff || staff.status !== 'active') return null;
   if (staff.accessRole === 'NONE' || !staff.passwordHash) return null;
   const owner = await prisma.user.findUnique({ where: { id: staff.userId } });
-  if (!owner) return null;
+  if (!owner || owner.isSuspended) return null; // block staff if owner is suspended
   return {
     owner,
     staff,

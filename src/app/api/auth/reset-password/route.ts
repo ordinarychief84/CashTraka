@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { isWeakPassword } from '@/lib/password-policy';
+import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
 
 export const runtime = 'nodejs';
 
@@ -43,6 +43,12 @@ export async function POST(req: Request) {
       { ok: false, error: 'Invalid request.' },
       { status: 400 },
     );
+  }
+
+  // Password complexity
+  const complexityErr = checkPasswordComplexity(password);
+  if (complexityErr) {
+    return NextResponse.json({ ok: false, error: complexityErr }, { status: 400 });
   }
 
   if (isWeakPassword(password)) {

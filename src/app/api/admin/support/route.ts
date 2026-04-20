@@ -16,10 +16,14 @@ export async function GET(req: Request) {
 
     const skip = (page - 1) * perPage;
 
+    // Validate filter values to prevent arbitrary field injection
+    const VALID_STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
+    const VALID_PRIORITIES = ['low', 'medium', 'high', 'urgent'];
+
     const where: any = {};
-    if (status) where.status = status;
-    if (priority) where.priority = priority;
-    if (assignedTo) where.assignedTo = assignedTo;
+    if (status && VALID_STATUSES.includes(status)) where.status = status;
+    if (priority && VALID_PRIORITIES.includes(priority)) where.priority = priority;
+    if (assignedTo && /^[a-zA-Z0-9_-]+$/.test(assignedTo)) where.assignedTo = assignedTo;
 
     const tickets = await prisma.supportTicket.findMany({
       where,

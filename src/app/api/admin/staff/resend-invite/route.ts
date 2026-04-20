@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 
 /** POST /api/admin/staff/resend-invite — resend invitation email */
 export async function POST(req: Request) {
@@ -21,8 +21,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate new token
-    const inviteToken = randomBytes(32).toString('hex');
+    // Generate new token — store hash, share raw
+    const rawToken = randomBytes(32).toString('hex');
+    const inviteToken = createHash('sha256').update(rawToken).digest('hex');
     const inviteExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await prisma.adminStaff.update({
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    const inviteUrl = `${baseUrl}/staff/accept-invite/${inviteToken}`;
+    const inviteUrl = `${baseUrl}/staff/accept-invite/${rawToken}`;
 
     const { emailService } = await import('@/lib/services/email.service');
     await emailService.sendStaffInvite({

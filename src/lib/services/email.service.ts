@@ -203,75 +203,155 @@ export const emailService = {
 
 
   /* ══════════════════════════════════════════════════════════════════════
-   *  1. WELCOME EMAIL — sent on signup
+   *  1. WELCOME EMAIL — sent after onboarding completes
    * ══════════════════════════════════════════════════════════════════════ */
   async sendWelcome(args: { to: string; name: string; businessType?: string }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const isLandlord = args.businessType === 'property_manager';
+    const firstName = args.name.split(' ')[0];
 
+    /* ── Step definitions (adaptive per business type) ──────────────── */
+    const steps: { num: number; icon: string; title: string; desc: string; href: string; linkLabel: string }[] = isLandlord
+      ? [
+          { num: 1, icon: '⚙️', title: 'Complete your profile', desc: 'Add your business name, WhatsApp number, and bank details so tenants see a professional brand on every receipt.', href: `${appUrl}/settings`, linkLabel: 'Set up profile' },
+          { num: 2, icon: '🏢', title: 'Add your first property', desc: 'Create a building with units so you can assign tenants, track occupancy, and monitor rent.', href: `${appUrl}/properties`, linkLabel: 'Add a property' },
+          { num: 3, icon: '👤', title: 'Add tenants', desc: 'Link tenants to units with rent amounts and lease dates — CashTraka will handle reminders automatically.', href: `${appUrl}/tenants`, linkLabel: 'Add a tenant' },
+          { num: 4, icon: '🔗', title: 'Send a PayLink', desc: 'Generate a payment link and send it via WhatsApp or email. Tenants click, pay, and you get notified instantly.', href: `${appUrl}/paylinks`, linkLabel: 'Create PayLink' },
+          { num: 5, icon: '👥', title: 'Invite your team', desc: 'Add a property manager or assistant with the right permissions so they can help without full access.', href: `${appUrl}/team`, linkLabel: 'Invite staff' },
+        ]
+      : [
+          { num: 1, icon: '⚙️', title: 'Complete your profile', desc: 'Add your business name, WhatsApp number, and bank details so customers see a professional brand on every receipt.', href: `${appUrl}/settings`, linkLabel: 'Set up profile' },
+          { num: 2, icon: '💰', title: 'Record your first sale', desc: 'Tap "Record payment" to log a sale — your dashboard will come alive with real-time revenue tracking.', href: `${appUrl}/payments`, linkLabel: 'Record a payment' },
+          { num: 3, icon: '👤', title: 'Add your customers', desc: 'Build your customer list so you can track who owes what, send receipts, and follow up on debts.', href: `${appUrl}/customers`, linkLabel: 'Add a customer' },
+          { num: 4, icon: '🔗', title: 'Send a PayLink', desc: 'Generate a payment link and share it via WhatsApp or email — customers tap, pay, and you get notified.', href: `${appUrl}/paylinks`, linkLabel: 'Create PayLink' },
+          { num: 5, icon: '👥', title: 'Invite your team', desc: 'Add a cashier or manager with the right permissions so they can help without full access.', href: `${appUrl}/team`, linkLabel: 'Invite staff' },
+        ];
+
+    /* ── Build step cards HTML ──────────────────────────────────────── */
+    let stepsHTML = '';
+    for (const s of steps) {
+      stepsHTML += `
+      <tr>
+        <td style="padding:0 0 16px;">
+          <a href="${esc(s.href)}" style="text-decoration:none;display:block;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;">
+              <tr>
+                <td style="padding:16px 18px;">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                      <!-- Number badge + icon -->
+                      <td width="52" style="vertical-align:top;">
+                        <div style="width:44px;height:44px;background:#F0F9FF;border:2px solid #BAE6FD;border-radius:12px;text-align:center;line-height:42px;font-size:20px;">
+                          ${s.icon}
+                        </div>
+                      </td>
+                      <!-- Content -->
+                      <td style="padding-left:14px;vertical-align:top;">
+                        <div style="margin-bottom:4px;">
+                          <span style="display:inline-block;background:#00B8E8;color:#FFFFFF;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:0.3px;vertical-align:middle;">STEP ${s.num}</span>
+                        </div>
+                        <div style="font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;line-height:1.3;">
+                          ${esc(s.title)}
+                        </div>
+                        <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:8px;">
+                          ${esc(s.desc)}
+                        </div>
+                        <div style="font-size:13px;font-weight:700;color:#00B8E8;">
+                          ${esc(s.linkLabel)} →
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </a>
+        </td>
+      </tr>`;
+    }
+
+    /* ── Assemble final email body ──────────────────────────────────── */
     const body = `
-      <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#1A1A1A;">Welcome to CashTraka${args.name ? `, ${esc(args.name)}` : ''} 👋</h1>
-      <p style="margin:0 0 20px;font-size:15px;color:#475569;line-height:1.6;">
-        ${isLandlord
-          ? "You're all set to manage your properties, track rent payments, and stay on top of lease renewals — all in one place."
-          : "You're all set to track payments, manage customers, send receipts, and know exactly who owes you — all from your phone or laptop."
-        }
-      </p>
+      <!-- Hero -->
+      <div style="text-align:center;margin-bottom:28px;">
+        <div style="font-size:48px;line-height:1;margin-bottom:16px;">🎉</div>
+        <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0F172A;line-height:1.2;">
+          Welcome to CashTraka, ${esc(firstName)}!
+        </h1>
+        <p style="margin:0;font-size:15px;color:#64748B;line-height:1.5;">
+          ${isLandlord
+            ? "Your property management toolkit is ready. Let's get everything set up in 5 quick steps."
+            : "Your business dashboard is ready. Let's get everything set up in 5 quick steps."
+          }
+        </p>
+      </div>
 
-      <h2 style="margin:0 0 12px;font-size:14px;font-weight:700;color:#1A1A1A;text-transform:uppercase;letter-spacing:0.5px;">Here's how to get started:</h2>
+      ${DIVIDER}
 
-      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+      <!-- Progress indicator -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00B8E8;margin-bottom:6px;">
+          Your setup checklist
+        </div>
+        <p style="margin:0;font-size:13px;color:#94A3B8;">
+          Click each step below to get started — each one takes less than 2 minutes.
+        </p>
+      </div>
+
+      <!-- Step cards -->
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:16px;padding:16px;">
         <tr>
-          <td style="padding:10px 0;vertical-align:top;">
-            <table cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="background:#00B8E8;color:white;font-weight:800;font-size:13px;width:28px;height:28px;text-align:center;border-radius:50%;vertical-align:middle;">1</td>
-                <td style="padding-left:12px;font-size:14px;color:#475569;line-height:1.5;">
-                  <strong style="color:#1A1A1A;">${isLandlord ? 'Add your properties' : 'Record your first payment'}</strong><br>
-                  ${isLandlord ? 'Set up your buildings and units to start tracking tenants.' : 'Tap "Record payment" to log a sale and see your dashboard come alive.'}
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0;vertical-align:top;">
-            <table cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="background:#00B8E8;color:white;font-weight:800;font-size:13px;width:28px;height:28px;text-align:center;border-radius:50%;vertical-align:middle;">2</td>
-                <td style="padding-left:12px;font-size:14px;color:#475569;line-height:1.5;">
-                  <strong style="color:#1A1A1A;">${isLandlord ? 'Add tenants' : 'Add customers'}</strong><br>
-                  ${isLandlord ? 'Link tenants to units with rent amounts and lease dates.' : 'Build your customer list so you can track who owes what.'}
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:10px 0;vertical-align:top;">
-            <table cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="background:#00B8E8;color:white;font-weight:800;font-size:13px;width:28px;height:28px;text-align:center;border-radius:50%;vertical-align:middle;">3</td>
-                <td style="padding-left:12px;font-size:14px;color:#475569;line-height:1.5;">
-                  <strong style="color:#1A1A1A;">${isLandlord ? 'Collect rent & send reminders' : 'Send receipts & follow up'}</strong><br>
-                  ${isLandlord ? 'CashTraka tracks due dates and sends automatic reminders.' : 'Share professional receipts via WhatsApp or email in one tap.'}
-                </td>
-              </tr>
+          <td style="padding:16px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+              ${stepsHTML}
             </table>
           </td>
         </tr>
       </table>
 
-      ${ctaButton('Open your dashboard', appUrl + '/dashboard')}
+      <!-- Main CTA -->
+      <div style="text-align:center;margin-top:8px;">
+        ${ctaButton('Open your dashboard', appUrl + '/dashboard')}
+      </div>
 
-      <p style="margin:0;font-size:13px;color:#94A3B8;">
-        Questions? Just reply to this email or visit our ${link('help page', appUrl + '/contact')}.
+      ${DIVIDER}
+
+      <!-- Motivation section -->
+      <div style="text-align:center;padding:8px 0 16px;">
+        <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#0F172A;">
+          ${isLandlord ? '🏠 Built for Nigerian landlords' : '💼 Built for Nigerian businesses'}
+        </p>
+        <p style="margin:0;font-size:13px;color:#64748B;line-height:1.6;">
+          ${isLandlord
+            ? 'Track every property, every tenant, every payment — and get reminded before things slip.'
+            : 'Record sales, send receipts, track expenses, and always know your real profit.'
+          }
+        </p>
+      </div>
+
+      ${DIVIDER}
+
+      <!-- Help section -->
+      <div style="background:#F0F9FF;border-radius:12px;padding:20px;text-align:center;">
+        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:8px;">Need a hand?</div>
+        <p style="margin:0;font-size:13px;color:#64748B;line-height:1.6;">
+          Reply to this email or visit our ${link('help center', appUrl + '/contact')} — a real human will respond.
+        </p>
+      </div>
+
+      <p style="margin:24px 0 0;font-size:14px;color:#475569;text-align:center;line-height:1.6;">
+        We're excited to have you on board! 🚀<br>
+        <strong style="color:#0F172A;">— The CashTraka Team</strong>
       </p>`;
 
     return send({
       to: args.to,
-      subject: `Welcome to CashTraka — let's get you set up`,
-      html: layout(body, { preheader: isLandlord ? 'Manage properties, track rent, send reminders.' : 'Track payments, send receipts, know who owes you.' }),
+      subject: `Welcome to CashTraka — your 5-step setup guide`,
+      html: layout(body, {
+        preheader: isLandlord
+          ? '5 quick steps to start managing your properties like a pro.'
+          : '5 quick steps to start tracking payments and growing your business.',
+      }),
     });
   },
 

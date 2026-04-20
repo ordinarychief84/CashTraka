@@ -4,6 +4,41 @@ import { jwtVerify } from 'jose';
 
 const SESSION_COOKIE = 'cashtraka_session';
 
+/* ── Global API rate limiter (in-memory, per-IP) ─────────────────── */
+const API_RATE_WINDOW_MS = 60_000; // 1 minute
+const API_RATE_MAX = 120;          // 120 requests per minute per IP
+const apiHits = new Map<string, number[]>();
+
+function globalRateOk(ip: string): { ok: boolean; retryAfter: number } {
+  const now = Date.now();
+  const cutoff = now - API_RATE_WINDOW_MS;
+  const hits = (apiHits.get(ip) ?? []).filter((t) => t > cutoff);
+  if (hits.length >= API_RATE_MAX) {
+    const oldest = hits[0] ?? now;
+    const retryAfter = Math.max(1, Math.ceil((oldest + API_RATE_WINDOW_MS - now) / 1000));
+    apiHits.set(ip, hits);
+    return { ok: false, retryAfter };
+  }
+  hits.push(now);
+  apiHits.set(ip, hits);
+  // Periodic cleanup — drop stale IPs every ~500 requests
+  if (apiHits.size > 5000) {
+    for (const [k, v] of apiHits) {
+      if (v.every((t) => t <= cutoff)) apiHits.delete(k);
+    }
+  }
+  return { ok: true, retryAfter: 0 };
+}
+
+function extractIp(req: NextRequest): string {
+  const fwd = req.headers.get('x-forwarded-for');
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.headers.get('x-real-ip')?.trim() || 'unknown';
+}
+
+/* ── Request body size guard (1 MB max for API routes) ─────────── */
+const MAX_BODY_BYTES = 1_048_576; // 1 MB
+
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/onboarding',
@@ -100,11 +135,37 @@ function safeHost(u: string): string | null {
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-
-  // ── CSRF check — any state-changing /api/* call must be same-origin ──
+  const isApi = pathname.startsWith('/api/');
   const method = req.method.toUpperCase();
   const isStateChanging = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
-  const isApi = pathname.startsWith('/api/');
+
+  // ── Global API rate limit — 120 req/min per IP ──
+  if (isApi) {
+    const ip = extractIp(req);
+    const rl = globalRateOk(ip);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Rate limit exceeded. Slow down.' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(rl.retryAfter) },
+        },
+      );
+    }
+  }
+
+  // ── Request body size guard — reject oversized payloads ──
+  if (isApi && isStateChanging) {
+    const cl = req.headers.get('content-length');
+    if (cl && parseInt(cl, 10) > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        { success: false, error: 'Request body too large.' },
+        { status: 413 },
+      );
+    }
+  }
+
+  // ── CSRF check — any state-changing /api/* call must be same-origin ──
   const isCsrfExempt = CSRF_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
   if (isApi && isStateChanging && !isCsrfExempt && !sameOriginOk(req)) {
     return NextResponse.json(

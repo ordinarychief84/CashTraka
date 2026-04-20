@@ -30,7 +30,7 @@ async function createWithRetry(
         err instanceof Error &&
         err.message.includes('Unique constraint failed') &&
         err.message.includes('linkNumber');
-      if (\!isUniqueViolation || attempt === maxRetries) throw err;
+      if (!isUniqueViolation || attempt === maxRetries) throw err;
       // Regenerate linkNumber and retry
       const newNumber = await nextLinkNumber(userId);
       data = { ...data, linkNumber: newNumber };
@@ -60,7 +60,7 @@ export function whatsappPayLink(args: {
 
   let normalized = args.phone.replace(/\s+/g, '');
   if (normalized.startsWith('0')) normalized = '234' + normalized.slice(1);
-  if (\!normalized.startsWith('+')) normalized = '+' + normalized;
+  if (!normalized.startsWith('+')) normalized = '+' + normalized;
   normalized = normalized.replace('+', '');
 
   return `https://wa.me/${normalized}?text=${encodeURIComponent(msg)}`;

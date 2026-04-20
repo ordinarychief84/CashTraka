@@ -186,9 +186,10 @@ async deleteUser(adminId: string, targetId: string, reason?: string) {
     // Log the deletion before removing the user
     await prisma.auditLog.create({
       data: {
-        adminUserId: adminId,
+        adminId,
         action: 'DELETE_USER',
-        detail: `Deleted user ${target.name} (${target.email})${reason ? ` \u2014 ${reason}` : ''}`,
+        targetId,
+        details: `Deleted user ${target.name} (${target.email})${reason ? ` — ${reason}` : ''}`,
       },
     });
 

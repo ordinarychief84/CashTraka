@@ -10,10 +10,13 @@ function sha256(input: string): string {
 }
 
 function generateOtp(): string {
-  // Cryptographically random 6-digit code (100000–999999)
-  const buf = crypto.randomBytes(4);
-  const num = buf.readUInt32BE(0) % 900000;
-  return String(num + 100000);
+  // Rejection sampling for uniform distribution across 000000-999999
+  let num: number;
+  do {
+    const buf = crypto.randomBytes(4);
+    num = buf.readUInt32BE(0);
+  } while (num >= 4294000000);
+  return String(num % 1000000).padStart(6, '0');
 }
 
 export async function POST(req: Request) {
@@ -67,7 +70,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error('RESEND_OTP_ERROR:', e);
+    console.error('RESEND_OTP_ERROR:', e instanceof Error ? e.message : 'unknown');
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

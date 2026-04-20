@@ -1,6 +1,12 @@
+import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
+import { checkPasswordComplexity, isWeakPassword } from '@/lib/password-policy';
+
+function hashToken(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
 
 /** POST /api/staff/accept-invite — set password and activate staff account */
 export async function POST(req: Request) {
@@ -21,8 +27,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const complexityErr = checkPasswordComplexity(password);
+    if (complexityErr) {
+      return NextResponse.json({ error: complexityErr }, { status: 400 });
+    }
+    if (isWeakPassword(password)) {
+      return NextResponse.json(
+        { error: 'Please choose a stronger password — that one appears on common-password lists.' },
+        { status: 400 },
+      );
+    }
+
+    const tokenHash = hashToken(token);
     const staff = await prisma.adminStaff.findUnique({
-      where: { inviteToken: token },
+      where: { inviteToken: tokenHash },
     });
 
     if (!staff) {

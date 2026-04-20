@@ -54,7 +54,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
       }
       case 'email_sent': {
         const { customerEmail } = body;
-        if (!customerEmail || typeof customerEmail !== 'string' || !customerEmail.includes('@')) {
+        if (!customerEmail || typeof customerEmail !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerEmail)) {
           return NextResponse.json({ error: 'Valid customer email is required' }, { status: 400 });
         }
 

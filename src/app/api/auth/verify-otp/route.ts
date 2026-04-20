@@ -18,10 +18,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, alreadyVerified: true });
     }
 
-    // Rate limit: 10 attempts per user per 15 min
+    // Rate limit: 5 attempts per user per 15 min (tightened from 10)
     const ip = clientIp(req);
     const limited = rateLimit('verify-otp', `${user.id}-${ip}`, {
-      max: 10,
+      max: 5,
       windowMs: 15 * 60_000,
     });
     if (!limited.allowed) {
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (e) {
-    console.error('VERIFY_OTP_ERROR:', e);
+    console.error('VERIFY_OTP_ERROR:', e instanceof Error ? e.message : 'unknown');
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

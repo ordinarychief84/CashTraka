@@ -4,17 +4,22 @@ import { hashPassword, setSessionCookie } from '@/lib/auth';
 import { signupSchema } from '@/lib/validators';
 import { ok, fail, validationFail } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
-import { isWeakPassword } from '@/lib/password-policy';
+import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
 import { emailService } from '@/lib/services/email.service';
+import { securityLog } from '@/lib/security-log';
 
 function sha256(input: string): string {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
 function generateOtp(): string {
-  const buf = crypto.randomBytes(4);
-  const num = buf.readUInt32BE(0) % 900000;
-  return String(num + 100000);
+  // Use rejection sampling for uniform distribution across 000000-999999
+  let num: number;
+  do {
+    const buf = crypto.randomBytes(4);
+    num = buf.readUInt32BE(0);
+  } while (num >= 4294000000); // reject to avoid modulo bias
+  return String(num % 1000000).padStart(6, '0');
 }
 
 export async function POST(req: Request) {
@@ -40,7 +45,11 @@ export async function POST(req: Request) {
       return fail('You must accept the Terms of Service and Privacy Policy.', 422);
     }
 
-    // Password policy
+    // Password complexity check
+    const complexityErr = checkPasswordComplexity(password);
+    if (complexityErr) return fail(complexityErr, 422);
+
+    // Common password check
     if (isWeakPassword(password)) {
       return fail(
         'Please choose a stronger password — that one appears on common-password lists.',
@@ -84,6 +93,8 @@ export async function POST(req: Request) {
       .sendVerificationOtp({ to: user.email, name: user.name, code: otp })
       .catch(() => null);
 
+    securityLog({ event: 'SIGNUP', actorId: user.id, ip, meta: { email: user.email } });
+
     return ok({
       id: user.id,
       email: user.email,
@@ -92,7 +103,7 @@ export async function POST(req: Request) {
       requiresVerification: true,
     });
   } catch (e) {
-    console.error('SIGNUP_ERROR:', e instanceof Error ? e.message : e, e instanceof Error ? e.stack : '');
+    console.error('SIGNUP_ERROR:', e instanceof Error ? e.message : 'unknown');
     return fail('Server error', 500);
   }
 }

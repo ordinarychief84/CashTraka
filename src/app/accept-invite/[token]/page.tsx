@@ -1,8 +1,13 @@
+import crypto from 'node:crypto';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { Logo } from '@/components/Logo';
 import { ROLE_LABELS, type AccessRole } from '@/lib/rbac';
 import { AcceptInviteForm } from './form';
+
+function hashToken(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -16,8 +21,9 @@ export default async function AcceptInvitePage({
 }: {
   params: { token: string };
 }) {
+  const tokenHash = hashToken(params.token);
   const staff = await prisma.staffMember.findUnique({
-    where: { inviteToken: params.token },
+    where: { inviteToken: tokenHash },
     include: { user: { select: { businessName: true, name: true } } },
   });
 

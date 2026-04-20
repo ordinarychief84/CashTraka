@@ -42,3 +42,17 @@ export function isWeakPassword(pw: string): boolean {
   if (/^(abcdefgh|bcdefghi|cdefghij)/.test(normalised)) return true;
   return false;
 }
+
+/**
+ * Password complexity — returns a human-readable error or null if ok.
+ * Requires at least 8 chars, 1 uppercase, and 1 digit or special char.
+ */
+export function checkPasswordComplexity(pw: string): string | null {
+  if (pw.length < 8) return 'Password must be at least 8 characters.';
+  if (pw.length > 128) return 'Password must be 128 characters or fewer.';
+  if (!/[A-Z]/.test(pw)) return 'Include at least one uppercase letter.';
+  if (!/[0-9]/.test(pw) && !/[^A-Za-z0-9]/.test(pw)) {
+    return 'Include at least one number or special character.';
+  }
+  return null;
+}

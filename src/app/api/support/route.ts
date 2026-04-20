@@ -1,6 +1,13 @@
+import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
+
+const ticketSchema = z.object({
+  subject: z.string().trim().min(1, 'Subject is required').max(200, 'Subject too long'),
+  description: z.string().trim().min(1, 'Description is required').max(5000, 'Description too long'),
+});
 
 /** GET /api/support — List current user's own tickets */
 export async function GET() {
@@ -49,22 +56,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Rate limit: 5 tickets per user per hour
+    const ip = clientIp(req);
+    const limited = rateLimit('support-ticket', user.id, { max: 5, windowMs: 60 * 60_000 });
+    if (!limited.allowed) {
+      return NextResponse.json(
+        { success: false, error: 'Too many tickets. Try again later.' },
+        { status: 429 },
+      );
+    }
+
     const body = await req.json();
-    const { subject, description } = body;
-
-    if (!subject || typeof subject !== 'string') {
+    const parsed = ticketSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'subject is required and must be a string' },
+        { success: false, error: parsed.error.issues[0]?.message || 'Invalid input' },
         { status: 400 },
       );
     }
-
-    if (!description || typeof description !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'description is required and must be a string' },
-        { status: 400 },
-      );
-    }
+    const { subject, description } = parsed.data;
 
     const ticket = await prisma.supportTicket.create({
       data: {

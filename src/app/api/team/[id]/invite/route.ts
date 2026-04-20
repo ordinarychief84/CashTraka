@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
@@ -6,6 +5,11 @@ import { requireAuth } from '@/lib/auth';
 import { can, ASSIGNABLE_ROLES, type AccessRole } from '@/lib/rbac';
 import { handled, ok, fail, forbidden, validationFail } from '@/lib/api-response';
 import { emailService } from '@/lib/services/email.service';
+import { securityLog } from '@/lib/security-log';
+
+function hashToken(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
 
 export const runtime = 'nodejs';
 
@@ -61,7 +65,8 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
     });
     if (existing) return fail('Another team member already uses this email.', 409);
 
-    const token = crypto.randomBytes(24).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex'); // raw token (shared with staff)
+    const tokenHash = hashToken(token);                   // only the hash goes to the DB
     const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     await prisma.staffMember.update({
@@ -70,11 +75,13 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
         email,
         accessRole,
         customRoleId: customRoleId || null,
-        inviteToken: token,
+        inviteToken: tokenHash,
         inviteExpiresAt: expires,
         passwordHash: null, // force them to set a password via the invite flow
       },
     });
+
+    securityLog({ event: 'INVITE_SENT', actorId: auth.owner.id, targetId: member.id, meta: { email, accessRole } });
 
     const baseUrl =
       process.env.APP_URL?.replace(/\/$/, '') || 'http://localhost:3000';

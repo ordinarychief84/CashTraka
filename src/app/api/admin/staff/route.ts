@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import { ASSIGNABLE_ADMIN_ROLES } from '@/lib/admin-rbac';
 import type { AdminRole } from '@/lib/admin-rbac';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 
 /** GET /api/admin/staff — list all admin staff */
 export async function GET() {
@@ -47,8 +47,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate invite token
-    const inviteToken = randomBytes(32).toString('hex');
+    // Generate invite token — store hash, share raw
+    const rawToken = randomBytes(32).toString('hex');
+    const inviteToken = createHash('sha256').update(rawToken).digest('hex');
     const inviteExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     const staffMember = await prisma.adminStaff.create({
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000';
-    const inviteUrl = `${baseUrl}/staff/accept-invite/${inviteToken}`;
+    const inviteUrl = `${baseUrl}/staff/accept-invite/${rawToken}`;
 
     const { emailService } = await import('@/lib/services/email.service');
     await emailService.sendStaffInvite({

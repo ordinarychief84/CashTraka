@@ -1,7 +1,14 @@
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, setStaffSession } from '@/lib/auth';
 import { handled, ok, fail, validationFail } from '@/lib/api-response';
+import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
+import { securityLog } from '@/lib/security-log';
+
+function hashToken(raw: string): string {
+  return crypto.createHash('sha256').update(raw).digest('hex');
+}
 
 export const runtime = 'nodejs';
 
@@ -31,8 +38,17 @@ export const POST = (req: Request) =>
 
     const { token, password } = parsed.data;
 
+    // Password quality checks
+    const complexityErr = checkPasswordComplexity(password);
+    if (complexityErr) return fail(complexityErr, 422);
+    if (isWeakPassword(password)) {
+      return fail('Please choose a stronger password — that one appears on common-password lists.', 422);
+    }
+
+    // Hash the raw token to match the stored hash
+    const tokenHash = hashToken(token);
     const staff = await prisma.staffMember.findUnique({
-      where: { inviteToken: token },
+      where: { inviteToken: tokenHash },
     });
     if (!staff) return fail('This invite link is no longer valid.', 404);
     if (!staff.inviteExpiresAt || staff.inviteExpiresAt.getTime() < Date.now()) {
@@ -54,6 +70,7 @@ export const POST = (req: Request) =>
     });
 
     await setStaffSession(updated.id);
+    securityLog({ event: 'INVITE_ACCEPTED', actorId: updated.id, targetId: updated.userId });
 
     return ok({
       id: updated.id,

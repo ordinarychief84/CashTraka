@@ -8,6 +8,7 @@ import {
 import { loginSchema } from '@/lib/validators';
 import { ok, fail, unauthorized, forbidden, validationFail } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
+import { securityLog } from '@/lib/security-log';
 
 /**
  * Unified login.
@@ -39,15 +40,16 @@ export async function POST(req: Request) {
 
     const { email, password } = parsed.data;
 
-    // Secondary limiter — 8 attempts per email per 15 minutes prevents an
-    // attacker rotating IPs to pound a single account.
+    // Account lockout — 5 attempts per email per 30 minutes. This is the
+    // primary defence against targeted credential attacks even when the
+    // attacker rotates IPs. Tighter than the per-IP limit.
     const byEmail = rateLimit('login-email', email.toLowerCase(), {
-      max: 8,
-      windowMs: 15 * 60_000,
+      max: 5,
+      windowMs: 30 * 60_000,
     });
     if (!byEmail.allowed) {
       return fail(
-        `Too many attempts on this account. Try again in ${byEmail.retryAfter}s.`,
+        `Account temporarily locked due to too many failed attempts. Try again in ${Math.ceil(byEmail.retryAfter / 60)} min.`,
         429,
       );
     }
@@ -55,9 +57,13 @@ export async function POST(req: Request) {
     // 1) Owner path — existing behaviour.
     const owner = await prisma.user.findUnique({ where: { email } });
     if (owner && (await verifyPassword(password, owner.passwordHash))) {
-      if (owner.isSuspended) return forbidden('Your account is suspended. Contact support.');
+      if (owner.isSuspended) {
+        securityLog({ event: 'LOGIN_FAILED', actorId: owner.id, ip, meta: { reason: 'suspended' } });
+        return forbidden('Your account is suspended. Contact support.');
+      }
       await prisma.user.update({ where: { id: owner.id }, data: { lastLoginAt: new Date() } });
       await setOwnerSession(owner.id);
+      securityLog({ event: 'LOGIN_SUCCESS', actorId: owner.id, ip, meta: { kind: 'owner' } });
       return ok({
         kind: 'owner',
         id: owner.id,
@@ -95,6 +101,7 @@ export async function POST(req: Request) {
         data: { lastLoginAt: new Date() },
       });
       await setStaffSession(staff.id);
+      securityLog({ event: 'LOGIN_SUCCESS', actorId: staff.id, targetId: staff.userId, ip, meta: { kind: 'staff' } });
       return ok({
         kind: 'staff',
         id: staff.id,
@@ -128,6 +135,7 @@ export async function POST(req: Request) {
       });
     }
 
+    securityLog({ event: 'LOGIN_FAILED', ip, meta: { email: email.toLowerCase() } });
     return unauthorized('Invalid email or password');
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') console.error(e);

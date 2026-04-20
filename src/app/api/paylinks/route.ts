@@ -30,13 +30,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'customerName, customerPhone, and a positive amount are required' }, { status: 400 });
     }
 
-    // If customerId provided, verify ownership
     if (customerId) {
       const cust = await prisma.customer.findFirst({ where: { id: customerId, userId: user.id } });
       if (!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
     }
 
-    // If debtId provided, verify ownership
     if (debtId) {
       const debt = await prisma.debt.findFirst({ where: { id: debtId, userId: user.id } });
       if (!debt) return NextResponse.json({ error: 'Debt not found' }, { status: 404 });

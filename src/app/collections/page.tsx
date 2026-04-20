@@ -8,12 +8,20 @@ import {
   Send,
   Check,
   Phone,
+  Gauge,
+  Bell,
+  Zap,
+  Users,
 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { getCollectionQueue } from '@/lib/services/collection.service';
+import { collectionScoreService } from '@/lib/services/collection-score.service';
+import { reminderService } from '@/lib/services/reminder.service';
+import { behaviorService } from '@/lib/services/behavior.service';
 import { formatNaira } from '@/lib/format';
 import { CollectionActions } from '@/components/collections/CollectionActions';
+import { limitsFor, effectivePlan } from '@/lib/plan-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +34,16 @@ const PRIORITY_STYLES: Record<string, { bg: string; text: string; label: string 
 
 export default async function CollectionsPage() {
   const user = await guard();
-  const queue = await getCollectionQueue(user.id);
+  const eff = effectivePlan(user);
+  const limits = limitsFor(eff.plan);
+  const hasPaidFeatures = limits.collectionScore;
+
+  const [queue, reminderStats, behaviorBreakdown, collectionScore] = await Promise.all([
+    getCollectionQueue(user.id),
+    reminderService.stats(user.id),
+    hasPaidFeatures ? behaviorService.breakdown(user.id) : null,
+    hasPaidFeatures ? collectionScoreService.getLatest(user.id) : null,
+  ]);
 
   return (
     <AppShell
@@ -42,6 +59,72 @@ export default async function CollectionsPage() {
           Smart queue of outstanding payments — prioritized by urgency
         </p>
       </div>
+
+      {/* Collection Score + Reminders banner (paid plans) */}
+      {collectionScore && (
+        <div className="mb-6 rounded-xl border bg-gradient-to-r from-green-50 to-emerald-50 p-5 shadow-sm">
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+                <span className="text-2xl font-bold text-green-700">{collectionScore.score}</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Collection Score</p>
+                <p className="text-xs text-slate-500">
+                  {collectionScore.trend === 'up' && '↑ Improving'}
+                  {collectionScore.trend === 'down' && '↓ Declining'}
+                  {collectionScore.trend === 'stable' && '→ Stable'}
+                  {collectionScore.previousScore !== null && ` (was ${collectionScore.previousScore})`}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6 text-center text-xs">
+              <div>
+                <p className="text-lg font-bold text-slate-800">{collectionScore.onTimeRate}%</p>
+                <p className="text-slate-500">On-time</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-800">{collectionScore.avgCollectionDays}d</p>
+                <p className="text-slate-500">Avg collect</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-800">{reminderStats.activeRules}</p>
+                <p className="text-slate-500">Active rules</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-slate-800">{reminderStats.last7Days}</p>
+                <p className="text-slate-500">Sent (7d)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Behavior breakdown (paid plans) */}
+      {behaviorBreakdown && behaviorBreakdown.total > 0 && (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          <div className="rounded-xl border bg-green-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-green-700">{behaviorBreakdown.fastPayer}</p>
+            <p className="text-[10px] font-medium text-green-600">Fast Payers</p>
+          </div>
+          <div className="rounded-xl border bg-red-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-red-700">{behaviorBreakdown.latePayer}</p>
+            <p className="text-[10px] font-medium text-red-600">Late Payers</p>
+          </div>
+          <div className="rounded-xl border bg-slate-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-slate-600">{behaviorBreakdown.dormant}</p>
+            <p className="text-[10px] font-medium text-slate-500">Dormant</p>
+          </div>
+          <div className="rounded-xl border bg-purple-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-purple-700">{behaviorBreakdown.highValue}</p>
+            <p className="text-[10px] font-medium text-purple-600">High Value</p>
+          </div>
+          <div className="rounded-xl border bg-blue-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-blue-700">{behaviorBreakdown.new}</p>
+            <p className="text-[10px] font-medium text-blue-600">New</p>
+          </div>
+        </div>
+      )}
 
       {/* Summary Stats */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">

@@ -56,6 +56,16 @@ export type Limits = {
   /** Custom receipt branding (logo, footer) — Plus-tier only. */
   customBranding: boolean;
   prioritySupport: boolean;
+  /** Phase 2 — automatic follow-up reminders. */
+  autoReminders: boolean;
+  /** Phase 2 — max active reminder rules (null = unlimited). */
+  maxReminderRules: number | null;
+  /** Phase 4 — customer behavior tagging & analytics. */
+  behaviorTracking: boolean;
+  /** Phase 4 — collection performance score. */
+  collectionScore: boolean;
+  /** Phase 4 — smart action suggestions. */
+  suggestions: boolean;
 };
 
 const FREE: Limits = {
@@ -66,7 +76,7 @@ const FREE: Limits = {
   properties: 1,
   tenants: 5,
   teamMembers: 1,
-  bankVerification: true, // keep enabled on free to make fraud defence universal
+  bankVerification: true,
   invoices: false,
   products: false,
   expenses: true,
@@ -78,6 +88,11 @@ const FREE: Limits = {
   payroll: false,
   customBranding: false,
   prioritySupport: false,
+  autoReminders: false,
+  maxReminderRules: 2,
+  behaviorTracking: false,
+  collectionScore: false,
+  suggestions: false,
 };
 
 const BUSINESS: Limits = {
@@ -100,6 +115,11 @@ const BUSINESS: Limits = {
   payroll: true,
   customBranding: false,
   prioritySupport: false,
+  autoReminders: true,
+  maxReminderRules: 10,
+  behaviorTracking: true,
+  collectionScore: true,
+  suggestions: true,
 };
 
 const BUSINESS_PLUS: Limits = {
@@ -107,23 +127,21 @@ const BUSINESS_PLUS: Limits = {
   teamMembers: null,
   customBranding: true,
   prioritySupport: true,
+  maxReminderRules: null,
 };
 
 const LANDLORD: Limits = {
   ...BUSINESS,
   properties: null,
   tenants: null,
-  // Property managers don't sell products; feature off even if they upgraded by mistake.
   products: false,
   checklists: false,
+  suggestions: false,
 };
 
 const ESTATE_MANAGER: Limits = {
   ...LANDLORD,
   teamMembers: null,
-  // Estate Manager pricing advertises "Tasks & inspection checklists" — turn
-  // both back on (Landlord had checklists off because a solo landlord has no
-  // inspections to run).
   checklists: true,
   tasks: true,
   customBranding: true,
@@ -150,7 +168,6 @@ export const PLAN_LABELS: Record<PlanName, string> = {
   estate_manager: 'Estate Manager',
 };
 
-/** Human-readable upgrade suggestion based on current plan + business type. */
 export function suggestUpgrade(plan: string, businessType: string): PlanName {
   if (businessType === 'property_manager') {
     return plan === 'free' ? 'landlord' : 'estate_manager';
@@ -167,19 +184,6 @@ type UserLike = {
   currentPeriodEnd?: Date | null;
 };
 
-/**
- * Resolve the paying state of a user to the plan name we should use when
- * consulting `limitsFor()`. This is the only place that knows the rules:
- *
- *   trialing  + trial still valid  → the user's plan
- *   trialing  + trial expired       → free
- *   active    + period still valid  → the user's plan
- *   active    + period expired      → free (silent grace ends)
- *   cancelled + still in grace      → the user's plan
- *   cancelled + grace expired       → free
- *   past_due                        → free
- *   anything else / no status       → the user's plan (legacy Free)
- */
 export function effectivePlan(user: UserLike): {
   plan: string;
   status: SubscriptionStatus;
@@ -210,15 +214,9 @@ export function effectivePlan(user: UserLike): {
       expired,
     };
   }
-  // Default / "free" branch.
   return { plan: user.plan, status: 'free', expired: false };
 }
 
-/**
- * Returns true if the user is on a paid plan that has lapsed (past_due, or
- * cancelled+grace-expired). Used by API handlers to surface a distinct
- * "Subscription lapsed" message rather than a generic quota error.
- */
 export function isSubscriptionLapsed(user: UserLike): boolean {
   const { status, expired } = effectivePlan(user);
   if (status === 'past_due') return true;

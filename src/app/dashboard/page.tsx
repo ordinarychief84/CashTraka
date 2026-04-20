@@ -33,9 +33,12 @@ import { RemindersPanel } from '@/components/dashboard/RemindersPanel';
 import { UpgradeCard } from '@/components/dashboard/UpgradeCard';
 import { CreateReceiptButton } from '@/components/CreateReceiptButton';
 import { InstallPrompt } from '@/components/InstallPrompt';
+import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
+import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
 import { formatNaira } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
+import { limitsFor, effectivePlan } from '@/lib/plan-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -97,6 +100,11 @@ export default async function DashboardPage() {
   const showTeam = can(user.accessRole, 'team.read');
   const showReports = can(user.accessRole, 'reports.read');
   const canWrite = can(user.accessRole, 'payments.write');
+
+  // Phase 2-4: paid feature check for suggestions / collection score
+  const effPlan = effectivePlan(user);
+  const planLimits = limitsFor(effPlan.plan);
+  const hasPaidFeatures = planLimits.suggestions;
 
   // ── Date anchors ───────────────────────────────────────────────────────
   const today = new Date(now);
@@ -395,7 +403,7 @@ export default async function DashboardPage() {
     triage.push({
       id: 'paylinks-claimed',
       severity: 'critical',
-      icon: '💳',
+      icon: TriageIcons.paylink,
       title: `${claimedPaylinkCount} PayLink${claimedPaylinkCount > 1 ? 's' : ''} claimed — confirm payment`,
       subtitle: 'Customers say they\'ve paid. Tap to confirm.',
       href: '/paylinks?status=claimed',
@@ -405,7 +413,7 @@ export default async function DashboardPage() {
     triage.push({
       id: 'paylinks-pending',
       severity: 'info',
-      icon: '📤',
+      icon: TriageIcons.paylinkPending,
       title: `${pendingPaylinkCount} pending PayLink${pendingPaylinkCount > 1 ? 's' : ''}`,
       subtitle: 'Waiting for customer action',
       href: '/paylinks',
@@ -673,6 +681,10 @@ export default async function DashboardPage() {
               </Link>
             )}
           </section>
+
+          {/* Phase 4: Collection Score + Suggestions */}
+          <CollectionScoreWidget isPaid={hasPaidFeatures} />
+          <SuggestionsPanel isPaid={hasPaidFeatures} />
 
           {user.isOwner && (
             <UpgradeCard plan={user.plan} businessType={user.businessType} />

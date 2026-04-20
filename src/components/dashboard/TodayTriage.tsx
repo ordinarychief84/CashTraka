@@ -8,6 +8,8 @@ import {
   ChevronRight,
   Package,
   Users2,
+  CreditCard,
+  Send,
   ListChecks,
   type LucideIcon,
 } from 'lucide-react';
@@ -185,4 +187,6 @@ export const TriageIcons = {
   dormant: Sparkles,
   lowStock: Package,
   teamPay: Users2,
+  paylink: CreditCard,
+  paylinkPending: Send,
 };

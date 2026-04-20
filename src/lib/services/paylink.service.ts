@@ -1,17 +1,10 @@
 /**
  * PayLink Service — CashTraka Payment Request Links
- *
- * Generates shareable payment request links that sellers send via WhatsApp.
- * Customers open the public /pay/[token] page to see what they owe and
- * tap "I've paid". The seller then confirms on their side.
  */
 
 import { prisma } from '@/lib/prisma';
 
-// ── Link number generation ────────────────────────────────────────────
-
 async function nextLinkNumber(userId: string): Promise<string> {
-  // Find the highest existing linkNumber for this user to avoid duplicates
   const latest = await prisma.paymentRequest.findFirst({
     where: { userId },
     orderBy: { createdAt: 'desc' },
@@ -23,8 +16,6 @@ async function nextLinkNumber(userId: string): Promise<string> {
   }
   return 'PLK-00001';
 }
-
-// ── WhatsApp deep link ────────────────────────────────────────────────
 
 export function whatsappPayLink(args: {
   phone: string;
@@ -45,7 +36,6 @@ export function whatsappPayLink(args: {
     `Pay here: ${payUrl}\n\n` +
     `— Sent via CashTraka`;
 
-  // Normalize phone: strip leading 0, add +234
   let normalized = args.phone.replace(/\s+/g, '');
   if (normalized.startsWith('0')) normalized = '234' + normalized.slice(1);
   if (!normalized.startsWith('+')) normalized = '+' + normalized;
@@ -54,10 +44,7 @@ export function whatsappPayLink(args: {
   return `https://wa.me/${normalized}?text=${encodeURIComponent(msg)}`;
 }
 
-// ── CRUD operations ───────────────────────────────────────────────────
-
 export const paylinkService = {
-  /** Create a new payment request link */
   async create(args: {
     userId: string;
     customerId?: string;
@@ -71,7 +58,7 @@ export const paylinkService = {
     const linkNumber = await nextLinkNumber(args.userId);
     const expiresAt = args.expiresInDays
       ? new Date(Date.now() + args.expiresInDays * 86400000)
-      : new Date(Date.now() + 30 * 86400000); // default 30 days
+      : new Date(Date.now() + 30 * 86400000);
 
     return prisma.paymentRequest.create({
       data: {
@@ -88,7 +75,6 @@ export const paylinkService = {
     });
   },
 
-  /** List payment requests for a user */
   async list(userId: string, opts?: { status?: string; take?: number; skip?: number }) {
     const where: Record<string, unknown> = { userId };
     if (opts?.status) where.status = opts.status;
@@ -107,7 +93,6 @@ export const paylinkService = {
     return { items, total };
   },
 
-  /** Get a single paylink by token (public) */
   async getByToken(token: string) {
     return prisma.paymentRequest.findUnique({
       where: { token },
@@ -118,7 +103,6 @@ export const paylinkService = {
     });
   },
 
-  /** Mark as viewed (when customer opens the link) */
   async markViewed(token: string) {
     return prisma.paymentRequest.updateMany({
       where: { token, viewedAt: null },
@@ -126,7 +110,6 @@ export const paylinkService = {
     });
   },
 
-  /** Customer claims they've paid */
   async markClaimed(token: string) {
     return prisma.paymentRequest.update({
       where: { token },
@@ -134,7 +117,6 @@ export const paylinkService = {
     });
   },
 
-  /** Seller confirms payment received */
   async confirm(id: string, userId: string) {
     return prisma.paymentRequest.update({
       where: { id, userId },
@@ -142,7 +124,6 @@ export const paylinkService = {
     });
   },
 
-  /** Cancel a paylink */
   async cancel(id: string, userId: string) {
     return prisma.paymentRequest.update({
       where: { id, userId },
@@ -150,7 +131,6 @@ export const paylinkService = {
     });
   },
 
-  /** Mark WhatsApp as sent */
   async markWhatsAppSent(id: string, userId: string) {
     return prisma.paymentRequest.update({
       where: { id, userId },
@@ -158,7 +138,6 @@ export const paylinkService = {
     });
   },
 
-  /** Mark email as sent */
   async markEmailSent(id: string, userId: string) {
     return prisma.paymentRequest.update({
       where: { id, userId },
@@ -166,7 +145,6 @@ export const paylinkService = {
     });
   },
 
-  /** Expire old pending/viewed links past their expiresAt */
   async expireStale() {
     return prisma.paymentRequest.updateMany({
       where: {
@@ -177,7 +155,6 @@ export const paylinkService = {
     });
   },
 
-  /** Stats for a user */
   async stats(userId: string) {
     const [pending, claimed, confirmed, total, totalAmount] = await Promise.all([
       prisma.paymentRequest.count({ where: { userId, status: { in: ['pending', 'viewed'] } } }),

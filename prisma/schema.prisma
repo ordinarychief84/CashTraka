@@ -108,6 +108,8 @@ model User {
   auditLogs            AuditLog[]        @relation("AuditLogAdmin")
   paymentRequests      PaymentRequest[]
   emailVerifications   EmailVerification[]
+  reminderRules        ReminderRule[]
+  reminderLogs         ReminderLog[]
 
   @@index([role])
   @@index([businessType])
@@ -143,6 +145,15 @@ model Customer {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
+  /// Phase 4 — behavior tagging: FAST_PAYER | LATE_PAYER | DORMANT | HIGH_VALUE | NEW
+  behaviorTag      String?
+  /// Average number of days to pay after receiving a request
+  avgPayDays       Float?
+  /// Number of times this customer has been reminded
+  totalReminders   Int       @default(0)
+  /// Last time a reminder was sent for any debt
+  lastRemindedAt   DateTime?
+
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments         Payment[]
   debts            Debt[]
@@ -152,6 +163,7 @@ model Customer {
   @@unique([userId, phone])
   @@index([userId])
   @@index([phone])
+  @@index([userId, behaviorTag])
 }
 
 model Payment {
@@ -215,9 +227,14 @@ model Debt {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
+  /// Phase 2 — follow-up tracking
+  reminderCount        Int       @default(0)
+  lastRemindedAt       DateTime?
+
   user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   customer             Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
   reminderSchedules    ReminderSchedule[]
+  reminderRules        ReminderRule[]
 
   @@index([userId, status])
 }
@@ -834,4 +851,95 @@ model PaymentRequest {
 
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   customer         Customer? @relation(fields: [customerId], references: [id])
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+// ---------- PHASE 2: AUTO FOLLOW-UP REMINDERS ----------
+
+/// A rule that defines automatic reminder behavior for a specific debt.
+/// The cron job (`/api/cron/run-reminders`) evaluates all active rules and
+/// creates ReminderLog entries + surfaces WhatsApp deep-links.
+model ReminderRule {
+  id            String    @id @default(cuid())
+  userId        String
+  debtId        String
+  /// "gentle" | "firm" | "final" — escalation tone
+  tone          String    @default("gentle")
+  /// Number of days between auto-reminders
+  intervalDays  Int       @default(3)
+  /// Maximum number of reminders before the rule auto-disables
+  maxReminders  Int       @default(5)
+  /// How many reminders have been sent under this rule
+  sentCount     Int       @default(0)
+  /// When the next reminder should fire
+  nextFireAt    DateTime
+  /// Whether this rule is active
+  enabled       Boolean   @default(true)
+  /// "whatsapp" | "email" | "both"
+  channel       String    @default("whatsapp")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debt          Debt      @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  logs          ReminderLog[]
+
+  @@index([userId, enabled, nextFireAt])
+  @@index([debtId])
+}
+
+/// Log of every reminder sent (for audit & analytics).
+model ReminderLog {
+  id            String    @id @default(cuid())
+  userId        String
+  ruleId        String?
+  debtId        String?
+  customerId    String?
+  customerName  String
+  customerPhone String
+  amount        Int
+  /// "whatsapp" | "email"
+  channel       String
+  /// "gentle" | "firm" | "final"
+  tone          String    @default("gentle")
+  /// WhatsApp deep link or email ID for tracking
+  deliveryRef   String?
+  createdAt     DateTime  @default(now())
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule          ReminderRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([ruleId])
+}
+
+// ---------- PHASE 4: COLLECTION PERFORMANCE SCORE ----------
+
+/// Snapshot of a seller's collection performance, computed daily by cron.
+/// Powers the "Collection Score" widget on the dashboard.
+model CollectionScore {
+  id                  String    @id @default(cuid())
+  userId              String
+  /// 0-100 overall collection effectiveness score
+  score               Int       @default(50)
+  /// Percentage of debts collected on time (0-100)
+  onTimeRate          Float     @default(0)
+  /// Average days to collect across all debts
+  avgCollectionDays   Float     @default(0)
+  /// Total amount collected in the scoring window
+  collectedAmount     Int       @default(0)
+  /// Total amount outstanding
+  outstandingAmount   Int       @default(0)
+  /// Number of active follow-up rules
+  activeReminders     Int       @default(0)
+  /// Scoring period start
+  periodStart         DateTime
+  /// Scoring period end
+  periodEnd           DateTime
+  createdAt           DateTime  @default(now())
+
+  @@unique([userId, periodStart])
+  @@index([userId, createdAt])
 }

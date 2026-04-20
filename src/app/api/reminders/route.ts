@@ -1,73 +1,80 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { reminderService } from '@/lib/services/reminder.service';
+import { requireFeature } from '@/lib/gate';
+import { limitsFor, effectivePlan } from '@/lib/plan-limits';
+import { prisma } from '@/lib/prisma';
 
-const createSchema = z.object({
-  debtId: z.string().min(1),
-  frequency: z.enum(['daily', 'every_3_days', 'weekly', 'custom']).default('weekly'),
-  intervalDays: z.coerce.number().int().min(1).max(90).default(7),
-});
+/** GET /api/reminders — list user's reminder rules + stats */
+export async function GET() {
+  try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-function computeNextDue(frequency: string, intervalDays: number): Date {
-  const d = new Date();
-  const days =
-    frequency === 'daily' ? 1
-    : frequency === 'every_3_days' ? 3
-    : frequency === 'weekly' ? 7
-    : intervalDays;
-  d.setDate(d.getDate() + days);
-  d.setHours(9, 0, 0, 0); // Surface at 9 AM
-  return d;
+    const [rules, stats, recentLogs] = await Promise.all([
+      reminderService.listRules(user.id),
+      reminderService.stats(user.id),
+      reminderService.recentLogs(user.id, 10),
+    ]);
+
+    return NextResponse.json({ rules, stats, recentLogs });
+  } catch (err) {
+    console.error('GET /api/reminders error:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Server error' },
+      { status: 500 },
+    );
+  }
 }
 
+/** POST /api/reminders — create a new reminder rule */
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  const parsed = createSchema.safeParse(body);
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues[0]?.message || 'Invalid input' },
-      { status: 400 },
-    );
-  }
-  const { debtId, frequency, intervalDays } = parsed.data;
+    // Feature gate
+    const blocked = requireFeature(user, 'autoReminders');
+    if (blocked) return blocked;
 
-  // Verify debt belongs to user and is OPEN.
-  const debt = await prisma.debt.findFirst({
-    where: { id: debtId, userId: user.id, status: 'OPEN' },
-  });
-  if (!debt) {
-    return NextResponse.json(
-      { error: 'Debt not found or already paid' },
-      { status: 404 },
-    );
-  }
+    // Quota check on number of rules
+    const eff = effectivePlan(user);
+    const limits = limitsFor(eff.plan);
+    if (limits.maxReminderRules !== null) {
+      const currentCount = await prisma.reminderRule.count({
+        where: { userId: user.id, enabled: true },
+      });
+      if (currentCount >= limits.maxReminderRules) {
+        return NextResponse.json(
+          {
+            error: `Your plan allows up to ${limits.maxReminderRules} active reminder rules. Upgrade for more.`,
+            upgrade: { upgradeHref: '/billing' },
+          },
+          { status: 402 },
+        );
+      }
+    }
 
-  // Upsert: one schedule per debt.
-  const nextDueAt = computeNextDue(frequency, intervalDays);
-  const existing = await prisma.reminderSchedule.findFirst({
-    where: { debtId, userId: user.id },
-  });
+    const body = await req.json();
+    const { debtId, tone, intervalDays, maxReminders, channel } = body;
 
-  if (existing) {
-    await prisma.reminderSchedule.update({
-      where: { id: existing.id },
-      data: { frequency, intervalDays, nextDueAt, enabled: true },
-    });
-    return NextResponse.json({ id: existing.id, nextDueAt });
-  }
+    if (!debtId) {
+      return NextResponse.json({ error: 'debtId is required' }, { status: 400 });
+    }
 
-  const schedule = await prisma.reminderSchedule.create({
-    data: {
+    const rule = await reminderService.createRule({
       userId: user.id,
       debtId,
-      frequency,
+      tone,
       intervalDays,
-      nextDueAt,
-    },
-  });
-  return NextResponse.json({ id: schedule.id, nextDueAt });
+      maxReminders,
+      channel,
+    });
+
+    return NextResponse.json(rule, { status: 201 });
+  } catch (err) {
+    console.error('POST /api/reminders error:', err);
+    const message = err instanceof Error ? err.message : 'Server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

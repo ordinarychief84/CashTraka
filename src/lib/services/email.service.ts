@@ -71,12 +71,14 @@ function fmtDate(d: Date | string): string {
 
 const APP_NAME = 'CashTraka';
 
+const LOGO_URL = (process.env.APP_URL || 'https://cashtraka.vercel.app') + '/icon-192.png';
+
 const LOGO_HTML = `
 <div style="text-align:center;padding:28px 0 20px;">
   <table cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
     <tr>
       <td style="vertical-align:middle;padding-right:10px;">
-        <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTYwIDIwMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNIDgwLDQgQyA0My42LDQgMTQsMzMuNiAxNCw3MCBMIDE0LDk0IEMgMTQsOTQgNTYsMTA2IDEyMCw5OSBMIDE0Niw3MiBDIDE0NiwzNC4yIDExNy40LDQgODAsNCBaIiBmaWxsPSIjMDBCOEU4Ii8+PHBhdGggZD0iTSA4MCwxOTYgQyAxMTYuNCwxOTYgMTQ2LDE2Ni40IDE0NiwxMzAgTCAxNDYsMTA2IEMgMTQ2LDEwNiAxMDQsOTQgNDAsMTAxIEwgMTQsMTI4IEMgMTQsMTY1LjggNDIuNiwxOTYgODAsMTk2IFoiIGZpbGw9IiM4QkQ5MUUiLz48L3N2Zz4=" alt="CashTraka" width="32" height="40" style="display:block;" />
+        <img src="${LOGO_URL}" alt="CashTraka" width="36" height="36" style="display:block;border-radius:8px;" />
       </td>
       <td style="vertical-align:middle;">
         <span style="font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.5px;color:#1A1A1A;">Cash<span style="color:#1A1A1A;">Traka</span></span>
@@ -1347,3 +1349,4 @@ export const emailService = {
 
   raw: send,
 };
+                                                                                                                                                                                                                                                                                                                                                                    

@@ -1,20 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Send, Copy, CheckCircle2, UserMinus } from 'lucide-react';
+import { X, Send, Copy, CheckCircle2, UserMinus, Shield } from 'lucide-react';
 import { ASSIGNABLE_ROLES, ROLE_LABELS, ROLE_DESCRIPTIONS, type AccessRole } from '@/lib/rbac';
 import { waLink } from '@/lib/whatsapp';
 
 /**
  * Invite-to-team dialog.
  *
- * Collects the staff's email + chosen role, hits /api/team/:id/invite, and
- * renders the resulting invite URL with copy + WhatsApp send shortcuts.
+ * Shows custom roles first (if any exist), with a fallback to raw permission
+ * levels. Collects the staff's email + chosen role, hits /api/team/:id/invite,
+ * and renders the resulting invite URL with copy + WhatsApp send shortcuts.
  *
  * If the staff already has access, this dialog also lets the owner revoke
  * (which drops them back to accessRole=NONE).
  */
+
+type CustomRole = {
+  id: string;
+  name: string;
+  description: string | null;
+  baseRole: string;
+  color: string | null;
+};
 
 type Props = {
   open: boolean;
@@ -35,11 +44,37 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
   const [role, setRole] = useState<AccessRole>(
     staff.accessRole === 'NONE' ? 'CASHIER' : staff.accessRole,
   );
+  const [customRoleId, setCustomRoleId] = useState<string | null>(null);
+  const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
+  const [loadingRoles, setLoadingRoles] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Fetch custom roles when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    setLoadingRoles(true);
+    fetch('/api/team/roles')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data) setCustomRoles(d.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingRoles(false));
+  }, [open]);
+
   if (!open) return null;
+
+  function selectCustomRole(cr: CustomRole) {
+    setCustomRoleId(cr.id);
+    setRole(cr.baseRole as AccessRole);
+  }
+
+  function selectBaseRole(r: AccessRole) {
+    setCustomRoleId(null);
+    setRole(r);
+  }
 
   async function sendInvite() {
     setSubmitting(true);
@@ -48,7 +83,7 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
       const res = await fetch(`/api/team/${staff.id}/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, accessRole: role }),
+        body: JSON.stringify({ email, accessRole: role, customRoleId }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Could not send invite');
@@ -192,13 +227,70 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
 
               <div>
                 <label className="label">Role</label>
-                <div className="mt-1 space-y-2">
+
+                {/* Custom roles (if any) */}
+                {loadingRoles ? (
+                  <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+                    <div className="h-3 w-3 animate-spin rounded-full border border-slate-300 border-t-transparent" />
+                    Loading roles…
+                  </div>
+                ) : customRoles.length > 0 ? (
+                  <>
+                    <div className="mt-1 space-y-2">
+                      {customRoles.map((cr) => (
+                        <label
+                          key={cr.id}
+                          className={
+                            'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ' +
+                            (customRoleId === cr.id
+                              ? 'border-brand-500 bg-brand-50'
+                              : 'border-border hover:bg-slate-50')
+                          }
+                        >
+                          <input
+                            type="radio"
+                            name="role"
+                            value={cr.id}
+                            checked={customRoleId === cr.id}
+                            onChange={() => selectCustomRole(cr)}
+                            className="mt-0.5"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              {cr.color && (
+                                <span
+                                  className="inline-block h-2.5 w-2.5 rounded-full"
+                                  style={{ backgroundColor: cr.color }}
+                                />
+                              )}
+                              <span className="text-sm font-bold text-ink">{cr.name}</span>
+                              <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                                {ROLE_LABELS[cr.baseRole as AccessRole]}
+                              </span>
+                            </div>
+                            {cr.description && (
+                              <div className="text-[11px] text-slate-600">{cr.description}</div>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                    <div className="my-3 flex items-center gap-3">
+                      <div className="h-px flex-1 bg-border" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">or assign directly</span>
+                      <div className="h-px flex-1 bg-border" />
+                    </div>
+                  </>
+                ) : null}
+
+                {/* Base permission roles (always shown as fallback) */}
+                <div className={customRoles.length > 0 ? 'space-y-2' : 'mt-1 space-y-2'}>
                   {ASSIGNABLE_ROLES.map((r) => (
                     <label
                       key={r}
                       className={
                         'flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition ' +
-                        (role === r
+                        (role === r && !customRoleId
                           ? 'border-brand-500 bg-brand-50'
                           : 'border-border hover:bg-slate-50')
                       }
@@ -207,8 +299,8 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
                         type="radio"
                         name="role"
                         value={r}
-                        checked={role === r}
-                        onChange={() => setRole(r)}
+                        checked={role === r && !customRoleId}
+                        onChange={() => selectBaseRole(r)}
                         className="mt-0.5"
                       />
                       <div>

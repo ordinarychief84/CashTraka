@@ -12,6 +12,7 @@ export const runtime = 'nodejs';
 const schema = z.object({
   email: z.string().email('Enter a valid email').toLowerCase(),
   accessRole: z.enum(['MANAGER', 'CASHIER', 'VIEWER']),
+  customRoleId: z.string().optional().nullable(),
 });
 
 /**
@@ -40,10 +41,18 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
     const body = await req.json().catch(() => ({}));
     const parsed = schema.safeParse(body);
     if (!parsed.success) return validationFail(parsed.error);
-    const { email, accessRole } = parsed.data;
+    const { email, accessRole, customRoleId } = parsed.data;
 
     if (!ASSIGNABLE_ROLES.includes(accessRole as AccessRole)) {
       return fail('Invalid role', 400);
+    }
+
+    // Validate customRoleId if provided
+    if (customRoleId) {
+      const customRole = await prisma.customRole.findFirst({
+        where: { id: customRoleId, userId: auth.owner.id },
+      });
+      if (!customRole) return fail('Custom role not found', 404);
     }
 
     // Disallow duplicate staff emails within the same tenant.
@@ -60,6 +69,7 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
       data: {
         email,
         accessRole,
+        customRoleId: customRoleId || null,
         inviteToken: token,
         inviteExpiresAt: expires,
         passwordHash: null, // force them to set a password via the invite flow

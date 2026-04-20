@@ -6,11 +6,9 @@ import {
   BarChart3,
   Mail,
   Settings,
-  CreditCard,
   LogOut,
   ArrowLeft,
   ShieldCheck,
-  Menu,
   Shield,
   RefreshCw,
   Headphones,
@@ -19,28 +17,53 @@ import {
   FileText,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import type { AdminSection } from '@/lib/admin-rbac';
+import { adminSections } from '@/lib/admin-rbac';
+import type { AdminRole } from '@/lib/admin-rbac';
 
 type Props = {
   children: ReactNode;
   adminName?: string;
   activePath?: string;
+  adminRole?: string;
 };
 
-const NAV_ITEMS = [
-  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/admin/users', icon: Users2, label: 'Users' },
-  { href: '/admin/roles', icon: Shield, label: 'Roles' },
-  { href: '/admin/support', icon: Headphones, label: 'Support' },
-  { href: '/admin/refunds', icon: RefreshCw, label: 'Refunds' },
-  { href: '/admin/notifications', icon: Bell, label: 'Notifications' },
-  { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/admin/emails', icon: Mail, label: 'Email Logs' },
-  { href: '/admin/blog', icon: FileText, label: 'Blog' },
-  { href: '/admin/audit', icon: ClipboardList, label: 'Audit Log' },
-  { href: '/admin/settings', icon: Settings, label: 'Settings' },
+type NavItem = {
+  href: string;
+  icon: typeof LayoutDashboard;
+  label: string;
+  section: AdminSection;
+};
+
+const NAV_ITEMS: NavItem[] = [
+  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', section: 'dashboard' },
+  { href: '/admin/users', icon: Users2, label: 'Users', section: 'users' },
+  { href: '/admin/roles', icon: Shield, label: 'Roles', section: 'roles' },
+  { href: '/admin/support', icon: Headphones, label: 'Support', section: 'support' },
+  { href: '/admin/refunds', icon: RefreshCw, label: 'Refunds', section: 'refunds' },
+  { href: '/admin/notifications', icon: Bell, label: 'Notifications', section: 'notifications' },
+  { href: '/admin/analytics', icon: BarChart3, label: 'Analytics', section: 'analytics' },
+  { href: '/admin/emails', icon: Mail, label: 'Email Logs', section: 'emails' },
+  { href: '/admin/blog', icon: FileText, label: 'Blog', section: 'blog' },
+  { href: '/admin/audit', icon: ClipboardList, label: 'Audit Log', section: 'audit' },
+  { href: '/admin/settings', icon: Settings, label: 'Settings', section: 'settings' },
 ];
 
-export function AdminShell({ children, adminName, activePath }: Props) {
+const ROLE_BADGE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'SUPER ADMIN',
+  BLOG_MANAGER: 'BLOG',
+  BILLING_MANAGER: 'BILLING',
+  SUPPORT_AGENT: 'SUPPORT',
+  PROPERTY_MANAGER: 'PROPERTY',
+  REPORTS_VIEWER: 'REPORTS',
+};
+
+export function AdminShell({ children, adminName, activePath, adminRole = 'SUPER_ADMIN' }: Props) {
+  const role = adminRole as AdminRole;
+  const allowedSections = adminSections(role);
+  const visibleItems = NAV_ITEMS.filter((item) => allowedSections.includes(item.section));
+  const badgeLabel = ROLE_BADGE_LABELS[adminRole] || 'ADMIN';
+
   return (
     <div className="min-h-screen bg-slate-50">
       <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-slate-800 bg-slate-900 text-slate-200 md:flex">
@@ -49,7 +72,7 @@ export function AdminShell({ children, adminName, activePath }: Props) {
             <Logo size="md" variant="light" />
           </Link>
           <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
-            ADMIN
+            {badgeLabel}
           </span>
         </div>
 
@@ -57,7 +80,7 @@ export function AdminShell({ children, adminName, activePath }: Props) {
           <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">
             Platform
           </div>
-          {NAV_ITEMS.map((item) => (
+          {visibleItems.map((item) => (
             <SideLink
               key={item.href}
               href={item.href}
@@ -76,15 +99,17 @@ export function AdminShell({ children, adminName, activePath }: Props) {
             </div>
           )}
           <div className="mb-3 text-[10px] uppercase tracking-wider text-slate-500">
-            Platform operator
+            {adminRole === 'SUPER_ADMIN' ? 'Platform operator' : badgeLabel.toLowerCase()}
           </div>
-          <Link
-            href="/dashboard"
-            className="mb-2 flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-          >
-            <ArrowLeft size={14} />
-            Back to app
-          </Link>
+          {adminRole === 'SUPER_ADMIN' && (
+            <Link
+              href="/dashboard"
+              className="mb-2 flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+            >
+              <ArrowLeft size={14} />
+              Back to app
+            </Link>
+          )}
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
@@ -102,16 +127,18 @@ export function AdminShell({ children, adminName, activePath }: Props) {
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
             <Logo size="sm" variant="light" />
             <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
-              ADMIN
+              {badgeLabel}
             </span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link
-              href="/dashboard"
-              className="flex h-9 w-9 items-center justify-center rounded-md text-slate-400 hover:bg-slate-800"
-            >
-              <ArrowLeft size={18} />
-            </Link>
+            {adminRole === 'SUPER_ADMIN' && (
+              <Link
+                href="/dashboard"
+                className="flex h-9 w-9 items-center justify-center rounded-md text-slate-400 hover:bg-slate-800"
+              >
+                <ArrowLeft size={18} />
+              </Link>
+            )}
             <form action="/api/auth/logout" method="post">
               <button
                 type="submit"
@@ -124,7 +151,7 @@ export function AdminShell({ children, adminName, activePath }: Props) {
           </div>
         </div>
         <div className="flex gap-0.5 overflow-x-auto px-4 pb-2">
-          {NAV_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePath === item.href;
             return (

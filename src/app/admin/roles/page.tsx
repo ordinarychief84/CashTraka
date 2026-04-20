@@ -1,41 +1,44 @@
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { AdminShell } from '@/components/admin/AdminShell';
-import { RoleManager } from '@/components/admin/RoleManager';
-import { formatDate, timeAgo } from '@/lib/format';
+import { StaffManager } from '@/components/admin/StaffManager';
 
 export const dynamic = 'force-dynamic';
 
 export default async function RolesPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('roles');
 
-  // Fetch all admins
-  const admins = await prisma.user.findMany({
+  const staff = await prisma.adminStaff.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { createdBy: { select: { name: true } } },
+  });
+
+  const superAdmins = await prisma.user.findMany({
     where: { role: 'ADMIN' },
     select: { id: true, name: true, email: true, lastLoginAt: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
 
-  // Fetch recent non-admin, non-suspended users for promotion
-  const users = await prisma.user.findMany({
-    where: { role: 'USER', isSuspended: false },
-    select: { id: true, name: true, email: true, businessName: true },
-    orderBy: { createdAt: 'desc' },
-    take: 100,
-  });
-
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/roles">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-slate-900">Role Management</h1>
-        <p className="text-sm text-slate-500">
-          Manage admin assignments and user promotions
-        </p>
-      </div>
-
-      <RoleManager
-        admins={admins}
-        users={users}
+    <AdminShell adminName={admin.name} activePath="/admin/roles" adminRole={admin.adminRole}>
+      <StaffManager
+        staff={staff.map((s) => ({
+          id: s.id,
+          name: s.name,
+          email: s.email,
+          adminRole: s.adminRole,
+          status: s.status,
+          lastLoginAt: s.lastLoginAt?.toISOString() || null,
+          createdAt: s.createdAt.toISOString(),
+          createdByName: s.createdBy?.name || 'System',
+        }))}
+        superAdmins={superAdmins.map((a) => ({
+          id: a.id,
+          name: a.name,
+          email: a.email,
+          lastLoginAt: a.lastLoginAt?.toISOString() || null,
+          createdAt: a.createdAt.toISOString(),
+        }))}
         currentAdminId={admin.id}
       />
     </AdminShell>

@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { RefundManager } from '@/components/admin/RefundManager';
@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 export default async function RefundsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('refunds');
 
   // Fetch refunds with related data
   const refunds = await prisma.refund.findMany({
@@ -37,7 +37,7 @@ export default async function RefundsPage() {
   });
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/refunds">
+    <AdminShell adminName={admin.name} activePath="/admin/refunds" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Refund Management</h1>
         <p className="text-sm text-slate-500">

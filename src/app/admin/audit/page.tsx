@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ClipboardList, Shield, User, Settings, CreditCard, Bell, Headphones } from 'lucide-react';
@@ -37,7 +37,7 @@ function timeAgo(date: Date): string {
 }
 
 export default async function AuditLogPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('audit');
 
   const [logs, totalCount, actionCounts] = await Promise.all([
     prisma.auditLog.findMany({
@@ -54,7 +54,7 @@ export default async function AuditLogPage() {
   ]);
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/audit">
+    <AdminShell adminName={admin.name} activePath="/admin/audit" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Audit Log</h1>
         <p className="text-sm text-slate-500">Complete history of all admin actions on the platform</p>

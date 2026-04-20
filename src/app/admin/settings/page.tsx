@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ChangePasswordForm } from '@/components/admin/ChangePasswordForm';
 import { PlatformSettings } from '@/components/admin/PlatformSettings';
@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminSettingsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('settings');
 
   // Fetch all system settings
   const systemSettings = await prisma.systemSetting.findMany();
@@ -30,7 +30,7 @@ export default async function AdminSettingsPage() {
   };
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/settings">
+    <AdminShell adminName={admin.name} activePath="/admin/settings" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Settings</h1>
         <p className="text-sm text-slate-500">Manage your account and platform configuration</p>

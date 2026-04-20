@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { NotificationBroadcast } from '@/components/admin/NotificationBroadcast';
@@ -7,7 +7,7 @@ import { formatDate } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 export default async function NotificationsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('notifications');
 
   // Fetch recent broadcasts from audit log
   const broadcastHistory = await prisma.auditLog.findMany({
@@ -31,7 +31,7 @@ export default async function NotificationsPage() {
   });
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/notifications">
+    <AdminShell adminName={admin.name} activePath="/admin/notifications" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Notifications</h1>
         <p className="text-sm text-slate-500">

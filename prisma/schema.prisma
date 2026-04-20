@@ -110,6 +110,7 @@ model User {
   emailVerifications   EmailVerification[]
   reminderRules        ReminderRule[]
   reminderLogs         ReminderLog[]
+  createdAdminStaff    AdminStaff[]      @relation("AdminStaffCreator")
 
   @@index([role])
   @@index([businessType])
@@ -964,4 +965,29 @@ model BlogPost {
   @@index([status, publishedAt])
   @@index([category])
   @@index([slug])
+}
+
+// ---------- ADMIN STAFF (Platform RBAC) ----------
+
+model AdminStaff {
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  passwordHash    String?
+  /// SUPER_ADMIN | BLOG_MANAGER | BILLING_MANAGER | SUPPORT_AGENT | PROPERTY_MANAGER | REPORTS_VIEWER
+  adminRole       String
+  status          String    @default("invited") // invited | active | suspended | revoked
+  inviteToken     String?   @unique
+  inviteExpiresAt DateTime?
+  /// The admin User.id who created this staff
+  createdById     String
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  createdBy       User      @relation("AdminStaffCreator", fields: [createdById], references: [id])
+
+  @@index([adminRole])
+  @@index([status])
+  @@index([email])
 }

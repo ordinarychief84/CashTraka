@@ -43,7 +43,7 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-type SessionKind = 'owner' | 'staff';
+type SessionKind = 'owner' | 'staff' | 'admin_staff';
 
 type SessionPayload = {
   kind: SessionKind;
@@ -83,6 +83,17 @@ export async function setOwnerSession(userId: string) {
 
 export async function setStaffSession(staffId: string) {
   const token = await signSession({ kind: 'staff', sub: staffId });
+  cookies().set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: SESSION_MAX_AGE,
+  });
+}
+
+export async function setAdminStaffSession(adminStaffId: string) {
+  const token = await signSession({ kind: 'admin_staff', sub: adminStaffId });
   cookies().set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
@@ -258,6 +269,56 @@ export function requireBusinessAccess(
   if (!resource) throw Err.notFound();
   if (user.role === ROLES.ADMIN) return;
   if (resource.userId !== user.id) throw Err.forbidden();
+}
+
+/**
+ * Resolve admin staff from session cookie. Returns the AdminStaff record
+ * or null if the session is not an admin_staff session.
+ */
+export async function getAdminStaffFromSession() {
+  const token = cookies().get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const payload = await verifySession(token);
+  if (!payload || payload.kind !== 'admin_staff') return null;
+  const adminStaff = await prisma.adminStaff.findUnique({
+    where: { id: payload.sub },
+  });
+  if (!adminStaff || adminStaff.status !== 'active') return null;
+  return adminStaff;
+}
+
+/**
+ * Require admin access — either a SUPER_ADMIN (User.role === ADMIN) or an
+ * AdminStaff with sufficient permissions. Returns info about who is logged in.
+ */
+export async function requireAdminOrStaff() {
+  // First try: is this an admin_staff session?
+  const adminStaff = await getAdminStaffFromSession();
+  if (adminStaff) {
+    return {
+      kind: 'admin_staff' as const,
+      id: adminStaff.id,
+      name: adminStaff.name,
+      email: adminStaff.email,
+      adminRole: adminStaff.adminRole,
+      isSuperAdmin: false,
+    };
+  }
+  // Second try: is this a regular admin (User.role === ADMIN)?
+  const token = cookies().get(SESSION_COOKIE)?.value;
+  if (!token) throw Err.unauthorized();
+  const payload = await verifySession(token);
+  if (!payload || payload.kind !== 'owner') throw Err.unauthorized();
+  const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
+  if (!owner || owner.role !== ROLES.ADMIN) throw Err.forbidden('Admin access required.');
+  return {
+    kind: 'super_admin' as const,
+    id: owner.id,
+    name: owner.name,
+    email: owner.email,
+    adminRole: 'SUPER_ADMIN',
+    isSuperAdmin: true,
+  };
 }
 
 export const SESSION_COOKIE_NAME = SESSION_COOKIE;

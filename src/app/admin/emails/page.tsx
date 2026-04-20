@@ -1,5 +1,5 @@
 import { Mail, Send, CheckCircle2, AlertTriangle, Clock3, Users } from 'lucide-react';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { prisma } from '@/lib/prisma';
 import { formatDate, timeAgo } from '@/lib/format';
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
  * emails are triggered automatically by the app's lifecycle events.
  */
 export default async function AdminEmailsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('emails');
 
   // Get users with upcoming trial endings (3 days)
   const trialEndingSoon = await prisma.user.findMany({
@@ -89,7 +89,7 @@ export default async function AdminEmailsPage() {
   const failedPayments = recentBillingEvents.filter((e) => e.status === 'failed').length;
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/emails">
+    <AdminShell adminName={admin.name} activePath="/admin/emails" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
           Email & Notifications

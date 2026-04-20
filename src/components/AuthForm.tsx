@@ -58,6 +58,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
       const role =
         data?.data?.role ??
         (data && typeof data === 'object' && 'role' in data ? data.role : undefined);
+      const kind = data?.data?.kind;
+      const redirectTo = data?.data?.redirectTo;
       const requiresVerification =
         data?.data?.requiresVerification ?? data?.requiresVerification;
 
@@ -69,6 +71,8 @@ export function AuthForm({ mode }: { mode: Mode }) {
         dest = next;
       }
       if (role === 'ADMIN') dest = '/admin/dashboard';
+      // Admin staff get redirected to admin dashboard
+      if (kind === 'admin_staff' && redirectTo) dest = redirectTo;
 
       router.push(dest);
       router.refresh();

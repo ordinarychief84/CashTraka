@@ -1,4 +1,4 @@
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { prisma } from '@/lib/prisma';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { SupportManager } from '@/components/admin/SupportManager';
@@ -6,7 +6,7 @@ import { SupportManager } from '@/components/admin/SupportManager';
 export const dynamic = 'force-dynamic';
 
 export default async function SupportPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('support');
 
   // Fetch tickets with stats
   const [tickets, stats] = await Promise.all([
@@ -39,7 +39,7 @@ export default async function SupportPage() {
   });
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/support">
+    <AdminShell adminName={admin.name} activePath="/admin/support" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Support Tickets</h1>
         <p className="text-sm text-slate-500">

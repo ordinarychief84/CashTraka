@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import {
   setOwnerSession,
   setStaffSession,
+  setAdminStaffSession,
   verifyPassword,
 } from '@/lib/auth';
 import { loginSchema } from '@/lib/validators';
@@ -100,6 +101,30 @@ export async function POST(req: Request) {
         email: staff.email,
         accessRole: staff.accessRole,
         businessType: ownerAcct.businessType,
+      });
+    }
+
+    // 3) Admin staff path — platform staff with assigned roles
+    const adminStaff = await prisma.adminStaff.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+    if (
+      adminStaff &&
+      adminStaff.status === 'active' &&
+      adminStaff.passwordHash &&
+      (await verifyPassword(password, adminStaff.passwordHash))
+    ) {
+      await prisma.adminStaff.update({
+        where: { id: adminStaff.id },
+        data: { lastLoginAt: new Date() },
+      });
+      await setAdminStaffSession(adminStaff.id);
+      return ok({
+        kind: 'admin_staff',
+        id: adminStaff.id,
+        email: adminStaff.email,
+        adminRole: adminStaff.adminRole,
+        redirectTo: '/admin/dashboard',
       });
     }
 

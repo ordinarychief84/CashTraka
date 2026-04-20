@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Search } from 'lucide-react';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { adminService } from '@/lib/services/admin.service';
 import { formatDate, timeAgo } from '@/lib/format';
@@ -18,11 +18,11 @@ type SP = {
 };
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: SP }) {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('users');
   const { rows, pagination } = await adminService.listUsers(searchParams);
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/users">
+    <AdminShell adminName={admin.name} activePath="/admin/users" adminRole={admin.adminRole}>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-ink">Users</h1>

@@ -1,5 +1,5 @@
 import { TrendingUp } from 'lucide-react';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { analyticsService } from '@/lib/services/analytics.service';
 import { ColumnChart } from '@/components/BarChart';
@@ -8,7 +8,7 @@ import { formatNaira } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 export default async function AdminAnalyticsPage() {
-  const admin = await requireAdmin();
+  const admin = await requireAdminSection('analytics');
   const data = await analyticsService.monthlyTrends(6);
 
   // Labels are YYYY-MM — turn into short month names.
@@ -19,7 +19,7 @@ export default async function AdminAnalyticsPage() {
   });
 
   return (
-    <AdminShell adminName={admin.name} activePath="/admin/analytics">
+    <AdminShell adminName={admin.name} activePath="/admin/analytics" adminRole={admin.adminRole}>
       <div className="mb-6">
         <h1 className="text-2xl font-black tracking-tight text-ink">Analytics</h1>
         <p className="mt-1 text-sm text-slate-600">Last 6 months of growth.</p>

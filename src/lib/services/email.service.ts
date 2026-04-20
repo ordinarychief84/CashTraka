@@ -1138,5 +1138,59 @@ export const emailService = {
     });
   },
 
+  async sendStaffInvite(args: {
+    to: string;
+    name: string;
+    role: string;
+    inviteUrl: string;
+    invitedBy: string;
+  }): Promise<SendResult> {
+    const roleLabel = args.role
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
+    const body = `
+      <h2 style="margin:0 0 8px;font-size:22px;color:#1A1A1A;">
+        You're invited to join CashTraka
+      </h2>
+
+      <p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6;">
+        Hi ${args.name},
+      </p>
+
+      <p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6;">
+        <strong>${args.invitedBy}</strong> has invited you to join the CashTraka
+        platform as a <strong>${roleLabel}</strong>.
+      </p>
+
+      <p style="margin:0 0 24px;font-size:15px;color:#475569;line-height:1.6;">
+        Click the button below to set your password and activate your account.
+        This link expires in 7 days.
+      </p>
+
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${args.inviteUrl}"
+           style="display:inline-block;background:#8BD91E;color:#1A1A1A;font-weight:700;
+                  font-size:15px;padding:14px 32px;border-radius:8px;text-decoration:none;">
+          Accept Invitation
+        </a>
+      </div>
+
+      <p style="margin:24px 0 0;font-size:13px;color:#94A3B8;line-height:1.5;">
+        If the button doesn't work, copy and paste this link into your browser:<br/>
+        <a href="${args.inviteUrl}" style="color:#00B8E8;word-break:break-all;">
+          ${args.inviteUrl}
+        </a>
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: `You're invited to CashTraka as ${roleLabel}`,
+      html: layout(body, {
+        preheader: `${args.invitedBy} invited you to join CashTraka as ${roleLabel}.`,
+      }),
+    });
+  },
+
   raw: send,
 };

@@ -9,6 +9,8 @@ import { emailService } from '@/lib/services/email.service';
  *   1. Signed up 30+ minutes ago
  *   2. Haven't received the delayed welcome email yet
  *   3. Signed up within the last 24 hours (avoid spamming old users)
+ *   4. Have completed onboarding (welcome email sent on onboarding completion,
+ *      this cron sends the richer delayed version)
  *
  * Sends a warm, marketing-quality welcome email then marks them as sent.
  */
@@ -33,6 +35,7 @@ export async function GET(req: Request) {
           lte: thirtyMinAgo, // but at least 30 min ago
         },
         welcomeEmailSentAt: null, // haven't received it yet
+        onboardingCompleted: true, // only after onboarding is done
         isSuspended: false,
       },
       select: {

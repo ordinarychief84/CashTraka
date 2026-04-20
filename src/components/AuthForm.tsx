@@ -20,6 +20,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [businessType, setBusinessType] = useState<BusinessType>(
     initialType === 'property_manager' ? 'property_manager' : 'seller',
   );
@@ -42,8 +43,16 @@ export function AuthForm({ mode }: { mode: Mode }) {
     };
     if (mode === 'signup') {
       payload.name = String(form.get('name') || '');
+      payload.confirmPassword = String(form.get('confirmPassword') || '');
       payload.businessType = businessType;
       payload.termsAccepted = termsAccepted;
+
+      // Client-side password match check
+      if (payload.password !== payload.confirmPassword) {
+        setError('Passwords do not match');
+        setSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -155,6 +164,33 @@ export function AuthForm({ mode }: { mode: Mode }) {
           </button>
         </div>
       </div>
+
+      {/* Confirm password — signup only */}
+      {mode === 'signup' && (
+        <div>
+          <label htmlFor="confirmPassword" className="label">Confirm password</label>
+          <div className="relative">
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirm ? 'text' : 'password'}
+              className="input pr-10"
+              required
+              minLength={8}
+              placeholder="Re-enter your password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+              tabIndex={-1}
+              aria-label={showConfirm ? 'Hide password' : 'Show password'}
+            >
+              {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Terms & Privacy checkbox — signup only */}
       {mode === 'signup' && (

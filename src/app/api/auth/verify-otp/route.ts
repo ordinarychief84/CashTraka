@@ -43,7 +43,7 @@ export async function POST(req: Request) {
         userId: user.id,
         usedAt: null,
         expiresAt: { gt: new Date() },
-        attempts: { lt: 5 },
+        attempts: { lt: 3 },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         where: { id: verification.id },
         data: { attempts: { increment: 1 } },
       });
-      const remaining = 4 - verification.attempts;
+      const remaining = 2 - verification.attempts;
       return NextResponse.json(
         {
           error:

@@ -79,13 +79,9 @@ export async function POST(req: Request) {
     });
 
     // Send verification OTP email (fire-and-forget)
+    // Welcome email is sent later, after onboarding is completed
     emailService
       .sendVerificationOtp({ to: user.email, name: user.name, code: otp })
-      .catch(() => null);
-
-    // Also fire welcome email (separate from OTP)
-    emailService
-      .sendWelcome({ to: user.email, name: user.name, businessType: user.businessType })
       .catch(() => null);
 
     return ok({

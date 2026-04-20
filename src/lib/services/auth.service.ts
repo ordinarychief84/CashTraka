@@ -28,8 +28,7 @@ export const authService = {
     });
     await setSessionCookie(user.id);
 
-    // Fire-and-forget welcome email (non-blocking).
-    emailService.sendWelcome({ to: user.email, name: user.name }).catch(() => null);
+    // Welcome email is sent after onboarding is completed (not on signup)
 
     return {
       id: user.id,

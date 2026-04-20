@@ -4,8 +4,12 @@ export const signupSchema = z.object({
   name: z.string().trim().min(2, 'Enter your full name'),
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
   businessType: z.enum(['seller', 'property_manager']).optional().default('seller'),
   termsAccepted: z.boolean().optional().default(false),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
 export const loginSchema = z.object({

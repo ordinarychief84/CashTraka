@@ -56,6 +56,7 @@ export default async function NewPayLinkPage({
             amount: sp.amount || '',
             debtId: sp.debtId || '',
           }}
+          defaultBusinessName={user.businessName || ''}
         />
       </div>
     </AppShell>

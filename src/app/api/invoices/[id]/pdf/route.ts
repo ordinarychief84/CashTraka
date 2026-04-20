@@ -22,6 +22,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     include: {
       user: {
         select: {
+          name: true,
           businessName: true,
           businessAddress: true,
           whatsappNumber: true,
@@ -36,7 +37,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const data: InvoiceData = {
-    business: invoice.user.businessName || 'Seller',
+    business: invoice.user.businessName || invoice.user.name || 'Seller',
     businessAddress: invoice.user.businessAddress,
     whatsappNumber: invoice.user.whatsappNumber
       ? displayPhone(invoice.user.whatsappNumber)

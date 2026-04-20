@@ -14,14 +14,14 @@ export default async function ReceiptPage({ params }: Props) {
     where: { id: params.id },
     include: {
       user: {
-        select: { businessName: true, whatsappNumber: true, receiptFooter: true },
+        select: { name: true, businessName: true, whatsappNumber: true, receiptFooter: true },
       },
       items: true,
     },
   });
   if (!payment) notFound();
 
-  const business = payment.user.businessName || 'Seller';
+  const business = payment.user.businessName || payment.user.name || 'Seller';
   const hasItems = payment.items.length > 0;
   const itemsTotal = payment.items.reduce(
     (s, it) => s + it.unitPrice * it.quantity,

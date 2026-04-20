@@ -29,6 +29,7 @@ async function buildReceiptData(
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
+      name: true,
       businessName: true,
       businessAddress: true,
       whatsappNumber: true,
@@ -46,7 +47,7 @@ async function buildReceiptData(
     if (!payment || payment.userId !== userId) throw Err.notFound('Payment not found');
     return {
       data: {
-        business: user.businessName || 'Seller',
+        business: user.businessName || user.name || 'Seller',
         businessAddress: user.businessAddress,
         whatsappNumber: user.whatsappNumber ? displayPhone(user.whatsappNumber) : null,
         receiptFooter: user.receiptFooter,
@@ -74,7 +75,7 @@ async function buildReceiptData(
     if (!debt || debt.userId !== userId) throw Err.notFound('Debt not found');
     return {
       data: {
-        business: user.businessName || 'Seller',
+        business: user.businessName || user.name || 'Seller',
         businessAddress: user.businessAddress,
         whatsappNumber: user.whatsappNumber ? displayPhone(user.whatsappNumber) : null,
         receiptFooter: user.receiptFooter,
@@ -223,7 +224,7 @@ export const receiptService = {
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { businessName: true },
+      select: { name: true, businessName: true },
     });
 
     // Render fresh PDF for the attachment — avoids stale storage issues.
@@ -236,7 +237,7 @@ export const receiptService = {
 
     const result = await emailService.sendReceipt({
       to,
-      business: user?.businessName || 'CashTraka',
+      business: user?.businessName || user?.name || 'CashTraka',
       customerName,
       receiptNumber: receipt.receiptNumber,
       amount: data.amount,

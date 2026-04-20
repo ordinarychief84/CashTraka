@@ -17,17 +17,14 @@ if errorlevel 1 (
 )
 
 :: Commit
-git commit -m "feat: blog, settings rebuild, admin RBAC with staff invite flow
+git commit -m "feat: blog, settings, RBAC, PayLink fixes, business name on receipts
 
 - Blog: admin CRUD, public listing + post pages, footer nav
 - Settings: tabbed sidebar (Profile, Account, Billing, Appearance, Danger Zone)
-- RBAC: AdminStaff model with 6 roles (Super Admin, Blog Manager, Billing Manager, Support Agent, Property Manager, Reports Viewer)
-- RBAC: email invite flow — admin sends invite, staff sets password, logs in with role-restricted access
-- RBAC: role-filtered AdminShell navigation — each role sees only their allowed sections
-- RBAC: admin-rbac.ts permission matrix, admin-auth.ts helpers, requireAdminSection() guard
-- RBAC: StaffManager UI with invite modal, role/status management, permissions reference
-- Login: extended to detect admin_staff and redirect to /admin/dashboard
-- All 11 admin pages updated to use role-based access control
+- RBAC: AdminStaff model, 6 roles, email invite flow, role-filtered navigation
+- PayLink: fix unique constraint bug with retry on linkNumber collision
+- PayLink: add optional Business Name field to creation form
+- Receipts/Invoices: show business name as seller instead of generic Seller
 - Prisma: added BlogPost + AdminStaff models
 - Cron: fixed run-reminders schedule for Vercel Hobby plan"
 

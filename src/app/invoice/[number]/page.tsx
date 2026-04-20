@@ -15,6 +15,7 @@ export default async function PublicInvoicePage({ params }: Props) {
     include: {
       user: {
         select: {
+          name: true,
           businessName: true,
           whatsappNumber: true,
           businessAddress: true,
@@ -28,7 +29,7 @@ export default async function PublicInvoicePage({ params }: Props) {
   });
   if (!invoice) notFound();
 
-  const business = invoice.user.businessName || 'Seller';
+  const business = invoice.user.businessName || invoice.user.name || 'Seller';
   const hasBank = invoice.user.bankName && invoice.user.bankAccountNumber;
 
   const StatusIcon = invoice.status === 'PAID' ? Check : invoice.status === 'CANCELLED' ? XCircle : Clock3;

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2, Mail } from 'lucide-react';
+import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2, Mail, Building2 } from 'lucide-react';
 
 type Customer = { id: string; name: string; phone: string };
 type DebtItem = { id: string; customerName: string; phone: string; remaining: number };
@@ -13,14 +13,16 @@ type Props = {
   customers: Customer[];
   debts: DebtItem[];
   prefill?: Prefill;
+  defaultBusinessName?: string;
 };
 
-export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
+export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessName }: Props) {
   const router = useRouter();
   const [customerName, setCustomerName] = useState(prefill?.name || '');
   const [customerPhone, setCustomerPhone] = useState(prefill?.phone || '');
   const [amount, setAmount] = useState(prefill?.amount || '');
   const [description, setDescription] = useState('');
+  const [businessName, setBusinessName] = useState(defaultBusinessName || '');
   const [customerId, setCustomerId] = useState('');
   const [debtId, setDebtId] = useState(prefill?.debtId || '');
   const [loading, setLoading] = useState(false);
@@ -105,9 +107,10 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
     if (!phone.startsWith('+')) phone = '+' + phone;
     phone = phone.replace('+', '');
 
+    const biz = businessName.trim() || 'CashTraka';
     const msg =
       `Hi ${customerName},\n\n` +
-      `You have a payment request of ₦${Number(amount).toLocaleString('en-NG')}.\n` +
+      `You have a payment request of ₦${Number(amount).toLocaleString('en-NG')} from ${biz}.\n` +
       (description ? `For: ${description}\n` : '') +
       `\nPay here: ${payUrl}\n\n— Sent via CashTraka`;
     const waLink = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
@@ -308,9 +311,19 @@ export function CreatePayLinkForm({ customers, debts, prefill }: Props) {
         />
       </div>
 
-      {error && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
-      )}
+      <div>
+        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+          <Building2 size={14} className="inline mr-1" />
+          Business Name (optional)
+        </label>
+        <input
+          type="text"
+          value={businessName}
+          onChange={(e) => setBusinessName(e.target.value)}
+          placeholder="e.g. My Store Name"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+        />
+      </div>
 
       <button
         type="submit"

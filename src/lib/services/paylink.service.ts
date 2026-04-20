@@ -7,14 +7,36 @@ import { prisma } from '@/lib/prisma';
 async function nextLinkNumber(userId: string): Promise<string> {
   const latest = await prisma.paymentRequest.findFirst({
     where: { userId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { linkNumber: 'desc' },
     select: { linkNumber: true },
   });
-  if (latest?.linkNumber) {
-    const num = parseInt(latest.linkNumber.replace('PLK-', ''), 10) || 0;
-    return `PLK-${String(num + 1).padStart(5, '0')}`;
+  const base = latest?.linkNumber
+    ? (parseInt(latest.linkNumber.replace('PLK-', ''), 10) || 0) + 1
+    : 1;
+  return `PLK-${String(base).padStart(5, '0')}`;
+}
+
+/** Create a PaymentRequest with retry on linkNumber collision */
+async function createWithRetry(
+  data: Parameters<typeof prisma.paymentRequest.create>[0]['data'],
+  userId: string,
+  maxRetries = 3,
+) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await prisma.paymentRequest.create({ data });
+    } catch (err: unknown) {
+      const isUniqueViolation =
+        err instanceof Error &&
+        err.message.includes('Unique constraint failed') &&
+        err.message.includes('linkNumber');
+      if (!isUniqueViolation || attempt === maxRetries) throw err;
+      // Regenerate linkNumber and retry
+      const newNumber = await nextLinkNumber(userId);
+      data = { ...data, linkNumber: newNumber };
+    }
   }
-  return 'PLK-00001';
+  throw new Error('Failed to generate unique link number');
 }
 
 export function whatsappPayLink(args: {
@@ -60,8 +82,8 @@ export const paylinkService = {
       ? new Date(Date.now() + args.expiresInDays * 86400000)
       : new Date(Date.now() + 30 * 86400000);
 
-    return prisma.paymentRequest.create({
-      data: {
+    return createWithRetry(
+      {
         userId: args.userId,
         customerId: args.customerId || null,
         customerName: args.customerName,
@@ -72,7 +94,8 @@ export const paylinkService = {
         linkNumber,
         expiresAt,
       },
-    });
+      args.userId,
+    );
   },
 
   async list(userId: string, opts?: { status?: string; take?: number; skip?: number }) {

@@ -1,43 +1,44 @@
 import { Suspense } from 'react';
 import { guardWithPermission } from '@/lib/guard-rbac';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { SettingsForm } from '@/components/SettingsForm';
-import { BillingCard } from '@/components/billing/BillingCard';
-import { UpgradeModal } from '@/components/billing/UpgradeModal';
+import { SettingsShell } from '@/components/settings/SettingsShell';
 import { billingService } from '@/lib/services/billing.service';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SettingsPage() {
   const user = await guardWithPermission('settings.write');
-
-  // Cheap check: if their trial ended, downgrade them before rendering the
-  // Billing card so the UI reflects reality.
   await billingService.expireTrialIfNeeded(user);
 
+  const initialProfile = {
+    name: user.name || '',
+    businessName: user.businessName || '',
+    whatsappNumber: user.whatsappNumber || '',
+    receiptFooter: user.receiptFooter || '',
+    businessType: user.businessType || 'seller',
+  };
+
+  const initialAccount = {
+    email: user.email,
+    bankName: user.bankName || '',
+    bankAccountNumber: user.bankAccountNumber || '',
+    bankAccountName: user.bankAccountName || '',
+  };
+
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
-      <PageHeader title="Settings" subtitle={user.email} />
-      <div className="space-y-6">
-        {/* Suspense gates the useSearchParams() inside BillingCard for SSR safety. */}
-        <Suspense fallback={<div className="card h-28 p-5" />}>
-          <BillingCard />
-        </Suspense>
-        <SettingsForm
-          initial={{
-            businessName: user.businessName || '',
-            whatsappNumber: user.whatsappNumber || '',
-            receiptFooter: user.receiptFooter || '',
-            bankName: user.bankName || '',
-            bankAccountNumber: user.bankAccountNumber || '',
-            bankAccountName: user.bankAccountName || '',
-            businessType: user.businessType || 'seller',
-          }}
+    <AppShell
+      businessName={user.businessName}
+      userName={user.name}
+      businessType={user.businessType}
+      accessRole={user.accessRole}
+      principalName={user.principalName}
+    >
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl bg-slate-100" />}>
+        <SettingsShell
+          initialProfile={initialProfile}
+          initialAccount={initialAccount}
+          businessType={user.businessType || 'seller'}
         />
-      </div>
-      <Suspense fallback={null}>
-        <UpgradeModal />
       </Suspense>
     </AppShell>
   );

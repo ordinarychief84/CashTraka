@@ -1,0 +1,149 @@
+'use client';
+
+import { useState } from 'react';
+import { AlertTriangle, Trash2, Download } from 'lucide-react';
+
+export function DangerZoneTab() {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  async function handleDelete() {
+    if (confirmText !== 'DELETE') return;
+    setDeleting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/user/account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'DELETE' }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Could not delete account');
+      }
+      // Redirect to home after deletion
+      window.location.href = '/';
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Export before deleting */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <Download size={18} className="text-slate-400" />
+            Export Your Data
+          </h2>
+          <p className="text-sm text-slate-500">
+            Download all your data before making any permanent changes.
+          </p>
+        </div>
+        <div className="p-6">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <a
+              href="/api/export/payments"
+              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <span>Payments CSV</span>
+              <Download size={14} className="text-slate-400" />
+            </a>
+            <a
+              href="/api/export/debts"
+              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <span>Debts CSV</span>
+              <Download size={14} className="text-slate-400" />
+            </a>
+            <a
+              href="/api/export/customers"
+              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <span>Customers CSV</span>
+              <Download size={14} className="text-slate-400" />
+            </a>
+            <a
+              href="/api/export/expenses"
+              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <span>Expenses CSV</span>
+              <Download size={14} className="text-slate-400" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Delete account */}
+      <div className="rounded-xl border-2 border-red-200 bg-red-50/30 shadow-sm">
+        <div className="border-b border-red-200 px-6 py-4">
+          <h2 className="flex items-center gap-2 text-base font-bold text-red-700">
+            <AlertTriangle size={18} />
+            Delete Account
+          </h2>
+          <p className="text-sm text-red-600">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+        </div>
+        <div className="p-6">
+          {!showConfirm ? (
+            <button
+              onClick={() => setShowConfirm(true)}
+              className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            >
+              <Trash2 size={15} />
+              Delete my account
+            </button>
+          ) : (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-800">
+                <strong>This will permanently delete:</strong>
+                <ul className="mt-2 ml-4 list-disc space-y-1 text-xs">
+                  <li>All your customers, payments, and debts</li>
+                  <li>All your products and expenses</li>
+                  <li>All your PayLinks and collection data</li>
+                  <li>Your account and business profile</li>
+                </ul>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-red-700 mb-1.5">
+                  Type <span className="font-mono bg-red-100 px-1 rounded">DELETE</span> to confirm
+                </label>
+                <input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  className="w-full rounded-lg border border-red-300 px-3 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                  placeholder="DELETE"
+                />
+              </div>
+              {error && (
+                <p className="text-sm text-red-700">{error}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setShowConfirm(false); setConfirmText(''); setError(''); }}
+                  className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={confirmText !== 'DELETE' || deleting}
+                  className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  <Trash2 size={15} />
+                  {deleting ? 'Deleting...' : 'Permanently delete account'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

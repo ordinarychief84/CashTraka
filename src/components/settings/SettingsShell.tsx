@@ -1,0 +1,97 @@
+'use client';
+
+import { useState } from 'react';
+import { User, Shield, CreditCard, Palette, AlertTriangle } from 'lucide-react';
+import { ProfileTab } from './ProfileTab';
+import { AccountTab } from './AccountTab';
+import { BillingTab } from './BillingTab';
+import { AppearanceTab } from './AppearanceTab';
+import { DangerZoneTab } from './DangerZoneTab';
+
+type Tab = 'profile' | 'account' | 'billing' | 'appearance' | 'danger';
+
+const TABS: { id: Tab; label: string; icon: typeof User }[] = [
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'account', label: 'Account', icon: Shield },
+  { id: 'billing', label: 'Billing', icon: CreditCard },
+  { id: 'appearance', label: 'Appearance', icon: Palette },
+  { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
+];
+
+type Props = {
+  initialProfile: {
+    name: string;
+    businessName: string;
+    whatsappNumber: string;
+    receiptFooter: string;
+    businessType: string;
+  };
+  initialAccount: {
+    email: string;
+    bankName: string;
+    bankAccountNumber: string;
+    bankAccountName: string;
+  };
+  businessType: string;
+};
+
+export function SettingsShell({ initialProfile, initialAccount, businessType }: Props) {
+  const [activeTab, setActiveTab] = useState<Tab>('profile');
+
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-slate-900">Settings</h1>
+        <p className="text-sm text-slate-500">Manage your account, profile, and preferences</p>
+      </div>
+
+      <div className="flex flex-col gap-6 lg:flex-row">
+        {/* Sidebar */}
+        <nav className="w-full shrink-0 lg:w-56">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={
+                    'flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors first:rounded-t-xl last:rounded-b-xl ' +
+                    (active
+                      ? 'bg-green-50 text-green-700 border-l-2 border-green-600'
+                      : tab.id === 'danger'
+                        ? 'text-red-500 hover:bg-red-50 hover:text-red-600'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
+                  }
+                >
+                  <Icon size={16} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          {activeTab === 'profile' && (
+            <ProfileTab initial={initialProfile} />
+          )}
+          {activeTab === 'account' && (
+            <AccountTab initial={initialAccount} businessType={businessType} />
+          )}
+          {activeTab === 'billing' && (
+            <BillingTab />
+          )}
+          {activeTab === 'appearance' && (
+            <AppearanceTab />
+          )}
+          {activeTab === 'danger' && (
+            <DangerZoneTab />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

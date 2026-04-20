@@ -128,7 +128,7 @@ export function PlatformSettings({ initialSettings }: PlatformSettingsProps) {
                     }
                     disabled={busy}
                   />
-                  <div className="peer h-6 w-11 rounded-full bg-slate-200 transition after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:bg-lime-400 peer-checked:after:translate-x-5 peer-disabled:opacity-50" />
+                  <div className="peer h-6 w-11 rounded-full bg-slate-200 transition after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition peer-checked:bg-success-400 peer-checked:after:translate-x-5 peer-disabled:opacity-50" />
                 </label>
                 <span className="text-sm text-slate-600">
                   {settings[config.key] === 'true' ? 'Enabled' : 'Disabled'}
@@ -181,7 +181,7 @@ export function PlatformSettings({ initialSettings }: PlatformSettingsProps) {
           {busy ? 'Saving...' : 'Save Settings'}
         </button>
         {hasChanges && (
-          <span className="flex items-center text-xs text-amber-600">
+          <span className="flex items-center text-xs text-owed-600">
             You have unsaved changes
           </span>
         )}

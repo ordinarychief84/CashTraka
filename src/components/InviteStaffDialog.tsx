@@ -165,7 +165,7 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
           ) : (
             <>
               {isRevoke && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                <div className="rounded-lg border border-owed-200 bg-owed-50 p-3 text-xs text-owed-700">
                   {staff.name} currently has <strong>{ROLE_LABELS[staff.accessRole]}</strong>{' '}
                   access{staff.hasLoggedIn ? ' and has logged in before.' : '.'} You can
                   change their role or revoke access.

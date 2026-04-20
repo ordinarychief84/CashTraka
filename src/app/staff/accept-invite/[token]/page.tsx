@@ -107,7 +107,7 @@ export default function AcceptInvitePage() {
 
           {status === 'expired' && (
             <div className="text-center py-8">
-              <AlertCircle size={40} className="mx-auto text-amber-400 mb-3" />
+              <AlertCircle size={40} className="mx-auto text-owed-400 mb-3" />
               <h2 className="text-lg font-bold text-slate-900">Invitation Expired</h2>
               <p className="mt-2 text-sm text-slate-500">
                 This invitation has expired. Please ask your admin to resend it.
@@ -120,7 +120,7 @@ export default function AcceptInvitePage() {
 
           {status === 'success' && (
             <div className="text-center py-8">
-              <CheckCircle size={40} className="mx-auto text-green-500 mb-3" />
+              <CheckCircle size={40} className="mx-auto text-success-500 mb-3" />
               <h2 className="text-lg font-bold text-slate-900">Account Activated</h2>
               <p className="mt-2 text-sm text-slate-500">
                 Your account is ready. Redirecting you to login...
@@ -134,7 +134,7 @@ export default function AcceptInvitePage() {
           {status === 'valid' && invite && (
             <>
               <div className="text-center mb-6">
-                <ShieldCheck size={32} className="mx-auto text-lime-500 mb-2" />
+                <ShieldCheck size={32} className="mx-auto text-success-500 mb-2" />
                 <h2 className="text-lg font-bold text-slate-900">Welcome to CashTraka</h2>
                 <p className="mt-1 text-sm text-slate-500">Set your password to activate your account</p>
               </div>

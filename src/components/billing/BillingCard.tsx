@@ -349,7 +349,7 @@ function PlanPill({ status }: { status: Status }) {
       : kind === 'past_due'
         ? 'bg-red-50 text-red-700'
         : kind === 'cancelled'
-          ? 'bg-amber-50 text-amber-700'
+          ? 'bg-owed-50 text-owed-700'
           : 'bg-slate-100 text-slate-600';
   const label =
     kind === 'free'

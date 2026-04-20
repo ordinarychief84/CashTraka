@@ -125,9 +125,9 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
       {expiringCount > 0 && filter !== 'expiring' && (
         <Link
           href="/rent?filter=expiring"
-          className="mb-4 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
+          className="mb-4 flex items-center gap-3 rounded-xl border border-owed-200 bg-owed-50 px-4 py-3 text-sm font-medium text-owed-800 transition hover:bg-owed-100"
         >
-          <AlertTriangle size={18} className="shrink-0 text-amber-600" />
+          <AlertTriangle size={18} className="shrink-0 text-owed-600" />
           <span>
             <strong>{expiringCount} lease{expiringCount > 1 ? 's' : ''}</strong> expiring soon or already expired — tap to view
           </span>
@@ -207,7 +207,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold',
-                            t.lease.tone === 'warn' && 'bg-amber-100 text-amber-800',
+                            t.lease.tone === 'warn' && 'bg-owed-100 text-owed-800',
                             t.lease.tone === 'danger' && 'bg-red-100 text-red-800',
                           )}
                         >
@@ -230,7 +230,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
                         href={waUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-green-600 hover:bg-green-50"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-success-600 hover:bg-success-50"
                         title="Send rent reminder"
                       >
                         <MessageCircle size={18} />

@@ -99,7 +99,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="truncate font-semibold text-ink group-hover:text-brand-600">{u.name}</span>
-                          {u.role === 'ADMIN' && (<span className="rounded bg-slate-900 px-1.5 py-0.5 text-[9px] font-bold text-lime-400">ADMIN</span>)}
+                          {u.role === 'ADMIN' && (<span className="rounded bg-slate-900 px-1.5 py-0.5 text-[9px] font-bold text-success-400">ADMIN</span>)}
                         </div>
                         <div className="truncate text-xs text-slate-500">{u.email}</div>
                       </div>

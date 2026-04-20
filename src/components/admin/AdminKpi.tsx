@@ -20,13 +20,13 @@ type Props = {
 const TONE_VALUE: Record<NonNullable<Props['tone']>, string> = {
   brand: 'text-brand-700',
   danger: 'text-red-700',
-  warning: 'text-amber-700',
+  warning: 'text-owed-700',
   neutral: 'text-ink',
 };
 const TONE_ICON: Record<NonNullable<Props['tone']>, string> = {
   brand: 'bg-brand-50 text-brand-600',
   danger: 'bg-red-50 text-red-600',
-  warning: 'bg-amber-50 text-amber-700',
+  warning: 'bg-owed-50 text-owed-700',
   neutral: 'bg-slate-100 text-slate-500',
 };
 

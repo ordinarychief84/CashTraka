@@ -17,7 +17,7 @@ if errorlevel 1 (
 )
 
 :: Commit
-git commit -m "feat: implement full audit fix plan (P1-P3)
+git commit -m "feat: audit fix plan (P1-P3) + end-to-end brand color system
 
 P1 fixes:
 - Wire email channel in auto follow-up reminder cron
@@ -34,7 +34,13 @@ P2 fixes:
 
 P3 fixes:
 - Blog SEO: OpenGraph + Twitter Card metadata on post pages
-- Fixed truncated files and encoding issues across 11 source files"
+- Fixed truncated files and encoding issues across 11 source files
+
+Brand color consistency:
+- 444+ Tailwind class replacements across 56 source files
+- green/emerald/lime -> success-*, blue/cyan/teal -> brand-*, amber/yellow -> owed-*
+- Inline hex colors in email templates aligned to brand palette
+- Docs page link color updated to brand-600"
 
 if errorlevel 1 (
     echo [ERROR] git commit failed

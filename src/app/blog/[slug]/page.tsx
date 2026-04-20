@@ -68,7 +68,7 @@ export default async function BlogPostPage({ params }: Props) {
         <article className="mx-auto max-w-3xl px-4 py-10">
           {/* Category badge */}
           <div className="mb-4">
-            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+            <span className="rounded-full bg-success-100 px-3 py-1 text-xs font-bold text-success-700">
               {post.category.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
             </span>
           </div>
@@ -109,13 +109,13 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Excerpt highlight */}
           {post.excerpt && (
-            <p className="mt-8 border-l-4 border-green-400 pl-4 text-lg italic text-slate-600">
+            <p className="mt-8 border-l-4 border-success-400 pl-4 text-lg italic text-slate-600">
               {post.excerpt}
             </p>
           )}
 
           {/* Content — render as simple HTML paragraphs */}
-          <div className="prose prose-slate mt-8 max-w-none prose-headings:text-slate-900 prose-a:text-green-700 prose-a:no-underline hover:prose-a:underline">
+          <div className="prose prose-slate mt-8 max-w-none prose-headings:text-slate-900 prose-a:text-success-700 prose-a:no-underline hover:prose-a:underline">
             {post.content.split('\n').map((paragraph, i) => {
               const trimmed = paragraph.trim();
               if (!trimmed) return null;
@@ -156,7 +156,7 @@ export default async function BlogPostPage({ params }: Props) {
           )}
 
           {/* CTA */}
-          <div className="mt-10 rounded-xl border border-green-200 bg-green-50 p-6 text-center">
+          <div className="mt-10 rounded-xl border border-success-200 bg-success-50 p-6 text-center">
             <h3 className="text-lg font-bold text-slate-900">
               Ready to track your payments?
             </h3>

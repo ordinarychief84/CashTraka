@@ -117,8 +117,8 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
 
     return (
       <div className="rounded-xl border bg-white p-6 shadow-sm text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-          <Send size={24} className="text-green-600" />
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success-100">
+          <Send size={24} className="text-success-600" />
         </div>
         <h2 className="text-lg font-bold text-slate-900 mb-1">PayLink Created!</h2>
         <p className="text-sm text-slate-500 mb-4">{result.linkNumber}</p>
@@ -133,7 +133,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-success-600 px-4 py-3 text-sm font-semibold text-white hover:bg-success-700"
           >
             <MessageCircle size={18} />
             Send via WhatsApp
@@ -148,7 +148,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
                   value={customerEmailInput}
                   onChange={(e) => { setCustomerEmailInput(e.target.value); setEmailErr(''); }}
                   placeholder="Customer email address"
-                  className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none"
+                  className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-brand-400 focus:ring-1 focus:ring-brand-400 focus:outline-none"
                 />
                 <button
                   onClick={async () => {
@@ -177,7 +177,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
                     }
                   }}
                   disabled={emailSending}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
                 >
                   <Mail size={16} />
                   {emailSending ? 'Sending...' : 'Email'}
@@ -186,7 +186,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
               {emailErr && <p className="text-xs text-red-500 text-center">{emailErr}</p>}
             </div>
           ) : (
-            <div className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-700">
+            <div className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-50 border border-brand-200 px-4 py-3 text-sm font-semibold text-brand-700">
               <Mail size={16} />
               Email sent successfully!
             </div>
@@ -213,15 +213,15 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {debts.length > 0 && (
-        <div className="rounded-xl border bg-amber-50 p-4">
-          <p className="text-xs font-semibold text-amber-700 mb-2">Quick: Create from outstanding debt</p>
+        <div className="rounded-xl border bg-owed-50 p-4">
+          <p className="text-xs font-semibold text-owed-700 mb-2">Quick: Create from outstanding debt</p>
           <div className="flex flex-wrap gap-2">
             {debts.slice(0, 5).map((d) => (
               <button
                 key={d.id}
                 type="button"
                 onClick={() => selectDebt(d)}
-                className="rounded-lg border border-amber-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-amber-100"
+                className="rounded-lg border border-owed-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-owed-100"
               >
                 {d.customerName} · ₦{d.remaining.toLocaleString('en-NG')}
               </button>
@@ -246,7 +246,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
           }}
           onFocus={() => setShowCustomers(true)}
           placeholder="Type to search or enter new name"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500"
           required
         />
         {showCustomers && filtered.length > 0 && (
@@ -276,7 +276,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
           value={customerPhone}
           onChange={(e) => setCustomerPhone(e.target.value)}
           placeholder="08012345678"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500"
           required
         />
       </div>
@@ -292,7 +292,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
           onChange={(e) => setAmount(e.target.value)}
           placeholder="5000"
           min="1"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500"
           required
         />
       </div>
@@ -307,7 +307,7 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. Balance for shoes order"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500"
         />
       </div>
 
@@ -321,14 +321,14 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
           value={businessName}
           onChange={(e) => setBusinessName(e.target.value)}
           placeholder="e.g. My Store Name"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500"
         />
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success-600 py-3 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50"
       >
         <Send size={16} />
         {loading ? 'Creating...' : 'Create PayLink'}

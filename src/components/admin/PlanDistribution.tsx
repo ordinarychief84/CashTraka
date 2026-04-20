@@ -16,7 +16,7 @@ type Props = {
 const KNOWN_PLANS: { key: PlanName; color: string }[] = [
   { key: 'free', color: 'bg-slate-400' },
   { key: 'business', color: 'bg-brand-500' },
-  { key: 'business_plus', color: 'bg-emerald-600' },
+  { key: 'business_plus', color: 'bg-success-600' },
   { key: 'landlord', color: 'bg-indigo-500' },
   { key: 'estate_manager', color: 'bg-violet-600' },
 ];

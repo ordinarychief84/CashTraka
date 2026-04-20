@@ -506,7 +506,7 @@ export default async function ExpensesPage({
                     {Boolean(exp.taxDeductible) && (
                       <ShieldCheck
                         size={10}
-                        className="shrink-0 text-green-500"
+                        className="shrink-0 text-success-500"
                         aria-label="Tax deductible"
                       />
                     )}
@@ -607,8 +607,8 @@ function KindBadge({ kind }: { kind: 'business' | 'personal' }) {
       className={cn(
         'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase',
         kind === 'personal'
-          ? 'bg-amber-100 text-amber-700'
-          : 'bg-blue-50 text-blue-600',
+          ? 'bg-owed-100 text-owed-700'
+          : 'bg-brand-50 text-brand-600',
       )}
     >
       {kind === 'personal' ? (

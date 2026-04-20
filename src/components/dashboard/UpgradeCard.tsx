@@ -16,8 +16,8 @@ export function UpgradeCard({ plan, businessType }: Props) {
     return (
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white shadow-md">
         <div className="flex items-center gap-2">
-          <Sparkles size={18} className="text-lime-400" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-lime-300">
+          <Sparkles size={18} className="text-success-400" />
+          <span className="text-xs font-semibold uppercase tracking-wider text-success-300">
             Unlocked
           </span>
         </div>
@@ -40,12 +40,12 @@ export function UpgradeCard({ plan, businessType }: Props) {
       {/* Decorative blob */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-lime-400/20 blur-2xl"
+        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-success-400/20 blur-2xl"
       />
       <div className="relative">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-white/10">
-            <Sparkles size={14} className="text-lime-300" />
+            <Sparkles size={14} className="text-success-300" />
           </div>
           <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
             CashTraka
@@ -57,7 +57,7 @@ export function UpgradeCard({ plan, businessType }: Props) {
         <p className="mt-1.5 text-xs text-white/70">{subtitle}</p>
         <Link
           href="/settings?upgrade=1"
-          className="mt-4 inline-flex items-center justify-center rounded-full bg-lime-400 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-lime-300"
+          className="mt-4 inline-flex items-center justify-center rounded-full bg-success-400 px-4 py-2 text-xs font-bold text-slate-900 hover:bg-success-300"
         >
           Get access
         </Link>

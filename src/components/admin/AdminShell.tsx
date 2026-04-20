@@ -71,7 +71,7 @@ export function AdminShell({ children, adminName, activePath, adminRole = 'SUPER
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
             <Logo size="md" variant="light" />
           </Link>
-          <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
+          <span className="rounded-full bg-success-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
             {badgeLabel}
           </span>
         </div>
@@ -94,7 +94,7 @@ export function AdminShell({ children, adminName, activePath, adminRole = 'SUPER
         <div className="border-t border-slate-800 p-4">
           {adminName && (
             <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold text-slate-200">
-              <ShieldCheck size={12} className="text-lime-400" />
+              <ShieldCheck size={12} className="text-success-400" />
               {adminName}
             </div>
           )}
@@ -126,7 +126,7 @@ export function AdminShell({ children, adminName, activePath, adminRole = 'SUPER
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/admin/dashboard" className="inline-flex items-center gap-2">
             <Logo size="sm" variant="light" />
-            <span className="rounded-full bg-lime-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
+            <span className="rounded-full bg-success-400 px-2 py-0.5 text-[10px] font-bold text-slate-900">
               {badgeLabel}
             </span>
           </Link>
@@ -161,7 +161,7 @@ export function AdminShell({ children, adminName, activePath, adminRole = 'SUPER
                 className={
                   'flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ' +
                   (isActive
-                    ? 'bg-lime-400 text-slate-900'
+                    ? 'bg-success-400 text-slate-900'
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white')
                 }
               >
@@ -197,7 +197,7 @@ function SideLink({
       className={
         'flex items-center gap-3 rounded-lg px-3 py-2 font-medium transition ' +
         (active
-          ? 'bg-lime-400/10 text-lime-400'
+          ? 'bg-success-400/10 text-success-400'
           : 'text-slate-300 hover:bg-slate-800 hover:text-white')
       }
     >

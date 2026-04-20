@@ -51,18 +51,18 @@ const ROLE_OPTIONS = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  active: 'bg-green-100 text-green-800',
-  invited: 'bg-amber-100 text-amber-800',
+  active: 'bg-success-100 text-success-800',
+  invited: 'bg-owed-100 text-owed-800',
   suspended: 'bg-red-100 text-red-800',
   revoked: 'bg-slate-100 text-slate-500',
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: 'bg-slate-900 text-lime-400',
+  SUPER_ADMIN: 'bg-slate-900 text-success-400',
   BLOG_MANAGER: 'bg-purple-100 text-purple-800',
-  BILLING_MANAGER: 'bg-blue-100 text-blue-800',
+  BILLING_MANAGER: 'bg-brand-100 text-brand-800',
   SUPPORT_AGENT: 'bg-orange-100 text-orange-800',
-  PROPERTY_MANAGER: 'bg-teal-100 text-teal-800',
+  PROPERTY_MANAGER: 'bg-brand-100 text-brand-800',
   REPORTS_VIEWER: 'bg-slate-100 text-slate-700',
 };
 
@@ -206,10 +206,10 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
         </div>
       )}
       {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex gap-3">
-          <CheckCircle className="text-green-600 shrink-0" size={20} />
-          <p className="font-semibold text-green-900 flex-1">{success}</p>
-          <button onClick={() => setSuccess(null)}><X size={16} className="text-green-400" /></button>
+        <div className="rounded-xl border border-success-200 bg-success-50 p-4 flex gap-3">
+          <CheckCircle className="text-success-600 shrink-0" size={20} />
+          <p className="font-semibold text-success-900 flex-1">{success}</p>
+          <button onClick={() => setSuccess(null)}><X size={16} className="text-success-400" /></button>
         </div>
       )}
 
@@ -241,7 +241,7 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
                   {ROLE_OPTIONS.map((r) => (
                     <label key={r.value}
                       className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer transition ${
-                        inviteRole === r.value ? 'border-lime-400 bg-lime-50' : 'border-slate-200 hover:border-slate-300'
+                        inviteRole === r.value ? 'border-success-400 bg-success-50' : 'border-slate-200 hover:border-slate-300'
                       }`}>
                       <input type="radio" name="role" value={r.value}
                         checked={inviteRole === r.value}
@@ -289,14 +289,14 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
           {superAdmins.map((a) => (
             <div key={a.id} className="flex items-center justify-between px-6 py-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-lime-400">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-success-400">
                   {a.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-slate-900">
                     {a.name}
                     {a.id === currentAdminId && (
-                      <span className="ml-2 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-lime-400">YOU</span>
+                      <span className="ml-2 rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-success-400">YOU</span>
                     )}
                   </div>
                   <div className="text-xs text-slate-500">{a.email}</div>
@@ -341,8 +341,8 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
               <div key={s.id} className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 transition">
                 <div className="flex items-center gap-3">
                   <div className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${
-                    s.status === 'active' ? 'bg-lime-100 text-lime-800' :
-                    s.status === 'invited' ? 'bg-amber-100 text-amber-800' :
+                    s.status === 'active' ? 'bg-success-100 text-success-800' :
+                    s.status === 'invited' ? 'bg-owed-100 text-owed-800' :
                     'bg-slate-100 text-slate-500'
                   }`}>
                     {s.name.charAt(0).toUpperCase()}
@@ -382,7 +382,7 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
                             onClick={() => handleRoleChange(s.id, r.value)}
                             disabled={loading || s.adminRole === r.value}
                             className={`w-full px-3 py-1.5 text-left text-xs hover:bg-slate-50 flex items-center gap-2 ${
-                              s.adminRole === r.value ? 'text-lime-700 font-semibold bg-lime-50' : 'text-slate-700'
+                              s.adminRole === r.value ? 'text-success-700 font-semibold bg-success-50' : 'text-slate-700'
                             } disabled:opacity-50`}>
                             {s.adminRole === r.value && <CheckCircle size={12} />}
                             {r.label}
@@ -398,13 +398,13 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
                         )}
                         {s.status === 'active' && (
                           <button onClick={() => handleAction(s.id, 'suspend')} disabled={loading}
-                            className="w-full px-3 py-2 text-left text-xs text-amber-700 hover:bg-amber-50 flex items-center gap-2 disabled:opacity-50">
+                            className="w-full px-3 py-2 text-left text-xs text-owed-700 hover:bg-owed-50 flex items-center gap-2 disabled:opacity-50">
                             <Ban size={12} /> Suspend
                           </button>
                         )}
                         {s.status === 'suspended' && (
                           <button onClick={() => handleAction(s.id, 'activate')} disabled={loading}
-                            className="w-full px-3 py-2 text-left text-xs text-green-700 hover:bg-green-50 flex items-center gap-2 disabled:opacity-50">
+                            className="w-full px-3 py-2 text-left text-xs text-success-700 hover:bg-success-50 flex items-center gap-2 disabled:opacity-50">
                             <CheckCircle size={12} /> Reactivate
                           </button>
                         )}
@@ -458,7 +458,7 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
                   {(perms as boolean[]).map((allowed, i) => (
                     <td key={i} className="px-3 py-2 text-center">
                       {allowed ?
-                        <CheckCircle size={14} className="inline text-green-500" /> :
+                        <CheckCircle size={14} className="inline text-success-500" /> :
                         <span className="text-slate-300">&mdash;</span>}
                     </td>
                   ))}

@@ -56,15 +56,15 @@ type Props = {
 
 const priorityColors = {
   low: { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', badge: 'bg-slate-100 text-slate-800' },
-  medium: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
-  high: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' },
+  medium: { bg: 'bg-brand-50', border: 'border-brand-200', text: 'text-brand-700', badge: 'bg-brand-100 text-brand-800' },
+  high: { bg: 'bg-owed-50', border: 'border-owed-200', text: 'text-owed-700', badge: 'bg-owed-100 text-owed-800' },
   urgent: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' },
 };
 
 const statusColors = {
-  open: { bg: 'bg-amber-50', badge: 'bg-amber-100 text-amber-800' },
-  in_progress: { bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-800' },
-  resolved: { bg: 'bg-green-50', badge: 'bg-green-100 text-green-800' },
+  open: { bg: 'bg-owed-50', badge: 'bg-owed-100 text-owed-800' },
+  in_progress: { bg: 'bg-brand-50', badge: 'bg-brand-100 text-brand-800' },
+  resolved: { bg: 'bg-success-50', badge: 'bg-success-100 text-success-800' },
   closed: { bg: 'bg-slate-50', badge: 'bg-slate-100 text-slate-800' },
 };
 
@@ -73,9 +73,9 @@ function getPriorityIcon(priority: string) {
     case 'urgent':
       return <AlertCircle size={16} className="text-red-600" />;
     case 'high':
-      return <AlertCircle size={16} className="text-amber-600" />;
+      return <AlertCircle size={16} className="text-owed-600" />;
     case 'medium':
-      return <MessageSquare size={16} className="text-blue-600" />;
+      return <MessageSquare size={16} className="text-brand-600" />;
     case 'low':
       return <MessageSquare size={16} className="text-slate-600" />;
     default:
@@ -86,11 +86,11 @@ function getPriorityIcon(priority: string) {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'open':
-      return <Clock size={16} className="text-amber-600" />;
+      return <Clock size={16} className="text-owed-600" />;
     case 'in_progress':
-      return <Loader2 size={16} className="text-blue-600" />;
+      return <Loader2 size={16} className="text-brand-600" />;
     case 'resolved':
-      return <CheckCircle size={16} className="text-green-600" />;
+      return <CheckCircle size={16} className="text-success-600" />;
     case 'closed':
       return <CheckCircle size={16} className="text-slate-600" />;
     default:
@@ -289,14 +289,14 @@ export function SupportManager({ tickets, admins, stats, currentAdminId }: Props
                                       key={reply.id}
                                       className={`rounded-lg border-l-4 px-4 py-3 text-sm ${
                                         reply.isAdmin
-                                          ? 'border-l-lime-400 bg-lime-50'
+                                          ? 'border-l-success-400 bg-success-50'
                                           : 'border-l-slate-300 bg-slate-50'
                                       }`}
                                     >
                                       <div className="flex items-center justify-between mb-1">
                                         <span className="font-medium text-slate-900">
                                           {reply.user.name}
-                                          {reply.isAdmin && <span className="ml-2 text-xs font-semibold text-lime-600">ADMIN</span>}
+                                          {reply.isAdmin && <span className="ml-2 text-xs font-semibold text-success-600">ADMIN</span>}
                                         </span>
                                         <span className="text-xs text-slate-500">{formatDate(reply.createdAt)}</span>
                                       </div>
@@ -431,7 +431,7 @@ export function SupportManager({ tickets, admins, stats, currentAdminId }: Props
                 </div>
               )}
               {success && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                <div className="mt-4 p-3 bg-success-50 border border-success-200 rounded-lg text-sm text-success-700">
                   {success}
                 </div>
               )}

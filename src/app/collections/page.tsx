@@ -27,8 +27,8 @@ export const dynamic = 'force-dynamic';
 
 const PRIORITY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   urgent: { bg: 'bg-red-50', text: 'text-red-700', label: 'Urgent' },
-  high: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'High' },
-  medium: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Medium' },
+  high: { bg: 'bg-owed-50', text: 'text-owed-700', label: 'High' },
+  medium: { bg: 'bg-brand-50', text: 'text-brand-700', label: 'Medium' },
   low: { bg: 'bg-slate-50', text: 'text-slate-600', label: 'Low' },
 };
 
@@ -62,11 +62,11 @@ export default async function CollectionsPage() {
 
       {/* Collection Score + Reminders banner (paid plans) */}
       {collectionScore && (
-        <div className="mb-6 rounded-xl border bg-gradient-to-r from-green-50 to-emerald-50 p-5 shadow-sm">
+        <div className="mb-6 rounded-xl border bg-gradient-to-r from-success-50 to-success-50 p-5 shadow-sm">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
-                <span className="text-2xl font-bold text-green-700">{collectionScore.score}</span>
+                <span className="text-2xl font-bold text-success-700">{collectionScore.score}</span>
               </div>
               <div>
                 <p className="text-sm font-semibold text-slate-800">Collection Score</p>
@@ -103,9 +103,9 @@ export default async function CollectionsPage() {
       {/* Behavior breakdown (paid plans) */}
       {behaviorBreakdown && behaviorBreakdown.total > 0 && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          <div className="rounded-xl border bg-green-50 p-3 shadow-sm text-center">
-            <p className="text-lg font-bold text-green-700">{behaviorBreakdown.fastPayer}</p>
-            <p className="text-[10px] font-medium text-green-600">Fast Payers</p>
+          <div className="rounded-xl border bg-success-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-success-700">{behaviorBreakdown.fastPayer}</p>
+            <p className="text-[10px] font-medium text-success-600">Fast Payers</p>
           </div>
           <div className="rounded-xl border bg-red-50 p-3 shadow-sm text-center">
             <p className="text-lg font-bold text-red-700">{behaviorBreakdown.latePayer}</p>
@@ -119,9 +119,9 @@ export default async function CollectionsPage() {
             <p className="text-lg font-bold text-purple-700">{behaviorBreakdown.highValue}</p>
             <p className="text-[10px] font-medium text-purple-600">High Value</p>
           </div>
-          <div className="rounded-xl border bg-blue-50 p-3 shadow-sm text-center">
-            <p className="text-lg font-bold text-blue-700">{behaviorBreakdown.new}</p>
-            <p className="text-[10px] font-medium text-blue-600">New</p>
+          <div className="rounded-xl border bg-brand-50 p-3 shadow-sm text-center">
+            <p className="text-lg font-bold text-brand-700">{behaviorBreakdown.new}</p>
+            <p className="text-[10px] font-medium text-brand-600">New</p>
           </div>
         </div>
       )}
@@ -136,13 +136,13 @@ export default async function CollectionsPage() {
           <p className="text-2xl font-bold text-red-700">{queue.urgentCount}</p>
           <p className="text-xs text-red-600">Urgent</p>
         </div>
-        <div className="rounded-xl border bg-amber-50 p-4 shadow-sm">
-          <p className="text-2xl font-bold text-amber-700">{queue.highCount}</p>
-          <p className="text-xs text-amber-600">High</p>
+        <div className="rounded-xl border bg-owed-50 p-4 shadow-sm">
+          <p className="text-2xl font-bold text-owed-700">{queue.highCount}</p>
+          <p className="text-xs text-owed-600">High</p>
         </div>
-        <div className="rounded-xl border bg-blue-50 p-4 shadow-sm">
-          <p className="text-2xl font-bold text-blue-700">{queue.mediumCount}</p>
-          <p className="text-xs text-blue-600">Medium</p>
+        <div className="rounded-xl border bg-brand-50 p-4 shadow-sm">
+          <p className="text-2xl font-bold text-brand-700">{queue.mediumCount}</p>
+          <p className="text-xs text-brand-600">Medium</p>
         </div>
         <div className="rounded-xl border bg-slate-50 p-4 shadow-sm">
           <p className="text-2xl font-bold text-slate-600">{queue.lowCount}</p>
@@ -161,7 +161,7 @@ export default async function CollectionsPage() {
 
         {queue.items.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <Check size={32} className="mx-auto mb-3 text-green-400" />
+            <Check size={32} className="mx-auto mb-3 text-success-400" />
             <p className="text-sm font-medium text-slate-700">All clear!</p>
             <p className="text-xs text-slate-500 mt-1">
               No outstanding collections at the moment.
@@ -207,7 +207,7 @@ export default async function CollectionsPage() {
                       {item.daysOverdue > 0 && ` · ${item.daysOverdue} day${item.daysOverdue > 1 ? 's' : ''} overdue`}
                       {item.amountPaid > 0 && ` · ${formatNaira(item.amountPaid)} paid`}
                     </p>
-                    <p className="mt-1.5 text-xs text-amber-700 bg-amber-50 inline-block rounded px-2 py-0.5">
+                    <p className="mt-1.5 text-xs text-owed-700 bg-owed-50 inline-block rounded px-2 py-0.5">
                       {item.suggestedAction}
                     </p>
                   </div>

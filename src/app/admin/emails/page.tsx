@@ -181,7 +181,7 @@ export default async function AdminEmailsPage() {
         {/* ── Trial ending soon ── */}
         <section className="card p-5">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
-            <Clock3 size={16} className="text-amber-600" />
+            <Clock3 size={16} className="text-owed-600" />
             Trials ending soon
           </h2>
           {trialEndingSoon.length === 0 ? (
@@ -201,7 +201,7 @@ export default async function AdminEmailsPage() {
                         {u.email} · {PLAN_LABELS[u.plan as keyof typeof PLAN_LABELS] ?? u.plan}
                       </div>
                     </div>
-                    <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-700">
+                    <span className="rounded-full bg-owed-100 px-2.5 py-0.5 text-xs font-bold text-owed-700">
                       {daysLeft}d left
                     </span>
                   </li>
@@ -234,7 +234,7 @@ export default async function AdminEmailsPage() {
                         (r.kind === 'notice_to_quit'
                           ? 'bg-red-100 text-red-700'
                           : r.kind === 'expiry_day' || r.kind === 'post_expiry'
-                            ? 'bg-amber-100 text-amber-700'
+                            ? 'bg-owed-100 text-owed-700'
                             : 'bg-slate-100 text-slate-600')
                       }
                     >

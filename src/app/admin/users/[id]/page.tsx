@@ -30,7 +30,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-ink">{user.name}</h1>
-                {user.role === 'ADMIN' && (<span className="rounded bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-lime-400">ADMIN</span>)}
+                {user.role === 'ADMIN' && (<span className="rounded bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-success-400">ADMIN</span>)}
                 {user.isSuspended ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-700"><span className="h-1.5 w-1.5 rounded-full bg-red-500" />Suspended</span>
                 ) : (

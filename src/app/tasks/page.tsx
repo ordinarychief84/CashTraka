@@ -25,7 +25,7 @@ export const dynamic = 'force-dynamic';
 
 const priorityBadge: Record<string, string> = {
   urgent: 'bg-red-50 text-red-700 border-red-200',
-  high: 'bg-amber-50 text-amber-700 border-amber-200',
+  high: 'bg-owed-50 text-owed-700 border-owed-200',
   normal: 'bg-slate-100 text-slate-600 border-slate-200',
   low: 'bg-slate-50 text-slate-400 border-slate-200',
 };
@@ -33,7 +33,7 @@ const priorityBadge: Record<string, string> = {
 const statusStyle: Record<string, string> = {
   todo: 'bg-slate-100 text-slate-700',
   in_progress: 'bg-brand-50 text-brand-700',
-  done: 'bg-emerald-50 text-emerald-700',
+  done: 'bg-success-50 text-success-700',
 };
 
 const statusLabel: Record<string, string> = {

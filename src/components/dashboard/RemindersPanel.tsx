@@ -47,7 +47,7 @@ export function RemindersPanel({ reminders, isPm }: Props) {
         <Link
           href="/debts"
           aria-label="Create reminder"
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400 text-ink hover:bg-lime-300"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-success-400 text-ink hover:bg-success-300"
         >
           <Plus size={14} strokeWidth={3} />
         </Link>

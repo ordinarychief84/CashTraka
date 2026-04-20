@@ -19,7 +19,7 @@ type Props = {
 const TONE: Record<NonNullable<Props['tone']>, string> = {
   brand: 'from-brand-600 to-brand-500',
   violet: 'from-indigo-600 to-violet-500',
-  amber: 'from-amber-500 to-amber-400',
+  amber: 'from-owed-500 to-owed-400',
   slate: 'from-slate-800 to-slate-700',
 };
 

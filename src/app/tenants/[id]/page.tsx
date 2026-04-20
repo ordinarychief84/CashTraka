@@ -145,7 +145,7 @@ export default async function TenantDetailPage({ params }: { params: { id: strin
         return (
           <div className={cn(
             'mb-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium',
-            expired ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-800',
+            expired ? 'border-red-200 bg-red-50 text-red-800' : 'border-owed-200 bg-owed-50 text-owed-800',
           )}>
             {expired ? <AlertTriangle size={18} className="shrink-0" /> : <Clock size={18} className="shrink-0" />}
             <span className="flex-1">

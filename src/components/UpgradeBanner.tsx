@@ -131,7 +131,7 @@ function Banner({
     tone === 'red'
       ? 'bg-red-600 text-white'
       : tone === 'amber'
-        ? 'bg-amber-500 text-white'
+        ? 'bg-owed-500 text-white'
         : 'bg-slate-800 text-white';
   return (
     <div className={bg + ' sticky top-0 z-40 flex items-center gap-2 px-3 py-2 text-xs font-medium'}>

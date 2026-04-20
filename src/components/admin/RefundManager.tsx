@@ -56,9 +56,9 @@ type Props = {
 };
 
 const statusColors = {
-  pending: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', badge: 'bg-amber-100 text-amber-800' },
-  approved: { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
-  processed: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', badge: 'bg-green-100 text-green-800' },
+  pending: { bg: 'bg-owed-50', border: 'border-owed-200', text: 'text-owed-700', badge: 'bg-owed-100 text-owed-800' },
+  approved: { bg: 'bg-brand-50', border: 'border-brand-200', text: 'text-brand-700', badge: 'bg-brand-100 text-brand-800' },
+  processed: { bg: 'bg-success-50', border: 'border-success-200', text: 'text-success-700', badge: 'bg-success-100 text-success-800' },
   rejected: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-800' },
 };
 
@@ -69,11 +69,11 @@ function formatNaira(kobo: number): string {
 function getStatusIcon(status: string) {
   switch (status) {
     case 'pending':
-      return <Clock size={16} className="text-amber-600" />;
+      return <Clock size={16} className="text-owed-600" />;
     case 'approved':
-      return <CheckCircle size={16} className="text-blue-600" />;
+      return <CheckCircle size={16} className="text-brand-600" />;
     case 'processed':
-      return <CheckCircle size={16} className="text-green-600" />;
+      return <CheckCircle size={16} className="text-success-600" />;
     case 'rejected':
       return <XCircle size={16} className="text-red-600" />;
     default:
@@ -218,9 +218,9 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
       )}
 
       {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex gap-3">
-          <CheckCircle className="text-green-600 shrink-0" size={20} />
-          <p className="text-sm font-semibold text-green-900">{success}</p>
+        <div className="rounded-xl border border-success-200 bg-success-50 p-4 flex gap-3">
+          <CheckCircle className="text-success-600 shrink-0" size={20} />
+          <p className="text-sm font-semibold text-success-900">{success}</p>
         </div>
       )}
 
@@ -228,7 +228,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
       <div className="grid gap-4 md:grid-cols-4">
         <div className="rounded-xl border bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
-            <Clock className="text-amber-600" size={20} />
+            <Clock className="text-owed-600" size={20} />
             <span className="text-xs font-semibold text-slate-500 uppercase">Pending</span>
           </div>
           <div className="text-3xl font-bold text-slate-900">{stats.pending}</div>
@@ -236,7 +236,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
 
         <div className="rounded-xl border bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
-            <CheckCircle className="text-blue-600" size={20} />
+            <CheckCircle className="text-brand-600" size={20} />
             <span className="text-xs font-semibold text-slate-500 uppercase">Approved</span>
           </div>
           <div className="text-3xl font-bold text-slate-900">{stats.approved}</div>
@@ -244,7 +244,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
 
         <div className="rounded-xl border bg-white p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-2">
-            <RefreshCw className="text-green-600" size={20} />
+            <RefreshCw className="text-success-600" size={20} />
             <span className="text-xs font-semibold text-slate-500 uppercase">Processed</span>
           </div>
           <div className="text-3xl font-bold text-slate-900">{stats.processed}</div>
@@ -310,7 +310,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
                                 setProcessingStatus(r.status === 'pending' ? 'approved' : 'processed');
                                 setProcessingNote('');
                               }}
-                              className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                              className="text-xs font-semibold text-brand-600 hover:text-brand-700"
                             >
                               Process
                             </button>
@@ -366,7 +366,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
           <h2 className="text-lg font-semibold text-slate-900">Create New Refund</h2>
           <button
             onClick={() => setCreateMode(!createMode)}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+            className="text-xs font-semibold text-brand-600 hover:text-brand-700"
           >
             {createMode ? 'Cancel' : 'Create'}
           </button>
@@ -398,7 +398,7 @@ export function RefundManager({ refunds, stats, paymentAttempts }: Props) {
                         setSelectedPaymentId('');
                       }}
                       className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-100 border-b transition ${
-                        selectedUserId === u.id ? 'bg-lime-50' : ''
+                        selectedUserId === u.id ? 'bg-success-50' : ''
                       }`}
                     >
                       <div className="font-semibold text-slate-900">{u.name}</div>

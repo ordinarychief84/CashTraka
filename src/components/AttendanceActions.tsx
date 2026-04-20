@@ -74,8 +74,8 @@ export function AttendanceActions({ staffId, todayStatus }: Props) {
                 : 'text-red-700 border-red-200 hover:bg-red-50'
               : opt.tone === 'amber'
                 ? isSelected
-                  ? 'bg-amber-500 text-white border-amber-500'
-                  : 'text-amber-700 border-amber-200 hover:bg-amber-50'
+                  ? 'bg-owed-500 text-white border-owed-500'
+                  : 'text-owed-700 border-owed-200 hover:bg-owed-50'
                 : isSelected
                   ? 'bg-slate-700 text-white border-slate-700'
                   : 'text-slate-600 border-slate-200 hover:bg-slate-50';

@@ -56,11 +56,11 @@ const SEVERITY_STYLE: Record<
     labelText: 'text-red-600',
   },
   warning: {
-    accent: 'bg-amber-400',
-    iconWrap: 'bg-amber-50 text-amber-700',
-    dot: 'bg-amber-400',
+    accent: 'bg-owed-400',
+    iconWrap: 'bg-owed-50 text-owed-700',
+    dot: 'bg-owed-400',
     label: 'Soon',
-    labelText: 'text-amber-700',
+    labelText: 'text-owed-700',
   },
   info: {
     accent: 'bg-slate-300',

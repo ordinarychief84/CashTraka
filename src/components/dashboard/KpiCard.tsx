@@ -40,9 +40,9 @@ const TONE: Record<
   },
   warning: {
     value: 'text-ink',
-    iconBg: 'bg-amber-50',
-    iconText: 'text-amber-600',
-    accent: 'bg-amber-500',
+    iconBg: 'bg-owed-50',
+    iconText: 'text-owed-600',
+    accent: 'bg-owed-500',
   },
   neutral: {
     value: 'text-ink',

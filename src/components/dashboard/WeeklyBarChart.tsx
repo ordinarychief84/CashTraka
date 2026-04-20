@@ -83,7 +83,7 @@ export function WeeklyBarChart({ values, title = 'Revenue this week', deltaPct }
                 <div
                   className={
                     isPeak
-                      ? 'w-full rounded-full bg-lime-400'
+                      ? 'w-full rounded-full bg-success-400'
                       : isToday
                       ? 'w-full rounded-full bg-brand-500'
                       : 'w-full rounded-full bg-slate-200'

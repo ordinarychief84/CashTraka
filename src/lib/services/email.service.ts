@@ -352,7 +352,7 @@ export const emailService = {
     const appUrl = process.env.APP_URL || '';
     const today = fmtDate(new Date());
 
-    const deltaColor = args.revenueDelta >= 0 ? '#16A34A' : '#DC2626';
+    const deltaColor = args.revenueDelta >= 0 ? '#72B515' : '#DC2626';
     const deltaSign = args.revenueDelta >= 0 ? '+' : '';
 
     let alertItems = '';
@@ -375,7 +375,7 @@ export const emailService = {
       <h1 style="margin:0 0 4px;font-size:20px;font-weight:800;color:#1A1A1A;">Good morning, ${esc(args.name)}</h1>
       <p style="margin:0 0 20px;font-size:14px;color:#94A3B8;">${today}</p>
 
-      <div style="background:#F0FDF4;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
+      <div style="background:#F2FBDC;border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;">
         <p style="margin:0 0 4px;font-size:13px;color:#64748B;">Today's Revenue</p>
         <p style="margin:0;font-size:28px;font-weight:800;color:#1A1A1A;">${naira(args.todayRevenue)}</p>
         <p style="margin:4px 0 0;font-size:13px;color:${deltaColor};font-weight:600;">${deltaSign}${args.revenueDelta}% vs yesterday</p>
@@ -484,7 +484,7 @@ export const emailService = {
 
     const body = `
       <div style="text-align:center;margin-bottom:24px;">
-        <div style="display:inline-block;background:#FEF9C3;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">🎉</div>
+        <div style="display:inline-block;background:#FEF3C7;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">🎉</div>
         <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Your ${esc(args.plan)} trial is live!</h1>
         <p style="margin:0;font-size:14px;color:#475569;">14 days of full access, no payment required.</p>
       </div>
@@ -539,7 +539,7 @@ export const emailService = {
         After that, your account will switch to the Free plan and some features will be limited.
       </p>
 
-      <div style="background:#FEF9C3;border-left:4px solid #F59E0B;border-radius:8px;padding:16px;margin:16px 0;">
+      <div style="background:#FEF3C7;border-left:4px solid #F59E0B;border-radius:8px;padding:16px;margin:16px 0;">
         <p style="margin:0;font-size:14px;color:#92400E;font-weight:600;">
           Upgrade now to keep all your premium features — your data stays safe either way.
         </p>
@@ -833,7 +833,7 @@ export const emailService = {
     const configs: Record<string, { icon: string; bg: string; title: string; message: string; cta: string }> = {
       '30_day_warning': {
         icon: '📅',
-        bg: '#FEF9C3',
+        bg: '#FEF3C7',
         title: 'Lease expiring in 30 days',
         message: `<strong>${esc(args.tenantName)}</strong>'s lease at <strong>${esc(args.propertyName)} — ${esc(args.unitLabel)}</strong> expires on <strong>${leaseDate}</strong>. Now is a good time to discuss renewal.`,
         cta: 'View tenant details',
@@ -992,7 +992,7 @@ export const emailService = {
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
               <td width="48" style="vertical-align:top;">
-                <div style="width:44px;height:44px;background:#F0FDF4;border-radius:12px;text-align:center;line-height:44px;font-size:22px;">${f.icon}</div>
+                <div style="width:44px;height:44px;background:#F2FBDC;border-radius:12px;text-align:center;line-height:44px;font-size:22px;">${f.icon}</div>
               </td>
               <td style="padding-left:14px;vertical-align:top;">
                 <div style="font-size:15px;font-weight:700;color:#1A1A1A;margin-bottom:2px;">${esc(f.title)}</div>
@@ -1019,7 +1019,7 @@ export const emailService = {
       ${DIVIDER}
 
       <!-- Personal note from the team -->
-      <div style="background:linear-gradient(135deg,#F0FDF4 0%,#ECFEFF 100%);background-color:#F0FDF4;border-radius:14px;padding:24px;margin-bottom:24px;">
+      <div style="background:linear-gradient(135deg,#F2FBDC 0%,#E6F8FD 100%);background-color:#F2FBDC;border-radius:14px;padding:24px;margin-bottom:24px;">
         <p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.7;">
           We built CashTraka because ${isPM
             ? "managing properties in Nigeria shouldn't mean drowning in spreadsheets and chasing tenants for rent."
@@ -1114,8 +1114,8 @@ export const emailService = {
       </p>
 
       <!-- Amount card -->
-      <div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:20px;margin:20px 0;text-align:center;">
-        <div style="font-size:12px;font-weight:600;color:#15803D;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Amount Due</div>
+      <div style="background:#F2FBDC;border:1px solid #CFEF83;border-radius:12px;padding:20px;margin:20px 0;text-align:center;">
+        <div style="font-size:12px;font-weight:600;color:#588A10;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">Amount Due</div>
         <div style="font-size:32px;font-weight:800;color:#166534;">${naira(args.amount)}</div>
         ${desc}
         <div style="margin-top:8px;font-size:12px;color:#64748B;">Ref: ${esc(args.linkNumber)}</div>
@@ -1215,14 +1215,14 @@ export const emailService = {
     const toneConfig = {
       gentle: {
         icon: '💬',
-        bg: '#F0FDF4',
+        bg: '#F2FBDC',
         subject: `Friendly reminder: ${naira(args.amount)} outstanding`,
         greeting: `This is a friendly reminder that you have an outstanding balance of <strong>${naira(args.amount)}</strong> with <strong>${esc(args.businessName)}</strong>.`,
         cta: 'Make Payment',
       },
       firm: {
         icon: '⚠️',
-        bg: '#FEF9C3',
+        bg: '#FEF3C7',
         subject: `Payment overdue: ${naira(args.amount)} owed to ${args.businessName}`,
         greeting: `Your payment of <strong>${naira(args.amount)}</strong> to <strong>${esc(args.businessName)}</strong> is now overdue. Please settle this balance as soon as possible.`,
         cta: 'Pay Now',

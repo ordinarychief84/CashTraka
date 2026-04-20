@@ -46,10 +46,10 @@ function ExportLink({ href, label }: { href: string; label: string }) {
   return (
     <a
       href={href}
-      className="group inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 hover:border-green-400 hover:bg-green-50/40 hover:text-green-700"
+      className="group inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 hover:border-success-400 hover:bg-success-50/40 hover:text-success-700"
     >
       <span>{label} CSV</span>
-      <Download size={14} className="text-slate-400 group-hover:text-green-600" />
+      <Download size={14} className="text-slate-400 group-hover:text-success-600" />
     </a>
   );
 }

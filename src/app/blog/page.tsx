@@ -75,7 +75,7 @@ export default async function BlogPage() {
                     )}
                     <div className="p-5">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                        <span className="rounded-full bg-success-100 px-2 py-0.5 text-[10px] font-bold text-success-700">
                           {post.category.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                         </span>
                         {post.publishedAt && (
@@ -84,11 +84,11 @@ export default async function BlogPage() {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-base font-bold text-slate-900 group-hover:text-green-700 transition line-clamp-2">
+                      <h2 className="text-base font-bold text-slate-900 group-hover:text-success-700 transition line-clamp-2">
                         {post.title}
                       </h2>
                       <p className="mt-2 text-sm text-slate-600 line-clamp-3">{post.excerpt}</p>
-                      <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-green-600">
+                      <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-success-600">
                         Read more <ArrowRight size={12} />
                       </div>
                     </div>

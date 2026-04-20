@@ -284,7 +284,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
             className={cn(
               'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition',
               taxDeductible
-                ? 'border-green-500 bg-green-50 text-green-700'
+                ? 'border-success-500 bg-success-50 text-success-700'
                 : 'border-border bg-white text-slate-600 hover:bg-slate-50',
             )}
           >
@@ -330,10 +330,10 @@ function KindButton({
   const colorClasses =
     color === 'amber'
       ? {
-          border: 'border-amber-400 ring-1 ring-amber-400',
-          bg: 'bg-amber-50',
-          iconBg: 'bg-amber-500 text-white',
-          text: 'text-amber-700',
+          border: 'border-owed-400 ring-1 ring-owed-400',
+          bg: 'bg-owed-50',
+          iconBg: 'bg-owed-500 text-white',
+          text: 'text-owed-700',
         }
       : {
           border: 'border-brand-500 ring-1 ring-brand-500',

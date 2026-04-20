@@ -114,7 +114,7 @@ export function ProfileTab({ initial }: Props) {
           </label>
           <input
             id="name"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
             value={form.name}
             onChange={(e) => update('name', e.target.value)}
             placeholder="Your full name"
@@ -128,7 +128,7 @@ export function ProfileTab({ initial }: Props) {
           </label>
           <input
             id="businessName"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
             value={form.businessName}
             onChange={(e) => update('businessName', e.target.value)}
             placeholder="e.g. Ada's Fashion Hub"
@@ -152,7 +152,7 @@ export function ProfileTab({ initial }: Props) {
           </label>
           <input
             id="whatsappNumber"
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
             inputMode="tel"
             maxLength={14}
             value={form.whatsappNumber}
@@ -160,7 +160,7 @@ export function ProfileTab({ initial }: Props) {
             placeholder="08012345678"
           />
           {whatsappPreview && (
-            <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+            <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-success-100 px-2 py-0.5 text-xs font-semibold text-success-700">
               <Check size={11} strokeWidth={3} />
               {whatsappPreview}
             </p>
@@ -179,7 +179,7 @@ export function ProfileTab({ initial }: Props) {
           <textarea
             id="receiptFooter"
             rows={2}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none resize-y min-h-[72px]"
+            className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none resize-y min-h-[72px]"
             value={form.receiptFooter}
             onChange={(e) => update('receiptFooter', e.target.value)}
             maxLength={200}
@@ -196,7 +196,7 @@ export function ProfileTab({ initial }: Props) {
           </div>
         )}
         {saved && (
-          <div className="flex items-start gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="flex items-start gap-2 rounded-lg bg-success-50 px-3 py-2 text-sm text-success-700">
             <CheckCircle2 size={15} className="mt-0.5 shrink-0" />
             Your changes are saved.
           </div>
@@ -217,7 +217,7 @@ export function ProfileTab({ initial }: Props) {
           <button
             type="submit"
             disabled={saving || !dirty}
-            className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'Saving...' : 'Save changes'}
           </button>

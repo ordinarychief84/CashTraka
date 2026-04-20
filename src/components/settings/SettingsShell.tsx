@@ -59,7 +59,7 @@ export function SettingsShell({ initialProfile, initialAccount, businessType }: 
                   className={
                     'flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium transition-colors first:rounded-t-xl last:rounded-b-xl ' +
                     (active
-                      ? 'bg-green-50 text-green-700 border-l-2 border-green-600'
+                      ? 'bg-success-50 text-success-700 border-l-2 border-success-600'
                       : tab.id === 'danger'
                         ? 'text-red-500 hover:bg-red-50 hover:text-red-600'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')

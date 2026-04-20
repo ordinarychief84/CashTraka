@@ -163,7 +163,7 @@ export function ReceiptDialog({ open, onClose, payment, businessName }: Props) {
                       PAID
                     </span>
                   ) : (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                    <span className="rounded-full bg-owed-50 px-2 py-0.5 text-[10px] font-bold text-owed-700">
                       PENDING
                     </span>
                   )}
@@ -184,7 +184,7 @@ export function ReceiptDialog({ open, onClose, payment, businessName }: Props) {
               </div>
 
               {payment.status === 'PENDING' && (
-                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                <div className="flex items-start gap-2 rounded-lg border border-owed-200 bg-owed-50 px-3 py-2 text-xs text-owed-700">
                   <AlertCircle size={14} className="mt-0.5 shrink-0" />
                   <div>
                     This payment is still <strong>pending</strong>. The receipt will

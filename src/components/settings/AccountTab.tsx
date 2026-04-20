@@ -189,7 +189,7 @@ export function AccountTab({ initial, businessType }: Props) {
             <input
               id="newEmail"
               type="email"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
               value={newEmail}
               onChange={(e) => setNewEmail(e.target.value)}
               placeholder="new@example.com"
@@ -200,7 +200,7 @@ export function AccountTab({ initial, businessType }: Props) {
             <button
               type="submit"
               disabled={emailSaving || !newEmail}
-              className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50"
             >
               {emailSaving ? 'Updating...' : 'Change email'}
             </button>
@@ -226,7 +226,7 @@ export function AccountTab({ initial, businessType }: Props) {
               <input
                 id="currentPw"
                 type={showCurrent ? 'text' : 'password'}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 pr-10 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 pr-10 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={currentPw}
                 onChange={(e) => setCurrentPw(e.target.value)}
                 placeholder="Enter current password"
@@ -248,7 +248,7 @@ export function AccountTab({ initial, businessType }: Props) {
               <input
                 id="newPw"
                 type={showNew ? 'text' : 'password'}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 pr-10 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 pr-10 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={newPw}
                 onChange={(e) => setNewPw(e.target.value)}
                 placeholder="At least 8 characters"
@@ -269,7 +269,7 @@ export function AccountTab({ initial, businessType }: Props) {
             <input
               id="confirmPw"
               type="password"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
               placeholder="Confirm new password"
@@ -280,7 +280,7 @@ export function AccountTab({ initial, businessType }: Props) {
             <button
               type="submit"
               disabled={pwSaving || !currentPw || !newPw || !confirmPw}
-              className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50"
             >
               {pwSaving ? 'Changing...' : 'Reset password'}
             </button>
@@ -308,7 +308,7 @@ export function AccountTab({ initial, businessType }: Props) {
             </label>
             <input
               id="bankName"
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
               value={bank.bankName}
               onChange={(e) => setBank((b) => ({ ...b, bankName: e.target.value }))}
               placeholder="e.g. GTBank, Access, Kuda"
@@ -322,7 +322,7 @@ export function AccountTab({ initial, businessType }: Props) {
               <input
                 id="acctNum"
                 inputMode="numeric"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm tracking-wider focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm tracking-wider focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 maxLength={10}
                 value={bank.bankAccountNumber}
                 onChange={(e) =>
@@ -340,7 +340,7 @@ export function AccountTab({ initial, businessType }: Props) {
               </label>
               <input
                 id="acctName"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm uppercase focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm uppercase focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={bank.bankAccountName}
                 onChange={(e) => setBank((b) => ({ ...b, bankAccountName: e.target.value.toUpperCase() }))}
                 placeholder="ADA EZE"
@@ -352,7 +352,7 @@ export function AccountTab({ initial, businessType }: Props) {
             <button
               type="submit"
               disabled={bankSaving || !bankDirty}
-              className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50"
             >
               {bankSaving ? 'Saving...' : 'Save bank details'}
             </button>
@@ -384,7 +384,7 @@ export function AccountTab({ initial, businessType }: Props) {
 function Feedback({ msg }: { msg: { ok: boolean; text: string } | null }) {
   if (!msg) return null;
   return (
-    <div className={'flex items-start gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
+    <div className={'flex items-start gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-success-50 text-success-700' : 'bg-red-50 text-red-700')}>
       {msg.ok ? <CheckCircle2 size={15} className="mt-0.5 shrink-0" /> : <AlertCircle size={15} className="mt-0.5 shrink-0" />}
       {msg.text}
     </div>

@@ -79,7 +79,7 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
           title="Copy link"
           className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700"
         >
-          {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-success-600" /> : <Copy size={14} />}
         </button>
 
         {/* Email send */}
@@ -87,7 +87,7 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
           <button
             onClick={() => setShowEmailInput(!showEmailInput)}
             title={emailSent ? 'Email sent!' : 'Send via Email'}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg ${emailSent ? 'text-green-600 bg-green-50' : 'text-blue-600 hover:bg-blue-50'}`}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg ${emailSent ? 'text-success-600 bg-success-50' : 'text-brand-600 hover:bg-brand-50'}`}
           >
             {emailSent ? <Check size={14} /> : <Mail size={16} />}
           </button>
@@ -107,7 +107,7 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
               });
             }}
             title="Send via WhatsApp"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-green-600 hover:bg-green-50"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-success-600 hover:bg-success-50"
           >
             <MessageCircle size={16} />
           </a>
@@ -119,7 +119,7 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
             onClick={() => handleAction('confirm')}
             disabled={loading}
             title="Confirm payment received"
-            className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-3 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+            className="flex h-8 items-center gap-1 rounded-lg bg-success-600 px-3 text-xs font-semibold text-white hover:bg-success-700 disabled:opacity-50"
           >
             <Check size={14} />
             Confirm
@@ -147,13 +147,13 @@ export function PayLinkActions({ id, status, whatsappLink, payUrl, customerEmail
             value={email}
             onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
             placeholder="customer@email.com"
-            className="w-48 rounded-md border border-slate-200 px-2 py-1.5 text-xs focus:border-blue-400 focus:ring-1 focus:ring-blue-400 focus:outline-none"
+            className="w-48 rounded-md border border-slate-200 px-2 py-1.5 text-xs focus:border-brand-400 focus:ring-1 focus:ring-brand-400 focus:outline-none"
             onKeyDown={(e) => { if (e.key === 'Enter') sendEmail(); }}
           />
           <button
             onClick={sendEmail}
             disabled={emailSending}
-            className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
           >
             {emailSending ? 'Sending...' : 'Send'}
           </button>

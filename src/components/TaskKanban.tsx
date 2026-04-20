@@ -31,12 +31,12 @@ type ColumnKey = KanbanTask['status'];
 const COLUMNS: { key: ColumnKey; label: string; tone: string }[] = [
   { key: 'todo', label: 'To-do', tone: 'bg-slate-100 text-slate-700' },
   { key: 'in_progress', label: 'In progress', tone: 'bg-brand-50 text-brand-700' },
-  { key: 'done', label: 'Done', tone: 'bg-emerald-50 text-emerald-700' },
+  { key: 'done', label: 'Done', tone: 'bg-success-50 text-success-700' },
 ];
 
 const PRIORITY: Record<string, { label: string; tone: string }> = {
   urgent: { label: 'Urgent', tone: 'bg-red-50 text-red-700 border-red-200' },
-  high: { label: 'High', tone: 'bg-amber-50 text-amber-700 border-amber-200' },
+  high: { label: 'High', tone: 'bg-owed-50 text-owed-700 border-owed-200' },
   normal: { label: 'Normal', tone: 'bg-slate-50 text-slate-500 border-slate-200' },
   low: { label: 'Low', tone: 'bg-slate-50 text-slate-400 border-slate-200' },
 };

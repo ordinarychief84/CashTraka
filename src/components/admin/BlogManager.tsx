@@ -115,14 +115,14 @@ export function BlogManager() {
           <h1 className="text-xl font-bold text-slate-900">Blog</h1>
           <p className="text-sm text-slate-500">Create and manage blog posts</p>
         </div>
-        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+        <button onClick={openNew} className="inline-flex items-center gap-2 rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700">
           <Plus size={16} />
           New Post
         </button>
       </div>
 
       {msg && (
-        <div className={'mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700')}>
+        <div className={'mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-success-50 text-success-700' : 'bg-red-50 text-red-700')}>
           {msg.ok ? <CheckCircle2 size={15} /> : <AlertCircle size={15} />}
           {msg.text}
         </div>
@@ -135,7 +135,7 @@ export function BlogManager() {
           <FileText size={32} className="mx-auto mb-3 text-slate-300" />
           <p className="text-sm font-medium text-slate-700">No blog posts yet</p>
           <p className="text-xs text-slate-500 mt-1">Create your first post to get started.</p>
-          <button onClick={openNew} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700">
+          <button onClick={openNew} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700">
             <Plus size={16} />
             Create Post
           </button>
@@ -148,7 +148,7 @@ export function BlogManager() {
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-sm text-slate-900 truncate">{post.title}</span>
                   <span className={'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ' +
-                    (post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700')}>
+                    (post.status === 'published' ? 'bg-success-100 text-success-700' : 'bg-owed-100 text-owed-700')}>
                     {post.status === 'published' ? <Globe size={10} /> : <Clock size={10} />}
                     {post.status === 'published' ? 'Published' : 'Draft'}
                   </span>
@@ -161,7 +161,7 @@ export function BlogManager() {
                 <button onClick={() => toggleStatus(post)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600" title={post.status === 'published' ? 'Unpublish' : 'Publish'}>
                   {post.status === 'published' ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
-                <button onClick={() => openEdit(post)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-blue-600" title="Edit">
+                <button onClick={() => openEdit(post)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-brand-600" title="Edit">
                   <Edit3 size={16} />
                 </button>
                 <button onClick={() => deletePost(post.id)} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600" title="Delete">
@@ -244,7 +244,7 @@ function BlogForm({
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Title</label>
             <input
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Blog post title"
@@ -256,7 +256,7 @@ function BlogForm({
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Excerpt</label>
             <textarea
               rows={2}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none resize-y"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none resize-y"
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Short summary shown on the blog listing page..."
@@ -268,7 +268,7 @@ function BlogForm({
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Content</label>
             <textarea
               rows={14}
-              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-mono focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none resize-y"
+              className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-mono focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none resize-y"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Write your blog post content here... (supports Markdown)"
@@ -281,7 +281,7 @@ function BlogForm({
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
               <select
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
@@ -293,7 +293,7 @@ function BlogForm({
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Tags</label>
               <input
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="e.g. payments, tips, invoicing"
@@ -305,7 +305,7 @@ function BlogForm({
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Author</label>
               <input
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 placeholder="Author name"
@@ -314,7 +314,7 @@ function BlogForm({
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Cover Image URL</label>
               <input
-                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm focus:border-success-500 focus:ring-1 focus:ring-success-500 focus:outline-none"
                 value={coverImage}
                 onChange={(e) => setCoverImage(e.target.value)}
                 placeholder="https://..."
@@ -325,12 +325,12 @@ function BlogForm({
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Status</label>
             <div className="flex gap-3">
-              <label className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium cursor-pointer ' + (status === 'draft' ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-slate-200 text-slate-600')}>
+              <label className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium cursor-pointer ' + (status === 'draft' ? 'border-owed-400 bg-owed-50 text-owed-700' : 'border-slate-200 text-slate-600')}>
                 <input type="radio" name="status" value="draft" checked={status === 'draft'} onChange={() => setStatus('draft')} className="sr-only" />
                 <Clock size={14} />
                 Draft
               </label>
-              <label className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium cursor-pointer ' + (status === 'published' ? 'border-green-400 bg-green-50 text-green-700' : 'border-slate-200 text-slate-600')}>
+              <label className={'flex items-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium cursor-pointer ' + (status === 'published' ? 'border-success-400 bg-success-50 text-success-700' : 'border-slate-200 text-slate-600')}>
                 <input type="radio" name="status" value="published" checked={status === 'published'} onChange={() => setStatus('published')} className="sr-only" />
                 <Globe size={14} />
                 Published
@@ -349,7 +349,7 @@ function BlogForm({
             <button type="button" onClick={onBack} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100">
               Cancel
             </button>
-            <button type="submit" disabled={saving} className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="rounded-lg bg-success-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-success-700 disabled:opacity-50">
               {saving ? 'Saving...' : isEdit ? 'Update Post' : 'Create Post'}
             </button>
           </div>

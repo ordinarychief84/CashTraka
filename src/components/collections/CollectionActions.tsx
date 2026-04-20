@@ -49,7 +49,7 @@ export function CollectionActions({ item, businessName }: Props) {
         <button
           onClick={confirmPaylink}
           disabled={confirming}
-          className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-3 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+          className="flex h-8 items-center gap-1 rounded-lg bg-success-600 px-3 text-xs font-semibold text-white hover:bg-success-700 disabled:opacity-50"
         >
           <Check size={14} />
           Confirm
@@ -60,7 +60,7 @@ export function CollectionActions({ item, businessName }: Props) {
       {item.type === 'debt' && (
         <a
           href={`/paylinks/new?name=${encodeURIComponent(item.customerName)}&phone=${encodeURIComponent(item.customerPhone)}&amount=${item.remaining}${item.debtId ? `&debtId=${item.debtId}` : ''}`}
-          className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-3 text-xs font-semibold text-white hover:bg-green-700"
+          className="flex h-8 items-center gap-1 rounded-lg bg-success-600 px-3 text-xs font-semibold text-white hover:bg-success-700"
         >
           <Send size={14} />
           PayLink
@@ -72,7 +72,7 @@ export function CollectionActions({ item, businessName }: Props) {
         href={waLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-8 items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 text-xs font-semibold text-green-700 hover:bg-green-100"
+        className="flex h-8 items-center gap-1 rounded-lg border border-success-200 bg-success-50 px-3 text-xs font-semibold text-success-700 hover:bg-success-100"
       >
         <MessageCircle size={14} />
         WhatsApp

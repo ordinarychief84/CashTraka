@@ -34,9 +34,9 @@ const SEV: Record<Severity, { ring: string; wrap: string; badge: string }> = {
     badge: 'bg-red-600 text-white',
   },
   warning: {
-    ring: 'ring-amber-100',
-    wrap: 'bg-amber-50 text-amber-700',
-    badge: 'bg-amber-500 text-white',
+    ring: 'ring-owed-100',
+    wrap: 'bg-owed-50 text-owed-700',
+    badge: 'bg-owed-500 text-white',
   },
   info: {
     ring: 'ring-slate-100',
@@ -70,7 +70,7 @@ export function AdminTriage({ items }: { items: AdminTriageItem[] }) {
     <section className="card overflow-hidden p-0">
       <header className="flex items-center justify-between border-b border-border px-5 py-3">
         <h2 className="flex items-center gap-2 text-sm font-bold text-ink">
-          <AlertTriangle size={15} className="text-amber-600" />
+          <AlertTriangle size={15} className="text-owed-600" />
           Needs attention
           {critical > 0 && (
             <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">

@@ -9,10 +9,10 @@ import { PayLinkActions } from '@/components/paylinks/PayLinkActions';
 export const dynamic = 'force-dynamic';
 
 const STATUS_STYLES: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  pending: { label: 'Pending', color: 'text-amber-600 bg-amber-50', icon: Clock },
-  viewed: { label: 'Viewed', color: 'text-blue-600 bg-blue-50', icon: Eye },
+  pending: { label: 'Pending', color: 'text-owed-600 bg-owed-50', icon: Clock },
+  viewed: { label: 'Viewed', color: 'text-brand-600 bg-brand-50', icon: Eye },
   claimed: { label: 'Claimed', color: 'text-purple-600 bg-purple-50', icon: CheckCircle2 },
-  confirmed: { label: 'Confirmed', color: 'text-green-600 bg-green-50', icon: CheckCircle2 },
+  confirmed: { label: 'Confirmed', color: 'text-success-600 bg-success-50', icon: CheckCircle2 },
   expired: { label: 'Expired', color: 'text-slate-500 bg-slate-50', icon: XCircle },
   cancelled: { label: 'Cancelled', color: 'text-red-600 bg-red-50', icon: XCircle },
 };
@@ -41,7 +41,7 @@ export default async function PayLinksPage() {
         </div>
         <Link
           href="/paylinks/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+          className="inline-flex items-center gap-2 rounded-xl bg-success-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-success-700"
         >
           <Plus size={16} />
           New PayLink
@@ -51,7 +51,7 @@ export default async function PayLinksPage() {
       {/* Stats */}
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-2xl font-bold text-amber-600">{stats.pending}</p>
+          <p className="text-2xl font-bold text-owed-600">{stats.pending}</p>
           <p className="text-xs text-slate-500">Pending</p>
         </div>
         <div className="rounded-xl border bg-white p-4 shadow-sm">
@@ -59,7 +59,7 @@ export default async function PayLinksPage() {
           <p className="text-xs text-slate-500">Claimed (needs confirmation)</p>
         </div>
         <div className="rounded-xl border bg-white p-4 shadow-sm">
-          <p className="text-2xl font-bold text-green-600">{stats.confirmed}</p>
+          <p className="text-2xl font-bold text-success-600">{stats.confirmed}</p>
           <p className="text-xs text-slate-500">Confirmed</p>
         </div>
         <div className="rounded-xl border bg-white p-4 shadow-sm">
@@ -85,7 +85,7 @@ export default async function PayLinksPage() {
             </p>
             <Link
               href="/paylinks/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+              className="inline-flex items-center gap-2 rounded-lg bg-success-600 px-4 py-2 text-sm font-semibold text-white hover:bg-success-700"
             >
               <Plus size={16} />
               Create your first PayLink

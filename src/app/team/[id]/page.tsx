@@ -326,7 +326,7 @@ function AttendancePill({ status }: { status: string }) {
   const map: Record<string, { label: string; bg: string; Icon: typeof Phone }> = {
     present: { label: 'Present', bg: 'bg-brand-50 text-brand-700', Icon: CalendarCheck2 },
     absent: { label: 'Absent', bg: 'bg-red-50 text-red-700', Icon: CalendarX },
-    half_day: { label: 'Half day', bg: 'bg-amber-50 text-amber-700', Icon: Clock },
+    half_day: { label: 'Half day', bg: 'bg-owed-50 text-owed-700', Icon: Clock },
     leave: { label: 'Leave', bg: 'bg-slate-100 text-slate-600', Icon: Plane },
   };
   const m = map[status] ?? map.present;

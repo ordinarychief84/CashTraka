@@ -30,10 +30,10 @@ export function PayPageClient({ token, status: initialStatus }: Props) {
 
   if (status === 'confirmed') {
     return (
-      <div className="rounded-xl bg-green-50 p-4 text-center">
-        <Check size={32} className="mx-auto mb-2 text-green-600" />
-        <p className="font-semibold text-green-800">Payment Confirmed</p>
-        <p className="text-sm text-green-600 mt-1">This payment has been confirmed by the seller. Thank you!</p>
+      <div className="rounded-xl bg-success-50 p-4 text-center">
+        <Check size={32} className="mx-auto mb-2 text-success-600" />
+        <p className="font-semibold text-success-800">Payment Confirmed</p>
+        <p className="text-sm text-success-600 mt-1">This payment has been confirmed by the seller. Thank you!</p>
       </div>
     );
   }
@@ -82,7 +82,7 @@ export function PayPageClient({ token, status: initialStatus }: Props) {
       <button
         onClick={handleClaim}
         disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3.5 text-base font-bold text-white shadow-sm hover:bg-green-700 disabled:opacity-50 transition"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-success-600 py-3.5 text-base font-bold text-white shadow-sm hover:bg-success-700 disabled:opacity-50 transition"
       >
         <Check size={20} />
         {loading ? 'Submitting...' : "I've Paid"}

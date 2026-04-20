@@ -70,7 +70,7 @@ export function AppearanceTab() {
                 className={
                   'flex flex-col items-center gap-2 rounded-xl border-2 p-4 text-center transition ' +
                   (active
-                    ? 'border-green-500 bg-green-50 text-green-700'
+                    ? 'border-success-500 bg-success-50 text-success-700'
                     : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50')
                 }
               >
@@ -83,7 +83,7 @@ export function AppearanceTab() {
         </div>
 
         {saved && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-success-50 px-3 py-2 text-sm text-success-700">
             <CheckCircle2 size={15} />
             Theme updated.
           </div>

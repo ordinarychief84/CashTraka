@@ -41,9 +41,9 @@ type Props = {
 };
 
 const typeColors = {
-  info: { bg: 'bg-blue-50', badge: 'bg-blue-100 text-blue-800', icon: 'text-blue-600' },
-  warning: { bg: 'bg-amber-50', badge: 'bg-amber-100 text-amber-800', icon: 'text-amber-600' },
-  success: { bg: 'bg-green-50', badge: 'bg-green-100 text-green-800', icon: 'text-green-600' },
+  info: { bg: 'bg-brand-50', badge: 'bg-brand-100 text-brand-800', icon: 'text-brand-600' },
+  warning: { bg: 'bg-owed-50', badge: 'bg-owed-100 text-owed-800', icon: 'text-owed-600' },
+  success: { bg: 'bg-success-50', badge: 'bg-success-100 text-success-800', icon: 'text-success-600' },
   error: { bg: 'bg-red-50', badge: 'bg-red-100 text-red-800', icon: 'text-red-600' },
 };
 
@@ -316,7 +316,7 @@ export function NotificationBroadcast({ broadcastHistory, stats, availableUsers 
                 </div>
               )}
               {success && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-start gap-2">
+                <div className="p-3 bg-success-50 border border-success-200 rounded-lg text-sm text-success-700 flex items-start gap-2">
                   <CheckCircle size={16} className="flex-shrink-0 mt-0.5" />
                   {success}
                 </div>

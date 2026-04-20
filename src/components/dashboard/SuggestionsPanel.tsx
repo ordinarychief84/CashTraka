@@ -28,8 +28,8 @@ type Suggestion = {
 
 const TYPE_CONFIG: Record<string, { icon: typeof Zap; color: string; bg: string }> = {
   COLLECT: { icon: Target, color: 'text-red-600', bg: 'bg-red-50' },
-  REWARD: { icon: Gift, color: 'text-green-600', bg: 'bg-green-50' },
-  RE_ENGAGE: { icon: RefreshCw, color: 'text-blue-600', bg: 'bg-blue-50' },
+  REWARD: { icon: Gift, color: 'text-success-600', bg: 'bg-success-50' },
+  RE_ENGAGE: { icon: RefreshCw, color: 'text-brand-600', bg: 'bg-brand-50' },
   OPTIMISE: { icon: Settings, color: 'text-purple-600', bg: 'bg-purple-50' },
 };
 
@@ -54,18 +54,18 @@ export function SuggestionsPanel({ isPaid }: { isPaid: boolean }) {
 
   if (!isPaid) {
     return (
-      <div className="rounded-xl border bg-gradient-to-r from-amber-50 to-yellow-50 p-5 shadow-sm">
+      <div className="rounded-xl border bg-gradient-to-r from-owed-50 to-owed-50 p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <Zap size={18} className="text-amber-600" />
+          <Zap size={18} className="text-owed-600" />
           <h3 className="text-sm font-semibold text-slate-800">Smart Suggestions</h3>
-          <Lock size={14} className="text-amber-500" />
+          <Lock size={14} className="text-owed-500" />
         </div>
         <p className="text-xs text-slate-600 mb-3">
           Upgrade to get AI-powered suggestions on who to chase, who to reward, and how to improve your collections.
         </p>
         <Link
           href="/settings?tab=billing"
-          className="inline-flex items-center gap-1 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+          className="inline-flex items-center gap-1 rounded-lg bg-owed-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-owed-700"
         >
           Upgrade <ArrowRight size={12} />
         </Link>
@@ -89,7 +89,7 @@ export function SuggestionsPanel({ isPaid }: { isPaid: boolean }) {
     return (
       <div className="rounded-xl border bg-white p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
-          <Zap size={18} className="text-green-600" />
+          <Zap size={18} className="text-success-600" />
           <h3 className="text-sm font-semibold text-slate-800">Smart Suggestions</h3>
         </div>
         <p className="text-xs text-slate-500">
@@ -106,7 +106,7 @@ export function SuggestionsPanel({ isPaid }: { isPaid: boolean }) {
         className="flex w-full items-center justify-between px-5 py-4 text-left"
       >
         <div className="flex items-center gap-2">
-          <Zap size={18} className="text-amber-500" />
+          <Zap size={18} className="text-owed-500" />
           <h3 className="text-sm font-semibold text-slate-800">
             Smart Suggestions ({suggestions.length})
           </h3>

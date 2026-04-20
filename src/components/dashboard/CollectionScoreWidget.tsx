@@ -17,8 +17,8 @@ type ScoreData = {
 
 function ScoreRing({ score }: { score: number }) {
   // Color based on score
-  const color = score >= 70 ? 'text-green-500' : score >= 40 ? 'text-amber-500' : 'text-red-500';
-  const bg = score >= 70 ? 'bg-green-50' : score >= 40 ? 'bg-amber-50' : 'bg-red-50';
+  const color = score >= 70 ? 'text-success-500' : score >= 40 ? 'text-owed-500' : 'text-red-500';
+  const bg = score >= 70 ? 'bg-success-50' : score >= 40 ? 'bg-owed-50' : 'bg-red-50';
 
   return (
     <div className={`flex h-16 w-16 items-center justify-center rounded-full ${bg} border-2 border-current ${color}`}>
@@ -72,7 +72,7 @@ export function CollectionScoreWidget({ isPaid }: { isPaid: boolean }) {
   if (!data) return null;
 
   const TrendIcon = data.trend === 'up' ? TrendingUp : data.trend === 'down' ? TrendingDown : Minus;
-  const trendColor = data.trend === 'up' ? 'text-green-600' : data.trend === 'down' ? 'text-red-600' : 'text-slate-500';
+  const trendColor = data.trend === 'up' ? 'text-success-600' : data.trend === 'down' ? 'text-red-600' : 'text-slate-500';
 
   return (
     <Link href="/collections" className="block rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">

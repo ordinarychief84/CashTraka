@@ -100,7 +100,7 @@ export function PlanOverride({ userId, currentPlan, currentStatus }: Props) {
   return (
     <section className="card p-4">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
-        <ShieldAlert size={16} className="text-amber-600" />
+        <ShieldAlert size={16} className="text-owed-600" />
         Plan &amp; billing override
       </h2>
       <p className="mb-3 text-[11px] text-slate-500">

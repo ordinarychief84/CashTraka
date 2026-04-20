@@ -65,7 +65,7 @@ export function TopContributors({
                   className={
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ' +
                     (i === 0
-                      ? 'bg-amber-100 text-amber-700'
+                      ? 'bg-owed-100 text-owed-700'
                       : 'bg-slate-100 text-slate-600')
                   }
                 >

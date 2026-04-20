@@ -5,19 +5,19 @@ import { ClipboardList, Shield, User, Settings, CreditCard, Bell, Headphones } f
 
 const ACTION_LABELS: Record<string, { label: string; color: string; icon: typeof Shield }> = {
   'user.suspend': { label: 'User Suspended', color: 'text-red-600 bg-red-50', icon: User },
-  'user.reactivate': { label: 'User Reactivated', color: 'text-green-600 bg-green-50', icon: User },
+  'user.reactivate': { label: 'User Reactivated', color: 'text-success-600 bg-success-50', icon: User },
   'user.promote': { label: 'Promoted to Admin', color: 'text-purple-600 bg-purple-50', icon: Shield },
-  'user.demote': { label: 'Demoted from Admin', color: 'text-amber-600 bg-amber-50', icon: Shield },
-  'plan.override': { label: 'Plan Override', color: 'text-blue-600 bg-blue-50', icon: CreditCard },
-  'refund.approve': { label: 'Refund Approved', color: 'text-green-600 bg-green-50', icon: CreditCard },
+  'user.demote': { label: 'Demoted from Admin', color: 'text-owed-600 bg-owed-50', icon: Shield },
+  'plan.override': { label: 'Plan Override', color: 'text-brand-600 bg-brand-50', icon: CreditCard },
+  'refund.approve': { label: 'Refund Approved', color: 'text-success-600 bg-success-50', icon: CreditCard },
   'refund.reject': { label: 'Refund Rejected', color: 'text-red-600 bg-red-50', icon: CreditCard },
-  'refund.process': { label: 'Refund Processed', color: 'text-green-600 bg-green-50', icon: CreditCard },
-  'ticket.assign': { label: 'Ticket Assigned', color: 'text-blue-600 bg-blue-50', icon: Headphones },
+  'refund.process': { label: 'Refund Processed', color: 'text-success-600 bg-success-50', icon: CreditCard },
+  'ticket.assign': { label: 'Ticket Assigned', color: 'text-brand-600 bg-brand-50', icon: Headphones },
   'ticket.close': { label: 'Ticket Closed', color: 'text-slate-600 bg-slate-50', icon: Headphones },
-  'ticket.update': { label: 'Ticket Updated', color: 'text-blue-600 bg-blue-50', icon: Headphones },
+  'ticket.update': { label: 'Ticket Updated', color: 'text-brand-600 bg-brand-50', icon: Headphones },
   'settings.update': { label: 'Settings Updated', color: 'text-indigo-600 bg-indigo-50', icon: Settings },
-  'password.change': { label: 'Password Changed', color: 'text-amber-600 bg-amber-50', icon: Shield },
-  'notification.broadcast': { label: 'Notification Sent', color: 'text-cyan-600 bg-cyan-50', icon: Bell },
+  'password.change': { label: 'Password Changed', color: 'text-owed-600 bg-owed-50', icon: Shield },
+  'notification.broadcast': { label: 'Notification Sent', color: 'text-brand-600 bg-brand-50', icon: Bell },
 };
 
 function getActionInfo(action: string) {

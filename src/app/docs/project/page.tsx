@@ -90,7 +90,7 @@ export default async function ProjectDocPage() {
         .docs-body li > ul,
         .docs-body li > ol { margin: 0.25rem 0 0.5rem; }
         .docs-body a {
-          color: #0891B2;
+          color: #009BC6;
           text-decoration: underline;
           text-decoration-color: rgba(0, 184, 232, 0.35);
           text-underline-offset: 2px;

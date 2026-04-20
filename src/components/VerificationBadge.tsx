@@ -40,7 +40,7 @@ export function VerificationBadge({ verified, claimed, method, size = 'sm' }: Pr
   if (claimed) {
     return (
       <span
-        className={cn(base, 'bg-amber-50 text-amber-700')}
+        className={cn(base, 'bg-owed-50 text-owed-700')}
         title="Customer claims they paid — verify with your bank before shipping"
       >
         <Clock3 size={size === 'sm' ? 10 : 12} />

@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
         <p className="text-sm text-slate-500">
           Welcome back, {admin.name}
           {!admin.isSuperAdmin && (
-            <span className="ml-2 inline-block rounded-full bg-lime-100 px-2 py-0.5 text-xs font-semibold text-lime-800">
+            <span className="ml-2 inline-block rounded-full bg-success-100 px-2 py-0.5 text-xs font-semibold text-success-800">
               {admin.adminRole.replace(/_/g, ' ')}
             </span>
           )}

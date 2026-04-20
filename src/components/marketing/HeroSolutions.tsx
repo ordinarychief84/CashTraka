@@ -22,7 +22,7 @@ export function HeroSolutions() {
           <div>
             <Reveal from="up">
               <div className="flex items-center gap-3 text-xs">
-                <div className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 font-semibold text-amber-700">
+                <div className="inline-flex items-center gap-1 rounded-full border border-owed-200 bg-owed-50 px-2.5 py-1 font-semibold text-owed-700">
                   <Star size={12} fill="currentColor" />
                   <Star size={12} fill="currentColor" />
                   <Star size={12} fill="currentColor" />
@@ -194,7 +194,7 @@ function HeroVisual() {
 }
 
 function Stat({ label, value, accent }: { label: string; value: string; accent: 'success' | 'amber' | 'red' }) {
-  const accentMap = { success: 'text-success-700', amber: 'text-amber-600', red: 'text-owed-600' };
+  const accentMap = { success: 'text-success-700', amber: 'text-owed-600', red: 'text-owed-600' };
   return (
     <div className="text-center">
       <div className={`text-lg font-black tabular-nums ${accentMap[accent]}`}>{value}</div>

@@ -131,10 +131,10 @@ export function RoleManager({ admins, users, currentAdminId }: Props) {
       )}
 
       {success && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex gap-3">
-          <CheckCircle className="text-green-600 shrink-0" size={20} />
+        <div className="rounded-xl border border-success-200 bg-success-50 p-4 flex gap-3">
+          <CheckCircle className="text-success-600 shrink-0" size={20} />
           <div className="flex-1">
-            <p className="font-semibold text-green-900">{success}</p>
+            <p className="font-semibold text-success-900">{success}</p>
           </div>
         </div>
       )}
@@ -163,7 +163,7 @@ export function RoleManager({ admins, users, currentAdminId }: Props) {
                       <td className="px-4 py-3 font-semibold text-slate-900">
                         {a.name}
                         {isSelf && (
-                          <span className="ml-2 inline-block rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-lime-400">
+                          <span className="ml-2 inline-block rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-success-400">
                             YOU
                           </span>
                         )}
@@ -244,7 +244,7 @@ export function RoleManager({ admins, users, currentAdminId }: Props) {
                       setSearchQuery('');
                     }}
                     className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-100 border-b transition ${
-                      selectedUserId === u.id ? 'bg-lime-50 border-l-4 border-l-lime-400' : ''
+                      selectedUserId === u.id ? 'bg-success-50 border-l-4 border-l-success-400' : ''
                     }`}
                   >
                     <div className="font-semibold text-slate-900">{u.name}</div>
@@ -264,19 +264,19 @@ export function RoleManager({ admins, users, currentAdminId }: Props) {
             )}
 
             {selectedUserId && !searchQuery && (
-              <div className="p-3 rounded-lg bg-lime-50 border border-lime-200 flex items-start gap-2">
-                <CheckCircle className="text-lime-600 shrink-0 mt-0.5" size={18} />
+              <div className="p-3 rounded-lg bg-success-50 border border-success-200 flex items-start gap-2">
+                <CheckCircle className="text-success-600 shrink-0 mt-0.5" size={18} />
                 <div className="flex-1">
-                  <div className="text-sm font-semibold text-lime-900">
+                  <div className="text-sm font-semibold text-success-900">
                     {users.find((u) => u.id === selectedUserId)?.name}
                   </div>
-                  <div className="text-xs text-lime-700">
+                  <div className="text-xs text-success-700">
                     {users.find((u) => u.id === selectedUserId)?.email}
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedUserId('')}
-                  className="text-xs font-semibold text-lime-600 hover:text-lime-700"
+                  className="text-xs font-semibold text-success-600 hover:text-success-700"
                 >
                   Clear
                 </button>

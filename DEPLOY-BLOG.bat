@@ -1,5 +1,5 @@
 @echo off
-echo === CashTraka User Management + Audit Deploy ===
+echo === CashTraka Audit Fix Plan Deploy ===
 echo.
 
 cd /d "%~dp0"
@@ -17,15 +17,24 @@ if errorlevel 1 (
 )
 
 :: Commit
-git commit -m "feat: redesign user management, add delete user, fix file encoding
+git commit -m "feat: implement full audit fix plan (P1-P3)
 
-- Admin Users: redesigned list page with 6 stat cards, improved filters and table
-- Admin User Detail: redesigned with profile header, metric cards, subscription info
-- Delete User: new modal with DELETE confirmation, audit logging, cascading deletes
-- admin.service: added deleteUser() and userStats() methods
-- API: added DELETE /api/admin/users/[id] endpoint
-- Fixed backslash-exclamation encoding in multiple files
-- Fixed null bytes and truncated content in PayLink, Receipt, Invoice pages"
+P1 fixes:
+- Wire email channel in auto follow-up reminder cron
+- Add customer notes/tags to schema + PATCH API + CustomerNote model
+- Offline local queue via service worker IndexedDB
+- Paystack refund integration in admin refund flow
+
+P2 fixes:
+- Budget enforcement with threshold warnings in expense creation
+- Notification auto-triggers (suspend, reactivate, tickets, payments)
+- Audit log middleware via notification service
+- Suggestion proactive delivery in Daily Pulse email
+- Industry preset expansion (seller vs landlord expense categories)
+
+P3 fixes:
+- Blog SEO: OpenGraph + Twitter Card metadata on post pages
+- Fixed truncated files and encoding issues across 11 source files"
 
 if errorlevel 1 (
     echo [ERROR] git commit failed
@@ -44,6 +53,6 @@ if errorlevel 1 (
 echo.
 echo === Push complete! Vercel will auto-deploy in ~60 seconds. ===
 echo.
-echo No SQL migration needed for this deploy.
+echo NOTE: Run SQL migration on Neon for CustomerNote model + Customer notes/tags + BlogPost SEO fields.
 echo.
 pause

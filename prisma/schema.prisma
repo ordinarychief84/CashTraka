@@ -110,6 +110,7 @@ model User {
   emailVerifications   EmailVerification[]
   reminderRules        ReminderRule[]
   reminderLogs         ReminderLog[]
+  customerNotes        CustomerNote[]
   createdAdminStaff    AdminStaff[]      @relation("AdminStaffCreator")
 
   @@index([role])
@@ -155,16 +156,36 @@ model Customer {
   /// Last time a reminder was sent for any debt
   lastRemindedAt   DateTime?
 
+  /// Free-text notes about this customer (e.g. preferences, history)
+  notes            String?
+  /// Comma-separated custom tags for grouping/filtering
+  tags             String?
+
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments         Payment[]
   debts            Debt[]
   invoices         Invoice[]
   paymentRequests  PaymentRequest[]
+  customerNotes    CustomerNote[]
 
   @@unique([userId, phone])
   @@index([userId])
   @@index([phone])
   @@index([userId, behaviorTag])
+}
+
+model CustomerNote {
+  id          String   @id @default(cuid())
+  customerId  String
+  userId      String
+  note        String
+  createdAt   DateTime @default(now())
+
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([userId])
 }
 
 model Payment {
@@ -958,6 +979,12 @@ model BlogPost {
   status        String    @default("draft")
   category      String    @default("general")
   tags          String    @default("")
+  /// SEO meta description (auto-filled from excerpt if blank)
+  metaDescription String?
+  /// Open Graph title override
+  ogTitle       String?
+  /// Open Graph image override (falls back to coverImage)
+  ogImage       String?
   publishedAt   DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

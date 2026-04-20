@@ -15,6 +15,7 @@ import {
   paymentReminderLink,
   type ReminderTone,
 } from '@/lib/whatsapp.util';
+import { emailService } from '@/lib/services/email.service';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -179,6 +180,28 @@ export const reminderService = {
         tone,
         businessName: rule.user.businessName || undefined,
       });
+
+      // Send email reminder to the business owner if channel is 'email' or 'both'
+      if (rule.channel === 'email' || rule.channel === 'both') {
+        const owner = await prisma.user.findUnique({
+          where: { id: rule.userId },
+          select: { email: true, name: true },
+        });
+        if (owner) {
+          try {
+            await emailService.sendPaymentReminder({
+              to: owner.email,
+              customerName: debt.customerNameSnapshot,
+              businessName: rule.user.businessName || owner.name,
+              amount: remaining,
+              tone,
+              payLink: waLink,
+            });
+          } catch {
+            // Email send failure should not block the reminder flow
+          }
+        }
+      }
 
       // Create log entry
       await prisma.reminderLog.create({

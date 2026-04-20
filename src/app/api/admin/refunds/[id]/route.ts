@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { paystackService } from '@/lib/services/paystack.service';
 import { NextResponse } from 'next/server';
 
 /** PATCH /api/admin/refunds/[id] — Process a refund */
@@ -29,6 +30,7 @@ export async function PATCH(req: Request, ctx: { params: { id: string } }) {
       where: { id: refundId },
       include: {
         user: true,
+        paymentAttempt: true,
       },
     });
 
@@ -47,8 +49,21 @@ export async function PATCH(req: Request, ctx: { params: { id: string } }) {
       updateData.adminNote = adminNote;
     }
 
-    // If status is processed, downgrade user plan to free
+    // If status is processed, attempt Paystack refund then downgrade plan
     if (status === 'processed') {
+      // Try to refund via Paystack if we have a linked payment attempt
+      const paystackRef = refund.paymentAttempt?.paystackReference;
+      if (paystackRef && paystackService.isConfigured()) {
+        const refundResult = await paystackService.refundTransaction({
+          transactionRef: paystackRef,
+          amountKobo: refund.amount * 100, // amount stored in Naira, Paystack expects kobo
+          reason: adminNote || `Refund processed by admin for user ${refund.user.email}`,
+        });
+        if (!refundResult.ok) {
+          updateData.adminNote = `${adminNote || ''} [Paystack refund failed: ${refundResult.error}]`.trim();
+        }
+      }
+
       updateData.user = {
         update: {
           plan: 'free',
@@ -94,7 +109,7 @@ export async function PATCH(req: Request, ctx: { params: { id: string } }) {
     });
 
     // Log to AuditLog
-    await prisma.auditLog.create({
+        await prisma.auditLog.create({
       data: {
         adminId: admin.id,
         action: `refund.${status}`,

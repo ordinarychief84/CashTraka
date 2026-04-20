@@ -27,10 +27,29 @@ export function RegisterSW() {
         .catch(() => null);
     };
 
+    // Replay queued offline requests when coming back online
+    const onOnline = () => {
+      navigator.serviceWorker.controller?.postMessage('REPLAY_QUEUE');
+    };
+
+    // Listen for queue replay confirmations from SW
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'QUEUE_REPLAYED' && event.data.count > 0) {
+        // Optionally show a toast — for now just refresh data
+        window.dispatchEvent(new CustomEvent('cashtraka:synced', { detail: event.data.count }));
+      }
+    };
+
     if (document.readyState === 'complete') onLoad();
     else window.addEventListener('load', onLoad, { once: true });
+    window.addEventListener('online', onOnline);
+    navigator.serviceWorker.addEventListener('message', onMessage);
 
-    return () => window.removeEventListener('load', onLoad);
+    return () => {
+      window.removeEventListener('load', onLoad);
+      window.removeEventListener('online', onOnline);
+      navigator.serviceWorker.removeEventListener('message', onMessage);
+    };
   }, []);
 
   return null;

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Err } from '@/lib/errors';
 import { userRepo } from '@/lib/repositories/user.repository';
+import { notificationService } from '@/lib/services/notification.service';
 import type { Prisma } from '@prisma/client';
 
 /**
@@ -145,6 +146,8 @@ export const adminService = {
         },
       });
     }
+    // Auto-notify + audit log
+    await notificationService.onUserSuspended({ userId: targetId, adminId, reason });
     return updated;
   },
 
@@ -161,6 +164,8 @@ export const adminService = {
         },
       });
     }
+    // Auto-notify + audit log
+    await notificationService.onUserReactivated({ userId: targetId, adminId, reason });
     return updated;
   },
 

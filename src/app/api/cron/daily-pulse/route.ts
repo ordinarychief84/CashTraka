@@ -13,6 +13,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
 import { computeDailyPulse } from '@/lib/services/daily-pulse.service';
 import { paylinkService } from '@/lib/services/paylink.service';
+import { suggestionService } from '@/lib/services/suggestion.service';
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
@@ -54,6 +55,16 @@ export async function GET(req: Request) {
         continue;
       }
 
+      // Fetch top 3 suggestions for this user
+      let suggestions: { emoji: string; label: string }[] = [];
+      try {
+        const allSuggestions = await suggestionService.generate(user.id);
+        suggestions = allSuggestions.slice(0, 3).map((s) => ({
+          emoji: s.category === 'COLLECT' ? '💰' : s.category === 'REWARD' ? '🌟' : s.category === 'RE_ENGAGE' ? '📞' : '⚡',
+          label: s.label,
+        }));
+      } catch { /* suggestions are optional */ }
+
       const result = await emailService.sendDailyPulse({
         to: user.email,
         name: user.name.split(' ')[0],
@@ -65,6 +76,7 @@ export async function GET(req: Request) {
         remindersDueToday: pulse.remindersDueToday,
         topDebtors: pulse.topDebtors,
         yesterdaySpent: pulse.yesterdaySpent,
+        suggestions,
       });
 
       if (result.ok) sent++;

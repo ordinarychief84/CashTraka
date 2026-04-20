@@ -111,6 +111,47 @@ export const EXPENSE_CATEGORIES = uniqueExpenseCategories;
 export const BUSINESS_EXPENSE_CATEGORIES = businessExpenseCategories;
 export const PERSONAL_EXPENSE_CATEGORIES = personalExpenseCategories;
 
+/* ── Industry-specific business expense categories ── */
+const sellerExpenseCategories = [
+  'Inventory / Stock',
+  'Packaging / Supplies',
+  'Marketing / Ads',
+  'Transport / Logistics',
+  'Rent / Lease',
+  'Equipment',
+  'Salaries / Wages',
+  'Utilities',
+  'Professional Services',
+  'Software / Subscriptions',
+  'Taxes / Levies',
+  'Miscellaneous',
+] as const;
+
+const landlordExpenseCategories = [
+  'Property Maintenance',
+  'Plumbing / Electrical',
+  'Security / Gateman',
+  'Rent / Lease',
+  'Insurance',
+  'Property Tax / Levies',
+  'Legal Fees',
+  'Agent Commission',
+  'Renovations / Upgrades',
+  'Utilities (Common Areas)',
+  'Cleaning / Fumigation',
+  'Salaries / Wages',
+  'Miscellaneous',
+] as const;
+
+export const SELLER_EXPENSE_CATEGORIES = sellerExpenseCategories;
+export const LANDLORD_EXPENSE_CATEGORIES = landlordExpenseCategories;
+
+/** Get the right business expense list based on the user's business type */
+export function businessCategoriesFor(businessType: string): readonly string[] {
+  if (businessType === 'property_manager') return landlordExpenseCategories;
+  return sellerExpenseCategories;
+}
+
 export const expenseSchema = z.object({
   amount: z.coerce.number().int().positive('Amount must be greater than 0'),
   category: z.string().trim().min(1, 'Category is required'),

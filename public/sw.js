@@ -14,9 +14,11 @@
  * handler deletes any cache whose name doesn't match.
  */
 
-const CACHE_VERSION = 'cashtraka-v1';
+const CACHE_VERSION = 'cashtraka-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const HTML_CACHE = `${CACHE_VERSION}-html`;
+const OFFLINE_QUEUE_DB = 'cashtraka-offline-queue';
+const OFFLINE_QUEUE_STORE = 'requests';
 
 const APP_SHELL = [
   '/',
@@ -131,12 +133,119 @@ async function networkFirst(req) {
   }
 }
 
+// ───────────────────────── offline queue (IndexedDB) ─────────────
+
+function openQueueDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OFFLINE_QUEUE_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(OFFLINE_QUEUE_STORE)) {
+        db.createObjectStore(OFFLINE_QUEUE_STORE, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function enqueueRequest(url, method, headers, body) {
+  try {
+    const db = await openQueueDB();
+    const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readwrite');
+    tx.objectStore(OFFLINE_QUEUE_STORE).add({
+      url, method, headers, body, timestamp: Date.now(),
+    });
+    await new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+    db.close();
+  } catch { /* IndexedDB may not be available */ }
+}
+
+async function replayQueue() {
+  try {
+    const db = await openQueueDB();
+    const tx = db.transaction(OFFLINE_QUEUE_STORE, 'readonly');
+    const store = tx.objectStore(OFFLINE_QUEUE_STORE);
+    const items = await new Promise((res, rej) => {
+      const req = store.getAll();
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+    db.close();
+
+    const succeeded = [];
+    for (const item of items) {
+      try {
+        const res = await fetch(item.url, {
+          method: item.method,
+          headers: item.headers,
+          body: item.body,
+        });
+        if (res.ok || res.status < 500) succeeded.push(item.id);
+      } catch { break; /* still offline */ }
+    }
+
+    if (succeeded.length > 0) {
+      const db2 = await openQueueDB();
+      const tx2 = db2.transaction(OFFLINE_QUEUE_STORE, 'readwrite');
+      const store2 = tx2.objectStore(OFFLINE_QUEUE_STORE);
+      for (const id of succeeded) store2.delete(id);
+      await new Promise((res) => { tx2.oncomplete = res; });
+      db2.close();
+    }
+
+    // Notify all clients about the replayed requests
+    if (succeeded.length > 0) {
+      const clients = await self.clients.matchAll();
+      clients.forEach((c) => c.postMessage({ type: 'QUEUE_REPLAYED', count: succeeded.length }));
+    }
+  } catch { /* silently fail */ }
+}
+
+// Queueable mutation endpoints (safe to retry)
+const QUEUEABLE_PATHS = [
+  '/api/payments',
+  '/api/debts',
+  '/api/customers',
+  '/api/expenses',
+  '/api/invoices',
+];
+
+function isQueueable(url, method) {
+  if (method !== 'POST' && method !== 'PATCH' && method !== 'PUT') return false;
+  const { pathname } = new URL(url);
+  return QUEUEABLE_PATHS.some((p) => pathname.startsWith(p));
+}
+
 // ───────────────────────── fetch router ─────────────────────────
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Ignore non-GET (POST/PATCH/DELETE must always hit the network).
+  // Handle mutation requests that can be queued offline
+  if (request.method !== 'GET' && isSameOrigin(request.url) && isQueueable(request.url, request.method)) {
+    event.respondWith(
+      (async () => {
+        try {
+          const res = await fetch(request.clone());
+          return res;
+        } catch {
+          // Offline — queue the request for replay
+          const body = await request.clone().text();
+          const headers = {};
+          request.headers.forEach((v, k) => { if (k !== 'cookie') headers[k] = v; });
+          await enqueueRequest(request.url, request.method, headers, body);
+          return new Response(
+            JSON.stringify({ success: true, queued: true, message: 'Saved offline. Will sync when you reconnect.' }),
+            { status: 202, headers: { 'Content-Type': 'application/json' } },
+          );
+        }
+      })(),
+    );
+    return;
+  }
+
+  // Ignore other non-GET requests (non-queueable mutations must hit network).
   if (request.method !== 'GET') return;
 
   // Ignore cross-origin requests (e.g. Google Fonts CSS we let the browser handle).
@@ -173,7 +282,18 @@ self.addEventListener('fetch', (event) => {
 
 // ───────────────────────── messaging ─────────────────────────
 
-// Optional: let the app tell the SW to skip waiting (hot-swap on deploy).
+// Handle messages from the app.
 self.addEventListener('message', (event) => {
   if (event.data === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data === 'REPLAY_QUEUE') replayQueue();
+});
+
+// Replay queued requests when coming back online.
+self.addEventListener('online', () => replayQueue());
+
+// Also replay on sync event if supported.
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'replay-queue') {
+    event.waitUntil(replayQueue());
+  }
 });

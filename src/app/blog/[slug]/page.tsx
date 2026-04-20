@@ -14,9 +14,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const post = await prisma.blogPost.findUnique({ where: { slug } });
   if (!post || post.status !== 'published') return { title: 'Post not found' };
+  const appUrl = process.env.APP_URL || 'https://cashtraka.com';
+  const description = post.metaDescription || post.excerpt || `Read ${post.title} on CashTraka Blog`;
+  const ogImage = post.ogImage || post.coverImage || `${appUrl}/icon-512.png`;
   return {
-    title: `${post.title} | CashTraka Blog`,
-    description: post.excerpt || undefined,
+    title: post.ogTitle || `${post.title} | CashTraka Blog`,
+    description,
+    openGraph: {
+      title: post.ogTitle || post.title,
+      description,
+      type: 'article',
+      publishedTime: post.publishedAt?.toISOString(),
+      authors: [post.author],
+      images: ogImage ? [{ url: ogImage, width: 1200, height: 630 }] : [],
+      url: `${appUrl}/blog/${post.slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.ogTitle || post.title,
+      description,
+      images: ogImage ? [ogImage] : [],
+    },
   };
 }
 

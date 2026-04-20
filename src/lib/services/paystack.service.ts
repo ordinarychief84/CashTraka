@@ -126,6 +126,32 @@ export const paystackService = {
     }
   },
 
+  /**
+   * Initiate a refund on Paystack. Requires the original transaction reference.
+   * Paystack processes refunds asynchronously — they appear in your dashboard.
+   */
+  refundTransaction(args: {
+    transactionRef: string;
+    amountKobo?: number; // partial refund; omit for full refund
+    reason?: string;
+  }): Promise<PaystackResult<{
+    id: number;
+    status: string;
+    transaction: { reference: string };
+    amount: number;
+  }>> {
+    const body: Record<string, unknown> = {
+      transaction: args.transactionRef,
+    };
+    if (args.amountKobo) body.amount = args.amountKobo;
+    if (args.reason) body.merchant_note = args.reason;
+
+    return request('/refund', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+  },
+
   isConfigured(): boolean {
     return Boolean(secret());
   },

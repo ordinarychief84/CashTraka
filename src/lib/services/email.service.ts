@@ -347,6 +347,7 @@ export const emailService = {
     remindersDueToday: number;
     topDebtors: { name: string; amount: number }[];
     yesterdaySpent?: number;
+    suggestions?: { emoji: string; label: string }[];
   }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || '';
     const today = fmtDate(new Date());
@@ -405,6 +406,13 @@ export const emailService = {
       ${DIVIDER}
       <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1A1A1A;text-transform:uppercase;">Top Debtors</p>
       <table cellpadding="0" cellspacing="0" border="0" width="100%">${debtorRows}</table>` : ''}
+
+      ${args.suggestions && args.suggestions.length > 0 ? `
+      ${DIVIDER}
+      <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#1A1A1A;text-transform:uppercase;">Smart Suggestions</p>
+      ${args.suggestions.slice(0, 3).map((s) => `
+        <p style="margin:0 0 6px;font-size:13px;color:#475569;">${s.emoji} ${esc(s.label)}</p>
+      `).join('')}` : ''}
 
       ${ctaButton('Open Dashboard', appUrl + '/dashboard')}`;
 
@@ -1189,6 +1197,71 @@ export const emailService = {
       html: layout(body, {
         preheader: `${args.invitedBy} invited you to join CashTraka as ${roleLabel}.`,
       }),
+    });
+  },
+
+  /* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+   *  19. PAYMENT REMINDER \u2014 sent by auto follow-up cron
+   * \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */
+  async sendPaymentReminder(args: {
+    to: string;
+    customerName: string;
+    businessName: string;
+    amount: number;
+    tone: 'gentle' | 'firm' | 'final';
+    payLink?: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || '';
+    const toneConfig = {
+      gentle: {
+        icon: '💬',
+        bg: '#F0FDF4',
+        subject: `Friendly reminder: ${naira(args.amount)} outstanding`,
+        greeting: `This is a friendly reminder that you have an outstanding balance of <strong>${naira(args.amount)}</strong> with <strong>${esc(args.businessName)}</strong>.`,
+        cta: 'Make Payment',
+      },
+      firm: {
+        icon: '⚠️',
+        bg: '#FEF9C3',
+        subject: `Payment overdue: ${naira(args.amount)} owed to ${args.businessName}`,
+        greeting: `Your payment of <strong>${naira(args.amount)}</strong> to <strong>${esc(args.businessName)}</strong> is now overdue. Please settle this balance as soon as possible.`,
+        cta: 'Pay Now',
+      },
+      final: {
+        icon: '🔴',
+        bg: '#FEE2E2',
+        subject: `Final notice: ${naira(args.amount)} \u2014 ${args.businessName}`,
+        greeting: `This is a final reminder regarding your outstanding balance of <strong>${naira(args.amount)}</strong> with <strong>${esc(args.businessName)}</strong>. Please make payment immediately to avoid further action.`,
+        cta: 'Pay Immediately',
+      },
+    };
+
+    const cfg = toneConfig[args.tone];
+    const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="display:inline-block;background:${cfg.bg};border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">${cfg.icon}</div>
+        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Payment Reminder</h1>
+      </div>
+
+      <p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.6;">
+        Hi ${esc(args.customerName)}, ${cfg.greeting}
+      </p>
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:12px;overflow:hidden;">
+        ${infoRow('Amount Due', naira(args.amount))}
+        ${infoRow('Business', args.businessName)}
+      </table>
+
+      ${args.payLink ? ctaButton(cfg.cta, args.payLink) : ctaButton('View Details', appUrl)}
+
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;text-align:center;">
+        This reminder was sent on behalf of ${esc(args.businessName)} via CashTraka.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: cfg.subject,
+      html: layout(body, { preheader: cfg.greeting.replace(/<[^>]+>/g, '') }),
     });
   },
 

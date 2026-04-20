@@ -19,38 +19,44 @@ export async function GET(req: Request) {
 
 /** POST /api/paylinks — create a new payment request link */
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await req.json();
-  const { customerName, customerPhone, amount, description, customerId, debtId, expiresInDays } = body;
+    const body = await req.json();
+    const { customerName, customerPhone, amount, description, customerId, debtId, expiresInDays } = body;
 
-  if (!customerName || !customerPhone || !amount || amount <= 0) {
-    return NextResponse.json({ error: 'customerName, customerPhone, and a positive amount are required' }, { status: 400 });
+    if (!customerName || !customerPhone || !amount || amount <= 0) {
+      return NextResponse.json({ error: 'customerName, customerPhone, and a positive amount are required' }, { status: 400 });
+    }
+
+    // If customerId provided, verify ownership
+    if (customerId) {
+      const cust = await prisma.customer.findFirst({ where: { id: customerId, userId: user.id } });
+      if (!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    }
+
+    // If debtId provided, verify ownership
+    if (debtId) {
+      const debt = await prisma.debt.findFirst({ where: { id: debtId, userId: user.id } });
+      if (!debt) return NextResponse.json({ error: 'Debt not found' }, { status: 404 });
+    }
+
+    const paylink = await paylinkService.create({
+      userId: user.id,
+      customerId,
+      customerName,
+      customerPhone,
+      amount: Math.round(Number(amount)),
+      description,
+      debtId,
+      expiresInDays: expiresInDays ? Number(expiresInDays) : undefined,
+    });
+
+    return NextResponse.json(paylink, { status: 201 });
+  } catch (err: unknown) {
+    console.error('POST /api/paylinks error:', err);
+    const message = err instanceof Error ? err.message : 'Server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  // If customerId provided, verify ownership
-  if (customerId) {
-    const cust = await prisma.customer.findFirst({ where: { id: customerId, userId: user.id } });
-    if (!cust) return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
-  }
-
-  // If debtId provided, verify ownership
-  if (debtId) {
-    const debt = await prisma.debt.findFirst({ where: { id: debtId, userId: user.id } });
-    if (!debt) return NextResponse.json({ error: 'Debt not found' }, { status: 404 });
-  }
-
-  const paylink = await paylinkService.create({
-    userId: user.id,
-    customerId,
-    customerName,
-    customerPhone,
-    amount: Math.round(Number(amount)),
-    description,
-    debtId,
-    expiresInDays: expiresInDays ? Number(expiresInDays) : undefined,
-  });
-
-  return NextResponse.json(paylink, { status: 201 });
 }

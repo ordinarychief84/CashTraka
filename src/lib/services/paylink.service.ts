@@ -4,9 +4,9 @@
 
 import { prisma } from '@/lib/prisma';
 
-async function nextLinkNumber(userId: string): Promise<string> {
+async function nextLinkNumber(_userId: string): Promise<string> {
+  // Query ALL users — linkNumber has a GLOBAL unique constraint
   const latest = await prisma.paymentRequest.findFirst({
-    where: { userId },
     orderBy: { linkNumber: 'desc' },
     select: { linkNumber: true },
   });

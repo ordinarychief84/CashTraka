@@ -16,6 +16,7 @@ import {
   Headphones,
   Bell,
   ClipboardList,
+  FileText,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { href: '/admin/notifications', icon: Bell, label: 'Notifications' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/admin/emails', icon: Mail, label: 'Email Logs' },
+  { href: '/admin/blog', icon: FileText, label: 'Blog' },
   { href: '/admin/audit', icon: ClipboardList, label: 'Audit Log' },
   { href: '/admin/settings', icon: Settings, label: 'Settings' },
 ];

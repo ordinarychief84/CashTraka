@@ -943,3 +943,25 @@ model CollectionScore {
   @@unique([userId, periodStart])
   @@index([userId, createdAt])
 }
+
+// ---------- BLOG ----------
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  excerpt       String    @default("")
+  content       String
+  coverImage    String?
+  author        String
+  status        String    @default("draft")
+  category      String    @default("general")
+  tags          String    @default("")
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([category])
+  @@index([slug])
+}

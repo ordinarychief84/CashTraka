@@ -15,7 +15,7 @@ export function Footer() {
                 Contact us
               </div>
               <h3 className="mt-1 text-xl font-bold text-ink md:text-2xl">
-                Questions, feedback, or a request? We’d love to hear from you.
+                Questions, feedback, or a request? We'd love to hear from you.
               </h3>
               <p className="mt-1 text-sm text-slate-600">
                 Email us or open a chat — we read every message.
@@ -55,6 +55,7 @@ export function Footer() {
             <FooterLink href="/#pricing">Pricing</FooterLink>
             <FooterLink href="/#faq">FAQ</FooterLink>
             <FooterLink href="/about">About us</FooterLink>
+            <FooterLink href="/blog">Blog</FooterLink>
           </Column>
 
           {/* Column 3: account */}
@@ -73,7 +74,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-xs text-slate-500 md:flex-row md:items-center">
-          <div>© {year} CashTraka. All rights reserved.</div>
+          <div>&copy; {year} CashTraka. All rights reserved.</div>
           <div>Built for small businesses and landlords in Nigeria.</div>
         </div>
       </div>

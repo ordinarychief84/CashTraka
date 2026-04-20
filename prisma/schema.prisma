@@ -115,6 +115,20 @@ model User {
   @@index([lastLoginAt])
 }
 
+model EmailVerification {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 // ---------- CORE: customers, payments, debts ----------
 
 model Customer {

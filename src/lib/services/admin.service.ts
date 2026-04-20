@@ -172,4 +172,42 @@ export const adminService = {
       data: { adminUserId: adminId, targetUserId: targetId, note: note.trim() },
     });
   },
+async deleteUser(adminId: string, targetId: string, reason?: string) {
+    if (adminId === targetId) throw Err.validation("You can't delete yourself");
+    const target = await userRepo.byId(targetId);
+    if (!target) throw Err.notFound('User not found');
+    if (target.role === 'ADMIN') throw Err.forbidden("Can't delete another admin");
+
+    // Log the deletion before removing the user
+    await prisma.auditLog.create({
+      data: {
+        adminUserId: adminId,
+        action: 'DELETE_USER',
+        detail: `Deleted user ${target.name} (${target.email})${reason ? ` \u2014 ${reason}` : ''}`,
+      },
+    });
+
+    // Prisma cascading deletes handle all related records
+    await prisma.user.delete({ where: { id: targetId } });
+
+    return { ok: true, deleted: target.email };
+  },
+
+  async userStats() {
+    const [total, active, suspended, freePlan, paidPlan, newThisMonth] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { isSuspended: false } }),
+      prisma.user.count({ where: { isSuspended: true } }),
+      prisma.user.count({ where: { plan: 'free' } }),
+      prisma.user.count({ where: { plan: { not: 'free' } } }),
+      prisma.user.count({
+        where: {
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+      }),
+    ]);
+    return { total, active, suspended, freePlan, paidPlan, newThisMonth };
+  },
 };

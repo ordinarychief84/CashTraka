@@ -84,4 +84,7 @@ export const paymentProviderService = {
   /** Return all configured providers. */
   available(): PaymentProvider[] {
     return Array.from(adapters.entries())
-      .filter(([, a]) =
+      .filter(([, a]) => a.isConfigured())
+      .map(([name]) => name);
+  },
+};

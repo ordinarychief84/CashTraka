@@ -123,4 +123,28 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
         authorization: authData
           ? {
               authorizationCode: authData.authorization_code,
-              reusable: authData.reusa
+              reusable: authData.reusable,
+              bin: authData.bin,
+              last4: authData.last4,
+              bank: authData.bank,
+              channel: authData.channel,
+              cardType: authData.card_type,
+              expMonth: authData.exp_month,
+              expYear: authData.exp_year,
+              customerCode: d.customer?.customer_code,
+            }
+          : undefined,
+      },
+    };
+  },
+
+  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
+    const key = secretKey();
+    if (!key) return false;
+    const hash = crypto
+      .createHmac('sha512', key)
+      .update(rawBody)
+      .digest('hex');
+    return hash === (headers['x-paystack-signature'] || headers['X-Paystack-Signature']);
+  },
+};

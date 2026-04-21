@@ -25,7 +25,7 @@ git status --short
 
 echo.
 echo Committing (if any unstaged changes remain)...
-git commit -m "fix: restore truncated prisma schema (AdminStaff + PromiseToPay + InstallmentPlan models)" --allow-empty
+git commit -m "fix: complete truncated service files (payment-provider, paystack-customer, webhook)"
 
 echo.
 echo Pushing to GitHub...

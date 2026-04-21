@@ -129,7 +129,7 @@ export default async function PromisesPage() {
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-lg font-bold text-slate-900">{formatNaira(promise.remainingAmount)}</p>
-                    {promise.originalAmount \!== promise.remainingAmount && (
+                    {promise.originalAmount !== promise.remainingAmount && (
                       <p className="text-[11px] text-slate-400">of {formatNaira(promise.originalAmount)}</p>
                     )}
                   </div>

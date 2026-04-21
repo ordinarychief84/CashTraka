@@ -32,13 +32,13 @@ export function ContactPickerButton({ onContactPicked, label, className }: Props
     setSupported(isContactPickerSupported());
   }, []);
 
-  if (\!supported) return null;
+  if (!supported) return null;
 
   async function handlePick() {
     setPicking(true);
     try {
       const result = await pickContactWithPhoneChoice();
-      if (\!result) return;
+      if (!result) return;
 
       if (result.phones.length === 1) {
         onContactPicked({
@@ -54,7 +54,7 @@ export function ContactPickerButton({ onContactPicked, label, className }: Props
   }
 
   function handlePhoneSelect(phone: string) {
-    if (\!phoneChoices) return;
+    if (!phoneChoices) return;
     onContactPicked({
       name: phoneChoices.name,
       phone: normalizeNigerianPhone(phone),

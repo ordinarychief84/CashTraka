@@ -32,7 +32,7 @@ export function NewPromiseForm() {
         body: JSON.stringify({ customerName, phone, amount: parseInt(amount), note: note || undefined }),
       });
       const json = await res.json();
-      if (\!json.success) {
+      if (!json.success) {
         setError(json.error || 'Failed to create promise');
         return;
       }
@@ -56,7 +56,7 @@ export function NewPromiseForm() {
   }
 
   function sendWhatsApp() {
-    if (\!created?.publicUrl) return;
+    if (!created?.publicUrl) return;
     const amt = '₦' + parseInt(amount).toLocaleString('en-NG');
     const msg = `Hi ${customerName}, you have an outstanding payment of ${amt}. Please use this link to pay or set up a payment plan:\n\n${created.publicUrl}`;
     window.open(waLink(phone, msg), '_blank');
@@ -67,7 +67,7 @@ export function NewPromiseForm() {
     return (
       <div className="rounded-2xl border bg-white p-8 text-center shadow-sm">
         <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
-        <h2 className="text-lg font-bold text-slate-900">Promise created\!</h2>
+        <h2 className="text-lg font-bold text-slate-900">Promise created!</h2>
         <p className="mt-2 text-sm text-slate-500">
           Share the link with {customerName} so they can pay or commit to a date.
         </p>
@@ -161,7 +161,7 @@ export function NewPromiseForm() {
 
       <button
         type="submit"
-        disabled={submitting || \!customerName || \!phone || \!amount}
+        disabled={submitting || !customerName || !phone || !amount}
         className="w-full rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50 transition-colors"
       >
         {submitting ? 'Creating...' : 'Create & get link'}

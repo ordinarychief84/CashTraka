@@ -18,7 +18,7 @@ export type PickedContact = {
  */
 export function isContactPickerSupported(): boolean {
   return (
-    typeof window \!== 'undefined' &&
+    typeof window !== 'undefined' &&
     'contacts' in navigator &&
     'ContactsManager' in window
   );
@@ -30,7 +30,7 @@ export function isContactPickerSupported(): boolean {
  * if the user cancelled or the API is unsupported.
  */
 export async function pickContact(): Promise<PickedContact | null> {
-  if (\!isContactPickerSupported()) return null;
+  if (!isContactPickerSupported()) return null;
 
   try {
     const nav = navigator as any;
@@ -46,7 +46,7 @@ export async function pickContact(): Promise<PickedContact | null> {
     // Request exactly one contact
     const contacts = await nav.contacts.select(requestProps, { multiple: false });
 
-    if (\!contacts || contacts.length === 0) return null;
+    if (!contacts || contacts.length === 0) return null;
 
     const contact = contacts[0];
     const name = contact.name?.[0] || '';
@@ -75,7 +75,7 @@ export async function pickContactWithPhoneChoice(): Promise<{
   name: string;
   phones: string[];
 } | null> {
-  if (\!isContactPickerSupported()) return null;
+  if (!isContactPickerSupported()) return null;
 
   try {
     const nav = navigator as any;
@@ -84,10 +84,10 @@ export async function pickContactWithPhoneChoice(): Promise<{
     if (supportedProps.includes('name')) requestProps.push('name');
     if (supportedProps.includes('tel')) requestProps.push('tel');
 
-    if (\!requestProps.includes('tel')) return null;
+    if (!requestProps.includes('tel')) return null;
 
     const contacts = await nav.contacts.select(requestProps, { multiple: false });
-    if (\!contacts || contacts.length === 0) return null;
+    if (!contacts || contacts.length === 0) return null;
 
     const contact = contacts[0];
     return {

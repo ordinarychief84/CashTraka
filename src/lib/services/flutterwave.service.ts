@@ -25,7 +25,7 @@ async function apiRequest<T>(
   init: RequestInit,
 ): Promise<ProviderResult<T>> {
   const key = secretKey();
-  if (\!key) return { ok: false, error: 'not_configured' };
+  if (!key) return { ok: false, error: 'not_configured' };
   try {
     const res = await fetch(BASE + path, {
       ...init,
@@ -36,7 +36,7 @@ async function apiRequest<T>(
       },
     });
     const json = (await res.json().catch(() => ({}))) as any;
-    if (\!res.ok || json?.status === 'error') {
+    if (!res.ok || json?.status === 'error') {
       return { ok: false, error: json?.message || `flutterwave_${res.status}`, details: json };
     }
     return { ok: true, data: json.data as T };
@@ -73,7 +73,7 @@ export const flutterwaveAdapter: PaymentProviderAdapter = {
       }),
     });
 
-    if (\!result.ok) return result;
+    if (!result.ok) return result;
     return {
       ok: true,
       data: {
@@ -94,7 +94,7 @@ export const flutterwaveAdapter: PaymentProviderAdapter = {
       meta?: Record<string, unknown>;
     }>(`/transactions/${encodeURIComponent(transactionId)}/verify`, { method: 'GET' });
 
-    if (\!result.ok) return result;
+    if (!result.ok) return result;
     const d = result.data;
     return {
       ok: true,
@@ -114,7 +114,7 @@ export const flutterwaveAdapter: PaymentProviderAdapter = {
   verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
     const webhookHash = process.env.FLUTTERWAVE_WEBHOOK_HASH;
     const signature = headers['verif-hash'] || '';
-    if (\!webhookHash || \!signature) return false;
+    if (!webhookHash || !signature) return false;
     // Flutterwave uses a simple hash comparison
     return signature === webhookHash;
   },

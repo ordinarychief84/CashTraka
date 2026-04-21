@@ -43,7 +43,7 @@ export const promiseToPayService = {
 
     // Find or create customer
     let customerId = input.customerId;
-    if (\!customerId) {
+    if (!customerId) {
       const existing = await prisma.customer.findUnique({
         where: { userId_phone: { userId: input.userId, phone } },
       });
@@ -95,7 +95,7 @@ export const promiseToPayService = {
         customer: true,
       },
     });
-    if (\!promise || promise.userId \!== userId) throw Err.notFound('Promise not found');
+    if (!promise || promise.userId !== userId) throw Err.notFound('Promise not found');
     return promise;
   },
 
@@ -117,7 +117,7 @@ export const promiseToPayService = {
         },
       },
     });
-    if (\!promise) throw Err.notFound('Promise link not found or expired');
+    if (!promise) throw Err.notFound('Promise link not found or expired');
     return promise;
   },
 
@@ -139,7 +139,7 @@ export const promiseToPayService = {
     const promise = await prisma.promiseToPay.findUnique({
       where: { publicToken: input.promiseToken },
     });
-    if (\!promise) throw Err.notFound('Promise not found');
+    if (!promise) throw Err.notFound('Promise not found');
     if (['PAID', 'CANCELLED', 'EXPIRED'].includes(promise.status)) {
       throw Err.validation('This promise is no longer active');
     }
@@ -181,7 +181,7 @@ export const promiseToPayService = {
     ensureProvidersRegistered();
 
     const promise = await prisma.promiseToPay.findUnique({ where: { id: input.promiseId } });
-    if (\!promise) throw Err.notFound('Promise not found');
+    if (!promise) throw Err.notFound('Promise not found');
     if (['PAID', 'CANCELLED', 'EXPIRED'].includes(promise.status)) {
       throw Err.validation('This promise is no longer active');
     }
@@ -190,7 +190,7 @@ export const promiseToPayService = {
     }
 
     const providerName = (input.provider as any) || paymentProviderService.default();
-    if (\!providerName) throw Err.validation('No payment provider available');
+    if (!providerName) throw Err.validation('No payment provider available');
 
     const adapter = paymentProviderService.getOrThrow(providerName);
     const appUrl = process.env.APP_URL || 'http://localhost:3000';
@@ -222,7 +222,7 @@ export const promiseToPayService = {
       customerName: promise.customerNameSnapshot,
     });
 
-    if (\!result.ok) {
+    if (!result.ok) {
       // Clean up the pending payment record
       await prisma.promisePayment.delete({ where: { id: promisePayment.id } });
       throw Err.validation(result.error);
@@ -237,7 +237,7 @@ export const promiseToPayService = {
 
   async cancel(id: string, userId: string) {
     const promise = await prisma.promiseToPay.findUnique({ where: { id } });
-    if (\!promise || promise.userId \!== userId) throw Err.notFound('Promise not found');
+    if (!promise || promise.userId !== userId) throw Err.notFound('Promise not found');
     if (promise.status === 'PAID') throw Err.validation('Cannot cancel a paid promise');
 
     return prisma.promiseToPay.update({

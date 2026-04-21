@@ -10,7 +10,7 @@ import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 export async function GET(req: Request) {
   const authHeader = req.headers.get('authorization');
   const expected = process.env.CRON_SECRET;
-  if (expected && authHeader \!== `Bearer ${expected}`) {
+  if (expected && authHeader !== `Bearer ${expected}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

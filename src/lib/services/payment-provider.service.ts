@@ -77,21 +77,11 @@ export const paymentProviderService = {
 
   getOrThrow(provider: PaymentProvider): PaymentProviderAdapter {
     const adapter = adapters.get(provider);
-    if (\!adapter) throw new Error(`Payment provider ${provider} not registered`);
+    if (!adapter) throw new Error(`Payment provider ${provider} not registered`);
     return adapter;
   },
 
   /** Return all configured providers. */
   available(): PaymentProvider[] {
     return Array.from(adapters.entries())
-      .filter(([, a]) => a.isConfigured())
-      .map(([name]) => name);
-  },
-
-  /** Default provider — Paystack preferred, else first available. */
-  default(): PaymentProvider | null {
-    if (adapters.get('PAYSTACK')?.isConfigured()) return 'PAYSTACK';
-    if (adapters.get('FLUTTERWAVE')?.isConfigured()) return 'FLUTTERWAVE';
-    return null;
-  },
-};
+      .filter(([, a]) =

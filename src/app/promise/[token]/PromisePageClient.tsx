@@ -77,7 +77,7 @@ export function PromisePageClient({ token }: { token: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   // Check if redirected from payment
-  const urlParams = typeof window \!== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const paymentPending = urlParams?.get('payment') === 'pending';
 
   useEffect(() => {
@@ -88,7 +88,7 @@ export function PromisePageClient({ token }: { token: string }) {
     try {
       const res = await fetch(`/api/promises/public/${token}`);
       const json = await res.json();
-      if (\!json.success) {
+      if (!json.success) {
         setError(json.error || 'Link not found');
         setView('error');
         return;
@@ -108,7 +108,7 @@ export function PromisePageClient({ token }: { token: string }) {
   }
 
   async function handlePayNow() {
-    if (\!data || \!email) return;
+    if (!data || !email) return;
     setSubmitting(true);
     try {
       // Record commitment
@@ -140,7 +140,7 @@ export function PromisePageClient({ token }: { token: string }) {
   }
 
   async function handlePayPart() {
-    if (\!data || \!email || \!payAmount) return;
+    if (!data || !email || !payAmount) return;
     const amount = parseInt(payAmount, 10);
     if (isNaN(amount) || amount <= 0 || amount > data.remainingAmount) {
       setError('Enter a valid amount');
@@ -175,7 +175,7 @@ export function PromisePageClient({ token }: { token: string }) {
   }
 
   async function handlePromiseDate() {
-    if (\!promiseDate) return;
+    if (!promiseDate) return;
     setSubmitting(true);
     try {
       const res = await fetch(`/api/promises/public/${token}/commit`, {
@@ -225,7 +225,7 @@ export function PromisePageClient({ token }: { token: string }) {
     );
   }
 
-  if (\!data) return null;
+  if (!data) return null;
 
   const totalPaid = data.payments.reduce((sum, p) => sum + p.amount, 0);
 
@@ -264,7 +264,7 @@ export function PromisePageClient({ token }: { token: string }) {
           <div className="mt-6 rounded-2xl bg-green-50 p-6 text-center">
             <CheckCircle className="mx-auto mb-3 h-12 w-12 text-green-500" />
             <h2 className="text-lg font-bold text-green-800">Payment confirmed</h2>
-            <p className="mt-1 text-sm text-green-600">Thank you for your payment\!</p>
+            <p className="mt-1 text-sm text-green-600">Thank you for your payment!</p>
           </div>
         )}
 
@@ -288,7 +288,7 @@ export function PromisePageClient({ token }: { token: string }) {
         {view === 'payment_confirmed' && (
           <div className="mt-6 rounded-2xl bg-green-50 p-6 text-center">
             <CheckCircle className="mx-auto mb-3 h-12 w-12 text-green-500" />
-            <h2 className="text-lg font-bold text-green-800">Payment confirmed\!</h2>
+            <h2 className="text-lg font-bold text-green-800">Payment confirmed!</h2>
             <p className="mt-1 text-sm text-green-600">Your payment has been verified and recorded.</p>
           </div>
         )}
@@ -402,7 +402,7 @@ export function PromisePageClient({ token }: { token: string }) {
               </button>
               <button
                 onClick={handlePayNow}
-                disabled={\!email || submitting}
+                disabled={!email || submitting}
                 className="flex-1 rounded-lg bg-green-600 px-4 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
               >
                 {submitting ? 'Processing...' : 'Pay now'}
@@ -444,7 +444,7 @@ export function PromisePageClient({ token }: { token: string }) {
               </button>
               <button
                 onClick={handlePayPart}
-                disabled={\!email || \!payAmount || submitting}
+                disabled={!email || !payAmount || submitting}
                 className="flex-1 rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
               >
                 {submitting ? 'Processing...' : 'Pay'}
@@ -483,7 +483,7 @@ export function PromisePageClient({ token }: { token: string }) {
               </button>
               <button
                 onClick={handlePromiseDate}
-                disabled={\!promiseDate || submitting}
+                disabled={!promiseDate || submitting}
                 className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 {submitting ? 'Saving...' : 'Confirm promise'}

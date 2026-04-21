@@ -25,7 +25,7 @@ async function apiRequest<T>(
   init: RequestInit,
 ): Promise<ProviderResult<T>> {
   const key = secretKey();
-  if (\!key) return { ok: false, error: 'not_configured' };
+  if (!key) return { ok: false, error: 'not_configured' };
   try {
     const res = await fetch(BASE + path, {
       ...init,
@@ -36,7 +36,7 @@ async function apiRequest<T>(
       },
     });
     const json = (await res.json().catch(() => ({}))) as any;
-    if (\!res.ok || json?.status === false) {
+    if (!res.ok || json?.status === false) {
       return { ok: false, error: json?.message || `paystack_${res.status}`, details: json };
     }
     return { ok: true, data: json.data as T };
@@ -71,7 +71,7 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
       }),
     });
 
-    if (\!result.ok) return result;
+    if (!result.ok) return result;
     return {
       ok: true,
       data: {
@@ -123,69 +123,4 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
         authorization: authData
           ? {
               authorizationCode: authData.authorization_code,
-              reusable: authData.reusable,
-              bin: authData.bin,
-              last4: authData.last4,
-              bank: authData.bank,
-              channel: authData.channel,
-              cardType: authData.card_type,
-              expMonth: authData.exp_month,
-              expYear: authData.exp_year,
-              customerCode: d.customer?.customer_code,
-            }
-          : undefined,
-      },
-    };
-  },
-
-  /**
-   * Charge a reusable authorization for recurring installments.
-   * Uses Paystack's "charge authorization" endpoint.
-   */
-  async chargeAuthorization(args: {
-    authorizationCode: string;
-    email: string;
-    amount: number; // Naira
-    reference: string;
-    metadata?: Record<string, unknown>;
-  }): Promise<ProviderResult<{ reference: string; status: string; transactionId: string }>> {
-    const result = await apiRequest<{
-      reference: string;
-      status: string;
-      id: number;
-    }>('/transaction/charge_authorization', {
-      method: 'POST',
-      body: JSON.stringify({
-        authorization_code: args.authorizationCode,
-        email: args.email,
-        amount: args.amount * 100, // Naira → kobo
-        reference: args.reference,
-        metadata: args.metadata,
-      }),
-    });
-    if (!result.ok) return result;
-    return {
-      ok: true,
-      data: {
-        reference: result.data.reference,
-        status: result.data.status,
-        transactionId: String(result.data.id),
-      },
-    };
-  },
-
-  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
-    const sec = process.env.PAYSTACK_WEBHOOK_SECRET;
-    const signature = headers['x-paystack-signature'] || '';
-    if (\!sec || \!signature) return false;
-    const expected = crypto.createHmac('sha512', sec).update(rawBody).digest('hex');
-    try {
-      return crypto.timingSafeEqual(
-        Buffer.from(expected, 'hex'),
-        Buffer.from(signature, 'hex'),
-      );
-    } catch {
-      return false;
-    }
-  },
-};
+              reusable: authData.reusa

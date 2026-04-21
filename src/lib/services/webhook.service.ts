@@ -33,12 +33,12 @@ export const webhookService = {
   ): Promise<WebhookProcessResult> {
     ensureProvidersRegistered();
     const adapter = paymentProviderService.get(provider);
-    if (\!adapter) {
+    if (!adapter) {
       return { status: 'rejected', message: `Unknown provider: ${provider}` };
     }
 
     // 1. Validate webhook authenticity
-    if (\!adapter.verifyWebhookSignature(rawBody, headers)) {
+    if (!adapter.verifyWebhookSignature(rawBody, headers)) {
       // Still log for audit — but mark as rejected
       await this.logEvent(provider, 'unknown', null, null, rawBody, 'REJECTED');
       return { status: 'rejected', message: 'Invalid webhook signature' };
@@ -78,13 +78,13 @@ export const webhookService = {
     );
 
     // 6. Only process payment success events
-    if (\!this.isPaymentSuccessEvent(provider, eventType)) {
+    if (!this.isPaymentSuccessEvent(provider, eventType)) {
       return { status: 'ignored', message: `Event type ${eventType} not actionable` };
     }
 
     // 7. Verify the transaction with the provider API
-    const verifyKey = provider === 'FLUTTERWAVE' ? (transactionId || reference\!) : reference\!;
-    if (\!verifyKey) {
+    const verifyKey = provider === 'FLUTTERWAVE' ? (transactionId || reference!) : reference!;
+    if (!verifyKey) {
       await prisma.webhookEventLog.update({
         where: { id: logEntry.id },
         data: { verificationStatus: 'FAILED', processedAt: new Date() },
@@ -93,7 +93,7 @@ export const webhookService = {
     }
 
     const verification = await adapter.verifyTransaction(verifyKey);
-    if (\!verification.ok || \!verification.data.success) {
+    if (!verification.ok || !verification.data.success) {
       await prisma.webhookEventLog.update({
         where: { id: logEntry.id },
         data: { verificationStatus: 'FAILED', processedAt: new Date() },
@@ -167,11 +167,4 @@ export const webhookService = {
       data: {
         provider,
         eventType,
-        reference,
-        transactionId,
-        payload,
-        verificationStatus,
-      },
-    });
-  },
-};
+        refere

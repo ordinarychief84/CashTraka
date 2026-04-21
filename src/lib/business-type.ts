@@ -97,6 +97,7 @@ export const FEATURES: Record<string, BusinessType[]> = {
 
   // Seller-dominant
   products: ['seller'],
+  sales: ['seller'],
   expenses: ['seller', 'property_manager'],
   invoices: ['seller', 'property_manager'],
   team: ['seller', 'property_manager'],

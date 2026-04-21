@@ -18,6 +18,7 @@ import {
   Send,
   Target,
   FileText,
+  ShoppingBag,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -52,6 +53,7 @@ export function AppShell({
     debts: can(accessRole, 'debts.read'),
     customers: can(accessRole, 'customers.read'),
     products: can(accessRole, 'products.read') && !isPropManager,
+    sales: can(accessRole, 'products.read') && !isPropManager,
     expenses: can(accessRole, 'expenses.read'),
     team: can(accessRole, 'team.read'),
     properties: can(accessRole, 'products.read') && isPropManager,
@@ -105,8 +107,9 @@ export function AppShell({
             </>
           )}
 
-          {(show.products || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
+          {(show.products || show.sales || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.products && <SideLink href="/products" icon={<Package size={18} />} label="Products" />}
+          {show.sales && <SideLink href="/sales" icon={<ShoppingBag size={18} />} label="Sales" />}
           {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
 

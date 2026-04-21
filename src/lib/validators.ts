@@ -180,6 +180,24 @@ export const productSchema = z.object({
   note: z.string().trim().max(200).optional().or(z.literal('')),
 });
 
+export const saleItemSchema = z.object({
+  productId: z.string().optional(),
+  description: z.string().trim().min(1, 'Item description is required'),
+  unitPrice: z.coerce.number().int().positive('Price must be greater than 0'),
+  quantity: z.coerce.number().int().positive('Quantity must be at least 1').default(1),
+});
+
+export const recordSaleSchema = z.object({
+  customerName: z.string().trim().optional().or(z.literal('')),
+  customerPhone: z.string().trim().optional().or(z.literal('')),
+  customerEmail: z.string().trim().email('Enter a valid email').optional().or(z.literal('')),
+  paymentMethod: z.enum(['CASH', 'TRANSFER', 'POS', 'CARD']).default('CASH'),
+  discount: z.coerce.number().int().nonnegative().default(0),
+  note: z.string().trim().max(500).optional().or(z.literal('')),
+  items: z.array(saleItemSchema).min(1, 'Add at least one item'),
+  sendReceipt: z.boolean().optional().default(false),
+});
+
 export const templateSchema = z.object({
   name: z.string().trim().min(1, 'Give this template a name'),
   body: z.string().trim().min(1, 'Message body is required'),

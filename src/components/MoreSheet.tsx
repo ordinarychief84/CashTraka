@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   X,
   Package,
+  ShoppingBag,
   Receipt,
   Users2,
   ListTodo,
@@ -40,7 +41,10 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
       items: [
         ...(isPropManager
           ? []
-          : [{ href: '/products', icon: Package, label: 'Products' }]),
+          : [
+              { href: '/products', icon: Package, label: 'Products' },
+              { href: '/sales', icon: ShoppingBag, label: 'Sales' },
+            ]),
         { href: '/expenses', icon: Receipt, label: 'Expenses' },
         { href: '/team', icon: Users2, label: 'Team' },
       ],

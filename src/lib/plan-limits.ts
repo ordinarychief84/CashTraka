@@ -82,7 +82,7 @@ const FREE: Limits = {
   teamMembers: 1,
   bankVerification: true,
   invoices: false,
-  products: false,
+  products: true,
   expenses: true,
   reports: true,
   csvExport: true,

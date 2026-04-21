@@ -31,5 +31,4 @@ export function RentQuickActions({ tenantId, tenantName, rentAmount }: Props) {
         onClose={() => setPayOpen(false)}
       />
     </>
-  );
-}
+  )

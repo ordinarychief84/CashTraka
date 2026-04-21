@@ -6,7 +6,6 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { PaymentRowActions } from '@/components/PaymentRowActions';
-
 import { TimeRange } from '@/components/TimeRange';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { formatNaira, formatDateTime } from '@/lib/format';
@@ -96,9 +95,9 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
       {payments.length === 0 ? (
         <EmptyState
           icon={Banknote}
-          title={q || status !== 'ALL' || verification !== 'all' ? 'No payments match your filters' : 'No payments yet'}
+          title={status !== 'ALL' || verification !== 'all' ? 'No payments match your filters' : 'No payments yet'}
           description={
-            q || status !== 'ALL' || verification !== 'all'
+            status !== 'ALL' || verification !== 'all'
               ? 'Try a different filter or reset.'
               : 'Add your first payment to start tracking.'
           }

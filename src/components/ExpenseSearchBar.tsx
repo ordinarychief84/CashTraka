@@ -1,8 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useRef, useTransition } from 'react';
-import { Search, X } from 'lucide-react';
+import { useTransition } from 'react';
 import { cn } from '@/lib/utils';
 import {
   BUSINESS_EXPENSE_CATEGORIES,
@@ -13,9 +12,7 @@ export function ExpenseSearchBar() {
   const router = useRouter();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const currentQ = sp.get('q') ?? '';
   const currentCat = sp.get('category') ?? '';
   const currentKind = sp.get('kind') ?? '';
 
@@ -33,11 +30,13 @@ export function ExpenseSearchBar() {
       if (v) next.set(k, v);
       else next.delete(k);
     }
+    // Remove old search param
+    next.delete('q');
     startTransition(() => router.push(`/expenses?${next.toString()}`));
   }
 
   return (
-    <div className="mb-4 flex flex-wrap gap-1.5">
+    <div className="mb-4 flex flex-wrap items-center gap-1.5">
       <Chip
         label="All"
         active={!currentCat}

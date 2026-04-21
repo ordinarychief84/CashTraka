@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   X,
-  Receipt as ReceiptIcon,
+  ReceiptText as ReceiptIcon,
   Download,
   Send,
   Eye,
@@ -301,5 +301,4 @@ export function ReceiptDialog({ open, onClose, payment, businessName }: Props) {
         </div>
       </div>
     </div>
-  );
-}
+  )

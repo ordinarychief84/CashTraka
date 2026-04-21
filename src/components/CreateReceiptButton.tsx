@@ -43,5 +43,4 @@ export function CreateReceiptButton({
         businessName={businessName}
       />
     </>
-  );
-}
+  );

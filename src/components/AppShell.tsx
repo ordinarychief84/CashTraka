@@ -23,6 +23,7 @@ import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
 import { UpgradeBanner } from './UpgradeBanner';
+import { SideLink } from './SideLink';
 import { can, type AccessRole, ROLE_LABELS } from '@/lib/rbac';
 
 type Props = {
@@ -207,41 +208,6 @@ export function AppShell({
   );
 }
 
-function SideLink({
-  href,
-  icon: Icon,
-  label,
-  badge,
-  badgeTone = 'brand',
-}: {
-  href: string;
-  icon: typeof Home;
-  label: string;
-  badge?: number;
-  badgeTone?: 'brand' | 'danger';
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-ink"
-    >
-      <Icon size={18} />
-      <span className="flex-1">{label}</span>
-      {badge !== undefined && badge > 0 && (
-        <span
-          className={
-            'inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-bold ' +
-            (badgeTone === 'danger'
-              ? 'bg-red-600 text-white'
-              : 'bg-brand-500 text-white')
-          }
-        >
-          {badge > 99 ? '99+' : badge}
-        </span>
-      )}
-    </Link>
-  );
-}
 
 function GroupLabel({ children }: { children: string }) {
   return (

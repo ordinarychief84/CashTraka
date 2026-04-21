@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import {
   Plus,
-  Receipt,
+  ReceiptText,
   Briefcase,
   User as UserIcon,
   AlertTriangle,
@@ -42,7 +42,7 @@ const PAY_METHOD_ICONS: Record<string, React.ReactNode> = {
   cash: <Banknote size={10} />,
   transfer: <Smartphone size={10} />,
   card: <CreditCard size={10} />,
-  pos: <Receipt size={10} />,
+  pos: <ReceiptText size={10} />,
 };
 
 export default async function ExpensesPage({
@@ -460,7 +460,7 @@ export default async function ExpensesPage({
       {/* ── Expense list ── */}
       {expenses.length === 0 ? (
         <EmptyState
-          icon={Receipt}
+          icon={ReceiptText}
           title={
             searchQ
               ? `No expenses match "${searchQ}"`
@@ -617,6 +617,4 @@ function KindBadge({ kind }: { kind: 'business' | 'personal' }) {
         <Briefcase size={8} />
       )}
       {kind}
-    </span>
-  );
-}
+    </s

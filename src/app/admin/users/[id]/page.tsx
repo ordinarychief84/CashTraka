@@ -149,5 +149,4 @@ function IR({ label, value, muted }: { label: string; value: string; muted?: boo
       <span className="text-slate-500">{label}</span>
       <span className={cn('text-right font-medium', muted ? 'text-slate-400' : 'text-ink')}>{value}</span>
     </div>
-  );
-}
+  )

@@ -221,5 +221,4 @@ function emptyItem(idx: number, isPm: boolean): Item {
       iconTone: 'slate',
     },
   ];
-  return templates[idx] ?? templates[0];
-}
+  return templates[idx] ?? templates[

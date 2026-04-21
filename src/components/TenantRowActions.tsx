@@ -71,4 +71,5 @@ export function TenantRowActions({
         onClose={() => setPayOpen(false)}
       />
     </>
-  )
+  );
+}

@@ -441,4 +441,5 @@ export function CreateReceiptDialog({
         )}
       </div>
     </div>
-  );
+  );
+}

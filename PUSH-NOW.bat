@@ -25,7 +25,7 @@ git status --short
 
 echo.
 echo Committing (if any unstaged changes remain)...
-git commit -m "fix: rewrite pricing page for new Starter billing model"
+git commit -m "chore: redeploy after database schema sync" --allow-empty
 
 echo.
 echo Pushing to GitHub...

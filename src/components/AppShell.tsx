@@ -17,7 +17,7 @@ import {
   Settings as SettingsIcon,
   Send,
   Target,
-  FileText,h
+  FileText,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -72,25 +72,25 @@ export function AppShell({
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
-          <SideLink href="/dashboard" icon={Home} label="Dashboard" />
+          <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
           {show.payments && (
             <SideLink
               href="/payments"
-              icon={Banknote}
+              icon={<Banknote size={18} />}
               label={isPropManager ? 'Rent Payments' : 'Payments'}
             />
           )}
           {show.debts && (
             <SideLink
               href="/debts"
-              icon={Clock3}
+              icon={<Clock3 size={18} />}
               label={isPropManager ? 'Unpaid Rent' : 'Money Owed'}
             />
           )}
           {show.customers && (
             <SideLink
               href={isPropManager ? '/tenants' : '/customers'}
-              icon={Users}
+              icon={<Users size={18} />}
               label={isPropManager ? 'Tenants' : 'Customers'}
             />
           )}
@@ -99,22 +99,22 @@ export function AppShell({
           {!isPropManager && show.payments && (
             <>
               <GroupLabel>Collections</GroupLabel>
-              <SideLink href="/paylinks" icon={Send} label="PayLinks" />
-              <SideLink href="/promises" icon={FileText} label="Promises" />
-              <SideLink href="/collections" icon={Target} label="Collections" />
+              <SideLink href="/paylinks" icon={<Send size={18} />} label="PayLinks" />
+              <SideLink href="/promises" icon={<FileText size={18} />} label="Promises" />
+              <SideLink href="/collections" icon={<Target size={18} />} label="Collections" />
             </>
           )}
 
           {(show.products || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
-          {show.products && <SideLink href="/products" icon={Package} label="Products" />}
-          {show.expenses && <SideLink href="/expenses" icon={Receipt} label="Expense Mgt" />}
-          {show.team && <SideLink href="/team" icon={Users2} label="Team" />}
+          {show.products && <SideLink href="/products" icon={<Package size={18} />} label="Products" />}
+          {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}
+          {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
 
           {isPropManager && show.properties && (
             <>
               <GroupLabel>Property</GroupLabel>
-              <SideLink href="/properties" icon={Building2} label="Properties" />
-              <SideLink href="/rent" icon={Key} label="Rent Tracker" />
+              <SideLink href="/properties" icon={<Building2 size={18} />} label="Properties" />
+              <SideLink href="/rent" icon={<Key size={18} />} label="Rent Tracker" />
             </>
           )}
 
@@ -122,18 +122,18 @@ export function AppShell({
           {show.tasks && (
             <SideLink
               href="/tasks"
-              icon={ListTodo}
+              icon={<ListTodo size={18} />}
               label="Task Management"
               badge={pendingTaskCount}
             />
           )}
           {show.checklists && (
-            <SideLink href="/checklists" icon={ClipboardList} label="Checklists" />
+            <SideLink href="/checklists" icon={<ClipboardList size={18} />} label="Checklists" />
           )}
 
           <div className="mt-auto" />
-          {show.reports && <SideLink href="/reports" icon={BarChart3} label="Reports" />}
-          {show.settings && <SideLink href="/settings" icon={SettingsIcon} label="Settings" />}
+          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
+          {show.settings && <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />}
         </nav>
 
         <div className="border-t border-border p-4">

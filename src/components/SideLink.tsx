@@ -2,17 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 export function SideLink({
   href,
-  icon: Icon,
+  icon,
   label,
   badge,
   badgeTone = 'brand',
 }: {
   href: string;
-  icon: LucideIcon;
+  icon: ReactNode;
   label: string;
   badge?: number;
   badgeTone?: 'brand' | 'danger';
@@ -33,7 +33,7 @@ export function SideLink({
           : 'text-slate-700 hover:bg-slate-50 hover:text-ink')
       }
     >
-      <Icon size={18} className={isActive ? 'text-brand-600' : ''} />
+      <span className={isActive ? 'text-brand-600' : ''}>{icon}</span>
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
         <span
@@ -49,4 +49,4 @@ export function SideLink({
       )}
     </Link>
   );
-    }
+}

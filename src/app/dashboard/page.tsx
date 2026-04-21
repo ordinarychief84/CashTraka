@@ -563,7 +563,7 @@ export default async function DashboardPage() {
       <TodayTriage items={triage} />
 
       {/* ─────────────────── ZONE 2 · PULSE ─────────────────── */}
-      <div className="mt-4 grid gap-3 lg:grid-cols-12">
+      <div className="mt-3 grid gap-3 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <HeroRevenue
             label={heroLabel}
@@ -630,38 +630,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* ─────────────────── ZONE 3 · ACTIVITY ─────────────────── */}
-      <div className="mt-4 grid gap-3 lg:grid-cols-12">
+      <div className="mt-3 grid gap-3 lg:grid-cols-12">
         <div className="space-y-3 lg:col-span-7">
           <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
-          {partialDebts.length > 0 && (
-            <DebtProgressCards debts={partialDebts} businessType={user.businessType} />
-          )}
-        </div>
-        <div className="space-y-3 lg:col-span-5">
-          <RemindersPanel
-            reminders={remindersDue.map((s) => {
-              const remaining = Math.max(s.debt.amountOwed - s.debt.amountPaid, 0);
-              const paid = s.debt.status === 'PAID';
-              const now2 = now.getTime();
-              let status: 'due' | 'overdue' | 'upcoming' | 'cleared';
-              if (paid) status = 'cleared';
-              else if (s.nextDueAt.getTime() <= now2 - 24 * 60 * 60 * 1000) status = 'overdue';
-              else if (s.nextDueAt.getTime() <= now2 + 24 * 60 * 60 * 1000) status = 'due';
-              else status = 'upcoming';
-              return {
-                id: s.id,
-                debtId: s.debtId,
-                customerName: s.debt.customerNameSnapshot,
-                remainingAmount: remaining,
-                nextDueAt: s.nextDueAt,
-                lastSentAt: s.lastSentAt,
-                status,
-              };
-            })}
-            isPm={isPm}
-          />
 
-          {/* Monthly pulse strip */}
+          {/* Monthly pulse strip — placed left to balance columns */}
           <section className="card p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
               <TrendingUp size={16} className="text-brand-600" />
@@ -716,6 +689,34 @@ export default async function DashboardPage() {
               </Link>
             )}
           </section>
+
+          {partialDebts.length > 0 && (
+            <DebtProgressCards debts={partialDebts} businessType={user.businessType} />
+          )}
+        </div>
+        <div className="space-y-3 lg:col-span-5">
+          <RemindersPanel
+            reminders={remindersDue.map((s) => {
+              const remaining = Math.max(s.debt.amountOwed - s.debt.amountPaid, 0);
+              const paid = s.debt.status === 'PAID';
+              const now2 = now.getTime();
+              let status: 'due' | 'overdue' | 'upcoming' | 'cleared';
+              if (paid) status = 'cleared';
+              else if (s.nextDueAt.getTime() <= now2 - 24 * 60 * 60 * 1000) status = 'overdue';
+              else if (s.nextDueAt.getTime() <= now2 + 24 * 60 * 60 * 1000) status = 'due';
+              else status = 'upcoming';
+              return {
+                id: s.id,
+                debtId: s.debtId,
+                customerName: s.debt.customerNameSnapshot,
+                remainingAmount: remaining,
+                nextDueAt: s.nextDueAt,
+                lastSentAt: s.lastSentAt,
+                status,
+              };
+            })}
+            isPm={isPm}
+          />
 
           {/* Phase 4: Collection Score + Suggestions */}
           <CollectionScoreWidget isPaid={hasPaidFeatures} />

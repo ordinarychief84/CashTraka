@@ -87,4 +87,10 @@ export const paymentProviderService = {
       .filter(([, a]) => a.isConfigured())
       .map(([name]) => name);
   },
+
+  /** Return the first configured provider (preferred default). */
+  default(): PaymentProvider | undefined {
+    const avail = this.available();
+    return avail.length > 0 ? avail[0] : undefined;
+  },
 };

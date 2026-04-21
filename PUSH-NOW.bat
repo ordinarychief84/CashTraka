@@ -24,8 +24,8 @@ echo Current status:
 git status --short
 
 echo.
-echo Committing...
-git commit -m "feat: PayLink, Daily Pulse, Smart Collection Engine + marketing copy rewrite + schema directUrl"
+echo Committing (if any unstaged changes remain)...
+git commit -m "feat: auto-debit installments, landing page rewrite, Starter pricing model" --allow-empty
 
 echo.
 echo Pushing to GitHub...
@@ -34,6 +34,4 @@ git push origin main
 echo.
 echo ========================================
 echo   DONE\!
-echo ========================================
-echo.
-pause
+echo ===========================

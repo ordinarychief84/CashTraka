@@ -17,7 +17,7 @@ import {
   Settings as SettingsIcon,
   Send,
   Target,
-  FileText,
+  FileText,h
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -63,7 +63,7 @@ export function AppShell({
   return (
     <div className="min-h-screen">
       <UpgradeBanner />
-      <aside className="fixed inset-y-0 left-0 hidden w-56 flex-col border-r border-border bg-white md:flex">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-white md:flex">
         <div className="flex h-16 items-center px-5 border-b border-border">
           <Link href="/dashboard" className="inline-flex items-center gap-2">
             <Logo size="md" />

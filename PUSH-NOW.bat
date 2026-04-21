@@ -25,7 +25,7 @@ git status --short
 
 echo.
 echo Committing (if any unstaged changes remain)...
-git commit -m "fix: complete truncated service files (payment-provider, paystack-customer, webhook)"
+git commit -m "fix: rewrite pricing page for new Starter billing model"
 
 echo.
 echo Pushing to GitHub...

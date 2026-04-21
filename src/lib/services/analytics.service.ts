@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { PLAN_PRICING, isPaidPlan } from '@/lib/billing/pricing';
+import { isPaidPlan, getPlanPricing } from '@/lib/billing/pricing';
 
 /**
  * System-wide analytics (for admin dashboard) and per-user metrics.
@@ -310,7 +310,9 @@ export const analyticsService = {
     });
     for (const u of paidUsers) {
       if (!isPaidPlan(u.plan)) continue;
-      const monthly = Math.round(PLAN_PRICING[u.plan].amountKobo / 100);
+      const pricing = getPlanPricing(u.plan);
+      if (!pricing) continue;
+      const monthly = Math.round(pricing.perMonthKobo / 100);
       if (u.subscriptionStatus === 'active') committedMrr += monthly;
       else pipelineMrr += monthly;
     }
@@ -456,7 +458,4 @@ export const analyticsService = {
     return {
       labels,
       signups: labels.map((l) => signupCounts.get(l) ?? 0),
-      revenue: labels.map((l) => revenueSums.get(l) ?? 0),
-    };
-  },
-};
+      rev

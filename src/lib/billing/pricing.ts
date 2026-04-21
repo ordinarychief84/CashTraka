@@ -5,58 +5,46 @@
  *
  * All amounts are in **kobo** (100 kobo = 1 NGN) because that's what Paystack
  * wants. `formatPriceNaira()` renders for the UI.
+ *
+ * Pricing model:
+ * - One plan: "Starter" — full feature access
+ * - Three billing frequencies: Quarterly, Biannually, Yearly
+ * - Each frequency has a free trial period (7 days)
+ * - Longer commitments get better per-month rates
  */
 
+export type BillingFrequency = 'quarterly' | 'biannually' | 'yearly';
+
 export type PaidPlanKey =
-  | 'business'
-  | 'business_plus'
-  | 'landlord'
-  | 'estate_manager';
+  | 'starter_quarterly'
+  | 'starter_biannually'
+  | 'starter_yearly';
 
 export type PlanPricing = {
   key: PaidPlanKey;
   label: string;
+  frequency: BillingFrequency;
   amountKobo: number;
   cycleDays: number;
+  trialDays: number;
+  /** Per-month equivalent for display */
+  perMonthKobo: number;
+  /** Savings percentage vs quarterly */
+  savingsPercent: number;
 };
 
 export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
-  business: {
-    key: 'business',
-    label: 'Business',
-    amountKobo: 4_500 * 100,
-    cycleDays: 30,
+  starter_quarterly: {
+    key: 'starter_quarterly',
+    label: 'Starter',
+    frequency: 'quarterly',
+    amountKobo: 12_000 * 100, // ₦12,000 every 3 months
+    cycleDays: 90,
+    trialDays: 7,
+    perMonthKobo: 4_000 * 100, // ₦4,000/mo
+    savingsPercent: 0,
   },
-  business_plus: {
-    key: 'business_plus',
-    label: 'Business Plus',
-    amountKobo: 6_800 * 100,
-    cycleDays: 30,
-  },
-  landlord: {
-    key: 'landlord',
-    label: 'Landlord',
-    amountKobo: 8_500 * 100,
-    cycleDays: 30,
-  },
-  estate_manager: {
-    key: 'estate_manager',
-    label: 'Estate Manager',
-    amountKobo: 18_000 * 100,
-    cycleDays: 30,
-  },
-};
-
-export function isPaidPlan(key: string | null | undefined): key is PaidPlanKey {
-  return (
-    key === 'business' ||
-    key === 'business_plus' ||
-    key === 'landlord' ||
-    key === 'estate_manager'
-  );
-}
-
-export function formatPriceNaira(amountKobo: number): string {
-  const naira = Math.round(amountKobo / 100);
-  return '₦' + naira.toLocaleString('en-NG');
-}
+  starter_biannually: {
+    key: 'starter_biannually',
+    label: 'Starter',
+    frequency: 'biannually

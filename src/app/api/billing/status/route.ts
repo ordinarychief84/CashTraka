@@ -1,6 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { billingService } from '@/lib/services/billing.service';
-import { PLAN_PRICING, isPaidPlan } from '@/lib/billing/pricing';
+import { isPaidPlan, getPlanPricing } from '@/lib/billing/pricing';
 import { PLAN_LABELS, suggestUpgrade } from '@/lib/plan-limits';
 import { handled, ok } from '@/lib/api-response';
 
@@ -15,7 +15,7 @@ export const GET = () =>
     const user = await requireUser();
     const status = await billingService.status(user.id);
     const suggested = suggestUpgrade(status.plan, status.businessType);
-    const pricing = isPaidPlan(suggested) ? PLAN_PRICING[suggested] : null;
+    const pricing = isPaidPlan(suggested) ? getPlanPricing(suggested) : null;
 
     return ok({
       plan: status.plan,
@@ -31,4 +31,4 @@ export const GET = () =>
         amountKobo: pricing?.amountKobo ?? null,
       },
     });
-  });
+  }

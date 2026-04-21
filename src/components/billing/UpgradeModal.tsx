@@ -7,6 +7,7 @@ import {
   PLAN_PRICING,
   formatPriceNaira,
   isPaidPlan,
+  getPlanPricing,
   type PaidPlanKey,
 } from '@/lib/billing/pricing';
 
@@ -66,7 +67,7 @@ export function UpgradeModal() {
   const [error, setError] = useState<string | null>(null);
 
   const open = isPaidPlan(planParam);
-  const pricing = useMemo(() => (open ? PLAN_PRICING[planParam!] : null), [open, planParam]);
+  const pricing = useMemo(() => (open ? getPlanPricing(planParam!) : null), [open, planParam]);
 
   // Fetch current subscription state to decide whether to offer the trial.
   useEffect(() => {
@@ -249,6 +250,3 @@ export function UpgradeModal() {
           </p>
         </div>
       </div>
-    </div>
-  );
-}

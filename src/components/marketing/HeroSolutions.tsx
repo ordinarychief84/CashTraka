@@ -61,9 +61,10 @@ export function HeroSolutions() {
             </Reveal>
             <Reveal from="up" delay={200}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
-                CashTraka is the all-in-one payment tracker for Nigerian businesses
-                and landlords. Verify transfers, issue receipts, chase debts on
-                WhatsApp, and send payment links — all from your phone.
+                CashTraka is the all-in-one collection system for Nigerian businesses
+                and landlords. Send payment links, set up auto-debit installment plans,
+                verify transfers, issue receipts, and chase debts on WhatsApp — all
+                from your phone.
               </p>
             </Reveal>
             <Reveal from="up" delay={260}>
@@ -89,11 +90,11 @@ export function HeroSolutions() {
                 </li>
                 <li className="inline-flex items-center gap-1.5">
                   <Check size={14} className="text-success-600" strokeWidth={3} />
-                  Works on any phone
+                  Auto-debit & payment links
                 </li>
                 <li className="inline-flex items-center gap-1.5">
                   <Check size={14} className="text-success-600" strokeWidth={3} />
-                  Bank-alert verified
+                  Webhook-verified payments
                 </li>
               </ul>
             </Reveal>
@@ -198,7 +199,4 @@ function Stat({ label, value, accent }: { label: string; value: string; accent: 
   return (
     <div className="text-center">
       <div className={`text-lg font-black tabular-nums ${accentMap[accent]}`}>{value}</div>
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
-    </div>
-  );
-}
+      <div className="text-[10px] font-semibold upp

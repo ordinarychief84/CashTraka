@@ -6,6 +6,8 @@ import { emailService } from './email.service';
 import {
   PLAN_PRICING,
   isPaidPlan,
+  getPlanPricing,
+  resolvePlanKey,
   type PaidPlanKey,
 } from '@/lib/billing/pricing';
 import { PLAN_LABELS } from '@/lib/plan-limits';
@@ -36,6 +38,13 @@ function ensurePaidPlan(plan: string): asserts plan is PaidPlanKey {
   if (!isPaidPlan(plan)) {
     throw Err.validation(`Unknown paid plan "${plan}"`);
   }
+}
+
+/** Safely get pricing for a plan key, supporting legacy keys */
+function pricingFor(plan: string) {
+  const pricing = getPlanPricing(plan);
+  if (!pricing) throw Err.validation(`No pricing found for plan "${plan}"`);
+  return pricing;
 }
 
 export const billingService = {
@@ -86,7 +95,7 @@ export const billingService = {
    */
   async initUpgrade(userId: string, targetPlan: string) {
     ensurePaidPlan(targetPlan);
-    const pricing = PLAN_PRICING[targetPlan];
+    const pricing = pricingFor(targetPlan);
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw Err.notFound('User not found');
@@ -194,7 +203,7 @@ export const billingService = {
     }
 
     ensurePaidPlan(attempt.targetPlan);
-    const pricing = PLAN_PRICING[attempt.targetPlan];
+    const pricing = pricingFor(attempt.targetPlan);
     const currentPeriodEnd = daysFromNow(pricing.cycleDays ?? DEFAULT_CYCLE_DAYS);
 
     const user = await prisma.user.update({
@@ -372,7 +381,7 @@ export const billingService = {
     // currentPeriodEnd as already expired — so we must always set them here
     // or the user silently lands on Free.
     if (status === 'active' && args.plan !== 'free') {
-      const pricing = isPaidPlan(args.plan) ? PLAN_PRICING[args.plan] : null;
+      const pricing = isPaidPlan(args.plan) ? getPlanPricing(args.plan) : null;
       data.currentPeriodEnd = daysFromNow(pricing?.cycleDays ?? DEFAULT_CYCLE_DAYS);
       data.pendingPlan = null;
     } else if (status === 'trialing' && args.plan !== 'free') {
@@ -396,17 +405,4 @@ export const billingService = {
     await prisma.adminNote
       .create({
         data: {
-          adminUserId: args.adminId,
-          targetUserId: args.userId,
-          note,
-        },
-      })
-      .catch(() => null);
-
-    return {
-      plan: updated.plan,
-      subscriptionStatus: updated.subscriptionStatus,
-      currentPeriodEnd: updated.currentPeriodEnd,
-    };
-  },
-};
+          adminUserId:

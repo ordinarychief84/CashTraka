@@ -23,34 +23,42 @@ const SHARED: QA[] = [
   },
   {
     q: 'Is my data safe?',
-    a: 'Your records are private to you. We do not sell data. WhatsApp messages go through your own WhatsApp — we never read them.',
+    a: 'Your records are private to you. We do not sell data. Payment processing goes through Paystack (PCI-compliant). WhatsApp messages go through your own WhatsApp — we never read them.',
   },
   {
-    q: 'What is the difference between the plans?',
-    a: 'Free gets you the core tracker with limits. The paid plan unlocks verification, receipts, automation and reports. The top tier adds team and priority support. Compare them on the pricing section above.',
+    q: 'How does pricing work?',
+    a: 'One plan — Starter — gives you full access to every feature. Pick quarterly, biannual, or yearly billing. Longer commitments save you up to 25%. Every frequency starts with a 7-day free trial, no card required.',
+  },
+  {
+    q: 'How does the auto-debit / installment plan work?',
+    a: 'When a customer first pays via your PayLink, Paystack stores their card authorization (only if reusable). You can then set up an installment plan — CashTraka automatically charges their card on schedule (daily, weekly, or monthly) until the balance clears. Every charge is verified via webhook before updating your records.',
   },
 ];
 
 const SELLER_QUESTIONS: QA[] = [
+  {
+    q: 'How do payment links work?',
+    a: 'You create a PayLink with the amount owed, share it on WhatsApp, and the customer pays online via Paystack. The moment they complete payment, CashTraka confirms it automatically via webhook — no manual checking. A receipt emails the customer and the payment updates your dashboard instantly.',
+  },
+  {
+    q: 'What is Promise to Pay?',
+    a: 'Instead of chasing a customer for money, you send them a Promise link. They open it, choose a payment date and amount, and commit. If they miss their promise, CashTraka flags it as "broken" automatically and moves them up your Collection Queue so you know who to follow up with first.',
+  },
   {
     q: 'How does the bank-alert verification stop fake screenshots?',
     a: 'When a customer claims they paid, you paste your real bank SMS or email into CashTraka. The system reads the amount, sender name and reference from YOUR bank — not a screenshot from the customer. A fake receipt cannot pass this because the alert has to come from your own bank.',
   },
   {
     q: 'Can I send proper invoices and receipts to my customers?',
-    a: 'Yes. Every payment automatically gets a shareable receipt link AND a downloadable PDF. You can also create professional invoices, send them on WhatsApp, and convert them to a payment once received.',
-  },
-  {
-    q: 'Can I manage a team and track what I owe them?',
-    a: 'Yes. Add your staff with their pay type (monthly salary, weekly, daily wage, or per-task), mark attendance each day, and log every salary, advance, bonus, or reimbursement. CashTraka shows how much you still owe each staff this month, and salary payments automatically appear in your expenses report.',
+    a: 'Yes. Every payment automatically gets a shareable receipt link AND a downloadable PDF. Receipts are generated and emailed the moment payment is confirmed — whether via PayLink, auto-debit, or manual entry.',
   },
   {
     q: 'Do I need to change how I sell?',
-    a: 'No. You keep using WhatsApp. CashTraka gives you structure and receipts on top of your existing workflow.',
+    a: 'No. You keep using WhatsApp. CashTraka adds payment links, auto-debit, receipts, and a collection queue on top of your existing workflow.',
   },
   {
     q: 'Why should I pay for this?',
-    a: 'Because one prevented fake-screenshot fraud, one unpaid invoice chased down, or one forgotten customer followed up pays for the full year.',
+    a: 'Because one auto-collected installment, one prevented fake-screenshot fraud, or one broken promise caught early pays for the full quarter.',
   },
 ];
 
@@ -60,12 +68,12 @@ const PM_QUESTIONS: QA[] = [
     a: "Each property has its own tenant roster and rent ledger. A single 'Rent Tracker' page shows you expected collection, actual collection, and who's behind — across every property you manage.",
   },
   {
-    q: 'How do the rent reminders work?',
-    a: 'Set an auto-reminder once per tenant and CashTraka surfaces it on your reminders page when it comes due. One tap opens WhatsApp with a prefilled polite reminder mentioning the property, the amount, and the due date.',
+    q: 'Can I set up auto-debit for rent collection?',
+    a: 'Yes. After a tenant pays via your PayLink for the first time, their card authorization is stored securely by Paystack. You can then set up a monthly installment plan — CashTraka automatically charges their card on the same day each month until the balance clears or the lease ends.',
   },
   {
-    q: 'Can I verify rent payments against my bank?',
-    a: "Yes. When a tenant says they paid, paste your bank credit alert into CashTraka. If the amount and sender match, the rent is auto-confirmed, a receipt generates, and the tenant's ledger is updated. Fake screenshots don't get past the verification.",
+    q: 'How do the rent reminders work?',
+    a: 'Set an auto-reminder once per tenant and CashTraka surfaces it on your reminders page when it comes due. One tap opens WhatsApp with a prefilled polite reminder mentioning the property, the amount, and the due date.',
   },
   {
     q: 'Do I need to install anything on the tenant\'s side?',
@@ -73,7 +81,7 @@ const PM_QUESTIONS: QA[] = [
   },
   {
     q: 'Why should I pay for this instead of a spreadsheet?',
-    a: 'Because a spreadsheet won\'t chase late tenants, won\'t verify bank alerts, won\'t auto-issue receipts, and won\'t tell you at-a-glance what your collection rate is this month. CashTraka does all four.',
+    a: 'Because a spreadsheet won\'t auto-debit tenants, won\'t chase late payers, won\'t verify bank alerts, won\'t auto-issue receipts, and won\'t tell you at-a-glance what your collection rate is this month. CashTraka does all five.',
   },
 ];
 
@@ -117,30 +125,4 @@ export function FAQ() {
           const isOpen = openIndex === i;
           return (
             <li key={`${ic}-${i}`} className="card overflow-hidden">
-              <button
-                type="button"
-                aria-expanded={isOpen}
-                onClick={() => setOpenIndex(isOpen ? null : i)}
-                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
-              >
-                <span className="font-semibold text-slate-900">{item.q}</span>
-                <ChevronDown
-                  size={20}
-                  className={cn(
-                    'shrink-0 text-slate-500 transition-transform',
-                    isOpen && 'rotate-180',
-                  )}
-                />
-              </button>
-              {isOpen && (
-                <div className="border-t border-border px-5 py-4 text-sm text-slate-700">
-                  {item.a}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}
+              

@@ -35,12 +35,12 @@ export function SolutionsPath() {
               accent="brand"
               kicker="For Small Business"
               title="CashTraka for Business"
-              desc="For sellers, vendors, tailors, and service providers — verify every transfer, issue invoices and receipts, and chase debts on WhatsApp without the awkwardness."
+              desc="For sellers, vendors, tailors, and service providers — send payment links, set up auto-debit plans, verify transfers, and collect every naira you are owed."
               features={[
-                'Bank-alert payment verification',
-                'Professional invoices & auto receipts',
-                'Staff, attendance & payroll',
-                'Inventory + expenses + real profit',
+                'Payment links & auto-debit installments',
+                'Promise to Pay with auto broken-promise alerts',
+                'Smart Collection Queue with priority actions',
+                'Auto receipts, invoices & daily business pulse',
               ]}
               href="/for-business"
               cta="Explore for Business"
@@ -52,11 +52,11 @@ export function SolutionsPath() {
               accent="success"
               kicker="For Landlords"
               title="CashTraka for Landlords"
-              desc="For landlords, property managers, and estate agents — track rent across every unit, send automatic reminders, and know exactly who is behind."
+              desc="For landlords, property managers, and estate agents — send rent payment links, set up recurring auto-debit, and know exactly who is behind."
               features={[
+                'Rent payment links & auto-debit collection',
                 'Rent tracker with collection-rate KPI',
                 'Auto WhatsApp rent reminders',
-                'Bank-alert rent verification',
                 'Per-property expenses & net profit',
               ]}
               href="/for-landlords"
@@ -159,8 +159,4 @@ function PathCard({
         className={`relative mt-6 inline-flex items-center justify-center gap-2 self-start rounded-full px-5 py-3 text-sm font-bold text-white transition ${styles.ctaBg}`}
       >
         {cta}
-        <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
-      </div>
-    </Link>
-  );
-}
+        <ArrowRight size={15} className="transition group-hove

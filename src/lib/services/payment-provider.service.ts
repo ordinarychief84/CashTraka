@@ -84,4 +84,14 @@ export const paymentProviderService = {
   /** Return all configured providers. */
   available(): PaymentProvider[] {
     return Array.from(adapters.entries())
-      .filter(([, a]) =
+      .filter(([, a]) => a.isConfigured())
+      .map(([name]) => name);
+  },
+
+  /** Default provider — Paystack preferred, else first available. */
+  default(): PaymentProvider | null {
+    if (adapters.get('PAYSTACK')?.isConfigured()) return 'PAYSTACK';
+    if (adapters.get('FLUTTERWAVE')?.isConfigured()) return 'FLUTTERWAVE';
+    return null;
+  },
+};

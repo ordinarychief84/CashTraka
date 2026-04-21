@@ -239,4 +239,12 @@ export function UpgradeModal() {
           </div>
 
           <p className="text-center text-[11px] text-slate-500">
-            {trialEligibility?.
+            {trialEligibility?.canTrial
+              ? 'No card needed for the trial · Cancel anytime'
+              : 'Cancel anytime · Secure checkout by Paystack'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

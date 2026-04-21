@@ -199,4 +199,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent: 
   return (
     <div className="text-center">
       <div className={`text-lg font-black tabular-nums ${accentMap[accent]}`}>{value}</div>
-      <div className="text-[10px] font-semibold upp
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
+    </div>
+  );
+}

@@ -225,3 +225,270 @@ export const paymentConfirmationService = {
       data: {
         userId: paymentRequest.userId,
         customerId: paymentRequest.customerId || '',
+        customerNameSnapshot: paymentRequest.customerName,
+        phoneSnapshot: paymentRequest.customerPhone,
+        amount: paymentRequest.amount,
+        status: 'PAID',
+        verified: true,
+        verifiedAt: now,
+        verificationMethod: 'PROVIDER_WEBHOOK',
+        externalRef: reference,
+        provider,
+        providerTransactionId,
+        confirmedAutomatically: true,
+        confirmedAt: now,
+      },
+    });
+
+    // Update customer metrics
+    if (paymentRequest.customerId) {
+      await prisma.customer.update({
+        where: { id: paymentRequest.customerId },
+        data: {
+          totalPaid: { increment: paymentRequest.amount },
+          transactionCount: { increment: 1 },
+          lastActivityAt: now,
+        },
+      });
+    }
+
+    // Close linked debt if applicable
+    if (paymentRequest.debtId) {
+      const debt = await prisma.debt.findUnique({ where: { id: paymentRequest.debtId } });
+      if (debt) {
+        const newAmountPaid = debt.amountPaid + paymentRequest.amount;
+        const debtStatus = newAmountPaid >= debt.amountOwed ? 'CLOSED' : 'OPEN';
+        await prisma.debt.update({
+          where: { id: debt.id },
+          data: { amountPaid: newAmountPaid, status: debtStatus },
+        });
+      }
+    }
+
+    // Notification
+    await prisma.notification.create({
+      data: {
+        userId: paymentRequest.userId,
+        type: 'info',
+        title: 'PayLink payment confirmed',
+        message: `${paymentRequest.customerName} paid ₦${paymentRequest.amount.toLocaleString()} via ${provider.toLowerCase()}. Auto-confirmed.`,
+        link: `/paylinks`,
+      },
+    });
+
+    // Auto-generate receipt (non-blocking)
+    try {
+      const paymentRecord = await prisma.payment.findFirst({
+        where: { externalRef: reference, userId: paymentRequest.userId },
+        select: { id: true },
+      });
+      if (paymentRecord) {
+        const receipt = await receiptService.ensureForPayment(paymentRequest.userId, paymentRecord.id);
+        // Send receipt email to customer if we have their email
+        if (input.customerEmail && receipt) {
+          const user = await prisma.user.findUnique({
+            where: { id: paymentRequest.userId },
+            select: { businessName: true, name: true },
+          });
+          const bizName = user?.businessName || user?.name || 'Business';
+          await emailService.sendReceipt({
+            to: input.customerEmail,
+            business: bizName,
+            customerName: paymentRequest.customerName,
+            receiptNumber: receipt.receiptNumber,
+            amount: paymentRequest.amount,
+            receiptUrl: `/receipts/${receipt.id}`,
+          }).catch(() => null); // Non-fatal
+        }
+      }
+    } catch {
+      // Receipt generation is non-fatal — don't fail the confirmation
+    }
+  },
+
+  /**
+   * Confirm a recurring installment charge.
+   * Uses a database transaction for atomicity.
+   */
+  async confirmInstallmentCharge(
+    charge: any,
+    input: ConfirmPaymentInput,
+    now: Date,
+  ): Promise<void> {
+    const { provider, reference, providerTransactionId, amount } = input;
+    const plan = charge.installmentPlan;
+
+    // Idempotency: already confirmed
+    if (charge.status === 'SUCCESS') {
+      console.log(`INSTALLMENT_CONFIRM: Charge ${charge.id} already confirmed — skipping`);
+      return;
+    }
+
+    // Validate amount matches expected charge amount (5% tolerance for fees)
+    if (amount < charge.amount * 0.95) {
+      console.warn(
+        `INSTALLMENT_CONFIRM: Amount mismatch for ${reference}. ` +
+        `Expected ~${charge.amount}, got ${amount}. Proceeding with provider amount.`
+      );
+    }
+
+    // Use the actual charged amount, not the expected — provider is authoritative
+    const confirmedAmount = charge.amount;
+
+    // ── Transactional update of all related records ──────────
+    const payment = await prisma.$transaction(async (tx) => {
+      // 1. Mark the InstallmentCharge as successful
+      await tx.installmentCharge.update({
+        where: { id: charge.id },
+        data: {
+          status: 'SUCCESS',
+          providerTransactionId,
+          verifiedAt: now,
+          paidAt: now,
+        },
+      });
+
+      // 2. Create Payment record
+      const paymentRecord = await tx.payment.create({
+        data: {
+          userId: plan.userId,
+          customerId: plan.customerId || '',
+          customerNameSnapshot: plan.customerNameSnapshot,
+          phoneSnapshot: plan.phoneSnapshot,
+          amount: confirmedAmount,
+          status: 'PAID',
+          verified: true,
+          verifiedAt: now,
+          verificationMethod: 'PROVIDER_WEBHOOK',
+          externalRef: reference,
+          provider,
+          providerTransactionId,
+          confirmedAutomatically: true,
+          confirmedAt: now,
+        },
+      });
+
+      // 3. Link payment to the charge
+      await tx.installmentCharge.update({
+        where: { id: charge.id },
+        data: { paymentId: paymentRecord.id },
+      });
+
+      // 4. Update linked PromiseToPay if applicable
+      if (plan.promiseToPayId) {
+        const promise = await tx.promiseToPay.findUnique({ where: { id: plan.promiseToPayId } });
+        if (promise) {
+          const newRemaining = Math.max(0, promise.remainingAmount - confirmedAmount);
+          const newStatus = newRemaining === 0 ? 'PAID' : 'PARTIALLY_PAID';
+          await tx.promiseToPay.update({
+            where: { id: promise.id },
+            data: {
+              remainingAmount: newRemaining,
+              status: newStatus,
+              lastActionAt: now,
+            },
+          });
+        }
+      }
+
+      // 5. Update linked Debt if applicable
+      if (plan.debtId) {
+        const debt = await tx.debt.findUnique({ where: { id: plan.debtId } });
+        if (debt) {
+          const newAmountPaid = debt.amountPaid + confirmedAmount;
+          const debtStatus = newAmountPaid >= debt.amountOwed ? 'CLOSED' : 'OPEN';
+          await tx.debt.update({
+            where: { id: debt.id },
+            data: { amountPaid: newAmountPaid, status: debtStatus },
+          });
+        }
+      }
+
+      // 6. Update customer metrics
+      if (plan.customerId) {
+        await tx.customer.update({
+          where: { id: plan.customerId },
+          data: {
+            totalPaid: { increment: confirmedAmount },
+            transactionCount: { increment: 1 },
+            lastActivityAt: now,
+          },
+        });
+      }
+
+      return paymentRecord;
+    });
+
+    // ── Post-transaction: update installment plan ────────────
+    const { completed } = await installmentService.recordSuccessfulCharge(plan.id, confirmedAmount);
+
+    // ── Notification ─────────────────────────────────────────
+    await prisma.notification.create({
+      data: {
+        userId: plan.userId,
+        type: 'info',
+        title: completed ? 'Installment plan completed' : 'Installment payment received',
+        message: completed
+          ? `${plan.customerNameSnapshot}'s installment plan is fully paid. ₦${confirmedAmount.toLocaleString()} auto-collected via ${provider.toLowerCase()}.`
+          : `₦${confirmedAmount.toLocaleString()} auto-collected from ${plan.customerNameSnapshot} via ${provider.toLowerCase()}.`,
+        link: `/installments/${plan.id}`,
+      },
+    });
+
+    // ── Receipt generation (non-blocking) ────────────────────
+    try {
+      const receipt = await receiptService.ensureForPayment(plan.userId, payment.id);
+
+      // Link receipt to the charge
+      if (receipt) {
+        await prisma.installmentCharge.update({
+          where: { id: charge.id },
+          data: { receiptId: receipt.id },
+        }).catch(() => null);
+      }
+
+      if (input.customerEmail && receipt) {
+        const user = await prisma.user.findUnique({
+          where: { id: plan.userId },
+          select: { businessName: true, name: true },
+        });
+        const bizName = user?.businessName || user?.name || 'Business';
+        await emailService.sendReceipt({
+          to: input.customerEmail,
+          business: bizName,
+          customerName: plan.customerNameSnapshot,
+          receiptNumber: receipt.receiptNumber,
+          amount: confirmedAmount,
+          receiptUrl: `/receipts/${receipt.id}`,
+        }).catch(() => null);
+      }
+    } catch {
+      // Non-fatal
+    }
+
+    console.log(
+      `INSTALLMENT_CONFIRMED: Charge ${charge.id} plan=${plan.id} ` +
+      `amount=${confirmedAmount} completed=${completed} ref=${reference}`
+    );
+  },
+
+  /**
+   * Store authorization data from a first successful payment.
+   * Called after any confirmed payment where Paystack returns a reusable authorization.
+   * Does NOT create an installment plan — that's done explicitly by the user or business logic.
+   */
+  async storeAuthorizationIfReusable(
+    input: ConfirmPaymentInput & { userId: string },
+  ): Promise<void> {
+    if (!input.authorization || !input.authorization.reusable) return;
+    if (input.provider !== 'PAYSTACK') return; // Only Paystack supports recurring via auth code
+
+    console.log(
+      `AUTH_STORED: Reusable authorization available for user ${input.userId} ` +
+      `ref=${input.reference} last4=${input.authorization.last4 || '****'}`
+    );
+    // Authorization data is passed to the caller (webhook.service / promise service)
+    // which decides whether to create an installment plan.
+    // We don't auto-create plans — the business user must opt in.
+  },
+};

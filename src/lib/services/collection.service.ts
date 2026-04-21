@@ -187,4 +187,108 @@ export async function getCollectionQueue(userId: string): Promise<CollectionSumm
   });
 
   for (const p of promises) {
-    if (p.remainingAmount <= 0) continue
+    if (p.remainingAmount <= 0) continue;
+    // Skip promises linked to debts already in the queue
+    if (p.debtId && items.some((i) => i.debtId === p.debtId)) continue;
+
+    const daysOld = daysBetween(p.createdAt, now);
+    const isBroken = p.status === 'BROKEN';
+    const score = scorePriority(p.remainingAmount, daysOld, isBroken);
+
+    const commitment = p.commitments[0];
+    let suggestedAction = 'Send reminder';
+    if (isBroken) suggestedAction = 'Broken promise — follow up urgently';
+    else if (p.status === 'PROMISED') suggestedAction = 'Awaiting promised payment';
+    else if (p.status === 'PARTIALLY_PAID') suggestedAction = 'Partial payment received — follow up for balance';
+    else suggestedAction = 'Resend promise link';
+
+    items.push({
+      id: p.id,
+      type: 'promise',
+      customerName: p.customerNameSnapshot,
+      customerPhone: p.phoneSnapshot,
+      amount: p.originalAmount,
+      amountPaid: p.originalAmount - p.remainingAmount,
+      remaining: p.remainingAmount,
+      status: p.status.toLowerCase(),
+      dueDate: commitment?.promisedDate?.toISOString() || null,
+      daysOverdue: daysOld,
+      priority: priorityLabel(score),
+      priorityScore: score,
+      suggestedAction,
+      promiseToken: p.publicToken,
+      customerId: p.customerId || undefined,
+      debtId: p.debtId || undefined,
+    });
+  }
+
+  // Fetch failed/paused installment plans — these need manual intervention
+  const failedInstallments = await prisma.installmentPlan.findMany({
+    where: {
+      userId,
+      status: { in: ['FAILED', 'PAUSED'] },
+      remainingAmount: { gt: 0 },
+    },
+    include: {
+      charges: { orderBy: { createdAt: 'desc' }, take: 1 },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  for (const plan of failedInstallments) {
+    // Skip plans whose linked debt is already in the queue
+    if (plan.debtId && items.some((i) => i.debtId === plan.debtId)) continue;
+
+    const daysSinceUpdate = daysBetween(plan.updatedAt, now);
+    const consecutiveFailures = plan.failedAttempts;
+    // Score high — these represent stuck revenue that was expected to auto-collect
+    const score = scorePriority(plan.remainingAmount, daysSinceUpdate, consecutiveFailures >= 3);
+
+    let suggestedAction = 'Send reminder now';
+    if (consecutiveFailures >= 3) {
+      suggestedAction = 'Disable auto-charge and follow up manually';
+    } else if (consecutiveFailures >= 2) {
+      suggestedAction = 'Call customer';
+    } else {
+      const lastCharge = plan.charges[0];
+      if (lastCharge?.failureReason?.includes('insufficient')) {
+        suggestedAction = 'Resend promise link';
+      } else {
+        suggestedAction = 'Send reminder now';
+      }
+    }
+
+    items.push({
+      id: plan.id,
+      type: 'installment',
+      customerName: plan.customerNameSnapshot,
+      customerPhone: plan.phoneSnapshot,
+      amount: plan.totalAmount,
+      amountPaid: plan.totalAmount - plan.remainingAmount,
+      remaining: plan.remainingAmount,
+      status: plan.status.toLowerCase(),
+      dueDate: plan.nextChargeAt?.toISOString() || null,
+      daysOverdue: daysSinceUpdate,
+      priority: priorityLabel(score),
+      priorityScore: score,
+      suggestedAction,
+      customerId: plan.customerId || undefined,
+      debtId: plan.debtId || undefined,
+      installmentPlanId: plan.id,
+    });
+  }
+
+  // Sort by priority score descending
+  items.sort((a, b) => b.priorityScore - a.priorityScore);
+
+  const totalOutstanding = items.reduce((sum, i) => sum + i.remaining, 0);
+
+  return {
+    totalOutstanding,
+    urgentCount: items.filter((i) => i.priority === 'urgent').length,
+    highCount: items.filter((i) => i.priority === 'high').length,
+    mediumCount: items.filter((i) => i.priority === 'medium').length,
+    lowCount: items.filter((i) => i.priority === 'low').length,
+    items,
+  };
+}

@@ -125,4 +125,30 @@ export function FAQ() {
           const isOpen = openIndex === i;
           return (
             <li key={`${ic}-${i}`} className="card overflow-hidden">
-              
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                onClick={() => setOpenIndex(isOpen ? null : i)}
+                className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+              >
+                <span className="font-semibold text-slate-900">{item.q}</span>
+                <ChevronDown
+                  size={20}
+                  className={cn(
+                    'shrink-0 text-slate-500 transition-transform',
+                    isOpen && 'rotate-180',
+                  )}
+                />
+              </button>
+              {isOpen && (
+                <div className="border-t border-border px-5 py-4 text-sm text-slate-700">
+                  {item.a}
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

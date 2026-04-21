@@ -123,4 +123,69 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
         authorization: authData
           ? {
               authorizationCode: authData.authorization_code,
-              reusable: authData.reusa
+              reusable: authData.reusable,
+              bin: authData.bin,
+              last4: authData.last4,
+              bank: authData.bank,
+              channel: authData.channel,
+              cardType: authData.card_type,
+              expMonth: authData.exp_month,
+              expYear: authData.exp_year,
+              customerCode: d.customer?.customer_code,
+            }
+          : undefined,
+      },
+    };
+  },
+
+  /**
+   * Charge a reusable authorization for recurring installments.
+   * Uses Paystack's "charge authorization" endpoint.
+   */
+  async chargeAuthorization(args: {
+    authorizationCode: string;
+    email: string;
+    amount: number; // Naira
+    reference: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ProviderResult<{ reference: string; status: string; transactionId: string }>> {
+    const result = await apiRequest<{
+      reference: string;
+      status: string;
+      id: number;
+    }>('/transaction/charge_authorization', {
+      method: 'POST',
+      body: JSON.stringify({
+        authorization_code: args.authorizationCode,
+        email: args.email,
+        amount: args.amount * 100, // Naira → kobo
+        reference: args.reference,
+        metadata: args.metadata,
+      }),
+    });
+    if (!result.ok) return result;
+    return {
+      ok: true,
+      data: {
+        reference: result.data.reference,
+        status: result.data.status,
+        transactionId: String(result.data.id),
+      },
+    };
+  },
+
+  verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
+    const sec = process.env.PAYSTACK_WEBHOOK_SECRET;
+    const signature = headers['x-paystack-signature'] || '';
+    if (\!sec || \!signature) return false;
+    const expected = crypto.createHmac('sha512', sec).update(rawBody).digest('hex');
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(expected, 'hex'),
+        Buffer.from(signature, 'hex'),
+      );
+    } catch {
+      return false;
+    }
+  },
+};

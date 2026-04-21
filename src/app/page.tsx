@@ -745,4 +745,116 @@ function InstallmentCard() {
         </div>
       </div>
       <div className="mt-3 space-y-1.5">
-        <ChargeRow date="Apr 1" amount="₦15,0
+        <ChargeRow date="Apr 1" amount="₦15,000" status="paid" />
+        <ChargeRow date="Apr 8" amount="₦15,000" status="paid" />
+        <ChargeRow date="Apr 15" amount="₦15,000" status="upcoming" />
+      </div>
+      <div className="mt-3 flex items-center justify-center gap-1 rounded-lg bg-brand-50 py-2 text-[11px] font-semibold text-brand-700">
+        <Repeat size={12} />
+        Next auto-charge: Apr 15
+      </div>
+    </div>
+  );
+}
+
+function ChargeRow({ date, amount, status }: { date: string; amount: string; status: 'paid' | 'upcoming' }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-1.5">
+      <div className="text-[11px] text-slate-500">{date}</div>
+      <div className={'num text-sm font-semibold ' + (status === 'paid' ? 'text-success-700' : 'text-slate-400')}>{amount}</div>
+      <span className={'rounded-full px-2 py-0.5 text-[9px] font-bold ' + (status === 'paid' ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-500')}>
+        {status === 'paid' ? 'Paid' : 'Upcoming'}
+      </span>
+    </div>
+  );
+}
+
+function FollowUpCard() {
+  return (
+    <div className="card p-5 shadow-sm md:p-6">
+      <div className="text-xs font-medium text-slate-500">Recipient</div>
+      <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
+          A
+        </span>
+        <div className="text-sm font-semibold text-ink">Amaka Nwosu</div>
+        <div className="ml-auto text-xs text-slate-500">+234 801 111 2222</div>
+      </div>
+      <div className="mt-4 text-xs font-medium text-slate-500">Message</div>
+      <div className="mt-1 rounded-lg border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-700">
+        Hi Amaka, we have new stock available. Let me know if you'd like to order.
+      </div>
+      <button className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1fbd5b]">
+        <MessageCircle size={16} />
+        Open in WhatsApp
+      </button>
+      <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-500">
+        <Check size={12} className="text-brand-600" />
+        Uses your own WhatsApp — nothing to connect
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────  Property Manager Spotlight  ───────────────────── */
+
+function PropertyManagerSpotlight() {
+  const features = [
+    {
+      title: 'Every tenant, every unit',
+      body: 'See who lives where, how much they pay, and when rent is due — all in one view.',
+    },
+    {
+      title: 'Rent tracker with collection rate',
+      body: 'Monthly KPI: how much was expected, collected, and still outstanding.',
+    },
+    {
+      title: 'Auto reminders on WhatsApp',
+      body: 'Nudge tenants a few days before rent is due, and again when it\'s overdue.',
+    },
+    {
+      title: 'Verified payments, auto receipts',
+      body: 'Paste the bank alert, confirm the tenant paid, and the receipt sends itself.',
+    },
+  ];
+  return (
+    <section id="property-manager" className="py-16 md:py-24">
+      <div className="container-app">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
+              Also built for property managers
+            </span>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
+              Every tenant. Every unit. Every naira collected.
+            </h2>
+            <p className="mt-3 text-slate-600 md:text-lg">
+              No more chasing tenants in group chats. CashTraka gives every property a clean
+              ledger, sends rent reminders automatically, and issues receipts the moment payment lands.
+            </p>
+          </div>
+        </Reveal>
+        <div className="mx-auto mt-10 grid max-w-4xl gap-4 md:grid-cols-2">
+          {features.map((f, i) => (
+            <Reveal key={f.title} delay={i * 80}>
+              <div className="card flex h-full items-start gap-3 p-5">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
+                  <Check size={16} strokeWidth={3} />
+                </span>
+                <div>
+                  <h3 className="font-semibold text-ink">{f.title}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{f.body}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+        <Reveal className="mt-8 flex justify-center">
+          <Link href="/signup?type=property_manager" className="btn-primary">
+            Start managing property
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}

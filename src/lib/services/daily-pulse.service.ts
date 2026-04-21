@@ -132,4 +132,31 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     autoConfirmedAmountToday: 0,
   };
   try {
-    promiseSt
+    promiseStats = await promiseToPayService.pulseStats(userId);
+  } catch {
+    // Non-critical — pulse still works without promise data
+  }
+
+  return {
+    todayRevenue: todayRev,
+    yesterdayRevenue: yesterdayRev,
+    revenueDelta: delta,
+    totalOwed: openDebts._sum.amountOwed || 0,
+    overdueDebts,
+    pendingPaylinks,
+    claimedPaylinks,
+    remindersDueToday: remindersDue,
+    quietCustomers,
+    topDebtors: topDebtors.map((d) => ({
+      name: d.customerNameSnapshot,
+      phone: d.phoneSnapshot,
+      amount: d.amountOwed - d.amountPaid,
+    })),
+    yesterdaySpent: yesterdayExpenses._sum.amount ?? 0,
+    activePromises: promiseStats.activePromises,
+    brokenPromises: promiseStats.brokenPromises,
+    committedUnpaid: promiseStats.committedUnpaid,
+    autoConfirmedToday: promiseStats.autoConfirmedToday,
+    autoConfirmedAmountToday: promiseStats.autoConfirmedAmountToday,
+  };
+}

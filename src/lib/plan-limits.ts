@@ -216,4 +216,32 @@ export function effectivePlan(user: UserLike): {
     (user.plan === 'free' ? 'free' : 'active')) as SubscriptionStatus;
 
   if (status === 'past_due') {
-    return { plan: 'free', status, ex
+    return { plan: 'free', status, expired: true };
+  }
+  if (status === 'trialing') {
+    const expired =
+      !user.trialEndsAt || user.trialEndsAt.getTime() <= now;
+    return {
+      plan: expired ? 'free' : user.plan,
+      status,
+      expired,
+    };
+  }
+  if (status === 'active' || status === 'cancelled') {
+    const expired =
+      !user.currentPeriodEnd || user.currentPeriodEnd.getTime() <= now;
+    return {
+      plan: expired ? 'free' : user.plan,
+      status,
+      expired,
+    };
+  }
+  return { plan: user.plan, status: 'free', expired: false };
+}
+
+export function isSubscriptionLapsed(user: UserLike): boolean {
+  const { status, expired } = effectivePlan(user);
+  if (status === 'past_due') return true;
+  if ((status === 'active' || status === 'cancelled') && expired) return true;
+  return false;
+}

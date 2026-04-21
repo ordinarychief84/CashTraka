@@ -1041,4 +1041,182 @@ model AdminStaff {
   name            String
   email           String    @unique
   passwordHash    String?
-  /// SUPER_ADMIN
+  /// SUPER_ADMIN | BLOG_MANAGER | BILLING_MANAGER | SUPPORT_AGENT | PROPERTY_MANAGER | REPORTS_VIEWER
+  adminRole       String
+  status          String    @default("invited") // invited | active | suspended | revoked
+  inviteToken     String?   @unique
+  inviteExpiresAt DateTime?
+  /// The admin User.id who created this staff
+  createdById     String
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  createdBy       User      @relation("AdminStaffCreator", fields: [createdById], references: [id])
+
+  @@index([adminRole])
+  @@index([status])
+  @@index([email])
+}
+
+// ---------- PROMISE TO PAY ----------
+
+/// A structured payment commitment sent to a debtor. Public at /promise/[publicToken].
+model PromiseToPay {
+  id                   String    @id @default(cuid())
+  userId               String
+  customerId           String?
+  debtId               String?
+  paymentRequestId     String?
+  customerNameSnapshot String
+  phoneSnapshot        String
+  originalAmount       Int
+  remainingAmount      Int
+  /// OPEN | PARTIALLY_PAID | PROMISED | PAID | BROKEN | CANCELLED | EXPIRED
+  status               String    @default("OPEN")
+  publicToken          String    @unique @default(cuid())
+  publicUrl            String?
+  note                 String?
+  lastActionAt         DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer             Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  commitments          PromiseCommitment[]
+  payments             PromisePayment[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+  @@index([publicToken])
+  @@index([customerId])
+  @@index([debtId])
+}
+
+/// A commitment made by the debtor on a PromiseToPay.
+model PromiseCommitment {
+  id              String    @id @default(cuid())
+  promiseToPayId  String
+  /// PAY_NOW | PAY_PART | PAY_ON_DATE
+  commitmentType  String
+  committedAmount Int?
+  promisedDate    DateTime?
+  message         String?
+  createdAt       DateTime  @default(now())
+
+  promiseToPay    PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
+
+  @@index([promiseToPayId])
+}
+
+/// A payment made against a PromiseToPay, tracked through a payment provider.
+model PromisePayment {
+  id                   String    @id @default(cuid())
+  promiseToPayId       String
+  /// PAYSTACK | FLUTTERWAVE
+  provider             String?
+  providerReference    String?
+  providerTransactionId String?
+  amount               Int
+  /// PENDING | SUCCESS | FAILED
+  status               String    @default("PENDING")
+  verifiedAt           DateTime?
+  paidAt               DateTime?
+  rawWebhookStored     Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  promiseToPay         PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
+
+  @@index([promiseToPayId])
+  @@index([providerReference])
+  @@index([providerTransactionId])
+  @@index([status])
+}
+
+/// Installment plan for recurring auto-debit via Paystack authorization.
+model InstallmentPlan {
+  id                             String    @id @default(cuid())
+  userId                         String
+  promiseToPayId                 String?
+  debtId                         String?
+  customerId                     String?
+  customerNameSnapshot           String
+  phoneSnapshot                  String
+  totalAmount                    Int
+  remainingAmount                Int
+  initialAmount                  Int?      // first payment amount (may differ from recurring)
+  recurringAmount                Int
+  /// DAILY | WEEKLY | BIWEEKLY | MONTHLY
+  interval                       String    @default("MONTHLY")
+  totalInstallments              Int?      // null = charge until cleared
+  completedInstallments          Int       @default(0)
+  nextChargeAt                   DateTime?
+  lastChargedAt                  DateTime?
+  /// ACTIVE | COMPLETED | FAILED | CANCELLED | PAUSED
+  status                         String    @default("ACTIVE")
+  paystackAuthorizationCode      String?
+  paystackAuthorizationReusable  Boolean   @default(false)
+  paystackCustomerCode           String?
+  paystackEmail                  String?
+  failedAttempts                 Int       @default(0)
+  lastFailureReason              String?
+  createdAt                      DateTime  @default(now())
+  updatedAt                      DateTime  @updatedAt
+
+  user                           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  charges                        InstallmentCharge[]
+
+  @@index([userId, status])
+  @@index([status, nextChargeAt])
+  @@index([promiseToPayId])
+  @@index([debtId])
+  @@index([customerId])
+}
+
+/// Individual charge attempt within an installment plan.
+model InstallmentCharge {
+  id                    String    @id @default(cuid())
+  installmentPlanId     String
+  userId                String
+  amount                Int
+  reference             String    @unique
+  /// PENDING | SUCCESS | FAILED | VERIFICATION_PENDING
+  status                String    @default("PENDING")
+  providerTransactionId String?
+  failureReason         String?
+  paymentId             String?   // linked Payment record after success
+  receiptId             String?   // linked Receipt record after success
+  verifiedAt            DateTime?
+  paidAt                DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  installmentPlan       InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
+
+  @@index([installmentPlanId])
+  @@index([reference])
+  @@index([providerTransactionId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Durable log for all incoming payment webhooks — audit and replay.
+model WebhookEventLog {
+  id                  String    @id @default(cuid())
+  /// PAYSTACK | FLUTTERWAVE
+  provider            String
+  eventType           String
+  reference           String?
+  transactionId       String?
+  payload             String
+  /// RECEIVED | VERIFIED | REJECTED | DUPLICATE | FAILED
+  verificationStatus  String    @default("RECEIVED")
+  processedAt         DateTime?
+  createdAt           DateTime  @default(now())
+
+  @@index([provider, reference])
+  @@index([provider, transactionId])
+  @@index([verificationStatus])
+  @@index([createdAt])
+}

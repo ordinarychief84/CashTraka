@@ -31,4 +31,4 @@ export const GET = () =>
         amountKobo: pricing?.amountKobo ?? null,
       },
     });
-  }
+  });

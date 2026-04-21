@@ -1336,4 +1336,40 @@ export const emailService = {
       final: {
         icon: '🔴',
         bg: '#FEE2E2',
-        
+        subject: `Final notice: ${naira(args.amount)} \u2014 ${args.businessName}`,
+        greeting: `This is a final reminder regarding your outstanding balance of <strong>${naira(args.amount)}</strong> with <strong>${esc(args.businessName)}</strong>. Please make payment immediately to avoid further action.`,
+        cta: 'Pay Immediately',
+      },
+    };
+
+    const cfg = toneConfig[args.tone];
+    const body = `
+      <div style="text-align:center;margin-bottom:24px;">
+        <div style="display:inline-block;background:${cfg.bg};border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">${cfg.icon}</div>
+        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Payment Reminder</h1>
+      </div>
+
+      <p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.6;">
+        Hi ${esc(args.customerName)}, ${cfg.greeting}
+      </p>
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:12px;overflow:hidden;">
+        ${infoRow('Amount Due', naira(args.amount))}
+        ${infoRow('Business', args.businessName)}
+      </table>
+
+      ${args.payLink ? ctaButton(cfg.cta, args.payLink) : ctaButton('View Details', appUrl)}
+
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;text-align:center;">
+        This reminder was sent on behalf of ${esc(args.businessName)} via CashTraka.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: cfg.subject,
+      html: layout(body, { preheader: cfg.greeting.replace(/<[^>]+>/g, '') }),
+    });
+  },
+
+  raw: send,
+};

@@ -159,4 +159,8 @@ function PathCard({
         className={`relative mt-6 inline-flex items-center justify-center gap-2 self-start rounded-full px-5 py-3 text-sm font-bold text-white transition ${styles.ctaBg}`}
       >
         {cta}
-        <ArrowRight size={15} className="transition group-hove
+        <ArrowRight size={15} className="transition group-hover:translate-x-0.5" />
+      </div>
+    </Link>
+  );
+}

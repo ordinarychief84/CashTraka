@@ -167,4 +167,11 @@ export const webhookService = {
       data: {
         provider,
         eventType,
-        refere
+        reference,
+        transactionId,
+        payload,
+        verificationStatus,
+      },
+    });
+  },
+};

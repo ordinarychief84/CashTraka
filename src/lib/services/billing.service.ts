@@ -405,4 +405,17 @@ export const billingService = {
     await prisma.adminNote
       .create({
         data: {
-          adminUserId:
+          adminUserId: args.adminId,
+          targetUserId: args.userId,
+          note,
+        },
+      })
+      .catch(() => null);
+
+    return {
+      plan: updated.plan,
+      subscriptionStatus: updated.subscriptionStatus,
+      currentPeriodEnd: updated.currentPeriodEnd,
+    };
+  },
+};

@@ -71,4 +71,12 @@ export function PlanDistribution({ title = 'Plan distribution', counts }: Props)
               </dt>
               <dd className="text-xs font-bold text-ink">
                 {s.count}
-    
+                <span className="ml-1 font-normal text-slate-500">· {pct}%</span>
+              </dd>
+            </div>
+          );
+        })}
+      </dl>
+    </section>
+  );
+}

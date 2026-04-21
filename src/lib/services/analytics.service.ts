@@ -458,4 +458,7 @@ export const analyticsService = {
     return {
       labels,
       signups: labels.map((l) => signupCounts.get(l) ?? 0),
-      rev
+      revenue: labels.map((l) => revenueSums.get(l) ?? 0),
+    };
+  },
+};

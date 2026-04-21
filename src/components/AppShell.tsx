@@ -17,7 +17,7 @@ import {
   Settings as SettingsIcon,
   Send,
   Target,
-  FileText,
+  FileText,h
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';

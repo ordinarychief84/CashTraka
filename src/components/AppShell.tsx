@@ -214,4 +214,5 @@ function GroupLabel({ children }: { children: string }) {
     <div className="mt-4 px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
       {children}
     </div>
-  
+  );
+}

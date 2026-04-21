@@ -77,6 +77,10 @@ export async function GET(req: Request) {
         topDebtors: pulse.topDebtors,
         yesterdaySpent: pulse.yesterdaySpent,
         suggestions,
+        activePromises: pulse.activePromises,
+        brokenPromises: pulse.brokenPromises,
+        autoConfirmedToday: pulse.autoConfirmedToday,
+        autoConfirmedAmountToday: pulse.autoConfirmedAmountToday,
       });
 
       if (result.ok) sent++;

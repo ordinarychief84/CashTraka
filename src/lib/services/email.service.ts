@@ -430,6 +430,11 @@ export const emailService = {
     topDebtors: { name: string; amount: number }[];
     yesterdaySpent?: number;
     suggestions?: { emoji: string; label: string }[];
+    // Promise to Pay & auto-confirmation stats
+    activePromises?: number;
+    brokenPromises?: number;
+    autoConfirmedToday?: number;
+    autoConfirmedAmountToday?: number;
   }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || '';
     const today = fmtDate(new Date());
@@ -444,6 +449,8 @@ export const emailService = {
       alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.overdueDebts} overdue debt(s) need follow-up</li>`;
     if (args.remindersDueToday > 0)
       alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.remindersDueToday} reminder(s) due today</li>`;
+    if (args.brokenPromises && args.brokenPromises > 0)
+      alertItems += `<li style="margin-bottom:6px;font-size:14px;color:#475569;">${args.brokenPromises} promise(s) broken — follow up needed</li>`;
 
     let debtorRows = '';
     for (const d of args.topDebtors.slice(0, 3)) {
@@ -469,14 +476,31 @@ export const emailService = {
           <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${naira(args.totalOwed)}</td>
         </tr>
         <tr>
-        <tr>
           <td style="padding:8px 0;font-size:14px;color:#475569;">Business Expenses (yesterday)</td>
           <td style="padding:8px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;">${args.yesterdaySpent ? naira(args.yesterdaySpent) : naira(0)}</td>
         </tr>
+        <tr>
           <td style="padding:8px 0;font-size:14px;color:#475569;">Overdue</td>
           <td style="padding:8px 0;font-size:14px;font-weight:700;color:${args.overdueDebts > 0 ? '#DC2626' : '#1A1A1A'};text-align:right;">${args.overdueDebts}</td>
         </tr>
       </table>
+
+      ${args.autoConfirmedToday && args.autoConfirmedToday > 0 ? `
+      <div style="background:#ECFDF5;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#065F46;text-transform:uppercase;">Auto-Confirmed Today</p>
+        <p style="margin:0;font-size:14px;color:#475569;">
+          ${args.autoConfirmedToday} payment${args.autoConfirmedToday > 1 ? 's' : ''} verified automatically — <strong style="color:#065F46;">${naira(args.autoConfirmedAmountToday || 0)}</strong> received.
+        </p>
+      </div>` : ''}
+
+      ${args.activePromises && args.activePromises > 0 ? `
+      <div style="background:#EFF6FF;border-radius:10px;padding:16px;margin-bottom:20px;">
+        <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1E40AF;text-transform:uppercase;">Promise to Pay</p>
+        <p style="margin:0;font-size:14px;color:#475569;">
+          ${args.activePromises} active promise${args.activePromises > 1 ? 's' : ''} outstanding.
+          ${args.brokenPromises && args.brokenPromises > 0 ? `<span style="color:#DC2626;font-weight:600;">${args.brokenPromises} broken — needs follow-up.</span>` : ''}
+        </p>
+      </div>` : ''}
 
       ${alertItems ? `
       <div style="background:#FFF7ED;border-radius:10px;padding:16px;margin-bottom:20px;">
@@ -1312,40 +1336,4 @@ export const emailService = {
       final: {
         icon: '🔴',
         bg: '#FEE2E2',
-        subject: `Final notice: ${naira(args.amount)} \u2014 ${args.businessName}`,
-        greeting: `This is a final reminder regarding your outstanding balance of <strong>${naira(args.amount)}</strong> with <strong>${esc(args.businessName)}</strong>. Please make payment immediately to avoid further action.`,
-        cta: 'Pay Immediately',
-      },
-    };
-
-    const cfg = toneConfig[args.tone];
-    const body = `
-      <div style="text-align:center;margin-bottom:24px;">
-        <div style="display:inline-block;background:${cfg.bg};border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">${cfg.icon}</div>
-        <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Payment Reminder</h1>
-      </div>
-
-      <p style="margin:0 0 16px;font-size:14px;color:#475569;line-height:1.6;">
-        Hi ${esc(args.customerName)}, ${cfg.greeting}
-      </p>
-
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:12px;overflow:hidden;">
-        ${infoRow('Amount Due', naira(args.amount))}
-        ${infoRow('Business', args.businessName)}
-      </table>
-
-      ${args.payLink ? ctaButton(cfg.cta, args.payLink) : ctaButton('View Details', appUrl)}
-
-      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;text-align:center;">
-        This reminder was sent on behalf of ${esc(args.businessName)} via CashTraka.
-      </p>`;
-
-    return send({
-      to: args.to,
-      subject: cfg.subject,
-      html: layout(body, { preheader: cfg.greeting.replace(/<[^>]+>/g, '') }),
-    });
-  },
-
-  raw: send,
-};
+        

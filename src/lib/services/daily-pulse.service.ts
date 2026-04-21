@@ -15,6 +15,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { promiseToPayService } from './promise-to-pay.service';
 
 export type DailyPulseData = {
   todayRevenue: number;
@@ -28,6 +29,12 @@ export type DailyPulseData = {
   quietCustomers: number; // no activity in 30+ days
   topDebtors: { name: string; phone: string; amount: number }[];
   yesterdaySpent: number; // business expenses yesterday
+  // Promise to Pay & auto-confirmation stats
+  activePromises: number;
+  brokenPromises: number;
+  committedUnpaid: number;
+  autoConfirmedToday: number;
+  autoConfirmedAmountToday: number;
 };
 
 function startOfDay(d: Date): Date {
@@ -115,21 +122,14 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     ? Math.round(((todayRev - yesterdayRev) / yesterdayRev) * 100)
     : todayRev > 0 ? 100 : 0;
 
-  return {
-    todayRevenue: todayRev,
-    yesterdayRevenue: yesterdayRev,
-    revenueDelta: delta,
-    totalOwed: openDebts._sum.amountOwed || 0,
-    overdueDebts,
-    pendingPaylinks,
-    claimedPaylinks,
-    remindersDueToday: remindersDue,
-    quietCustomers,
-    topDebtors: topDebtors.map((d) => ({
-      name: d.customerNameSnapshot,
-      phone: d.phoneSnapshot,
-      amount: d.amountOwed - d.amountPaid,
-    })),
-    yesterdaySpent: yesterdayExpenses._sum.amount ?? 0,
+  // Fetch promise stats
+  let promiseStats = {
+    activePromises: 0,
+    brokenPromises: 0,
+    committedUnpaid: 0,
+    partiallyRecovered: 0,
+    autoConfirmedToday: 0,
+    autoConfirmedAmountToday: 0,
   };
-}
+  try {
+    promiseSt

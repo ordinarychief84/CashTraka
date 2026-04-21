@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef, forwardRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Package } from 'lucide-react';
 import { formatNaira } from '@/lib/format';
+import { ContactPickerButton } from '@/components/ContactPickerButton';
 
 type Initial = {
   id?: string;
@@ -139,9 +140,22 @@ export function PaymentForm({
     setItems((prev) => prev.filter((_, i) => i !== idx));
   }
 
+  const nameFieldRef = useRef<HTMLInputElement>(null);
+  const phoneFieldRef = useRef<HTMLInputElement>(null);
+
+  function handleContactPicked(contact: { name: string; phone: string }) {
+    if (nameFieldRef.current) nameFieldRef.current.value = contact.name;
+    if (phoneFieldRef.current) phoneFieldRef.current.value = contact.phone;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex items-end justify-between mb-1">
+        <div className="flex-1" />
+        <ContactPickerButton onContactPicked={handleContactPicked} />
+      </div>
       <Field
+        ref={nameFieldRef}
         name="customerName"
         label="Customer name"
         placeholder="e.g. Amaka Nwosu"
@@ -149,6 +163,7 @@ export function PaymentForm({
         required
       />
       <Field
+        ref={phoneFieldRef}
         name="phone"
         label="Phone number"
         placeholder="08012345678"
@@ -316,20 +331,21 @@ export function PaymentForm({
   );
 }
 
-function Field({
+const Field = forwardRef<HTMLInputElement, {
+  label: string;
+  name: string;
+  defaultValue?: string | number;
+} & React.InputHTMLAttributes<HTMLInputElement>>(function Field({
   label,
   name,
   defaultValue,
   ...rest
-}: {
-  label: string;
-  name: string;
-  defaultValue?: string | number;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
+}, ref) {
   return (
     <div>
       <label htmlFor={name} className="label">{label}</label>
       <input
+        ref={ref}
         id={name}
         name={name}
         className="input"
@@ -338,7 +354,7 @@ function Field({
       />
     </div>
   );
-}
+});
 
 function StatusRadio({
   name,

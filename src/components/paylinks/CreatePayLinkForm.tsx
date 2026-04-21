@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2, Mail, Building2 } from 'lucide-react';
+import { ContactPickerButton } from '@/components/ContactPickerButton';
 
 type Customer = { id: string; name: string; phone: string };
 type DebtItem = { id: string; customerName: string; phone: string; remaining: number };
@@ -231,10 +232,20 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
       )}
 
       <div className="relative">
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
-          <User size={14} className="inline mr-1" />
-          Customer Name
-        </label>
+        <div className="mb-1.5 flex items-center justify-between">
+          <label className="block text-sm font-medium text-slate-700">
+            <User size={14} className="inline mr-1" />
+            Customer Name
+          </label>
+          <ContactPickerButton
+            onContactPicked={(c) => {
+              setCustomerName(c.name);
+              setCustomerPhone(c.phone);
+              const match = customers.find((cu) => cu.phone === c.phone);
+              if (match) setCustomerId(match.id);
+            }}
+          />
+        </div>
         <input
           type="text"
           value={customerName}

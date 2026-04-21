@@ -143,6 +143,9 @@ export default async function DashboardPage() {
     topContributors,
     claimedPaylinkCount,
     pendingPaylinkCount,
+    brokenPromiseCount,
+    activePromiseCount,
+    autoConfirmedTodayAgg,
   ] = await Promise.all([
     // This week's PAID payments (for hero total + sparkline + transaction count)
     prisma.payment.findMany({
@@ -278,6 +281,20 @@ export default async function DashboardPage() {
     prisma.paymentRequest.count({
       where: { userId: user.id, status: { in: ['pending', 'viewed'] } },
     }),
+    // Broken promises needing follow-up
+    prisma.promiseToPay.count({
+      where: { userId: user.id, status: 'BROKEN' },
+    }).catch(() => 0),
+    // Active promises (awaiting payment)
+    prisma.promiseToPay.count({
+      where: { userId: user.id, status: { in: ['OPEN', 'PROMISED', 'PARTIALLY_PAID'] } },
+    }).catch(() => 0),
+    // Auto-confirmed payments today
+    prisma.payment.aggregate({
+      where: { userId: user.id, confirmedAutomatically: true, confirmedAt: { gte: today } },
+      _sum: { amount: true },
+      _count: true,
+    }).catch(() => ({ _sum: { amount: null }, _count: 0 })),
   ]);
 
   // ── Derived metrics ────────────────────────────────────────────────────
@@ -417,6 +434,27 @@ export default async function DashboardPage() {
       title: `${pendingPaylinkCount} pending PayLink${pendingPaylinkCount > 1 ? 's' : ''}`,
       subtitle: 'Waiting for customer action',
       href: '/paylinks',
+    });
+  }
+  // Promise to Pay triage items
+  if (brokenPromiseCount > 0) {
+    triage.push({
+      id: 'promises-broken',
+      severity: 'critical',
+      icon: TriageIcons.promiseBroken,
+      title: `${brokenPromiseCount} broken promise${brokenPromiseCount > 1 ? 's' : ''}`,
+      subtitle: 'Customers missed their payment deadline',
+      href: '/promises?status=broken',
+    });
+  }
+  if (activePromiseCount > 0) {
+    triage.push({
+      id: 'promises-active',
+      severity: 'info',
+      icon: TriageIcons.promiseActive,
+      title: `${activePromiseCount} active promise${activePromiseCount > 1 ? 's' : ''}`,
+      subtitle: 'Awaiting customer payments',
+      href: '/promises',
     });
   }
 
@@ -668,6 +706,17 @@ export default async function DashboardPage() {
                 <div className="flex items-center justify-between py-2">
                   <dt className="text-slate-600">Expenses</dt>
                   <dd className="num font-bold text-ink">{formatNaira(monthExpenses)}</dd>
+                </div>
+              )}
+              {(autoConfirmedTodayAgg as any)?._count > 0 && (
+                <div className="flex items-center justify-between py-2">
+                  <dt className="text-slate-600">Auto-confirmed today</dt>
+                  <dd className="num font-bold text-success-700">
+                    {formatNaira((autoConfirmedTodayAgg as any)._sum?.amount ?? 0)}
+                    <span className="ml-1 text-[11px] font-normal text-slate-500">
+                      ({(autoConfirmedTodayAgg as any)._count})
+                    </span>
+                  </dd>
                 </div>
               )}
             </dl>

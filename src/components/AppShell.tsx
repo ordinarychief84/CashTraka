@@ -17,6 +17,7 @@ import {
   Settings as SettingsIcon,
   Send,
   Target,
+  FileText,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -98,6 +99,7 @@ export function AppShell({
             <>
               <GroupLabel>Collections</GroupLabel>
               <SideLink href="/paylinks" icon={Send} label="PayLinks" />
+              <SideLink href="/promises" icon={FileText} label="Promises" />
               <SideLink href="/collections" icon={Target} label="Collections" />
             </>
           )}

@@ -11,6 +11,8 @@ import {
   CreditCard,
   Send,
   ListChecks,
+  FileText,
+  AlertOctagon,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -189,4 +191,6 @@ export const TriageIcons = {
   teamPay: Users2,
   paylink: CreditCard,
   paylinkPending: Send,
+  promiseBroken: AlertOctagon,
+  promiseActive: FileText,
 };

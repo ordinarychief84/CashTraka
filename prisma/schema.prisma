@@ -113,6 +113,8 @@ model User {
   reminderLogs         ReminderLog[]
   customerNotes        CustomerNote[]
   createdAdminStaff    AdminStaff[]      @relation("AdminStaffCreator")
+  promisesToPay        PromiseToPay[]
+  installmentPlans     InstallmentPlan[]
 
   @@index([role])
   @@index([businessType])
@@ -168,6 +170,7 @@ model Customer {
   invoices         Invoice[]
   paymentRequests  PaymentRequest[]
   customerNotes    CustomerNote[]
+  promisesToPay    PromiseToPay[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -213,6 +216,13 @@ model Payment {
 
   /// Whether a receipt was auto-sent after verification.
   receiptSentAt        DateTime?
+
+  /// Provider payment fields (for auto-confirmed payments via webhook)
+  externalRef              String?
+  provider                 String?
+  providerTransactionId    String?
+  confirmedAutomatically   Boolean   @default(false)
+  confirmedAt              DateTime?
 
   user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -889,6 +899,14 @@ model PaymentRequest {
   customerEmail    String?
   debtId           String?
   expiresAt        DateTime?
+
+  /// Provider payment tracking (for auto-confirmed paylinks)
+  provider         String?
+  externalRef      String?
+  /// PENDING | SUCCESS | FAILED
+  paymentStatus    String?
+  webhookVerifiedAt DateTime?
+
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -897,6 +915,7 @@ model PaymentRequest {
 
   @@index([userId, status])
   @@index([userId, createdAt])
+  @@index([externalRef])
 }
 
 // ---------- PHASE 2: AUTO FOLLOW-UP REMINDERS ----------
@@ -1022,20 +1041,4 @@ model AdminStaff {
   name            String
   email           String    @unique
   passwordHash    String?
-  /// SUPER_ADMIN | BLOG_MANAGER | BILLING_MANAGER | SUPPORT_AGENT | PROPERTY_MANAGER | REPORTS_VIEWER
-  adminRole       String
-  status          String    @default("invited") // invited | active | suspended | revoked
-  inviteToken     String?   @unique
-  inviteExpiresAt DateTime?
-  /// The admin User.id who created this staff
-  createdById     String
-  lastLoginAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  createdBy       User      @relation("AdminStaffCreator", fields: [createdById], references: [id])
-
-  @@index([adminRole])
-  @@index([status])
-  @@index([email])
-}
+  /// SUPER_ADMIN

@@ -15,7 +15,7 @@ import { prisma } from '@/lib/prisma';
 
 export type CollectionItem = {
   id: string;
-  type: 'debt' | 'paylink';
+  type: 'debt' | 'paylink' | 'promise' | 'installment';
   customerName: string;
   customerPhone: string;
   amount: number;
@@ -28,8 +28,10 @@ export type CollectionItem = {
   priorityScore: number;
   suggestedAction: string;
   paylinkToken?: string;
+  promiseToken?: string;
   debtId?: string;
   customerId?: string;
+  installmentPlanId?: string;
 };
 
 export type CollectionSummary = {
@@ -172,17 +174,17 @@ export async function getCollectionQueue(userId: string): Promise<CollectionSumm
     });
   }
 
-  // Sort by priority score descending
-  items.sort((a, b) => b.priorityScore - a.priorityScore);
+  // Fetch active promises and merge into the queue
+  const promises = await prisma.promiseToPay.findMany({
+    where: {
+      userId,
+      status: { in: ['OPEN', 'PARTIALLY_PAID', 'PROMISED', 'BROKEN'] },
+    },
+    include: {
+      commitments: { orderBy: { createdAt: 'desc' }, take: 1 },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
-  const totalOutstanding = items.reduce((sum, i) => sum + i.remaining, 0);
-
-  return {
-    totalOutstanding,
-    urgentCount: items.filter((i) => i.priority === 'urgent').length,
-    highCount: items.filter((i) => i.priority === 'high').length,
-    mediumCount: items.filter((i) => i.priority === 'medium').length,
-    lowCount: items.filter((i) => i.priority === 'low').length,
-    items,
-  };
-}
+  for (const p of promises) {
+    if (p.remainingAmount <= 0) continue

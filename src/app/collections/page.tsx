@@ -194,7 +194,7 @@ export default async function CollectionsPage() {
                         {pri.label}
                       </span>
                       <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
-                        {item.type === 'paylink' ? 'PayLink' : 'Debt'}
+                        {item.type === 'paylink' ? 'PayLink' : item.type === 'promise' ? 'Promise' : 'Debt'}
                       </span>
                       {item.status === 'claimed' && (
                         <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">

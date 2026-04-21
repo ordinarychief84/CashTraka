@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { ContactPickerButton } from '@/components/ContactPickerButton';
 
 type Initial = {
   id?: string;
@@ -55,11 +56,23 @@ export function DebtForm({ redirectTo = '/debts', onSuccess, initial }: Props) {
     }
   }
 
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+
+  function handleContactPicked(contact: { name: string; phone: string }) {
+    if (nameRef.current) nameRef.current.value = contact.name;
+    if (phoneRef.current) phoneRef.current.value = contact.phone;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="customerName" className="label">Customer name</label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="customerName" className="label">Customer name</label>
+          <ContactPickerButton onContactPicked={handleContactPicked} />
+        </div>
         <input
+          ref={nameRef}
           id="customerName"
           name="customerName"
           className="input"
@@ -71,6 +84,7 @@ export function DebtForm({ redirectTo = '/debts', onSuccess, initial }: Props) {
       <div>
         <label htmlFor="phone" className="label">Phone number</label>
         <input
+          ref={phoneRef}
           id="phone"
           name="phone"
           className="input"

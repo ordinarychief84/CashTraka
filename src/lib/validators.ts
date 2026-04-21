@@ -197,3 +197,36 @@ export const invoiceSchema = z.object({
 export const invoiceUpdateSchema = z.object({
   status: z.enum(['DRAFT', 'SENT', 'PAID', 'CANCELLED']),
 });
+
+// ---------- PROMISE TO PAY ----------
+
+export const createPromiseSchema = z.object({
+  customerName: z.string().trim().min(1, 'Customer name is required'),
+  phone: phoneSchema,
+  amount: z.coerce.number().int().positive('Amount must be greater than 0'),
+  note: z.string().trim().max(500).optional(),
+  customerId: z.string().optional(),
+  debtId: z.string().optional(),
+  paymentRequestId: z.string().optional(),
+});
+
+export const promiseCommitmentSchema = z.object({
+  commitmentType: z.enum(['PAY_NOW', 'PAY_PART', 'PAY_ON_DATE']),
+  amount: z.coerce.number().int().positive().optional(),
+  promisedDate: z.string().optional(),
+  message: z.string().trim().max(500).optional(),
+  email: z.string().email().optional(),
+}).refine(
+  (data) => {
+    if (data.commitmentType === 'PAY_PART' && !data.amount) return false;
+    if (data.commitmentType === 'PAY_ON_DATE' && !data.promisedDate) return false;
+    return true;
+  },
+  { message: 'Amount required for partial payment, date required for promise' },
+);
+
+export const initPromisePaymentSchema = z.object({
+  amount: z.coerce.number().int().positive('Amount must be greater than 0'),
+  email: z.string().email('Valid email required for payment'),
+  provider: z.enum(['PAYSTACK', 'FLUTTERWAVE']).optional(),
+});

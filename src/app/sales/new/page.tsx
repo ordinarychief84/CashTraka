@@ -19,7 +19,7 @@ export default async function NewSalePage() {
         title="Record Sale"
         subtitle="Add items sold, select payment method, and generate a receipt."
       />
-      <RecordSaleForm />
+      <RecordSaleForm businessName={user.businessName || user.name} />
     </AppShell>
   );
 }

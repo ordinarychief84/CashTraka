@@ -6,7 +6,16 @@ import { handled, ok, validationFail } from '@/lib/api-response';
 export const runtime = 'nodejs';
 
 const schema = z.object({
-  plan: z.enum(['business', 'business_plus', 'landlord', 'estate_manager']),
+  plan: z.enum([
+    'starter_quarterly',
+    'starter_biannually',
+    'starter_yearly',
+    // Legacy keys - still accepted for backwards compat
+    'business',
+    'business_plus',
+    'landlord',
+    'estate_manager',
+  ]),
 });
 
 /**

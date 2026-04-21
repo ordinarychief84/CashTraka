@@ -6,7 +6,17 @@ import { handled, ok, validationFail } from '@/lib/api-response';
 export const runtime = 'nodejs';
 
 const schema = z.object({
-  plan: z.enum(['free', 'business', 'business_plus', 'landlord', 'estate_manager']),
+  plan: z.enum([
+    'free',
+    'starter_quarterly',
+    'starter_biannually',
+    'starter_yearly',
+    // Legacy keys
+    'business',
+    'business_plus',
+    'landlord',
+    'estate_manager',
+  ]),
   status: z
     .enum(['free', 'trialing', 'active', 'past_due', 'cancelled'])
     .optional(),
@@ -15,7 +25,7 @@ const schema = z.object({
 
 /**
  * PATCH /api/admin/users/[id]/plan
- * Admin override — force-change a user's plan, optionally with a reason for
+ * Admin override - force-change a user's plan, optionally with a reason for
  * the audit trail.
  */
 export const PATCH = (req: Request, ctx: { params: { id: string } }) =>

@@ -7,18 +7,24 @@ import { rateLimit, clientIp } from '@/lib/rate-limit';
 export const runtime = 'nodejs';
 
 const schema = z.object({
-  plan: z.enum(['business', 'business_plus', 'landlord', 'estate_manager']),
+  plan: z.enum([
+    'starter_quarterly',
+    'starter_biannually',
+    'starter_yearly',
+    // Legacy keys
+    'business',
+    'business_plus',
+    'landlord',
+    'estate_manager',
+  ]),
 });
 
 /**
- * POST /api/billing/trial — start a 14-day trial on the target plan.
+ * POST /api/billing/trial - start a 14-day trial on the target plan.
  * Only works if the user has never trialled before.
  */
 export const POST = (req: Request) =>
   handled(async () => {
-    // Rate limit — one tenant can only start a trial once anyway (service
-    // layer enforces that), but limit by IP too so a script rotating
-    // accounts can't burn through trials. 3 attempts / hour / IP.
     const ip = clientIp(req);
     const limited = rateLimit('trial', ip, { max: 3, windowMs: 60 * 60_000 });
     if (!limited.allowed) {

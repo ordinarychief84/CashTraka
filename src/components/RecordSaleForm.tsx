@@ -1,9 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Plus, Trash2, ShoppingBag, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  Plus,
+  Trash2,
+  ShoppingBag,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  X,
+} from 'lucide-react';
 import { formatNaira } from '@/lib/format';
+import { SalesReceiptView, type ReceiptSaleData } from '@/components/SalesReceiptView';
+import { cn } from '@/lib/utils';
 
 type Product = {
   id: string;
@@ -22,80 +31,80 @@ type LineItem = {
 };
 
 const PAYMENT_METHODS = [
-  { value: 'CASH', label: 'Cash' },
-  { value: 'TRANSFER', label: 'Transfer' },
-  { value: 'POS', label: 'POS' },
-  { value: 'CARD', label: 'Card' },
+  { value: 'CASH', label: 'Cash', short: 'Cash' },
+  { value: 'TRANSFER', label: 'Transfer', short: 'Transfer' },
+  { value: 'POS', label: 'POS', short: 'POS' },
+  { value: 'CARD', label: 'Card', short: 'Card' },
 ];
 
-export function RecordSaleForm() {
-  const router = useRouter();
+export function RecordSaleForm({ businessName }: { businessName?: string }) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [items, setItems] = useState<LineItem[]>([
-    { key: crypto.randomUUID(), productId: '', description: '', unitPrice: 0, quantity: 1 },
-  ]);
+  const [productSearch, setProductSearch] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+  const [items, setItems] = useState<LineItem[]>([]);
+  const [manualName, setManualName] = useState('');
+  const [manualPrice, setManualPrice] = useState('');
+  const [manualQty, setManualQty] = useState('1');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [showCustomer, setShowCustomer] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [discount, setDiscount] = useState(0);
+  const [showDiscount, setShowDiscount] = useState(false);
   const [note, setNote] = useState('');
-  const [sendReceipt, setSendReceipt] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<{ saleNumber: string; total: number } | null>(null);
+  const [completedSale, setCompletedSale] = useState<ReceiptSaleData | null>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setProducts(data);
-      })
+      .then((data) => { if (Array.isArray(data)) setProducts(data); })
       .catch(() => null);
   }, []);
 
-  function addItem() {
-    setItems((prev) => [
-      ...prev,
-      { key: crypto.randomUUID(), productId: '', description: '', unitPrice: 0, quantity: 1 },
-    ]);
-  }
+  useEffect(() => { nameInputRef.current?.focus(); }, []);
 
-  function removeItem(key: string) {
-    setItems((prev) => (prev.length <= 1 ? prev : prev.filter((i) => i.key !== key)));
-  }
-
-  function updateItem(key: string, field: keyof LineItem, value: string | number) {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.key !== key) return item;
-        const updated = { ...item, [field]: value };
-        // When a product is selected, fill in description and price
-        if (field === 'productId' && value) {
-          const product = products.find((p) => p.id === value);
-          if (product) {
-            updated.description = product.name;
-            updated.unitPrice = product.price;
-          }
-        }
-        return updated;
-      }),
-    );
-  }
-
-  const subtotal = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const subtotal = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
   const total = Math.max(0, subtotal - discount);
-  const hasValidItems = items.some((i) => i.description.trim() && i.unitPrice > 0);
+  const itemCount = items.length;
+  const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(productSearch.toLowerCase()));
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!hasValidItems) {
-      setError('Add at least one item with a name and price.');
-      return;
+  function addItemFromProduct(product: Product) {
+    const existing = items.find((i) => i.productId === product.id);
+    if (existing) {
+      setItems((prev) => prev.map((i) => (i.key === existing.key ? { ...i, quantity: i.quantity + 1 } : i)));
+    } else {
+      setItems((prev) => [...prev, { key: crypto.randomUUID(), productId: product.id, description: product.name, unitPrice: product.price, quantity: 1 }]);
     }
+    setProductSearch('');
+    setShowPicker(false);
+  }
+
+  function addManualItem() {
+    const name = manualName.trim();
+    const price = parseInt(manualPrice) || 0;
+    const qty = Math.max(1, parseInt(manualQty) || 1);
+    if (!name || price <= 0) return;
+    setItems((prev) => [...prev, { key: crypto.randomUUID(), productId: '', description: name, unitPrice: price, quantity: qty }]);
+    setManualName('');
+    setManualPrice('');
+    setManualQty('1');
+    nameInputRef.current?.focus();
+  }
+
+  function removeItem(key: string) { setItems((prev) => prev.filter((i) => i.key !== key)); }
+
+  function updateQty(key: string, delta: number) {
+    setItems((prev) => prev.map((i) => i.key !== key ? i : { ...i, quantity: Math.max(1, i.quantity + delta) }));
+  }
+
+  async function handleSubmit() {
+    if (items.length === 0) { setError('Add at least one item.'); return; }
     setError(null);
     setSubmitting(true);
-
     try {
       const payload = {
         customerName: customerName.trim() || undefined,
@@ -104,279 +113,201 @@ export function RecordSaleForm() {
         paymentMethod,
         discount,
         note: note.trim() || undefined,
-        sendReceipt: sendReceipt && !!customerEmail.trim(),
-        items: items
-          .filter((i) => i.description.trim() && i.unitPrice > 0)
-          .map((i) => ({
-            productId: i.productId || undefined,
-            description: i.description,
-            unitPrice: i.unitPrice,
-            quantity: i.quantity,
-          })),
+        sendReceipt: false,
+        items: items.map((i) => ({ productId: i.productId || undefined, description: i.description, unitPrice: i.unitPrice, quantity: i.quantity })),
       };
-
-      const res = await fetch('/api/sales', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
+      const res = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || 'Failed to record sale');
-        return;
-      }
-
-      setSuccess({ saleNumber: json.saleNumber, total: json.total });
-    } catch {
-      setError('Something went wrong. Please try again.');
-    } finally {
-      setSubmitting(false);
-    }
+      if (!res.ok) { setError(json.error || 'Failed to record sale'); return; }
+      const receipt: ReceiptSaleData = {
+        id: json.id, saleNumber: json.saleNumber,
+        customerName: customerName.trim() || null, customerPhone: customerPhone.trim() || null, customerEmail: customerEmail.trim() || null,
+        items: items.map((i) => ({ description: i.description, quantity: i.quantity, unitPrice: i.unitPrice, total: i.unitPrice * i.quantity })),
+        subtotal, discount, tax: 0, total: json.total, paymentMethod, note: note.trim() || null,
+        soldAt: new Date().toISOString(), businessName: businessName || 'CashTraka',
+      };
+      setCompletedSale(receipt);
+    } catch { setError('Something went wrong. Please try again.'); }
+    finally { setSubmitting(false); }
   }
 
-  // Success screen
-  if (success) {
-    return (
-      <div className="mx-auto max-w-md text-center py-12">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success-100">
-          <Check size={32} className="text-success-600" />
-        </div>
-        <h2 className="text-xl font-bold text-ink">Sale Recorded!</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          {success.saleNumber} — {formatNaira(success.total)}
-        </p>
-        {sendReceipt && customerEmail && (
-          <p className="mt-1 text-xs text-brand-600">Receipt sent to {customerEmail}</p>
-        )}
-        <div className="mt-6 flex justify-center gap-3">
-          <button
-            onClick={() => {
-              setSuccess(null);
-              setItems([{ key: crypto.randomUUID(), productId: '', description: '', unitPrice: 0, quantity: 1 }]);
-              setCustomerName('');
-              setCustomerPhone('');
-              setCustomerEmail('');
-              setDiscount(0);
-              setNote('');
-              setSendReceipt(false);
-            }}
-            className="btn-primary"
-          >
-            <Plus size={16} /> Record Another
-          </button>
-          <button onClick={() => router.push('/sales')} className="btn-secondary">
-            View All Sales
-          </button>
-        </div>
-      </div>
-    );
+  function resetForm() {
+    setCompletedSale(null); setItems([]); setManualName(''); setManualPrice(''); setManualQty('1');
+    setCustomerName(''); setCustomerPhone(''); setCustomerEmail(''); setDiscount(0); setShowDiscount(false);
+    setNote(''); setShowCustomer(false); setError(null);
+    setTimeout(() => nameInputRef.current?.focus(), 100);
+  }
+
+  if (completedSale) {
+    return <SalesReceiptView sale={completedSale} onRecordAnother={resetForm} />;
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mx-auto max-w-2xl space-y-6">
-      {error && (
-        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
-      )}
+    <div className="mx-auto max-w-lg space-y-4">
+      {error && <div className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">{error}</div>}
 
-      {/* Line items */}
-      <div className="card p-5">
-        <h3 className="mb-3 text-sm font-bold text-ink">Items Sold</h3>
-        <div className="space-y-3">
-          {items.map((item, idx) => (
-            <div key={item.key} className="flex items-start gap-2">
-              <div className="flex-1 space-y-2">
-                <div className="flex gap-2">
-                  {/* Product selector */}
-                  <select
-                    value={item.productId}
-                    onChange={(e) => updateItem(item.key, 'productId', e.target.value)}
-                    className="input flex-1"
-                  >
-                    <option value="">Select product or type manually</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} — {formatNaira(p.price)}{p.trackStock ? ` (${p.stock} left)` : ''}
-                      </option>
-                    ))}
-                  </select>
+      {/* Quick Add Item */}
+      <div className="card p-4">
+        <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Add items</h3>
+
+        {products.length > 0 && (
+          <div className="mb-3">
+            <button type="button" onClick={() => setShowPicker(!showPicker)} className="flex w-full items-center gap-2 rounded-lg border border-dashed border-brand-300 bg-brand-50/40 px-3 py-2.5 text-sm font-medium text-brand-700 transition hover:bg-brand-50">
+              <Search size={15} />
+              Pick from your products
+              {showPicker ? <ChevronUp size={14} className="ml-auto" /> : <ChevronDown size={14} className="ml-auto" />}
+            </button>
+            {showPicker && (
+              <div className="mt-2 rounded-lg border border-border bg-white shadow-sm">
+                <div className="border-b border-border p-2">
+                  <input type="text" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="input text-sm" autoFocus />
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Item name"
-                    value={item.description}
-                    onChange={(e) => updateItem(item.key, 'description', e.target.value)}
-                    className="input flex-1"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Price"
-                    value={item.unitPrice || ''}
-                    onChange={(e) => updateItem(item.key, 'unitPrice', parseInt(e.target.value) || 0)}
-                    className="input w-28"
-                    min={0}
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="Qty"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(item.key, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
-                    className="input w-16"
-                    min={1}
-                  />
-                </div>
-                {item.unitPrice > 0 && item.quantity > 0 && (
-                  <div className="text-xs text-slate-500 num">
-                    Line total: {formatNaira(item.unitPrice * item.quantity)}
-                  </div>
-                )}
+                <ul className="max-h-48 overflow-y-auto">
+                  {filteredProducts.length === 0 ? (
+                    <li className="px-3 py-4 text-center text-xs text-slate-400">No products match</li>
+                  ) : filteredProducts.slice(0, 20).map((p) => (
+                    <li key={p.id}>
+                      <button type="button" onClick={() => addItemFromProduct(p)} className="flex w-full items-center justify-between px-3 py-2.5 text-left text-sm transition hover:bg-slate-50">
+                        <span className="font-medium text-ink">{p.name}</span>
+                        <span className="flex items-center gap-2">
+                          {p.trackStock && <span className="text-[11px] text-slate-400">{p.stock} left</span>}
+                          <span className="num font-semibold text-brand-700">{formatNaira(p.price)}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              {items.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.key)}
-                  className="mt-2 p-1 text-slate-400 hover:text-red-500"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
-            </div>
-          ))}
+            )}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input ref={nameInputRef} type="text" value={manualName} onChange={(e) => setManualName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addManualItem(); } }} placeholder="Item name" className="input flex-1 text-sm" />
+            <input type="number" value={manualPrice} onChange={(e) => setManualPrice(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addManualItem(); } }} placeholder="Price" className="input w-24 text-sm" min={0} inputMode="numeric" />
+          </div>
+          <div className="flex gap-2">
+            <input type="number" value={manualQty} onChange={(e) => setManualQty(e.target.value)} placeholder="Qty" className="input w-20 text-sm" min={1} inputMode="numeric" />
+            <button type="button" onClick={addManualItem} disabled={!manualName.trim() || !parseInt(manualPrice)} className="btn-primary flex-1 justify-center text-sm disabled:opacity-40">
+              <Plus size={16} /> Add
+            </button>
+          </div>
         </div>
-        <button
-          type="button"
-          onClick={addItem}
-          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700"
-        >
-          <Plus size={16} /> Add another item
-        </button>
       </div>
 
-      {/* Customer info */}
-      <div className="card p-5">
-        <h3 className="mb-3 text-sm font-bold text-ink">Customer (optional)</h3>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="label">Name</label>
-            <input
-              type="text"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              placeholder="Customer name"
-              className="input"
-            />
+      {/* Cart */}
+      {items.length > 0 && (
+        <div className="card overflow-hidden p-0">
+          <div className="border-b border-border bg-slate-50/60 px-4 py-2.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Cart &middot; {itemCount} {itemCount === 1 ? 'item' : 'items'}</span>
           </div>
-          <div>
-            <label className="label">Phone</label>
-            <input
-              type="tel"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              placeholder="08012345678"
-              className="input"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="label">Email</label>
-            <input
-              type="email"
-              value={customerEmail}
-              onChange={(e) => setCustomerEmail(e.target.value)}
-              placeholder="customer@email.com"
-              className="input"
-            />
-          </div>
+          <ul className="divide-y divide-border">
+            {items.map((item) => (
+              <li key={item.key} className="flex items-center gap-3 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <span className="text-sm font-semibold text-ink">{item.description}</span>
+                  <div className="mt-0.5 text-xs text-slate-400">{formatNaira(item.unitPrice)} each</div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => updateQty(item.key, -1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-xs font-bold text-slate-500 hover:bg-slate-50">&minus;</button>
+                  <span className="num w-7 text-center text-sm font-bold text-ink">{item.quantity}</span>
+                  <button type="button" onClick={() => updateQty(item.key, 1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-border text-xs font-bold text-slate-500 hover:bg-slate-50">+</button>
+                </div>
+                <span className="num w-20 text-right text-sm font-bold text-ink">{formatNaira(item.unitPrice * item.quantity)}</span>
+                <button type="button" onClick={() => removeItem(item.key)} className="ml-1 p-1 text-slate-300 transition hover:text-red-500"><Trash2 size={14} /></button>
+              </li>
+            ))}
+          </ul>
         </div>
-        {customerEmail && (
-          <label className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-            <input
-              type="checkbox"
-              checked={sendReceipt}
-              onChange={(e) => setSendReceipt(e.target.checked)}
-              className="h-4 w-4 rounded border-border text-brand-600 focus:ring-brand-500"
-            />
-            Send receipt to this email
-          </label>
+      )}
+
+      {/* Customer info */}
+      <div className="card p-0 overflow-hidden">
+        <button type="button" onClick={() => setShowCustomer(!showCustomer)} className="flex w-full items-center justify-between px-4 py-3 text-left">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Customer info
+            {customerName && <span className="ml-2 normal-case tracking-normal text-ink font-semibold">&mdash; {customerName}</span>}
+          </span>
+          {showCustomer ? <ChevronUp size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
+        </button>
+        {showCustomer && (
+          <div className="border-t border-border p-4 space-y-3">
+            <div>
+              <label className="label">Name</label>
+              <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Customer name" className="input text-sm" />
+            </div>
+            <div>
+              <label className="label">Phone (for WhatsApp receipt)</label>
+              <input type="tel" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="08012345678" className="input text-sm" inputMode="tel" />
+            </div>
+            <div>
+              <label className="label">Email (for email receipt)</label>
+              <input type="email" value={customerEmail} onChange={(e) => setCustomerEmail(e.target.value)} placeholder="customer@email.com" className="input text-sm" inputMode="email" />
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Payment method & extras */}
-      <div className="card p-5">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div>
-            <label className="label">Payment method</label>
-            <div className="flex gap-2">
-              {PAYMENT_METHODS.map((m) => (
-                <button
-                  key={m.value}
-                  type="button"
-                  onClick={() => setPaymentMethod(m.value)}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                    paymentMethod === m.value
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-border bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="label">Discount (₦)</label>
-            <input
-              type="number"
-              value={discount || ''}
-              onChange={(e) => setDiscount(Math.max(0, parseInt(e.target.value) || 0))}
-              placeholder="0"
-              className="input"
-              min={0}
-            />
-          </div>
+      {/* Payment method */}
+      <div className="card p-4">
+        <h3 className="mb-2.5 text-xs font-bold uppercase tracking-wider text-slate-400">Payment</h3>
+        <div className="grid grid-cols-4 gap-2">
+          {PAYMENT_METHODS.map((m) => (
+            <button key={m.value} type="button" onClick={() => setPaymentMethod(m.value)} className={cn(
+              'flex flex-col items-center gap-1 rounded-xl border py-2.5 text-xs font-semibold transition',
+              paymentMethod === m.value ? 'border-brand-500 bg-brand-50 text-brand-700 ring-1 ring-brand-500/30' : 'border-border bg-white text-slate-600 hover:bg-slate-50'
+            )}>
+              {m.short}
+            </button>
+          ))}
         </div>
         <div className="mt-3">
-          <label className="label">Note (optional)</label>
-          <textarea
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Any notes about this sale..."
-            className="input"
-            rows={2}
-          />
-        </div>
-      </div>
-
-      {/* Summary & submit */}
-      <div className="card p-5">
-        <div className="space-y-1">
-          <div className="flex justify-between text-sm text-slate-500">
-            <span>Subtotal ({items.filter(i => i.description && i.unitPrice > 0).length} items)</span>
-            <span className="num">{formatNaira(subtotal)}</span>
-          </div>
-          {discount > 0 && (
-            <div className="flex justify-between text-sm text-owed-600">
-              <span>Discount</span>
-              <span className="num">-{formatNaira(discount)}</span>
+          {!showDiscount ? (
+            <button type="button" onClick={() => setShowDiscount(true)} className="text-xs font-medium text-brand-600 hover:underline">+ Add discount</button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-slate-500 shrink-0">Discount N</label>
+              <input type="number" value={discount || ''} onChange={(e) => setDiscount(Math.max(0, parseInt(e.target.value) || 0))} className="input flex-1 text-sm" min={0} inputMode="numeric" autoFocus />
+              <button type="button" onClick={() => { setDiscount(0); setShowDiscount(false); }} className="p-1 text-slate-400 hover:text-slate-600"><X size={14} /></button>
             </div>
           )}
-          <div className="flex justify-between border-t border-border pt-2 text-xl font-bold text-ink">
-            <span>Total</span>
-            <span className="num">{formatNaira(total)}</span>
-          </div>
         </div>
-
-        <button
-          type="submit"
-          disabled={submitting || !hasValidItems}
-          className="btn-primary mt-4 w-full justify-center disabled:opacity-50"
-        >
-          <ShoppingBag size={18} />
-          {submitting ? 'Recording...' : 'Complete Sale'}
-        </button>
       </div>
-    </form>
+
+      {/* Total + Submit */}
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-border bg-white px-4 pb-5 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] sm:relative sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-0 sm:shadow-none">
+        <div className="card p-4">
+          <div className="space-y-1">
+            {discount > 0 && (
+              <>
+                <div className="flex justify-between text-sm text-slate-500">
+                  <span>Subtotal</span>
+                  <span className="num">{formatNaira(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm text-owed-600">
+                  <span>Discount</span>
+                  <span className="num">-{formatNaira(discount)}</span>
+                </div>
+              </>
+            )}
+            <div className={cn('flex justify-between text-xl font-black text-ink', discount > 0 && 'border-t border-border pt-2')}>
+              <span>Total</span>
+              <span className="num">{formatNaira(total)}</span>
+            </div>
+          </div>
+          <button type="button" onClick={handleSubmit} disabled={submitting || items.length === 0} className="btn-primary mt-3 w-full justify-center text-base disabled:opacity-40">
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Recording...
+              </span>
+            ) : (
+              <><ShoppingBag size={18} /> Complete Sale &mdash; {formatNaira(total)}</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

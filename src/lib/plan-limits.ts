@@ -21,6 +21,10 @@
 
 export type PlanName =
   | 'free'
+  | 'starter_quarterly'
+  | 'starter_biannually'
+  | 'starter_yearly'
+  // Legacy keys — kept for existing DB rows
   | 'business'
   | 'business_plus'
   | 'landlord'
@@ -148,8 +152,19 @@ const ESTATE_MANAGER: Limits = {
   prioritySupport: true,
 };
 
+/** Starter plan — full access to everything */
+const STARTER: Limits = {
+  ...BUSINESS_PLUS,
+  properties: null,
+  tenants: null,
+};
+
 const PLAN_LIMITS: Record<PlanName, Limits> = {
   free: FREE,
+  starter_quarterly: STARTER,
+  starter_biannually: STARTER,
+  starter_yearly: STARTER,
+  // Legacy plans — kept for existing DB rows
   business: BUSINESS,
   business_plus: BUSINESS_PLUS,
   landlord: LANDLORD,
@@ -162,17 +177,24 @@ export function limitsFor(plan: string | null | undefined): Limits {
 
 export const PLAN_LABELS: Record<PlanName, string> = {
   free: 'Free',
+  starter_quarterly: 'Starter (Quarterly)',
+  starter_biannually: 'Starter (Biannual)',
+  starter_yearly: 'Starter (Yearly)',
+  // Legacy
   business: 'Business',
   business_plus: 'Business Plus',
   landlord: 'Landlord',
   estate_manager: 'Estate Manager',
 };
 
-export function suggestUpgrade(plan: string, businessType: string): PlanName {
-  if (businessType === 'property_manager') {
-    return plan === 'free' ? 'landlord' : 'estate_manager';
-  }
-  return plan === 'free' ? 'business' : 'business_plus';
+export function suggestUpgrade(plan: string, _businessType: string): PlanName {
+  // All free users are suggested the quarterly starter plan.
+  // Already-paid users on a shorter cycle get suggested yearly for savings.
+  if (plan === 'free') return 'starter_quarterly';
+  if (plan === 'starter_quarterly') return 'starter_yearly';
+  if (plan === 'starter_biannually') return 'starter_yearly';
+  // Legacy plans → suggest starter quarterly (they'll migrate on next payment)
+  return 'starter_quarterly';
 }
 
 // ───────────────────────── effective plan ─────────────────────────
@@ -194,32 +216,4 @@ export function effectivePlan(user: UserLike): {
     (user.plan === 'free' ? 'free' : 'active')) as SubscriptionStatus;
 
   if (status === 'past_due') {
-    return { plan: 'free', status, expired: true };
-  }
-  if (status === 'trialing') {
-    const expired =
-      !user.trialEndsAt || user.trialEndsAt.getTime() <= now;
-    return {
-      plan: expired ? 'free' : user.plan,
-      status,
-      expired,
-    };
-  }
-  if (status === 'active' || status === 'cancelled') {
-    const expired =
-      !user.currentPeriodEnd || user.currentPeriodEnd.getTime() <= now;
-    return {
-      plan: expired ? 'free' : user.plan,
-      status,
-      expired,
-    };
-  }
-  return { plan: user.plan, status: 'free', expired: false };
-}
-
-export function isSubscriptionLapsed(user: UserLike): boolean {
-  const { status, expired } = effectivePlan(user);
-  if (status === 'past_due') return true;
-  if ((status === 'active' || status === 'cancelled') && expired) return true;
-  return false;
-}
+    return { plan: 'free', status, ex

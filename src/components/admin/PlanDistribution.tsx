@@ -15,7 +15,11 @@ type Props = {
 
 const KNOWN_PLANS: { key: PlanName; color: string }[] = [
   { key: 'free', color: 'bg-slate-400' },
-  { key: 'business', color: 'bg-brand-500' },
+  { key: 'starter_quarterly', color: 'bg-brand-500' },
+  { key: 'starter_biannually', color: 'bg-brand-600' },
+  { key: 'starter_yearly', color: 'bg-brand-700' },
+  // Legacy
+  { key: 'business', color: 'bg-success-500' },
   { key: 'business_plus', color: 'bg-success-600' },
   { key: 'landlord', color: 'bg-indigo-500' },
   { key: 'estate_manager', color: 'bg-violet-600' },
@@ -67,12 +71,4 @@ export function PlanDistribution({ title = 'Plan distribution', counts }: Props)
               </dt>
               <dd className="text-xs font-bold text-ink">
                 {s.count}
-                <span className="ml-1 font-normal text-slate-500">· {pct}%</span>
-              </dd>
-            </div>
-          );
-        })}
-      </dl>
-    </section>
-  );
-}
+    

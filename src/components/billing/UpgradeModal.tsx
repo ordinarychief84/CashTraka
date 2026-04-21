@@ -8,6 +8,7 @@ import {
   formatPriceNaira,
   isPaidPlan,
   getPlanPricing,
+  FREQUENCY_DESCRIPTIONS,
   type PaidPlanKey,
 } from '@/lib/billing/pricing';
 
@@ -16,7 +17,7 @@ import {
  *
  * Opens when the URL has `?upgrade=<plan>`. Shows the plan summary + amount
  * and offers two paths:
- *   - "Start 14-day free trial" → POST /api/billing/trial
+ *   - "Start 7-day free trial" → POST /api/billing/trial
  *   - "Pay with Paystack"      → POST /api/billing/subscribe → redirect
  *
  * After a successful trial start we refresh the page so the Billing card and
@@ -29,32 +30,16 @@ type TrialEligibility = {
   reason?: string;
 };
 
-const BENEFITS: Record<PaidPlanKey, string[]> = {
-  business: [
-    'Unlimited payments, debts, customers',
-    'Bank-alert payment verification',
-    'Professional invoices & auto receipts',
-    'Expenses & real profit reports',
-  ],
-  business_plus: [
-    'Everything in Business',
-    'Unlimited team members',
-    'Custom receipt branding',
-    'Priority WhatsApp support',
-  ],
-  landlord: [
-    'Unlimited properties & tenants',
-    'Rent tracker with collection-rate KPI',
-    'Auto monthly rent reminders',
-    'Receipts after every rent payment',
-  ],
-  estate_manager: [
-    'Everything in Landlord',
-    'Unlimited staff',
-    'Tasks & inspection checklists',
-    'Priority support',
-  ],
-};
+const STARTER_BENEFITS: string[] = [
+  'Unlimited payments, debts & customers',
+  'Payment links & Promise to Pay',
+  'Auto-debit installment plans',
+  'Smart Collection Queue',
+  'Webhook-verified bank payments',
+  'Auto receipts & professional invoices',
+  'Expenses & real profit reports',
+  'Daily Pulse WhatsApp digest',
+];
 
 export function UpgradeModal() {
   const router = useRouter();
@@ -156,7 +141,8 @@ export function UpgradeModal() {
   }
 
   if (!open || !pricing) return null;
-  const benefits = BENEFITS[pricing.key];
+  const freqDesc = FREQUENCY_DESCRIPTIONS[pricing.frequency] ?? '';
+  const trialDays = pricing.trialDays ?? 7;
 
   return (
     <div
@@ -184,18 +170,27 @@ export function UpgradeModal() {
             Upgrade
           </div>
           <div className="mt-2 text-2xl font-black">{pricing.label}</div>
+          <div className="mt-1 text-xs font-medium text-white/70">{freqDesc}</div>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="text-3xl font-black">
-              {formatPriceNaira(pricing.amountKobo)}
+              {formatPriceNaira(pricing.perMonthKobo)}
             </span>
             <span className="text-sm font-medium text-white/80">/month</span>
+          </div>
+          {pricing.savingsPercent > 0 && (
+            <span className="mt-1 inline-block rounded-full bg-white/20 px-2 py-0.5 text-[11px] font-bold text-white">
+              Save {pricing.savingsPercent}%
+            </span>
+          )}
+          <div className="mt-1 text-xs text-white/60">
+            {formatPriceNaira(pricing.amountKobo)} total
           </div>
         </div>
 
         {/* Body */}
         <div className="space-y-4 px-6 py-5">
           <ul className="space-y-2.5 text-sm">
-            {benefits.map((b) => (
+            {STARTER_BENEFITS.map((b) => (
               <li key={b} className="flex items-start gap-2 text-slate-700">
                 <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-600" />
                 <span>{b}</span>
@@ -217,7 +212,7 @@ export function UpgradeModal() {
                 disabled={loading}
                 className="btn-primary w-full"
               >
-                {loading ? 'Starting…' : 'Start 14-day free trial'}
+                {loading ? 'Starting…' : `Start ${trialDays}-day free trial`}
               </button>
             )}
             <button
@@ -244,9 +239,4 @@ export function UpgradeModal() {
           </div>
 
           <p className="text-center text-[11px] text-slate-500">
-            {trialEligibility?.canTrial
-              ? 'No card needed for the trial · Cancel anytime'
-              : 'Cancel anytime · Secure checkout by Paystack'}
-          </p>
-        </div>
-      </div>
+            {trialEligibility?.

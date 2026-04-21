@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Menu,
   X,
-  Wallet,
+  Banknote,
   Clock3,
   MessageCircle,
   ChevronDown,
@@ -55,7 +55,7 @@ const ICP_SOLUTIONS: Solution[] = [
 
 const FEATURES = [
   { icon: Shield, title: 'Bank-alert verification', href: '/#solutions' },
-  { icon: Wallet, title: 'Payments & receipts', href: '/#solutions' },
+  { icon: Banknote, title: 'Payments & receipts', href: '/#solutions' },
   { icon: FileText, title: 'Invoices', href: '/#solutions' },
   { icon: Clock3, title: 'Debts & reminders', href: '/#solutions' },
   { icon: MessageCircle, title: 'WhatsApp follow-ups', href: '/#solutions' },

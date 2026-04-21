@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Wallet, MessageCircle, Pencil, Trash2 } from 'lucide-react';
+import { Banknote, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 import { RentPaymentDialog } from './RentPaymentDialog';
 
@@ -31,7 +31,7 @@ export function TenantRowActions({
   const actions: RowMenuAction[] = [
     {
       label: 'Record payment',
-      icon: <Wallet size={14} />,
+      icon: <Banknote size={14} />,
       onClick: () => setPayOpen(true),
     },
     {

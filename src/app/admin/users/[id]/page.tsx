@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Wallet, Users, FileText, Mail, Phone, Calendar, CreditCard, Shield, Activity, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Banknote, Users, FileText, Mail, Phone, Calendar, CreditCard, Shield, Activity, BarChart3 } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { SuspendButton } from '@/components/admin/SuspendButton';
@@ -57,7 +57,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MC icon={Wallet} label="Revenue collected" value={formatNaira(totals.revenue)} color="brand" />
+        <MC icon={Banknote} label="Revenue collected" value={formatNaira(totals.revenue)} color="brand" />
         <MC icon={BarChart3} label="Outstanding debt" value={formatNaira(totals.outstandingDebt)} color="danger" />
         <MC icon={Users} label="Customers" value={String(user._count?.customers ?? 0)} />
         <MC icon={FileText} label="Invoices" value={String(user._count?.invoices ?? 0)} />

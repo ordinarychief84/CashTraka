@@ -1,4 +1,4 @@
-import { Check, Clock3, MessageCircle, Wallet } from 'lucide-react';
+import { Check, Clock3, MessageCircle, Banknote } from 'lucide-react';
 
 /**
  * A small, non-interactive preview of the CashTraka dashboard.
@@ -31,7 +31,7 @@ export function HeroMockup() {
           {/* Recent activity */}
           <div className="rounded-lg border border-slate-200 bg-white">
             <Row
-              icon={<Wallet size={14} />}
+              icon={<Banknote size={14} />}
               iconTone="brand"
               title="Amaka Nwosu"
               meta="Paid · just now"

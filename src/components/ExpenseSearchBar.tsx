@@ -37,54 +37,20 @@ export function ExpenseSearchBar() {
   }
 
   return (
-    <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
-      {/* Search input */}
-      <div className="relative flex-1">
-        <Search
-          size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-        />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search expenses…"
-          defaultValue={currentQ}
-          className="w-full rounded-lg border border-border bg-white py-2 pl-9 pr-8 text-sm outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              push({ q: (e.target as HTMLInputElement).value });
-            }
-          }}
-        />
-        {currentQ && (
-          <button
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-            onClick={() => {
-              if (inputRef.current) inputRef.current.value = '';
-              push({ q: '' });
-            }}
-          >
-            <X size={14} />
-          </button>
-        )}
-      </div>
-
-      {/* Category filter chips */}
-      <div className="flex flex-wrap gap-1.5">
+    <div className="mb-4 flex flex-wrap gap-1.5">
+      <Chip
+        label="All"
+        active={!currentCat}
+        onClick={() => push({ category: '' })}
+      />
+      {categories.map((cat) => (
         <Chip
-          label="All"
-          active={!currentCat}
-          onClick={() => push({ category: '' })}
+          key={cat}
+          label={cat}
+          active={currentCat === cat}
+          onClick={() => push({ category: currentCat === cat ? '' : cat })}
         />
-        {categories.map((cat) => (
-          <Chip
-            key={cat}
-            label={cat}
-            active={currentCat === cat}
-            onClick={() => push({ category: currentCat === cat ? '' : cat })}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { X, Wallet, Clock3, Receipt, FileText } from 'lucide-react';
+import { X, Banknote, Clock3, ReceiptText, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Props = { open: boolean; onClose: () => void };
@@ -17,9 +17,9 @@ export function QuickAddSheet({ open, onClose }: Props) {
   }, [open, onClose]);
 
   const items = [
-    { href: '/payments/new', icon: Wallet, label: 'Add payment', color: 'bg-brand-50 text-brand-600' },
+    { href: '/payments/new', icon: Banknote, label: 'Add payment', color: 'bg-brand-50 text-brand-600' },
     { href: '/debts/new', icon: Clock3, label: 'Add debt', color: 'bg-owed-50 text-owed-600' },
-    { href: '/expenses/new', icon: Receipt, label: 'Add expense', color: 'bg-slate-100 text-slate-700' },
+    { href: '/expenses/new', icon: ReceiptText, label: 'Add expense', color: 'bg-slate-100 text-slate-700' },
     { href: '/invoices/new', icon: FileText, label: 'Create invoice', color: 'bg-success-50 text-success-700' },
   ];
 

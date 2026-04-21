@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { MessageCircle, Wallet, Clock3 } from 'lucide-react';
+import { MessageCircle, Banknote, Clock3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -107,7 +107,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
                     : 'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-owed-50 text-owed-600'
                 }
               >
-                {it.kind === 'payment' ? <Wallet size={18} /> : <Clock3 size={18} />}
+                {it.kind === 'payment' ? <Banknote size={18} /> : <Clock3 size={18} />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-slate-900">

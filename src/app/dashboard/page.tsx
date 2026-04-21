@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {
-  Wallet,
+  Banknote,
   Clock3,
   Users,
   MessageCircle,
@@ -481,15 +481,15 @@ export default async function DashboardPage() {
       pendingTaskCount={staffTaskCounts?.pending}
     >
       {/* ───────── Welcome + primary CTA ───────── */}
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-2 border-b border-border pb-4">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             {greetingFor()}
           </div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-ink md:text-3xl">
+          <h1 className="mt-0.5 text-xl font-black tracking-tight text-ink md:text-2xl">
             {firstName}
           </h1>
-          <p className="mt-1.5 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-slate-600">
             {isStaffPrincipal
               ? `Signed in to ${user.businessName || 'the team'}. Here's what's on your plate today.`
               : copy.greetingSub}
@@ -499,20 +499,15 @@ export default async function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             <Link
               href="/payments/new"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+              className="btn-primary"
             >
-              <Wallet size={15} />
+              <Banknote size={15} />
               Add payment
             </Link>
-            <CreateReceiptButton
-              businessName={user.businessName ?? 'Business'}
-              variant="primary"
-              label="Create receipt"
-            />
             {showExpenses && (
               <Link
                 href="/expenses/new"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
               >
                 <Receipt size={15} />
                 Add expense
@@ -577,7 +572,7 @@ export default async function DashboardPage() {
       <TodayTriage items={triage} />
 
       {/* ─────────────────── ZONE 2 · PULSE ─────────────────── */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-12">
+      <div className="mt-4 grid gap-3 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <HeroRevenue
             label={heroLabel}
@@ -638,13 +633,13 @@ export default async function DashboardPage() {
             value={aov > 0 ? formatNaira(aov) : '—'}
             sub={monthCount > 0 ? `${monthCount} paid · ${monthLabel}` : 'No payments yet'}
             deltaPct={aovDelta}
-            icon={<Wallet size={13} />}
+            icon={<Banknote size={13} />}
           />
         </div>
       </div>
 
       {/* ─────────────────── ZONE 3 · ACTIVITY ─────────────────── */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-12">
+      <div className="mt-4 grid gap-3 lg:grid-cols-12">
         <div className="space-y-4 lg:col-span-7">
           <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
           {partialDebts.length > 0 && (

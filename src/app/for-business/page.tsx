@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import {
-  Wallet,
+  Banknote,
   Clock3,
   MessageCircle,
   Users,
@@ -195,7 +195,7 @@ function FeatureGrid() {
       body: 'Create a professional invoice on WhatsApp in 20 seconds. Every payment auto-generates a shareable receipt and downloadable PDF.',
     },
     {
-      icon: Wallet,
+      icon: Banknote,
       title: 'Track every sale',
       body: 'Cash or transfer, paid or pending — logged in seconds. Totals update live. Filter by what you\'re still waiting on.',
     },

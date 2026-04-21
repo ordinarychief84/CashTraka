@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, Wallet, Save } from 'lucide-react';
+import { User, Banknote, Save } from 'lucide-react';
 import { formatNaira } from '@/lib/format';
 
 /**
@@ -70,7 +70,7 @@ export function PersonalBudgetCard({ initial }: Props) {
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <label className="block">
           <span className="label">
-            <Wallet size={12} className="mr-1 inline" />
+            <Banknote size={12} className="mr-1 inline" />
             Weekly budget (₦)
           </span>
           <input
@@ -90,7 +90,7 @@ export function PersonalBudgetCard({ initial }: Props) {
         </label>
         <label className="block">
           <span className="label">
-            <Wallet size={12} className="mr-1 inline" />
+            <Banknote size={12} className="mr-1 inline" />
             Monthly budget (₦)
           </span>
           <input

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {
-  Wallet,
+  Banknote,
   Clock3,
   FileText,
   ArrowRight,
@@ -73,7 +73,7 @@ export function NewActivityCards({
 
   if (latestPayment) {
     items.push({
-      icon: Wallet,
+      icon: Banknote,
       label: isPm ? 'Latest rent payment' : 'Latest payment',
       primary: latestPayment.customerNameSnapshot,
       meta1: { label: 'Amount', value: formatNaira(latestPayment.amount) },
@@ -197,7 +197,7 @@ export function NewActivityCards({
 function emptyItem(idx: number, isPm: boolean): Item {
   const templates: Item[] = [
     {
-      icon: Wallet,
+      icon: Banknote,
       label: isPm ? 'Latest rent payment' : 'Latest payment',
       primary: 'No payments yet',
       sub: 'Tap to add your first',

@@ -1,13 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertTriangle, Trash2, Download } from 'lucide-react';
+import { AlertTriangle, Trash2, Download, Calendar } from 'lucide-react';
+
+function defaultFrom() {
+  const d = new Date();
+  d.setMonth(d.getMonth() - 3);
+  return d.toISOString().slice(0, 10);
+}
+function defaultTo() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export function DangerZoneTab() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
+  const [from, setFrom] = useState(defaultFrom);
+  const [to, setTo] = useState(defaultTo);
 
   async function handleDelete() {
     if (confirmText !== 'DELETE') return;
@@ -44,31 +55,45 @@ export function DangerZoneTab() {
             Download all your data before making any permanent changes.
           </p>
         </div>
-        <div className="p-6">
+        <div className="p-6 space-y-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                <Calendar size={12} className="mr-1 inline -translate-y-px" />From
+              </label>
+              <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:ring-1 focus:ring-brand-100 focus:outline-none" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-slate-600">
+                <Calendar size={12} className="mr-1 inline -translate-y-px" />To
+              </label>
+              <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-400 focus:ring-1 focus:ring-brand-100 focus:outline-none" />
+            </div>
+          </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <a
-              href="/api/export/payments"
+              href={`/api/export/payments?from=${from}&to=${to}`}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <span>Payments CSV</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
-              href="/api/export/debts"
+              href={`/api/export/debts?from=${from}&to=${to}`}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <span>Debts CSV</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
-              href="/api/export/customers"
+              href={`/api/export/customers?from=${from}&to=${to}`}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <span>Customers CSV</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
-              href="/api/export/expenses"
+              href={`/api/export/expenses?from=${from}&to=${to}`}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
             >
               <span>Expenses CSV</span>

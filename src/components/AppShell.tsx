@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ReactNode } from 'react';
 import {
   Home,
-  Wallet,
+  Banknote,
   Clock3,
   Users,
   LogOut,
@@ -75,7 +75,7 @@ export function AppShell({
           {show.payments && (
             <SideLink
               href="/payments"
-              icon={Wallet}
+              icon={Banknote}
               label={isPropManager ? 'Rent Payments' : 'Payments'}
             />
           )}

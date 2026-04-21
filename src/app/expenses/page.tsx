@@ -617,4 +617,6 @@ function KindBadge({ kind }: { kind: 'business' | 'personal' }) {
         <Briefcase size={8} />
       )}
       {kind}
-    </s
+    </span>
+  );
+}

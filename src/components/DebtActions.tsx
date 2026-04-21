@@ -132,4 +132,5 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
         debt={{ id, customerName: name, amountOwed, amountPaid }}
       />
     </>
-  )
+  );
+}

@@ -63,4 +63,5 @@ export function QuickAddSheet({ open, onClose }: Props) {
         </div>
       </div>
     </>
-  )
+  );
+}

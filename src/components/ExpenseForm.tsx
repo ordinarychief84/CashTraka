@@ -371,3 +371,5 @@ function KindButton({
       </span>
       <span className="text-[11px] text-slate-500">{sub}</span>
     </button>
+  );
+}

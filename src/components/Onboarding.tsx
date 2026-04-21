@@ -8,7 +8,7 @@ import {
   MessageCircle,
   PartyPopper,
   Rocket,
-  Wallet,
+  Banknote,
   Clock3,
   Building2,
   Users,
@@ -84,7 +84,7 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
 
       {step === 2 && (
         <StepCard
-          icon={<Wallet className="text-brand-600" />}
+          icon={<Banknote className="text-brand-600" />}
           title="Add your first payment"
           description="Record a sale you recently received — cash or transfer. This builds your ledger."
         >

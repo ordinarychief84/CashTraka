@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Wallet } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { RentPaymentDialog } from './RentPaymentDialog';
 
 type Props = {
@@ -21,7 +21,7 @@ export function RentQuickActions({ tenantId, tenantName, rentAmount }: Props) {
         className="flex h-9 w-9 items-center justify-center rounded-md text-brand-600 hover:bg-brand-50"
         title="Record payment"
       >
-        <Wallet size={18} />
+        <Banknote size={18} />
       </button>
       <RentPaymentDialog
         tenantId={tenantId}
@@ -31,5 +31,4 @@ export function RentQuickActions({ tenantId, tenantName, rentAmount }: Props) {
         onClose={() => setPayOpen(false)}
       />
     </>
-  );
-}
+  )

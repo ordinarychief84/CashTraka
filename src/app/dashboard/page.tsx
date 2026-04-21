@@ -1,21 +1,15 @@
 import Link from 'next/link';
 import {
-  Wallet,
   Clock3,
-  Users,
-  MessageCircle,
-  Sparkles,
   AlertTriangle,
-  ShieldAlert,
   TrendingUp,
-  Receipt,
-  Package,
-  Users2,
   ArrowRight,
   PiggyBank,
   Percent,
   ListTodo,
   CheckCircle2,
+  Banknote,
+  ReceiptText,
 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
@@ -481,43 +475,31 @@ export default async function DashboardPage() {
       pendingTaskCount={staffTaskCounts?.pending}
     >
       {/* ───────── Welcome + primary CTA ───────── */}
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-            {greetingFor()}
-          </div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-ink md:text-3xl">
-            {firstName}
+          <h1 className="text-xl font-black tracking-tight text-ink md:text-2xl">
+            {greetingFor()}, {firstName}
           </h1>
-          <p className="mt-1.5 text-sm text-slate-600">
+          <p className="mt-0.5 text-sm text-slate-500">
             {isStaffPrincipal
-              ? `Signed in to ${user.businessName || 'the team'}. Here's what's on your plate today.`
+              ? `Signed in to ${user.businessName || 'the team'}.`
               : copy.greetingSub}
           </p>
         </div>
         {canWrite && !isStaffPrincipal && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex gap-2">
             <Link
               href="/payments/new"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+              className="btn-primary text-sm"
             >
-              <Wallet size={15} />
+              <Banknote size={15} />
               Add payment
             </Link>
             <CreateReceiptButton
               businessName={user.businessName ?? 'Business'}
-              variant="primary"
-              label="Create receipt"
+              variant="secondary"
+              label="Receipt"
             />
-            {showExpenses && (
-              <Link
-                href="/expenses/new"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
-              >
-                <Receipt size={15} />
-                Add expense
-              </Link>
-            )}
           </div>
         )}
       </div>
@@ -526,7 +508,7 @@ export default async function DashboardPage() {
       {isStaffPrincipal && staffTaskCounts && (
         <Link
           href="/tasks"
-          className="mb-6 block overflow-hidden rounded-2xl border border-success-200 bg-gradient-to-br from-success-50 to-white p-5 transition hover:-translate-y-0.5 hover:shadow-md md:p-6"
+          className="mb-4 block overflow-hidden rounded-2xl border border-success-200 bg-gradient-to-br from-success-50 to-white p-4 transition hover:-translate-y-0.5 hover:shadow-md md:p-5"
         >
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-success-500 text-ink shadow-sm">
@@ -577,7 +559,7 @@ export default async function DashboardPage() {
       <TodayTriage items={triage} />
 
       {/* ─────────────────── ZONE 2 · PULSE ─────────────────── */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-12">
+      <div className="mt-4 grid gap-3 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <HeroRevenue
             label={heroLabel}
@@ -638,20 +620,20 @@ export default async function DashboardPage() {
             value={aov > 0 ? formatNaira(aov) : '—'}
             sub={monthCount > 0 ? `${monthCount} paid · ${monthLabel}` : 'No payments yet'}
             deltaPct={aovDelta}
-            icon={<Wallet size={13} />}
+            icon={<Banknote size={13} />}
           />
         </div>
       </div>
 
       {/* ─────────────────── ZONE 3 · ACTIVITY ─────────────────── */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-7">
+      <div className="mt-4 grid gap-3 lg:grid-cols-12">
+        <div className="space-y-3 lg:col-span-7">
           <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
           {partialDebts.length > 0 && (
             <DebtProgressCards debts={partialDebts} businessType={user.businessType} />
           )}
         </div>
-        <div className="space-y-4 lg:col-span-5">
+        <div className="space-y-3 lg:col-span-5">
           <RemindersPanel
             reminders={remindersDue.map((s) => {
               const remaining = Math.max(s.debt.amountOwed - s.debt.amountPaid, 0);

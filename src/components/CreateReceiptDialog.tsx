@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   X,
-  Receipt as ReceiptIcon,
+  ReceiptText as ReceiptIcon,
   Send,
   CheckCircle2,
   AlertCircle,
@@ -441,5 +441,4 @@ export function CreateReceiptDialog({
         )}
       </div>
     </div>
-  );
-}
+  );

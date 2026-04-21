@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageCircle, Check, Pencil, Trash2, RotateCcw, Wallet, Bell } from 'lucide-react';
+import { MessageCircle, Check, Pencil, Trash2, RotateCcw, Banknote, Bell } from 'lucide-react';
 import { waLink, reminderMessage } from '@/lib/whatsapp';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 import { PartialPaymentDialog } from './PartialPaymentDialog';
@@ -51,7 +51,7 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
   if (status === 'OPEN') {
     actions.push({
       label: 'Record payment',
-      icon: <Wallet size={16} />,
+      icon: <Banknote size={16} />,
       onClick: () => setPayOpen(true),
     });
     actions.push({
@@ -110,7 +110,7 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
               onClick={() => setPayOpen(true)}
               className="btn-secondary px-3 py-2 text-xs"
             >
-              <Wallet size={14} />
+              <Banknote size={14} />
               Record payment
             </button>
             <a
@@ -132,5 +132,4 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
         debt={{ id, customerName: name, amountOwed, amountPaid }}
       />
     </>
-  );
-}
+  )

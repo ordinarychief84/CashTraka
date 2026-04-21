@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Receipt as ReceiptIcon } from 'lucide-react';
+import { ReceiptText as ReceiptIcon } from 'lucide-react';
 import { CreateReceiptDialog } from './CreateReceiptDialog';
 import { cn } from '@/lib/utils';
 
@@ -43,5 +43,4 @@ export function CreateReceiptButton({
         businessName={businessName}
       />
     </>
-  );
-}
+  );

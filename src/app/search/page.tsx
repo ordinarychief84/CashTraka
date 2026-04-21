@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, Wallet, Clock3, Users, Users2 } from 'lucide-react';
+import { Search, Banknote, Clock3, Users, Users2 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -160,7 +160,7 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           )}
 
           {payments.length > 0 && (
-            <Section title={isPm ? 'Rent payments' : 'Payments'} icon={<Wallet size={16} />}>
+            <Section title={isPm ? 'Rent payments' : 'Payments'} icon={<Banknote size={16} />}>
               <ul className="card divide-y divide-border">
                 {payments.map((p) => (
                   <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">

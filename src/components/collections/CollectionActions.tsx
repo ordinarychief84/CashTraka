@@ -67,10 +67,10 @@ export function CollectionActions({ item, businessName }: Props) {
         </a>
       )}
 
-      {/* View promise details */}
+      {/* View promise details — stay in collections context */}
       {item.type === 'promise' && item.promiseToken && (
         <a
-          href={`/promises/${item.id}`}
+          href={`/collections?highlight=${item.id}`}
           className="flex h-8 items-center gap-1 rounded-lg bg-brand-600 px-3 text-xs font-semibold text-white hover:bg-brand-700"
         >
           <Send size={14} />

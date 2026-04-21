@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { Plus, Search, Wallet } from 'lucide-react';
+import { Plus, Banknote } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { PaymentRowActions } from '@/components/PaymentRowActions';
-import { CreateReceiptButton } from '@/components/CreateReceiptButton';
 import { TimeRange } from '@/components/TimeRange';
 import { VerificationBadge } from '@/components/VerificationBadge';
 import { formatNaira, formatDateTime } from '@/lib/format';
@@ -62,17 +61,10 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
         title="Payments"
         subtitle="Cash and transfers you've received or are expecting."
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            <CreateReceiptButton
-              businessName={user.businessName ?? 'Business'}
-              variant="secondary"
-              label="Create receipt"
-            />
-            <Link href="/payments/new" className="btn-primary">
-              <Plus size={18} />
-              Add payment
-            </Link>
-          </div>
+          <Link href="/payments/new" className="btn-primary">
+            <Plus size={18} />
+            Add payment
+          </Link>
         }
       />
 
@@ -83,42 +75,20 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
         </div>
       </div>
 
-      <form className="mb-4 space-y-3" action="/payments" method="get">
-        <input type="hidden" name="range" value={range} />
-        <input type="hidden" name="verification" value={verification} />
-        <div className="relative">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
-          />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search by name or phone"
-            className="input !pl-11"
-          />
-        </div>
-        <div className="flex gap-2">
-          <FilterPill current={status} value="ALL" label="All" />
-          <FilterPill current={status} value="PAID" label="Paid" />
-          <FilterPill current={status} value="PENDING" label="Pending" />
-          {(q || status !== 'ALL' || verification !== 'all') && (
-            <Link href={`/payments?range=${range}`} className="ml-auto text-sm text-slate-500 underline">
-              Reset
-            </Link>
-          )}
-        </div>
-      </form>
-
-      <div className="mb-4 flex flex-wrap gap-2 text-xs">
-        <VerificationLink current={verification} value="all" label="All verification" q={q} range={range} status={status} />
-        <VerificationLink current={verification} value="verified" label="Verified" q={q} range={range} status={status} />
-        <VerificationLink current={verification} value="unverified" label="Unverified" q={q} range={range} status={status} tone="owed" />
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <FilterPill current={status} value="ALL" label="All" />
+        <FilterPill current={status} value="PAID" label="Paid" />
+        <FilterPill current={status} value="PENDING" label="Pending" />
+        {(status !== 'ALL' || verification !== 'all') && (
+          <Link href={`/payments?range=${range}`} className="ml-auto text-sm text-slate-500 underline">
+            Reset
+          </Link>
+        )}
       </div>
 
       {payments.length === 0 ? (
         <EmptyState
-          icon={Wallet}
+          icon={Banknote}
           title={q || status !== 'ALL' || verification !== 'all' ? 'No payments match your filters' : 'No payments yet'}
           description={
             q || status !== 'ALL' || verification !== 'all'
@@ -195,19 +165,17 @@ function FilterPill({
 }) {
   const active = current === value;
   return (
-    <button
-      type="submit"
-      name="status"
-      value={value}
+    <Link
+      href={`/payments?status=${value}`}
       className={cn(
-        'rounded-full border px-3 py-1.5 text-xs font-semibold',
+        'rounded-full border px-3 py-1.5 text-xs font-semibold transition',
         active
           ? 'border-brand-500 bg-brand-500 text-white'
-          : 'border-border bg-white text-slate-700',
+          : 'border-border bg-white text-slate-700 hover:bg-slate-50',
       )}
     >
       {label}
-    </button>
+    </Link>
   );
 }
 

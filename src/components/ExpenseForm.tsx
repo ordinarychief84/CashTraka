@@ -8,7 +8,7 @@ import {
   CreditCard,
   Banknote,
   Smartphone,
-  Receipt,
+  ReceiptText,
   RotateCcw,
   ShieldCheck,
 } from 'lucide-react';
@@ -44,7 +44,7 @@ const PAY_METHODS: { value: PayMethod; label: string; icon: React.ReactNode }[] 
   { value: 'cash', label: 'Cash', icon: <Banknote size={14} /> },
   { value: 'transfer', label: 'Transfer', icon: <Smartphone size={14} /> },
   { value: 'card', label: 'Card', icon: <CreditCard size={14} /> },
-  { value: 'pos', label: 'POS', icon: <Receipt size={14} /> },
+  { value: 'pos', label: 'POS', icon: <ReceiptText size={14} /> },
   { value: 'other', label: 'Other', icon: null },
 ];
 
@@ -371,5 +371,3 @@ function KindButton({
       </span>
       <span className="text-[11px] text-slate-500">{sub}</span>
     </button>
-  );
-}

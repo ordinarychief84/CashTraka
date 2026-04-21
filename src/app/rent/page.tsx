@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Wallet, MessageCircle, AlertTriangle, Clock } from 'lucide-react';
+import { Banknote, MessageCircle, AlertTriangle, Clock } from 'lucide-react';
 import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -147,7 +147,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
       {filtered.length === 0 ? (
         <div className="card p-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-50 text-brand-600">
-            <Wallet size={28} />
+            <Banknote size={28} />
           </div>
           <h3 className="text-lg font-semibold text-slate-900">
             {filter !== 'all' ? 'No tenants match this filter' : 'No active tenants'}

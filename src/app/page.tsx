@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import {
-  Wallet,
+  Banknote,
   Clock3,
   MessageCircle,
   Users,
@@ -283,7 +283,7 @@ function Problem() {
 function Solution() {
   const features = [
     {
-      icon: <Wallet size={22} />,
+      icon: <Banknote size={22} />,
       title: 'Record payments in seconds',
       body: 'Cash or transfer — log it the moment money lands. Always know who paid and who did not.',
     },

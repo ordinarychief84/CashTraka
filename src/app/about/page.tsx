@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Wallet, Clock3, MessageCircle, Users } from 'lucide-react';
+import { Banknote, Clock3, MessageCircle, Users } from 'lucide-react';
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
 export const metadata = { title: 'About CashTraka — Built for Nigerian businesses that run on trust' };
@@ -24,7 +24,7 @@ export default function AboutPage() {
         CashTraka is a single system that replaces the notebook, the spreadsheet, and the group of apps that never quite worked together. It is designed for one-handed use on a phone, and every feature is built to take seconds, not minutes.
       </p>
       <ul className="space-y-3">
-        <Point icon={<Wallet className="text-brand-600" size={18} />}>
+        <Point icon={<Banknote className="text-brand-600" size={18} />}>
           Record every payment the moment it lands — cash or transfer, with a clear Paid or Pending status.
         </Point>
         <Point icon={<Clock3 className="text-owed-600" size={18} />}>

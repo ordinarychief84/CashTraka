@@ -16,6 +16,7 @@ import { BarChart, ColumnChart } from '@/components/BarChart';
 import { StatCard } from '@/components/StatCard';
 import { formatNaira } from '@/lib/format';
 import { isPropertyManager } from '@/lib/business-type';
+import { ReportsTabNav } from '@/components/ReportsTabNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -217,6 +218,7 @@ export default async function ReportsPage() {
             : 'Your business in numbers. Last 6 months.'
         }
       />
+      <ReportsTabNav active="overview" />
 
       {/* ── Top stats: ICP-specific ── */}
       {isPm && rentThisMonthStat ? (

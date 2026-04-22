@@ -86,7 +86,7 @@ function ChangeBadge({ current, previous, invert }: { current: number; previous:
   );
 }
 
-export function PnLClient() {
+export default function PnLClient() {
   const [period, setPeriod] = useState<Period>('this_month');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');

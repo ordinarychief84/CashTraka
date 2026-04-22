@@ -1,9 +1,111 @@
 'use client';
 
-import { useState } from 'react';
-import { AlertTriangle, Trash2, Download, Calendar } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { AlertTriangle, Trash2, Download, Calendar, Mail, ChevronDown, Check, Loader2 } from 'lucide-react';
 
 type Props = { businessType?: string };
+
+type ExportKind = 'payments' | 'debts' | 'sales' | 'customers' | 'expenses' | 'tenants' | 'properties' | 'rent-payments';
+
+function ExportButton({
+  label,
+  kind,
+  dateFrom,
+  dateTo,
+}: {
+  label: string;
+  kind: ExportKind;
+  dateFrom: string;
+  dateTo: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  function downloadUrl() {
+    const params = new URLSearchParams();
+    if (dateFrom) params.set('from', dateFrom);
+    if (dateTo) params.set('to', dateTo);
+    const qs = params.toString();
+    return `/api/export/${kind}${qs ? '?' + qs : ''}`;
+  }
+
+  async function handleEmail() {
+    setSending(true);
+    setSent(false);
+    try {
+      const res = await fetch('/api/export/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind,
+          ...(dateFrom ? { from: dateFrom } : {}),
+          ...(dateTo ? { to: dateTo } : {}),
+        }),
+      });
+      if (res.ok) {
+        setSent(true);
+        setTimeout(() => { setSent(false); setOpen(false); }, 2000);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex w-full items-center justify-between gap-2 rounded-lg bg-emerald-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors"
+      >
+        <span className="flex items-center gap-2">
+          <Download size={14} />
+          {label}
+        </span>
+        <ChevronDown size={14} className={'transition-transform ' + (open ? 'rotate-180' : '')} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 z-30 mt-1.5 w-52 rounded-lg border border-slate-200 bg-white py-1 shadow-lg animate-in fade-in slide-in-from-top-1">
+          <button
+            onClick={handleEmail}
+            disabled={sending}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            {sending ? (
+              <Loader2 size={15} className="animate-spin text-slate-400" />
+            ) : sent ? (
+              <Check size={15} className="text-emerald-500" />
+            ) : (
+              <Mail size={15} className="text-slate-400" />
+            )}
+            {sent ? 'Sent!' : sending ? 'Sending...' : 'Send CSV to email'}
+          </button>
+          <a
+            href={downloadUrl()}
+            onClick={() => setOpen(false)}
+            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <Download size={15} className="text-slate-400" />
+            Quick Download
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function DangerZoneTab({ businessType }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
@@ -14,14 +116,6 @@ export function DangerZoneTab({ businessType }: Props) {
   // Date range state for exports
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-
-  function exportUrl(type: string) {
-    const params = new URLSearchParams();
-    if (dateFrom) params.set('from', dateFrom);
-    if (dateTo) params.set('to', dateTo);
-    const qs = params.toString();
-    return `/api/export/${type}${qs ? '?' + qs : ''}`;
-  }
 
   const isPM = businessType === 'property_manager';
 
@@ -56,7 +150,7 @@ export function DangerZoneTab({ businessType }: Props) {
             Export Your Data
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Filter by date range, then download as CSV.
+            Filter by date range, then export as CSV.
           </p>
         </div>
         <div className="p-6 space-y-4">
@@ -105,68 +199,22 @@ export function DangerZoneTab({ businessType }: Props) {
             </p>
           )}
 
-          {/* Export buttons */}
-          <div className="grid gap-2 sm:grid-cols-2">
-            <a
-              href={exportUrl('payments')}
-              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              <span>Payments</span>
-              <Download size={14} className="text-slate-400" />
-            </a>
-            <a
-              href={exportUrl('debts')}
-              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              <span>Debts</span>
-              <Download size={14} className="text-slate-400" />
-            </a>
-            <a
-              href={exportUrl('sales')}
-              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              <span>Sales</span>
-              <Download size={14} className="text-slate-400" />
-            </a>
-            <a
-              href={exportUrl('customers')}
-              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              <span>Customers</span>
-              <Download size={14} className="text-slate-400" />
-            </a>
-            <a
-              href={exportUrl('expenses')}
-              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-            >
-              <span>Expenses</span>
-              <Download size={14} className="text-slate-400" />
-            </a>
+          {/* Export buttons with dropdowns */}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <ExportButton label="Payments" kind="payments" dateFrom={dateFrom} dateTo={dateTo} />
+            <ExportButton label="Debts" kind="debts" dateFrom={dateFrom} dateTo={dateTo} />
+            <ExportButton label="Sales" kind="sales" dateFrom={dateFrom} dateTo={dateTo} />
+            {!isPM && (
+              <ExportButton label="Customers" kind="customers" dateFrom={dateFrom} dateTo={dateTo} />
+            )}
+            <ExportButton label="Expenses" kind="expenses" dateFrom={dateFrom} dateTo={dateTo} />
 
             {/* Property manager extras */}
             {isPM && (
               <>
-                <a
-                  href={exportUrl('tenants')}
-                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <span>Tenants</span>
-                  <Download size={14} className="text-slate-400" />
-                </a>
-                <a
-                  href={exportUrl('properties')}
-                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <span>Properties</span>
-                  <Download size={14} className="text-slate-400" />
-                </a>
-                <a
-                  href={exportUrl('rent-payments')}
-                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
-                >
-                  <span>Rent Payments</span>
-                  <Download size={14} className="text-slate-400" />
-                </a>
+                <ExportButton label="Tenants" kind="tenants" dateFrom={dateFrom} dateTo={dateTo} />
+                <ExportButton label="Properties" kind="properties" dateFrom={dateFrom} dateTo={dateTo} />
+                <ExportButton label="Rent Payments" kind="rent-payments" dateFrom={dateFrom} dateTo={dateTo} />
               </>
             )}
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Briefcase,
@@ -11,6 +11,9 @@ import {
   ReceiptText,
   RotateCcw,
   ShieldCheck,
+  ChevronDown,
+  Search,
+  Check,
 } from 'lucide-react';
 import {
   BUSINESS_EXPENSE_CATEGORIES,
@@ -48,6 +51,121 @@ const PAY_METHODS: { value: PayMethod; label: string; icon: React.ReactNode }[] 
   { value: 'other', label: 'Other', icon: null },
 ];
 
+/* ── Searchable Category Combobox ─────────────────────────────── */
+function CategoryCombobox({
+  categories,
+  value,
+  onChange,
+}: {
+  categories: readonly string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setQuery('');
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
+
+  const q = query.toLowerCase();
+  const filtered = categories.filter((c) => c.toLowerCase().includes(q));
+
+  function select(cat: string) {
+    onChange(cat);
+    setOpen(false);
+    setQuery('');
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={cn(
+          'input flex w-full items-center justify-between text-left',
+          !value && 'text-slate-400',
+        )}
+      >
+        <span className="truncate">{value || 'Select a category'}</span>
+        <ChevronDown
+          size={14}
+          className={cn(
+            'shrink-0 text-slate-400 transition-transform duration-150',
+            open && 'rotate-180',
+          )}
+        />
+      </button>
+
+      {/* Hidden native input for form data */}
+      <input type="hidden" name="category" value={value} />
+
+      {/* Dropdown */}
+      {open && (
+        <div className="absolute left-0 right-0 z-30 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+          {/* Search */}
+          <div className="border-b border-slate-100 px-3 py-2">
+            <div className="relative">
+              <Search
+                size={13}
+                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+              />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Type to search..."
+                className="w-full rounded-md border border-slate-200 bg-slate-50 py-1.5 pl-8 pr-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-brand-400 focus:bg-white focus:ring-1 focus:ring-brand-100 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-52 overflow-y-auto py-1">
+            {filtered.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => select(cat)}
+                className={cn(
+                  'flex w-full items-center justify-between px-3.5 py-2 text-sm transition-colors',
+                  value === cat
+                    ? 'bg-brand-50 font-semibold text-brand-700'
+                    : 'text-slate-700 hover:bg-slate-50',
+                )}
+              >
+                {cat}
+                {value === cat && (
+                  <Check size={14} className="shrink-0 text-brand-500" />
+                )}
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <p className="px-3.5 py-4 text-center text-sm text-slate-400">
+                No match — pick the closest one
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
   const router = useRouter();
   const editing = Boolean(initial?.id);
@@ -61,11 +179,22 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
   const [taxDeductible, setTaxDeductible] = useState(
     initial?.taxDeductible ?? false,
   );
+  const [category, setCategory] = useState(
+    initial?.category ?? (initial?.kind === 'personal' ? PERSONAL_EXPENSE_CATEGORIES[0] : BUSINESS_EXPENSE_CATEGORIES[0]),
+  );
 
   const categories =
     kind === 'business'
       ? BUSINESS_EXPENSE_CATEGORIES
       : PERSONAL_EXPENSE_CATEGORIES;
+
+  // Reset category when switching kind (if current isn't in new list)
+  useEffect(() => {
+    const list = kind === 'business' ? BUSINESS_EXPENSE_CATEGORIES : PERSONAL_EXPENSE_CATEGORIES;
+    if (!(list as readonly string[]).includes(category)) {
+      setCategory(list[0]);
+    }
+  }, [kind, category]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -74,7 +203,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
     const form = new FormData(e.currentTarget);
     const payload = {
       amount: Number(form.get('amount') || 0),
-      category: String(form.get('category') || 'Miscellaneous'),
+      category: category || 'Miscellaneous',
       note: String(form.get('note') || ''),
       incurredOn: String(form.get('incurredOn') || ''),
       vendor: String(form.get('vendor') || ''),
@@ -147,24 +276,15 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
         />
       </div>
 
-      {/* ── Category (changes based on kind) ── */}
+      {/* ── Category (searchable combobox) ── */}
       <div>
-        <label htmlFor="category" className="label">
-          Category
-        </label>
-        <select
-          id="category"
-          name="category"
-          className="input"
-          defaultValue={initial?.category ?? categories[0]}
-          key={kind} // Force re-render when kind changes
-        >
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+        <label className="label">Category</label>
+        <CategoryCombobox
+          categories={categories}
+          value={category}
+          onChange={setCategory}
+          key={kind}
+        />
       </div>
 
       {/* ── Vendor / Payee ── */}

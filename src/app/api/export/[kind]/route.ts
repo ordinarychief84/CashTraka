@@ -8,8 +8,22 @@ function isoDate(d: Date) {
   return new Date(d).toISOString().slice(0, 10);
 }
 
+/** Parse optional from / to query params into a Prisma date filter. */
+function dateRange(url: URL, field = 'createdAt') {
+  const from = url.searchParams.get('from');
+  const to = url.searchParams.get('to');
+  if (!from && !to) return {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filter: any = {};
+  filter[field] = {
+    ...(from ? { gte: new Date(from) } : {}),
+    ...(to ? { lte: new Date(to + 'T23:59:59.999Z') } : {}),
+  };
+  return filter;
+}
+
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { kind: string } },
 ) {
   const user = await getCurrentUser();
@@ -19,6 +33,7 @@ export async function GET(
   if (feature) return feature;
 
   const { kind } = params;
+  const url = new URL(req.url);
 
   // Block seller-only exports for property managers — they don't use these.
   if (user.businessType === 'property_manager' && (kind === 'customers' || kind === 'products')) {
@@ -27,7 +42,7 @@ export async function GET(
 
   if (kind === 'payments') {
     const rows = await prisma.payment.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...dateRange(url, 'createdAt') },
       orderBy: { createdAt: 'asc' },
     });
     const csv = toCsv([
@@ -45,7 +60,7 @@ export async function GET(
 
   if (kind === 'debts') {
     const rows = await prisma.debt.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...dateRange(url, 'createdAt') },
       orderBy: { createdAt: 'asc' },
     });
     const csv = toCsv([
@@ -66,7 +81,7 @@ export async function GET(
 
   if (kind === 'customers') {
     const rows = await prisma.customer.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...dateRange(url, 'lastActivityAt') },
       orderBy: { name: 'asc' },
     });
     const csv = toCsv([
@@ -85,7 +100,7 @@ export async function GET(
 
   if (kind === 'expenses') {
     const rows = await prisma.expense.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...dateRange(url, 'incurredOn') },
       orderBy: { incurredOn: 'asc' },
     });
     const csv = toCsv([
@@ -95,14 +110,35 @@ export async function GET(
     return csvResponse(csv, `cashtraka-expenses-${isoDate(new Date())}.csv`);
   }
 
-  // Property-manager-specific exports. Gate them behind the PM business type so
-  // a seller with a paid plan can't accidentally hit these.
+  if (kind === 'sales') {
+    const rows = await prisma.sale.findMany({
+      where: { userId: user.id, ...dateRange(url, 'soldAt') },
+      include: { items: true },
+      orderBy: { soldAt: 'asc' },
+    });
+    const csv = toCsv([
+      ['Receipt #', 'Date', 'Customer', 'Payment Method', 'Subtotal', 'Discount', 'Total', 'Items'],
+      ...rows.map((r) => [
+        r.saleNumber,
+        isoDate(r.soldAt),
+        r.customerName || '',
+        r.paymentMethod,
+        r.subtotal,
+        r.discount,
+        r.total,
+        r.items.map((i) => i.description + ' x' + i.quantity).join('; '),
+      ]),
+    ]);
+    return csvResponse(csv, `cashtraka-sales-${isoDate(new Date())}.csv`);
+  }
+
+  // ── Property-manager-specific exports ──
   if (kind === 'tenants') {
     if (user.businessType !== 'property_manager') {
       return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
     }
     const rows = await prisma.tenant.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, ...dateRange(url, 'createdAt') },
       include: { property: { select: { name: true } } },
       orderBy: { name: 'asc' },
     });
@@ -145,6 +181,30 @@ export async function GET(
       ]),
     ]);
     return csvResponse(csv, `cashtraka-properties-${isoDate(new Date())}.csv`);
+  }
+
+  if (kind === 'rent-payments') {
+    if (user.businessType !== 'property_manager') {
+      return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
+    }
+    const rows = await prisma.rentPayment.findMany({
+      where: { userId: user.id, ...dateRange(url, 'paidAt') },
+      include: { tenant: { select: { name: true, property: { select: { name: true } } } } },
+      orderBy: { paidAt: 'asc' },
+    });
+    const csv = toCsv([
+      ['Date', 'Tenant', 'Property', 'Amount', 'Method', 'Period', 'Note'],
+      ...rows.map((r) => [
+        isoDate(r.paidAt),
+        r.tenant.name,
+        r.tenant.property.name,
+        r.amount,
+        r.method || '',
+        r.periodLabel || '',
+        r.note || '',
+      ]),
+    ]);
+    return csvResponse(csv, `cashtraka-rent-payments-${isoDate(new Date())}.csv`);
   }
 
   return NextResponse.json({ error: 'Unknown export kind' }, { status: 400 });

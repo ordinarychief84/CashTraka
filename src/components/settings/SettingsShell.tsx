@@ -88,7 +88,7 @@ export function SettingsShell({ initialProfile, initialAccount, businessType }: 
             <AppearanceTab />
           )}
           {activeTab === 'danger' && (
-            <DangerZoneTab />
+            <DangerZoneTab businessType={businessType} />
           )}
         </div>
       </div>

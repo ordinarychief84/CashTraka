@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { AlertTriangle, Trash2, Download, Calendar } from 'lucide-react';
 
-export function DangerZoneTab() {
+type Props = { businessType?: string };
+
+export function DangerZoneTab({ businessType }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -20,6 +22,8 @@ export function DangerZoneTab() {
     const qs = params.toString();
     return `/api/export/${type}${qs ? '?' + qs : ''}`;
   }
+
+  const isPM = businessType === 'property_manager';
 
   async function handleDelete() {
     if (confirmText !== 'DELETE') return;
@@ -52,7 +56,7 @@ export function DangerZoneTab() {
             Export Your Data
           </h2>
           <p className="mt-1 text-sm text-slate-500">
-            Select a date range and download your data as CSV.
+            Filter by date range, then download as CSV.
           </p>
         </div>
         <div className="p-6 space-y-4">
@@ -95,6 +99,11 @@ export function DangerZoneTab() {
           {!dateFrom && !dateTo && (
             <p className="text-xs text-slate-400">Leave dates empty to export all records.</p>
           )}
+          {(dateFrom || dateTo) && (
+            <p className="text-xs text-brand-600 font-medium">
+              Exporting records {dateFrom ? 'from ' + dateFrom : ''}{dateFrom && dateTo ? ' ' : ''}{dateTo ? 'to ' + dateTo : ''}
+            </p>
+          )}
 
           {/* Export buttons */}
           <div className="grid gap-2 sm:grid-cols-2">
@@ -102,30 +111,64 @@ export function DangerZoneTab() {
               href={exportUrl('payments')}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              <span>Payments CSV</span>
+              <span>Payments</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
               href={exportUrl('debts')}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              <span>Debts CSV</span>
+              <span>Debts</span>
+              <Download size={14} className="text-slate-400" />
+            </a>
+            <a
+              href={exportUrl('sales')}
+              className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+            >
+              <span>Sales</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
               href={exportUrl('customers')}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              <span>Customers CSV</span>
+              <span>Customers</span>
               <Download size={14} className="text-slate-400" />
             </a>
             <a
               href={exportUrl('expenses')}
               className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              <span>Expenses CSV</span>
+              <span>Expenses</span>
               <Download size={14} className="text-slate-400" />
             </a>
+
+            {/* Property manager extras */}
+            {isPM && (
+              <>
+                <a
+                  href={exportUrl('tenants')}
+                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span>Tenants</span>
+                  <Download size={14} className="text-slate-400" />
+                </a>
+                <a
+                  href={exportUrl('properties')}
+                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span>Properties</span>
+                  <Download size={14} className="text-slate-400" />
+                </a>
+                <a
+                  href={exportUrl('rent-payments')}
+                  className="inline-flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                >
+                  <span>Rent Payments</span>
+                  <Download size={14} className="text-slate-400" />
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -156,8 +199,9 @@ export function DangerZoneTab() {
                 <strong>This will permanently delete:</strong>
                 <ul className="mt-2 ml-4 list-disc space-y-1 text-xs">
                   <li>All your customers, payments, and debts</li>
-                  <li>All your products and expenses</li>
-                  <li>All your PayLinks and collection data</li>
+                  <li>All your products, sales, and expenses</li>
+                  <li>All your invoices and receipts</li>
+                  {isPM && <li>All your properties, tenants, and rent payments</li>}
                   <li>Your account and business profile</li>
                 </ul>
               </div>

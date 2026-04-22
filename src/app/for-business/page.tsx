@@ -30,7 +30,7 @@ import { Marquee } from '@/components/marketing/Marquee';
 import { FloatingCard } from '@/components/marketing/FloatingCard';
 
 export const metadata: Metadata = {
-  title: 'CashTraka for Business — Track sales, debts & customers',
+  title: 'CashTraka for Business | Track sales, debts & customers',
   description:
     'Built for Nigerian small businesses: shops, food vendors, services, tailors. Verify payments with your bank alert, issue invoices & receipts, chase debts on WhatsApp.',
 };
@@ -68,12 +68,13 @@ function Hero() {
             CashTraka for Business
           </span>
           <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-            Every sale tracked. Every debt chased. Every receipt sent.
+            Know exactly who paid you, who owes you, and who needs a nudge.
           </h1>
           <p className="mt-4 text-lg text-slate-600 md:text-xl">
-            Built for small businesses in Nigeria — shops, food vendors, tailors,
-            salons, services. Log sales in seconds, verify transfers with your
-            bank alert, issue professional invoices, and chase debt on WhatsApp.
+            Shops, food vendors, tailors, salons, resellers. If you sell in
+            Nigeria, CashTraka helps you log sales in seconds, catch fake
+            transfers before you deliver, and chase every outstanding debt
+            through WhatsApp.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/signup?type=seller" className="btn-primary">
@@ -137,31 +138,31 @@ function Problem() {
   const pains = [
     {
       icon: AlertTriangle,
-      title: '"I have paid" screenshots that aren\'t real',
-      body: 'You deliver the goods, then the bank alert never comes. Fake screenshots have cost Nigerian sellers millions.',
+      title: '"I\'ve sent it" ...but your bank says otherwise',
+      body: 'You deliver the goods, then check your bank and nothing came in. Fake transfer screenshots cost Nigerian sellers millions every year.',
     },
     {
       icon: Inbox,
-      title: 'Orders buried in 200 WhatsApp chats',
-      body: 'By 3pm today you\'ve already forgotten what yesterday\'s customer ordered. Stuff slips. Money slips.',
+      title: 'Yesterday\'s order? Lost in 200 chats.',
+      body: 'By 3pm you\'ve already forgotten what a customer ordered this morning. Details slip. Money slips with them.',
     },
     {
       icon: Clock3,
-      title: '"I\'ll pay tomorrow" — for three weeks',
+      title: '"I\'ll pay tomorrow" ...for three weeks',
       body: 'Small debts pile up because you forget to follow up. You carry the loss, not them.',
     },
     {
       icon: SearchX,
-      title: 'Repeat customers quietly leave',
-      body: 'You never reached back out. They found someone who did.',
+      title: 'Your best customers went somewhere else',
+      body: 'You didn\'t follow up. Somebody else did. That\'s all it takes.',
     },
   ];
   return (
     <Section
       id="problem"
       eyebrow="The problem"
-      title="Running a small business on WhatsApp alone leaks money"
-      subtitle="It's not that you don't work hard. It's that messages, screenshots, and scattered notes can't tell you what's really happening in your business."
+      title="WhatsApp alone can't run your business"
+      subtitle="You work hard. The problem is that chats, screenshots, and memory can't tell you what's really happening with your money."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -186,8 +187,8 @@ function FeatureGrid() {
   const features = [
     {
       icon: Shield,
-      title: 'Bank-alert verification',
-      body: 'Paste your real bank SMS or email. CashTraka reads the amount, sender and reference from YOUR bank — not a screenshot. Fake receipts don\'t pass.',
+      title: 'Verify payments with your bank alert',
+      body: 'Paste your actual bank SMS or email. CashTraka reads the amount, sender, and reference from YOUR bank. Fake screenshots can\'t get past this.',
     },
     {
       icon: FileText,
@@ -197,7 +198,7 @@ function FeatureGrid() {
     {
       icon: Banknote,
       title: 'Track every sale',
-      body: 'Cash or transfer, paid or pending — logged in seconds. Totals update live. Filter by what you\'re still waiting on.',
+      body: 'Cash or transfer, paid or pending, logged in seconds. Totals update live. Filter by what you\'re still waiting on.',
     },
     {
       icon: Clock3,
@@ -217,12 +218,12 @@ function FeatureGrid() {
     {
       icon: Receipt,
       title: 'Expenses & real profit',
-      body: 'Log business and personal expenses separately. See real monthly profit — not just revenue.',
+      body: 'Log business and personal expenses separately. See real monthly profit, not just revenue.',
     },
     {
       icon: RefreshCcw,
-      title: 'Re-engage quiet customers',
-      body: 'One tap to restart a conversation with someone who hasn\'t bought in a while. Your customer list builds itself.',
+      title: 'Win back quiet customers',
+      body: 'See who hasn\'t bought in a while and reach out with one tap. Your customer book builds itself as you sell.',
     },
   ];
 
@@ -231,8 +232,8 @@ function FeatureGrid() {
       id="features"
       tone="muted"
       eyebrow="What's inside"
-      title="The full operating system for a Nigerian small business"
-      subtitle="Built mobile-first, in plain Naira, for the way you actually work."
+      title="Everything you need to run your business from your phone"
+      subtitle="Mobile-first. Plain Naira. Built for the way you actually sell."
     >
       <Stagger step={80} from="up" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {features.map((f) => (
@@ -288,8 +289,8 @@ function Pricing() {
       id="pricing"
       tone="muted"
       eyebrow="Pricing"
-      title="Simple pricing that pays for itself"
-      subtitle="If CashTraka helps you stop one fake-screenshot fraud or recover one forgotten debt, it has already paid for itself."
+      title="One recovered debt pays for a whole quarter"
+      subtitle="Stop one fake screenshot or recover one forgotten ₦10k debt and CashTraka has already paid for itself."
     >
       <Reveal>
         <div className="mx-auto max-w-3xl">
@@ -304,7 +305,7 @@ function FAQ() {
   const items = [
     {
       q: 'How does bank-alert verification actually work?',
-      a: 'When a customer claims they paid, you paste your real bank SMS or email into CashTraka. The system reads the amount, sender and reference from YOUR bank — not a screenshot. Fakes cannot pass.',
+      a: 'When a customer claims they paid, you paste your real bank SMS or email into CashTraka. The system reads the amount, sender and reference from YOUR bank, not a screenshot. Fakes cannot pass.',
     },
     {
       q: 'Do I need to change how I sell on WhatsApp?',
@@ -312,7 +313,7 @@ function FAQ() {
     },
     {
       q: 'Does this work on my phone?',
-      a: 'Yes. Built mobile-first. Works on any Android or iPhone in your browser — no app store install needed.',
+      a: 'Yes. Built mobile-first. Works on any Android or iPhone in your browser, no app store install needed.',
     },
     {
       q: 'Can my staff use it too?',
@@ -320,7 +321,7 @@ function FAQ() {
     },
     {
       q: 'Can I export my data?',
-      a: 'Yes. Payments, debts, customers, expenses — all exportable to CSV with one tap.',
+      a: 'Yes. Payments, debts, customers, expenses, all exportable to CSV with one tap.',
     },
   ];
   return (
@@ -350,9 +351,9 @@ function FinalCTA() {
             <div aria-hidden className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-success-300/30 blur-3xl animate-slow-spin" style={{ animationDuration: '32s', animationDirection: 'reverse' }} />
             <div className="relative">
               <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-                You already have the customers. Now stop losing money from them.
+                The customers are already there. The money should be too.
               </h2>
-              <p className="mt-3 text-lg text-white/90">Free to start. Paid plans start at ₦4,500/month.</p>
+              <p className="mt-3 text-lg text-white/90">Free to start. Paid plans from ₦3,000/month.</p>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
                 <Link href="/signup?type=seller" className="btn inline-flex bg-white text-brand-700 shadow-lg hover:bg-brand-50">
                   <span className="font-bold">Start free</span>

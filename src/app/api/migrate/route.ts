@@ -1,12 +1,21 @@
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * One-time migration endpoint to fix missing columns.
  * Adds any columns that exist in the Prisma schema but are missing from the actual DB.
  * Uses "ADD COLUMN IF NOT EXISTS" so it's safe to run multiple times.
+ *
+ * PROTECTED: requires CRON_SECRET as Bearer token or query param.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const secret = process.env.CRON_SECRET;
+  const bearer = req.headers.get('authorization')?.replace('Bearer ', '');
+  const qsSecret = req.nextUrl.searchParams.get('secret');
+
+  if (!secret || (bearer !== secret && qsSecret !== secret)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const results: string[] = [];
 
   // Helper: safely add a column

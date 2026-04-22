@@ -1,6 +1,6 @@
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: 'Terms of Use — CashTraka' };
+export const metadata = { title: 'Terms of Use | CashTraka' };
 
 /**
  * Terms of Use (Nigeria). Effective date tracks the Privacy Policy.

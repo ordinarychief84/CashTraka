@@ -4,7 +4,7 @@ import { Logo } from '@/components/Logo';
 import { ReloadButton } from './ReloadButton';
 
 export const metadata: Metadata = {
-  title: 'Offline — CashTraka',
+  title: 'Offline | CashTraka',
   description: 'No connection right now. CashTraka works best online.',
 };
 
@@ -24,7 +24,7 @@ export default function OfflinePage() {
         You&rsquo;re offline
       </h1>
       <p className="mt-2 max-w-md text-sm text-slate-600">
-        Looks like your phone lost signal. Your data is safe — CashTraka will
+        Looks like your phone lost signal. Your data is safe. CashTraka will
         reconnect automatically as soon as you&rsquo;re back online.
       </p>
       <ReloadButton />

@@ -1,6 +1,6 @@
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: 'Privacy Policy — CashTraka' };
+export const metadata = { title: 'Privacy Policy | CashTraka' };
 
 /**
  * NDPR-compliant Privacy Policy.

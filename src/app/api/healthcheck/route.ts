@@ -11,7 +11,7 @@ export async function GET() {
     await prisma.$queryRaw`SELECT 1 as ok`;
     checks.dbConnection = 'OK';
   } catch (e: any) {
-    checks.dbConnection = 'FAIL: ' + (e.message || String(e)).substring(0, 300);
+    checks.dbConnection = 'FAIL';
   }
 
   // Test User table
@@ -19,7 +19,7 @@ export async function GET() {
     const count = await prisma.user.count();
     checks.userTable = 'OK (count: ' + count + ')';
   } catch (e: any) {
-    checks.userTable = 'FAIL: ' + (e.message || String(e)).substring(0, 300);
+    checks.userTable = 'FAIL';
   }
 
   return NextResponse.json(checks);

@@ -2,13 +2,13 @@ import Link from 'next/link';
 import { Banknote, Clock3, MessageCircle, Users } from 'lucide-react';
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: 'About CashTraka — Built for Nigerian businesses that run on trust' };
+export const metadata = { title: 'About CashTraka | Built for Nigerian businesses that run on trust' };
 
 export default function AboutPage() {
   return (
     <LegalLayout title="About CashTraka">
       <p className="text-lg">
-        CashTraka is the payment tracking system built for how Nigerian businesses actually work — on a phone, between WhatsApp messages, sometimes while packing an order.
+        CashTraka is the payment tracking system built for how Nigerian businesses actually work. On a phone, between WhatsApp messages, sometimes while packing an order.
       </p>
 
       <h2 className="mt-10 text-xl font-bold text-ink">The problem we saw</h2>
@@ -25,13 +25,13 @@ export default function AboutPage() {
       </p>
       <ul className="space-y-3">
         <Point icon={<Banknote className="text-brand-600" size={18} />}>
-          Record every payment the moment it lands — cash or transfer, with a clear Paid or Pending status.
+          Record every payment the moment it lands. Cash or transfer, with a clear Paid or Pending status.
         </Point>
         <Point icon={<Clock3 className="text-owed-600" size={18} />}>
           See every outstanding debt in one list, with running totals, due dates, and overdue alerts.
         </Point>
         <Point icon={<MessageCircle className="text-[#128C7E]" size={18} />}>
-          Send payment reminders, follow-ups, and payment links through WhatsApp — no integrations, no apps to connect.
+          Send payment reminders, follow-ups, and payment links through WhatsApp. No integrations, no apps to connect.
         </Point>
         <Point icon={<Users className="text-brand-600" size={18} />}>
           Build your customer book automatically. Every buyer is saved. Every interaction is tracked.
@@ -40,13 +40,13 @@ export default function AboutPage() {
 
       <h2 className="mt-10 text-xl font-bold text-ink">Who it is for</h2>
       <p>
-        CashTraka serves two groups that share the same core challenge — tracking money that moves through trust and conversation.
+        CashTraka serves two groups that share the same core challenge: tracking money that moves through trust and conversation.
       </p>
       <p>
-        <strong>Small business owners</strong> — beauty sellers, fashion brands, food vendors, thrift shops, phone accessory sellers, tailors, and anyone who sells through WhatsApp, Instagram, or in person.
+        <strong>Small business owners</strong>: beauty sellers, fashion brands, food vendors, thrift shops, phone accessory sellers, tailors, and anyone who sells through WhatsApp, Instagram, or in person.
       </p>
       <p>
-        <strong>Landlords and property managers</strong> — from a single building to a portfolio of properties. Track rent, remind tenants, verify payments, and issue receipts automatically.
+        <strong>Landlords and property managers</strong>: from a single building to a portfolio of properties. Track rent, remind tenants, verify payments, and issue receipts automatically.
       </p>
 
       <h2 className="mt-10 text-xl font-bold text-ink">What we believe</h2>
@@ -55,12 +55,12 @@ export default function AboutPage() {
         <li>The phone is the office. Every feature works one-handed, on any device.</li>
         <li>Your data belongs to you. Always exportable, never locked in.</li>
         <li>A few features done well will always beat a bloated platform that nobody uses.</li>
-        <li>Nigerian businesses deserve tools built for the way they actually operate — not tools ported from a different market.</li>
+        <li>Nigerian businesses deserve tools built for the way they actually operate, not tools ported from a different market.</li>
       </ul>
 
       <h2 className="mt-10 text-xl font-bold text-ink">Get in touch</h2>
       <p>
-        We are always listening. Whether you have a feature request, a question, or you just want to tell us what is broken in your current workflow — we want to hear it.{' '}
+        We are always listening. Whether you have a feature request, a question, or you just want to tell us what is broken in your current workflow, we want to hear it.{' '}
         <Link href="/contact" className="font-semibold text-brand-600 hover:underline">
           Contact us
         </Link>
@@ -68,7 +68,7 @@ export default function AboutPage() {
       </p>
 
       <div className="mt-10 flex flex-wrap gap-3">
-        <Link href="/signup" className="btn-primary">Start free — no card needed</Link>
+        <Link href="/signup" className="btn-primary">Start free, no card needed</Link>
         <Link href="/" className="btn-secondary">Back to home</Link>
       </div>
     </LegalLayout>

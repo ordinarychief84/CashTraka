@@ -166,7 +166,7 @@ function SocialProof() {
     {
       label: 'Collection rate',
       number: <AnimatedStat value={82} suffix="%" className="text-brand-600" />,
-      body: 'average of what is owed comes in — vs 54% on spreadsheets.',
+      body: 'average of what is owed comes in vs 54% on spreadsheets.',
       accent: 'brand',
     },
   ] as const;
@@ -228,7 +228,7 @@ function Problem() {
   const pains = [
     {
       icon: AlertTriangle,
-      title: '"I sent it" — but nothing hit your account',
+      title: '"I sent it" but nothing hit your account',
       body: 'Fake screenshots. Forgotten transfers. You end up delivering goods on a promise, not a payment.',
     },
     {
@@ -238,7 +238,7 @@ function Problem() {
     },
     {
       icon: Clock3,
-      title: '"I\'ll pay you tomorrow" — 3 weeks ago',
+      title: '"I\'ll pay you tomorrow" ...3 weeks ago',
       body: 'Without a system, debts slip through the cracks. You absorb the loss quietly.',
     },
     {
@@ -252,7 +252,7 @@ function Problem() {
       id="problem"
       eyebrow="Sound familiar?"
       title="Running your business on WhatsApp alone is costing you real money"
-      subtitle="Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It's not a people problem — it's a systems problem."
+      subtitle="Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It's not a people problem. It's a systems problem."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -285,32 +285,32 @@ function Solution() {
     {
       icon: <Banknote size={22} />,
       title: 'Record payments in seconds',
-      body: 'Cash or transfer — log it the moment money lands. Always know who paid and who did not.',
+      body: 'Cash or transfer, log it the moment money lands. Always know who paid and who still owes you.',
     },
     {
       icon: <CreditCard size={22} />,
       title: 'Send payment links',
-      body: 'Create a PayLink, share on WhatsApp, and get paid online via Paystack. Auto-confirmed the moment they pay.',
+      body: 'Create a PayLink, share it on WhatsApp, get paid online via Paystack. Auto confirmed the moment they pay.',
     },
     {
       icon: <HandCoins size={22} />,
       title: 'Promise to Pay',
-      body: 'Let customers commit to a payment date. They pick a schedule, you get notified — and broken promises get flagged automatically.',
+      body: 'Let customers commit to a payment date. They pick a schedule, you get notified, and broken promises get flagged automatically.',
     },
     {
       icon: <Repeat size={22} />,
-      title: 'Auto-debit installment plans',
-      body: 'Set up recurring collections that charge automatically. No chasing — payments land in your account on schedule.',
+      title: 'Auto debit installment plans',
+      body: 'Set up recurring collections that charge automatically. No chasing. Payments land in your account on schedule.',
     },
     {
       icon: <ListChecks size={22} />,
       title: 'Smart Collection Queue',
-      body: 'Every overdue debt, expired link, broken promise, and failed installment — ranked by priority with suggested next actions.',
+      body: 'Every overdue debt, expired link, broken promise, and failed installment ranked by priority with suggested next actions.',
     },
     {
       icon: <MessageCircle size={22} />,
       title: 'Chase debts via WhatsApp',
-      body: 'One tap sends a polite reminder straight to the customer — no typing, no awkwardness.',
+      body: 'One tap sends a polite reminder straight to the customer. No typing, no awkwardness.',
     },
     {
       icon: <Receipt size={22} />,
@@ -319,12 +319,12 @@ function Solution() {
     },
     {
       icon: <Shield size={22} />,
-      title: 'Bank-alert verification',
-      body: 'Paste your real bank SMS. CashTraka reads the amount, sender, and reference — fake screenshots cannot pass.',
+      title: 'Bank alert verification',
+      body: 'Paste your real bank SMS. CashTraka reads the amount, sender, and reference. Fake screenshots cannot pass.',
     },
     {
       icon: <Users size={22} />,
-      title: 'Auto-build your customer book',
+      title: 'Your customer book builds itself',
       body: 'Every buyer gets saved automatically with payment history, reliability scores, and last activity.',
     },
     {
@@ -340,7 +340,7 @@ function Solution() {
     {
       icon: <Sparkles size={22} />,
       title: 'Your whole business, one screen',
-      body: 'Payments, debts, promises, installments, customers, receipts — no more hunting across 200 chats.',
+      body: 'Payments, debts, promises, installments, customers, receipts. No more hunting across 200 chats.',
     },
   ];
   return (
@@ -349,7 +349,7 @@ function Solution() {
       tone="muted"
       eyebrow="Meet CashTraka"
       title="The collection system your business has been missing"
-      subtitle="Record payments, send payment links, set up auto-debit plans, chase debts on WhatsApp, and collect everything you are owed — from one screen."
+      subtitle="Record payments, send payment links, set up auto debit plans, chase debts on WhatsApp, and collect everything you are owed from one screen."
     >
       <Reveal>
         <FeatureCarousel items={features} />
@@ -364,22 +364,22 @@ function DeepDives() {
   const items = [
     {
       eyebrow: 'Payment Links',
-      title: 'Send a link. Get paid. Auto-confirmed.',
-      body: 'Create a PayLink in 10 seconds, share via WhatsApp, and money hits your account via Paystack. No chasing — the webhook confirms payment instantly and the receipt sends itself.',
+      title: 'Send a link. Get paid. Auto confirmed.',
+      body: 'Create a PayLink in 10 seconds, share via WhatsApp, and money hits your account via Paystack. No chasing. The webhook confirms payment instantly and the receipt sends itself.',
       bullets: [
-        'One-tap PayLink creation with custom amounts',
-        'Auto-confirmed via webhook — no manual checking',
+        'One tap PayLink creation with custom amounts',
+        'Auto confirmed via webhook, no manual checking',
         'Receipt emails the customer the moment they pay',
       ],
       visual: <PaymentsCard />,
     },
     {
       eyebrow: 'Promise to Pay',
-      title: 'Let customers commit — then hold them to it',
+      title: 'Let customers commit. Then hold them to it.',
       body: 'Instead of chasing, send a Promise link. The customer picks their payment date and amount. If they miss it, the system flags it and moves them up the collection queue.',
       bullets: [
-        'Customer-facing commitment page — no app needed',
-        'Automatic broken-promise detection (daily cron)',
+        'Customer facing commitment page, no app needed',
+        'Automatic broken promise detection (daily scan)',
         'Partial payments tracked against the original promise',
       ],
       visual: <DebtsCard />,
@@ -387,18 +387,18 @@ function DeepDives() {
     {
       eyebrow: 'Auto-Debit',
       title: 'Set it up once. Collect on autopilot.',
-      body: 'For customers who owe you a large amount, set up an installment plan. CashTraka charges their card automatically on schedule — daily, weekly, or monthly — until the balance clears.',
+      body: 'For customers who owe you a large amount, set up an installment plan. CashTraka charges their card automatically on schedule, daily, weekly, or monthly, until the balance clears.',
       bullets: [
         'Recurring charges via Paystack authorization',
         'Each charge verified via webhook before updating balance',
-        'Auto-pauses after 3 failures — surfaces in collection queue',
+        'Auto pauses after 3 failures and surfaces in collection queue',
       ],
       visual: <InstallmentCard />,
     },
     {
       eyebrow: 'Collection Queue',
       title: 'Always know who to chase next',
-      body: 'Every overdue debt, broken promise, expired PayLink, and failed auto-debit — ranked by priority score with a suggested action beside each name. No more guessing who needs a nudge.',
+      body: 'Every overdue debt, broken promise, expired PayLink, and failed auto debit ranked by priority score with a suggested action beside each name. No more guessing who needs a nudge.',
       bullets: [
         'Priority scoring: amount × days overdue × status',
         'Suggested actions: "Call customer", "Resend link", "Follow up"',
@@ -421,12 +421,12 @@ function HowItWorks() {
     {
       n: 1,
       title: 'Add what you are owed',
-      body: 'Record a debt, send a PayLink, or create a Promise to Pay — takes 10 seconds.',
+      body: 'Record a debt, send a PayLink, or create a Promise to Pay. Takes 10 seconds.',
     },
     {
       n: 2,
       title: 'Let CashTraka collect',
-      body: 'Auto-debit plans charge on schedule. PayLinks confirm via webhook. Broken promises get flagged.',
+      body: 'Auto debit plans charge on schedule. PayLinks confirm via webhook. Broken promises get flagged.',
     },
     {
       n: 3,
@@ -473,8 +473,8 @@ function HowItWorks() {
 function ValueSection() {
   const wins = [
     { icon: CreditCard, label: 'Collect payments online with one-tap PayLinks' },
-    { icon: Repeat, label: 'Auto-debit installments — collect on autopilot' },
-    { icon: HandCoins, label: 'Promise to Pay — customers commit, you track' },
+    { icon: Repeat, label: 'Auto debit installments that collect on autopilot' },
+    { icon: HandCoins, label: 'Promise to Pay lets customers commit while you track' },
     { icon: RefreshCcw, label: 'Recover debts you thought were lost' },
     { icon: MessageCircle, label: 'Send payment reminders without the awkwardness' },
     { icon: Shield, label: 'Know your exact cash position at any moment' },
@@ -482,7 +482,7 @@ function ValueSection() {
   return (
     <Section
       eyebrow="The real value"
-      title="You do not need more customers — you need to collect from the ones you have"
+      title="You do not need more customers. You need to collect from the ones you have."
       subtitle="The money is already in your business. CashTraka helps you collect it automatically, track it, and grow it."
     >
       <Stagger step={90} from="left" className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
@@ -545,7 +545,7 @@ function Pricing() {
       id="pricing"
       eyebrow="Pricing"
       title="One recovered debt pays for an entire quarter"
-      subtitle="One plan. Full features. Start with a 7-day free trial — no card required. Pick the billing frequency that suits you."
+      subtitle="One plan. Full features. Start with a 7-day free trial, no card required. Pick the billing frequency that suits you."
     >
       <Reveal>
         <div className="mx-auto max-w-3xl">
@@ -790,7 +790,7 @@ function FollowUpCard() {
       </button>
       <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-500">
         <Check size={12} className="text-brand-600" />
-        Uses your own WhatsApp — nothing to connect
+        Uses your own WhatsApp, nothing to connect
       </div>
     </div>
   );
@@ -802,7 +802,7 @@ function PropertyManagerSpotlight() {
   const features = [
     {
       title: 'Every tenant, every unit',
-      body: 'See who lives where, how much they pay, and when rent is due — all in one view.',
+      body: 'See who lives where, how much they pay, and when rent is due, all in one view.',
     },
     {
       title: 'Rent tracker with collection rate',

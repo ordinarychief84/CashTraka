@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { LegalLayout } from '@/components/marketing/LegalLayout';
 
-export const metadata = { title: 'Contact — CashTraka' };
+export const metadata = { title: 'Contact | CashTraka' };
 
 export default function ContactPage() {
   return (
@@ -21,7 +21,7 @@ export default function ContactPage() {
         <Link href="/signup" className="font-semibold text-brand-600 hover:underline">
           Start free
         </Link>{' '}
-        — it takes under five minutes.
+        , it takes under five minutes.
       </p>
     </LegalLayout>
   );

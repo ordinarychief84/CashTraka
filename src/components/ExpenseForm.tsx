@@ -51,6 +51,8 @@ const PAY_METHODS: { value: PayMethod; label: string; icon: React.ReactNode }[] 
   { value: 'other', label: 'Other', icon: null },
 ];
 
+const OTHER_SENTINEL = '__other__';
+
 /* ── Searchable Category Combobox ─────────────────────────────── */
 function CategoryCombobox({
   categories,
@@ -63,8 +65,19 @@ function CategoryCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [isOther, setIsOther] = useState(false);
+  const [customText, setCustomText] = useState('');
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const customInputRef = useRef<HTMLInputElement>(null);
+
+  // Detect if the initial value is a custom category (not in the predefined list)
+  useEffect(() => {
+    if (value && !(categories as readonly string[]).includes(value) && value !== 'Miscellaneous') {
+      setIsOther(true);
+      setCustomText(value);
+    }
+  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -81,14 +94,44 @@ function CategoryCombobox({
     if (open) inputRef.current?.focus();
   }, [open]);
 
+  // Focus the custom text input when "Other" is selected
+  useEffect(() => {
+    if (isOther) {
+      setTimeout(() => customInputRef.current?.focus(), 50);
+    }
+  }, [isOther]);
+
   const q = query.toLowerCase();
-  const filtered = categories.filter((c) => c.toLowerCase().includes(q));
+  // Filter categories excluding "Miscellaneous" — we'll replace it with "Other"
+  const filtered = categories
+    .filter((c) => c !== 'Miscellaneous')
+    .filter((c) => c.toLowerCase().includes(q));
+  const showOther = !q || 'other'.includes(q);
 
   function select(cat: string) {
-    onChange(cat);
+    if (cat === OTHER_SENTINEL) {
+      setIsOther(true);
+      setCustomText('');
+      onChange('');
+    } else {
+      setIsOther(false);
+      setCustomText('');
+      onChange(cat);
+    }
     setOpen(false);
     setQuery('');
   }
+
+  function handleCustomChange(text: string) {
+    setCustomText(text);
+    onChange(text || 'Other');
+  }
+
+  const displayValue = isOther
+    ? customText
+      ? `Other: ${customText}`
+      : 'Other (specify below)'
+    : value || 'Select a category';
 
   return (
     <div ref={ref} className="relative">
@@ -98,10 +141,10 @@ function CategoryCombobox({
         onClick={() => setOpen(!open)}
         className={cn(
           'input flex w-full items-center justify-between text-left',
-          !value && 'text-slate-400',
+          !value && !isOther && 'text-slate-400',
         )}
       >
-        <span className="truncate">{value || 'Select a category'}</span>
+        <span className="truncate">{displayValue}</span>
         <ChevronDown
           size={14}
           className={cn(
@@ -112,7 +155,7 @@ function CategoryCombobox({
       </button>
 
       {/* Hidden native input for form data */}
-      <input type="hidden" name="category" value={value} />
+      <input type="hidden" name="category" value={isOther ? (customText || 'Other') : value} />
 
       {/* Dropdown */}
       {open && (
@@ -143,23 +186,64 @@ function CategoryCombobox({
                 onClick={() => select(cat)}
                 className={cn(
                   'flex w-full items-center justify-between px-3.5 py-2 text-sm transition-colors',
-                  value === cat
+                  value === cat && !isOther
                     ? 'bg-brand-50 font-semibold text-brand-700'
                     : 'text-slate-700 hover:bg-slate-50',
                 )}
               >
                 {cat}
-                {value === cat && (
+                {value === cat && !isOther && (
                   <Check size={14} className="shrink-0 text-brand-500" />
                 )}
               </button>
             ))}
-            {filtered.length === 0 && (
+
+            {/* Other option — always at the bottom */}
+            {showOther && (
+              <>
+                <div className="mx-3 my-1 border-t border-slate-100" />
+                <button
+                  type="button"
+                  onClick={() => select(OTHER_SENTINEL)}
+                  className={cn(
+                    'flex w-full items-center justify-between px-3.5 py-2 text-sm transition-colors',
+                    isOther
+                      ? 'bg-brand-50 font-semibold text-brand-700'
+                      : 'text-slate-700 hover:bg-slate-50',
+                  )}
+                >
+                  Other (type your own)
+                  {isOther && (
+                    <Check size={14} className="shrink-0 text-brand-500" />
+                  )}
+                </button>
+              </>
+            )}
+
+            {filtered.length === 0 && !showOther && (
               <p className="px-3.5 py-4 text-center text-sm text-slate-400">
-                No match — pick the closest one
+                No match found
               </p>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Custom text input — shown when "Other" is selected */}
+      {isOther && (
+        <div className="mt-2">
+          <input
+            ref={customInputRef}
+            type="text"
+            value={customText}
+            onChange={(e) => handleCustomChange(e.target.value)}
+            placeholder="What was this expense for? e.g. Church offering, School fees"
+            className="input w-full"
+            maxLength={100}
+          />
+          <p className="mt-1 text-[11px] text-slate-400">
+            Describe what you spent on
+          </p>
         </div>
       )}
     </div>
@@ -188,13 +272,19 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
       ? BUSINESS_EXPENSE_CATEGORIES
       : PERSONAL_EXPENSE_CATEGORIES;
 
-  // Reset category when switching kind (if current isn't in new list)
+  // Reset category when switching kind (if current isn't in new list and not a custom "Other")
   useEffect(() => {
     const list = kind === 'business' ? BUSINESS_EXPENSE_CATEGORIES : PERSONAL_EXPENSE_CATEGORIES;
-    if (!(list as readonly string[]).includes(category)) {
-      setCategory(list[0]);
+    if (!(list as readonly string[]).includes(category) && category !== 'Miscellaneous') {
+      // Keep custom categories as-is; only reset predefined ones that don't exist in the new list
+      const isCustom = category && !(
+        [...BUSINESS_EXPENSE_CATEGORIES, ...PERSONAL_EXPENSE_CATEGORIES] as string[]
+      ).includes(category);
+      if (!isCustom) {
+        setCategory(list[0]);
+      }
     }
-  }, [kind, category]);
+  }, [kind]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -203,7 +293,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
     const form = new FormData(e.currentTarget);
     const payload = {
       amount: Number(form.get('amount') || 0),
-      category: category || 'Miscellaneous',
+      category: category?.trim() || 'Other',
       note: String(form.get('note') || ''),
       incurredOn: String(form.get('incurredOn') || ''),
       vendor: String(form.get('vendor') || ''),

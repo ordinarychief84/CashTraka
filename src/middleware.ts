@@ -64,6 +64,8 @@ const PROTECTED_PREFIXES = [
   '/team',
   '/paylinks',
   '/collections',
+  '/promises',
+  '/billing',
   // Admin — role check is enforced inside each page/route via requireAdmin().
   '/admin',
 ];

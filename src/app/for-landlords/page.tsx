@@ -27,7 +27,7 @@ import { Marquee } from '@/components/marketing/Marquee';
 import { FloatingCard } from '@/components/marketing/FloatingCard';
 
 export const metadata: Metadata = {
-  title: 'CashTraka for Landlords — Track rent across every tenant',
+  title: 'CashTraka for Landlords | Track rent across every tenant',
   description:
     'Built for Nigerian landlords, property managers, and estate agents. Track rent per tenant, verify payments with bank alerts, auto-remind on WhatsApp, issue receipts.',
 };
@@ -65,13 +65,13 @@ function Hero() {
             CashTraka for Landlords
           </span>
           <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-            Collect rent on time. Know who&apos;s behind. Stop chasing.
+            Know exactly who paid rent, who&apos;s late, and who needs a reminder.
           </h1>
           <p className="mt-4 text-lg text-slate-600 md:text-xl">
-            Built for Nigerian landlords, property managers and estate agents —
-            from one-flat landlords to multi-estate portfolios. Track every
-            tenant, every unit, every cycle. Auto-remind on WhatsApp. Verify
-            payments against your bank alert.
+            Whether you own one flat or manage an entire estate, CashTraka
+            tracks every tenant, every unit, every rent cycle. Reminders go
+            out on WhatsApp. Payments get verified against your bank alert.
+            Receipts send themselves.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/signup?type=property_manager" className="btn-primary">
@@ -134,31 +134,31 @@ function Problem() {
   const pains = [
     {
       icon: AlertTriangle,
-      title: 'Tenants send screenshots instead of paying',
-      body: 'Fake Alert. You only find out later that the money never entered your account. By then the month is gone.',
+      title: 'Tenants send screenshots instead of real payments',
+      body: 'Fake alert. You find out a week later the money never hit your account. By then the month is gone and so is your leverage.',
     },
     {
       icon: Clock3,
-      title: 'You forget who\'s due, who\'s behind',
-      body: 'With ten tenants across three properties, rent dates blur. You end up calling around asking "did you pay?" every month.',
+      title: 'You can\'t remember who\'s due and who\'s behind',
+      body: 'Ten tenants across three properties. Rent dates blur together. You end up calling around asking "did you pay?" every single month.',
     },
     {
       icon: FileText,
       title: 'Receipts and ledgers by hand',
-      body: 'Handwritten receipt books, WhatsApp screenshots, scattered notebooks — no clean history when a dispute comes up.',
+      body: 'Handwritten receipt books, WhatsApp screenshots, scattered notebooks. No clean history when a dispute comes up.',
     },
     {
       icon: BarChart3,
-      title: 'No idea what your real collection rate is',
-      body: 'Is this month a good month or bad? You don\'t actually know. You just feel it in your bank account.',
+      title: 'No idea if this month is good or bad',
+      body: 'Is your collection rate 60% or 90%? You don\'t know. You just feel it when your bank balance looks low.',
     },
   ];
   return (
     <Section
       id="problem"
       eyebrow="The problem"
-      title="Managing rent on paper and WhatsApp quietly costs you money"
-      subtitle="It's not that you can't track rent. It's that calls, chats and notebooks can't show you what's really happening across your properties."
+      title="Paper, WhatsApp, and memory are quietly costing you rent"
+      subtitle="You can track rent. The problem is calls, chats, and notebooks can't show you what's actually happening across your properties."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -184,22 +184,22 @@ function FeatureGrid() {
     {
       icon: Building2,
       title: 'Every property, every tenant',
-      body: 'Unlimited properties and tenants. Each has its own ledger — who lives there, what they pay, when rent is due.',
+      body: 'Unlimited properties and tenants. Each has its own ledger: who lives there, what they pay, when rent is due.',
     },
     {
       icon: BarChart3,
       title: 'Rent tracker with collection-rate KPI',
-      body: 'One page: expected collection, actual collection, outstanding — across every property you manage.',
+      body: 'One page: expected collection, actual collection, outstanding, across every property you manage.',
     },
     {
       icon: MessageCircle,
-      title: 'Auto WhatsApp rent reminders',
-      body: 'Set an auto-reminder per tenant. CashTraka surfaces it when due — one tap opens WhatsApp with a polite prefilled reminder.',
+      title: 'WhatsApp rent reminders on autopilot',
+      body: 'Set a reminder once per tenant. When rent is due, CashTraka surfaces it. One tap opens WhatsApp with a polite, prefilled message.',
     },
     {
       icon: Shield,
-      title: 'Bank-alert rent verification',
-      body: 'Paste your bank credit alert. If amount and sender match, rent is auto-confirmed, receipt generated, ledger updated. Fake alerts don\'t get past.',
+      title: 'Verify rent with your bank alert',
+      body: 'Paste your bank credit alert. If the amount and sender match, rent is confirmed, receipt generated, and ledger updated instantly. Fakes don\'t get past.',
     },
     {
       icon: Receipt,
@@ -214,7 +214,7 @@ function FeatureGrid() {
     {
       icon: Home,
       title: 'Expenses & net profit per property',
-      body: 'Log repairs, agency fees, service charge. See net profit per property — not just gross rent.',
+      body: 'Log repairs, agency fees, service charge. See net profit per property, not just gross rent.',
     },
     {
       icon: FileText,
@@ -228,8 +228,8 @@ function FeatureGrid() {
       id="features"
       tone="muted"
       eyebrow="What's inside"
-      title="Everything you need to run rent like a real operation"
-      subtitle="Whether you manage one flat or a portfolio of estates."
+      title="Run your rent collection like a proper business"
+      subtitle="One flat or fifty units. CashTraka scales with your portfolio."
     >
       <Stagger step={80} from="up" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {features.map((f) => (
@@ -285,8 +285,8 @@ function Pricing() {
       id="pricing"
       tone="muted"
       eyebrow="Pricing"
-      title="Simple pricing that pays for itself"
-      subtitle="One verified rent payment or one overdue tenant you catch saves you more than a year of CashTraka."
+      title="One caught late payment pays for a whole year"
+      subtitle="Verify one fake alert or collect one overdue rent and CashTraka has already more than paid for itself."
     >
       <Reveal>
         <div className="mx-auto max-w-3xl">
@@ -301,7 +301,7 @@ function FAQ() {
   const items = [
     {
       q: 'How does CashTraka help me track rent across multiple properties?',
-      a: "Each property has its own tenant roster and rent ledger. A single 'Rent Tracker' page shows expected collection, actual collection, and who's behind — across every property.",
+      a: "Each property has its own tenant roster and rent ledger. A single 'Rent Tracker' page shows expected collection, actual collection, and who's behind, across every property.",
     },
     {
       q: 'How do the rent reminders work?',
@@ -313,11 +313,11 @@ function FAQ() {
     },
     {
       q: "Do tenants need to install anything?",
-      a: 'No. Tenants receive everything on WhatsApp — reminders, payment links, receipts — with no app, no account, no friction.',
+      a: 'No. Tenants receive everything on WhatsApp: reminders, payment links, receipts. No app, no account, no friction.',
     },
     {
       q: 'Can I add caretakers or agents to help manage?',
-      a: 'Yes. Add your team, assign roles, assign inspection and maintenance tasks. Everyone sees what they need — nothing more.',
+      a: 'Yes. Add your team, assign roles, assign inspection and maintenance tasks. Everyone sees what they need, nothing more.',
     },
   ];
   return (
@@ -347,9 +347,9 @@ function FinalCTA() {
             <div aria-hidden className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-brand-300/30 blur-3xl animate-slow-spin" style={{ animationDuration: '32s', animationDirection: 'reverse' }} />
             <div className="relative">
               <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-                Stop chasing. Start collecting on time.
+                Stop calling tenants. Start collecting automatically.
               </h2>
-              <p className="mt-3 text-lg text-white/90">Free to start. Landlord plan at ₦8,500/month.</p>
+              <p className="mt-3 text-lg text-white/90">Free to start. Paid plans from ₦3,000/month.</p>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
                 <Link href="/signup?type=property_manager" className="btn inline-flex bg-white text-success-700 shadow-lg hover:bg-success-50">
                   <span className="font-bold">Start free</span>

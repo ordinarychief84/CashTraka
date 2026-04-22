@@ -31,7 +31,7 @@ export default function SignupPage({
     ? 'Track rent across every property and tenant in minutes.'
     : hinted === 'seller'
       ? 'Track sales, debts, invoices and customers in minutes.'
-      : 'Pick the solution that matches what you do — we\'ll tailor the rest.';
+      : 'Pick the solution that matches what you do. We\'ll tailor the rest.';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">

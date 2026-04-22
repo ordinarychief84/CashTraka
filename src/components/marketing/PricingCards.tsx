@@ -27,18 +27,19 @@ import {
 
 const STARTER_FEATURES: string[] = [
   'Unlimited payments, debts & customers',
-  'Bank-alert payment verification',
-  'Payment links — collect online via Paystack',
-  'Promise to Pay — let customers commit to payment dates',
-  'Auto-debit installment plans (recurring collections)',
-  'Smart Collection Queue — prioritized follow-ups',
+  'Bank alert payment verification',
+  'Payment links via Paystack',
+  'Promise to Pay commitments',
+  'Auto debit installment plans',
+  'Smart Collection Queue',
   'Professional invoices & auto receipts',
-  'WhatsApp reminders & follow-ups',
-  'Product catalog + live inventory',
-  'Expenses & real profit reports',
-  'Team management (up to 5 members)',
+  'WhatsApp reminders & follow ups',
+  'Product catalog with live inventory',
+  'Expense tracking & P&L reports',
+  'Team management, attendance & payroll',
+  'Property & tenant management (landlords)',
   'Daily business pulse email',
-  'CSV export',
+  'CSV export & email delivery',
 ];
 
 export function PricingCards() {
@@ -168,7 +169,7 @@ export function PricingCards() {
 
       {/* Trust line */}
       <p className="mt-8 text-center text-xs text-slate-500">
-        All plans include WhatsApp support · One plan, full features · Switch frequency anytime
+        All plans include WhatsApp support · Full features on every plan · Switch billing cycle anytime
       </p>
     </div>
   );

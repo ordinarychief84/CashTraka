@@ -4,7 +4,7 @@ import { Navbar } from '@/components/marketing/Navbar';
 import { Footer } from '@/components/marketing/Footer';
 import { formatPriceNaira, PLAN_PRICING } from '@/lib/billing/pricing';
 
-export const metadata = { title: 'Pricing — CashTraka' };
+export const metadata = { title: 'Pricing | CashTraka' };
 
 export default function PricingPage() {
   const quarterly = PLAN_PRICING.starter_quarterly;
@@ -20,10 +20,10 @@ export default function PricingPage() {
           <div className="container-app">
             <div className="mx-auto max-w-2xl text-center">
               <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-                Simple, transparent pricing
+                One plan. Full access. No surprises.
               </h1>
               <p className="mt-4 text-lg text-slate-600">
-                One plan, full access, no feature gates. Pick the billing cycle that works for you. Start with a 7-day free trial — no card required.
+                Pick the billing cycle that works for you. Every paid plan unlocks everything. Start with a 7-day free trial, no card required.
               </p>
             </div>
           </div>
@@ -72,7 +72,7 @@ export default function PricingPage() {
                     <span className="text-sm text-slate-600">/month</span>
                   </div>
                   <p className="mt-1 text-xs text-brand-600 font-semibold">
-                    Save {biannual.savingsPercent}% — {formatPriceNaira(biannual.amountKobo)} every 6 months
+                    Save {biannual.savingsPercent}% · {formatPriceNaira(biannual.amountKobo)} every 6 months
                   </p>
                   <Link
                     href="/signup?plan=starter_biannually"
@@ -96,7 +96,7 @@ export default function PricingPage() {
                     <span className="text-sm text-slate-600">/month</span>
                   </div>
                   <p className="mt-1 text-xs text-brand-600 font-semibold">
-                    Save {yearly.savingsPercent}% — {formatPriceNaira(yearly.amountKobo)}/year
+                    Save {yearly.savingsPercent}% · {formatPriceNaira(yearly.amountKobo)}/year
                   </p>
                   <Link
                     href="/signup?plan=starter_yearly"
@@ -110,36 +110,59 @@ export default function PricingPage() {
                 </div>
               </div>
 
-              {/* Feature list — shared across all frequencies */}
+              {/* Starter features */}
               <div className="mt-10 rounded-2xl border border-border bg-slate-50 p-8">
                 <h3 className="text-lg font-bold text-ink text-center">
-                  Every plan includes full access
+                  Everything you get on Starter
                 </h3>
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <Feature>Unlimited customers</Feature>
-                  <Feature>Unlimited payments</Feature>
-                  <Feature>Payment requests (PayLink)</Feature>
-                  <Feature>WhatsApp reminders</Feature>
-                  <Feature>Email notifications</Feature>
-                  <Feature>Advanced reports &amp; export</Feature>
-                  <Feature>Customer segments</Feature>
-                  <Feature>Scheduled follow-ups</Feature>
-                  <Feature>Invoices &amp; receipts</Feature>
-                  <Feature>Collection score</Feature>
-                  <Feature>Property &amp; tenant tracking</Feature>
-                  <Feature>Team members &amp; roles</Feature>
+                  <Feature>Unlimited customers, payments & debts</Feature>
+                  <Feature>Bank alert payment verification</Feature>
+                  <Feature>Payment links via Paystack</Feature>
+                  <Feature>Promise to Pay commitments</Feature>
+                  <Feature>Auto debit installment plans</Feature>
+                  <Feature>Smart Collection Queue</Feature>
+                  <Feature>Professional invoices & auto receipts</Feature>
+                  <Feature>WhatsApp reminders & follow ups</Feature>
+                  <Feature>Product catalog with live inventory</Feature>
+                  <Feature>Expense tracking (business & personal)</Feature>
+                  <Feature>Profit & Loss reports</Feature>
+                  <Feature>Team management, attendance & payroll</Feature>
+                  <Feature>Checklists & task assignments</Feature>
+                  <Feature>Customer behavior scores</Feature>
+                  <Feature>Collection score & priority ranking</Feature>
+                  <Feature>Property & tenant management</Feature>
+                  <Feature>Rent tracking with auto reminders</Feature>
+                  <Feature>Daily business pulse email</Feature>
+                  <Feature>CSV export & email delivery</Feature>
+                  <Feature>Custom branding on receipts</Feature>
                 </div>
               </div>
 
-              {/* Free tier note */}
-              <div className="mt-6 rounded-xl border border-border bg-white p-6 text-center">
-                <p className="text-sm text-slate-600">
-                  <span className="font-semibold text-ink">Just getting started?</span>{' '}
-                  Use CashTraka free with up to 10 customers and core features. No trial, no expiry.{' '}
-                  <Link href="/signup?plan=free" className="text-brand-600 font-semibold hover:underline">
+              {/* Free tier comparison */}
+              <div className="mt-6 rounded-2xl border border-border bg-white p-8">
+                <h3 className="text-lg font-bold text-ink text-center">
+                  Free plan
+                </h3>
+                <p className="mt-2 text-center text-sm text-slate-600">
+                  Get started with no card, no trial, no expiry. Upgrade when you are ready.
+                </p>
+                <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <Feature>Up to 50 payments per month</Feature>
+                  <Feature>Up to 20 active debts</Feature>
+                  <Feature>Up to 50 customers</Feature>
+                  <Feature>Bank alert verification</Feature>
+                  <Feature>Product catalog & inventory</Feature>
+                  <Feature>Expense tracking</Feature>
+                  <Feature>Basic reports & CSV export</Feature>
+                  <Feature>1 property, 5 tenants (landlords)</Feature>
+                  <Feature>1 team member</Feature>
+                </div>
+                <div className="mt-6 text-center">
+                  <Link href="/signup?plan=free" className="btn-secondary inline-flex">
                     Sign up free
                   </Link>
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -157,7 +180,7 @@ export default function PricingPage() {
                 />
                 <FAQItem
                   question="What's the difference between the billing cycles?"
-                  answer="All three plans give you the exact same features — full access to everything. The only difference is how often you're billed and how much you save. Yearly billing saves you 25% compared to quarterly."
+                  answer="All three plans give you the exact same features, full access to everything. The only difference is how often you're billed and how much you save. Yearly billing saves you 25% compared to quarterly."
                 />
                 <FAQItem
                   question="Can I change my billing cycle anytime?"
@@ -189,10 +212,10 @@ export default function PricingPage() {
           <div className="container-app">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-2xl font-bold text-ink">
-                Ready to stop guessing and start collecting?
+                One recovered debt pays for an entire quarter
               </h2>
               <p className="mt-3 text-slate-600">
-                Join thousands of Nigerian businesses that recovered lost money with CashTraka.
+                Nigerian businesses are recovering money they thought was lost. You can too.
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Link href="/signup" className="btn-primary">

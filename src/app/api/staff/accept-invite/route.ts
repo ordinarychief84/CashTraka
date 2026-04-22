@@ -95,8 +95,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Token is required' }, { status: 400 });
   }
 
+  const tokenHash = hashToken(token);
   const staff = await prisma.adminStaff.findUnique({
-    where: { inviteToken: token },
+    where: { inviteToken: tokenHash },
     select: { name: true, email: true, adminRole: true, status: true, inviteExpiresAt: true },
   });
 

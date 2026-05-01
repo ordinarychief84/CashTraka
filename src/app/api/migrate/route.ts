@@ -119,6 +119,54 @@ export async function GET(req: NextRequest) {
   await addCol('FraudReport', 'resolution', 'TEXT', 'NULL');
   await addCol('FraudReport', 'resolvedAt', 'TIMESTAMP(3)', 'NULL');
 
+  // ===== Receipt Engine + Sell + NRS Invoice extensions (2026-05-01) =====
+  // Receipt Engine
+  await addCol('User', 'receiptPrefix', 'TEXT', "'CT'");
+  await addCol('User', 'slug', 'TEXT', 'NULL');
+  await addCol('User', 'catalogEnabled', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'catalogTagline', 'TEXT', 'NULL');
+
+  await addCol('Receipt', 'balanceRemaining', 'INTEGER', 'NULL');
+  await addCol('Receipt', 'source', 'TEXT NOT NULL', "'MANUAL'");
+
+  // Sell (catalog) — extends Product
+  await addCol('Product', 'images', 'TEXT[] NOT NULL', "'{}'");
+  await addCol('Product', 'sku', 'TEXT', 'NULL');
+  await addCol('Product', 'isPublished', 'BOOLEAN NOT NULL', 'false');
+  await addCol('Product', 'catalogStatus', 'TEXT NOT NULL', "'AVAILABLE'");
+
+  // Invoices (NRS-ready)
+  await addCol('Invoice', 'paymentId', 'TEXT', 'NULL');
+  await addCol('Invoice', 'nrsSubmissionId', 'TEXT', 'NULL');
+  await addCol('Invoice', 'nrsStatus', 'TEXT', 'NULL');
+  await addCol('Invoice', 'nrsLastError', 'TEXT', 'NULL');
+  await addCol('Invoice', 'nrsRetryCount', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'nrsSubmittedAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Invoice', 'nrsAcceptedAt', 'TIMESTAMP(3)', 'NULL');
+
+  // CatalogEvent table — public storefront activity log
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "CatalogEvent" (
+        "id"            TEXT        NOT NULL,
+        "userId"        TEXT        NOT NULL,
+        "productId"     TEXT,
+        "type"          TEXT        NOT NULL,
+        "ipHash"        TEXT,
+        "userAgent"     TEXT,
+        "referrer"      TEXT,
+        "customerName"  TEXT,
+        "customerPhone" TEXT,
+        "note"          TEXT,
+        "createdAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CatalogEvent_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: CatalogEvent table');
+  } catch (e: any) {
+    results.push('FAIL: CatalogEvent table - ' + e.message?.substring(0, 100));
+  }
+
   // ===== Unique indexes that might be missing =====
   try {
     await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key" ON "Invoice"("publicToken") WHERE "publicToken" IS NOT NULL`);
@@ -132,6 +180,49 @@ export async function GET(req: NextRequest) {
     results.push('OK: StaffMember.inviteToken unique index');
   } catch (e: any) {
     results.push('INDEX: ' + e.message?.substring(0, 80));
+  }
+
+  // Indexes + FKs for the new schema bits
+  const newIndexes: Array<[string, string]> = [
+    ['User_slug_key', `CREATE UNIQUE INDEX IF NOT EXISTS "User_slug_key" ON "User"("slug") WHERE "slug" IS NOT NULL`],
+    ['Product_userId_isPublished_idx', `CREATE INDEX IF NOT EXISTS "Product_userId_isPublished_idx" ON "Product"("userId", "isPublished")`],
+    ['Receipt_userId_source_idx', `CREATE INDEX IF NOT EXISTS "Receipt_userId_source_idx" ON "Receipt"("userId", "source")`],
+    ['Invoice_paymentId_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_paymentId_key" ON "Invoice"("paymentId") WHERE "paymentId" IS NOT NULL`],
+    ['CatalogEvent_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_userId_createdAt_idx" ON "CatalogEvent"("userId", "createdAt")`],
+    ['CatalogEvent_productId_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_productId_idx" ON "CatalogEvent"("productId")`],
+    ['CatalogEvent_userId_type_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_userId_type_idx" ON "CatalogEvent"("userId", "type")`],
+  ];
+  for (const [name, sql] of newIndexes) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name);
+    } catch (e: any) {
+      results.push('INDEX FAIL: ' + name + ' - ' + e.message?.substring(0, 80));
+    }
+  }
+
+  // CatalogEvent foreign keys (skipped if already present — no IF NOT EXISTS for FK in Postgres,
+  // so we wrap in a conditional DO block).
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'CatalogEvent_userId_fkey'
+        ) THEN
+          ALTER TABLE "CatalogEvent" ADD CONSTRAINT "CatalogEvent_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint WHERE conname = 'CatalogEvent_productId_fkey'
+        ) THEN
+          ALTER TABLE "CatalogEvent" ADD CONSTRAINT "CatalogEvent_productId_fkey"
+            FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('OK: CatalogEvent foreign keys');
+  } catch (e: any) {
+    results.push('FK FAIL: CatalogEvent - ' + e.message?.substring(0, 100));
   }
 
   // Final test: try creating and deleting a user

@@ -1,18 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { User, Shield, CreditCard, Palette, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { User, Shield, CreditCard, Palette, AlertTriangle, Store } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AccountTab } from './AccountTab';
 import { BillingTab } from './BillingTab';
 import { AppearanceTab } from './AppearanceTab';
 import { DangerZoneTab } from './DangerZoneTab';
+import { StorefrontTab } from './StorefrontTab';
 
-type Tab = 'profile' | 'account' | 'billing' | 'appearance' | 'danger';
+type Tab = 'profile' | 'account' | 'storefront' | 'billing' | 'appearance' | 'danger';
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'account', label: 'Account', icon: Shield },
+  { id: 'storefront', label: 'Storefront', icon: Store },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
@@ -22,6 +25,7 @@ type Props = {
   initialProfile: {
     name: string;
     businessName: string;
+    businessAddress: string;
     whatsappNumber: string;
     receiptFooter: string;
     businessType: string;
@@ -32,11 +36,31 @@ type Props = {
     bankAccountNumber: string;
     bankAccountName: string;
   };
+  initialStorefront: {
+    slug: string;
+    catalogEnabled: boolean;
+    catalogTagline: string;
+    receiptPrefix: string;
+    appUrl: string;
+  };
   businessType: string;
 };
 
-export function SettingsShell({ initialProfile, initialAccount, businessType }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+export function SettingsShell({
+  initialProfile,
+  initialAccount,
+  initialStorefront,
+  businessType,
+}: Props) {
+  const search = useSearchParams();
+  const initialTab = ((search.get('tab') as Tab) || 'profile') as Tab;
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
+  // Update if the URL changes externally (e.g. clicking nav links)
+  useEffect(() => {
+    const t = (search.get('tab') as Tab) || 'profile';
+    setActiveTab(t);
+  }, [search]);
 
   return (
     <div>
@@ -80,6 +104,9 @@ export function SettingsShell({ initialProfile, initialAccount, businessType }: 
           )}
           {activeTab === 'account' && (
             <AccountTab initial={initialAccount} businessType={businessType} />
+          )}
+          {activeTab === 'storefront' && (
+            <StorefrontTab initial={initialStorefront} />
           )}
           {activeTab === 'billing' && (
             <BillingTab />

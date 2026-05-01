@@ -10,11 +10,16 @@ export const dynamic = 'force-dynamic';
 type Props = { params: { id: string } };
 
 export default async function ReceiptPage({ params }: Props) {
+  // Resolve `params.id` as either a Receipt id (preferred — includes
+  // balanceRemaining + persisted receiptNumber) or a Payment id (legacy URLs).
+  const receipt = await prisma.receipt.findUnique({ where: { id: params.id } });
+  const paymentId = receipt?.paymentId ?? params.id;
+
   const payment = await prisma.payment.findUnique({
-    where: { id: params.id },
+    where: { id: paymentId },
     include: {
       user: {
-        select: { name: true, businessName: true, whatsappNumber: true, receiptFooter: true },
+        select: { name: true, businessName: true, whatsappNumber: true, receiptFooter: true, logoUrl: true },
       },
       items: true,
     },
@@ -27,6 +32,9 @@ export default async function ReceiptPage({ params }: Props) {
     (s, it) => s + it.unitPrice * it.quantity,
     0,
   );
+  const balanceRemaining = receipt?.balanceRemaining ?? null;
+  const displayReceiptNumber =
+    receipt?.receiptNumber ?? payment.id.slice(-8).toUpperCase();
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">
@@ -59,7 +67,7 @@ export default async function ReceiptPage({ params }: Props) {
           <div className="space-y-2 border-b border-border px-6 py-5 text-sm">
             <Row label="Issued to" value={payment.customerNameSnapshot} />
             <Row label="Date" value={formatDate(payment.createdAt)} />
-            <Row label="Receipt #" value={payment.id.slice(-8).toUpperCase()} mono />
+            <Row label="Receipt #" value={displayReceiptNumber} mono />
           </div>
 
           {/* Items */}
@@ -100,12 +108,29 @@ export default async function ReceiptPage({ params }: Props) {
                 <span className="num">{formatNaira(itemsTotal)}</span>
               </div>
             )}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Total
-              </span>
-              <span className="num text-2xl text-ink">{formatNaira(payment.amount)}</span>
-            </div>
+            {balanceRemaining && balanceRemaining > 0 ? (
+              <>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium text-slate-600">Amount paid</span>
+                  <span className="num font-semibold text-ink">{formatNaira(payment.amount)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
+                  <span className="text-sm font-semibold uppercase tracking-wide text-amber-700">
+                    Balance remaining
+                  </span>
+                  <span className="num text-xl font-bold text-amber-700">
+                    {formatNaira(balanceRemaining)}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  Total
+                </span>
+                <span className="num text-2xl text-ink">{formatNaira(payment.amount)}</span>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -127,7 +152,7 @@ export default async function ReceiptPage({ params }: Props) {
         <ReceiptActions
           phone={payment.phoneSnapshot}
           customerName={payment.customerNameSnapshot}
-          receiptId={payment.id}
+          receiptId={receipt?.id ?? payment.id}
           amount={payment.amount}
           businessName={business}
         />

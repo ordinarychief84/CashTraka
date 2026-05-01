@@ -101,7 +101,7 @@ export const paymentService = {
     let receiptNumber: string | null = null;
     if (payment.status === 'PAID') {
       try {
-        const receipt = await receiptService.ensureForPayment(userId, payment.id);
+        const receipt = await receiptService.ensureForPayment(userId, payment.id, { source: 'MANUAL' });
         receiptId = receipt.id;
         receiptNumber = receipt.receiptNumber;
       } catch {

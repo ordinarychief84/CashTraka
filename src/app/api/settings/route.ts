@@ -41,6 +41,7 @@ export async function POST(req: Request) {
     businessAddress,
     whatsappNumber,
     receiptFooter,
+    receiptPrefix,
     bankName,
     bankAccountNumber,
     bankAccountName,
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
   if (businessAddress !== undefined) data.businessAddress = businessAddress?.trim() || null;
   if (whatsappNumber !== undefined) data.whatsappNumber = whatsappNumber?.trim() || null;
   if (receiptFooter !== undefined) data.receiptFooter = receiptFooter?.trim() || null;
+  if (receiptPrefix !== undefined) data.receiptPrefix = (receiptPrefix?.trim() || 'CT').toUpperCase();
   if (bankName !== undefined) data.bankName = bankName?.trim() || null;
   if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
   if (bankAccountName !== undefined) data.bankAccountName = bankAccountName?.trim() || null;

@@ -115,7 +115,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   let receiptNumber: string | null = null;
   if (autoReceiptPaymentId) {
     const receipt = await receiptService
-      .ensureForPayment(user.id, autoReceiptPaymentId)
+      .ensureForPayment(user.id, autoReceiptPaymentId, { source: 'DEBT' })
       .catch(() => null);
     receiptId = receipt?.id ?? null;
     receiptNumber = receipt?.receiptNumber ?? null;

@@ -134,11 +134,16 @@ export type ReceiptData = {
   whatsappNumber?: string | null;
   receiptFooter?: string | null;
   receiptId: string;
+  /// Optional human-readable receipt number (e.g., CT-00042). Falls back to last-8 of receiptId.
+  receiptNumber?: string | null;
   customerName: string;
   customerPhone: string;
   createdAt: Date;
   status: 'PAID' | 'PENDING' | string;
   amount: number;
+  /// When > 0, the receipt represents a partial payment and the PDF will
+  /// render "Amount Paid" + "Balance Remaining" rows.
+  balanceRemaining?: number | null;
   items: { description: string; unitPrice: number; quantity: number }[];
 };
 
@@ -193,7 +198,7 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Receipt #</Text>
             <Text style={styles.kvValue}>
-              {data.receiptId.slice(-8).toUpperCase()}
+              {data.receiptNumber ?? data.receiptId.slice(-8).toUpperCase()}
             </Text>
           </View>
         </View>
@@ -226,10 +231,27 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
             <Text style={styles.kvValue}>{formatNaira(itemsTotal)}</Text>
           </View>
         )}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalAmount}>{formatNaira(data.amount)}</Text>
-        </View>
+        {data.balanceRemaining && data.balanceRemaining > 0 ? (
+          <>
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>Amount paid</Text>
+              <Text style={styles.kvValue}>{formatNaira(data.amount)}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={[styles.totalLabel, { color: palette.owed600 }]}>
+                Balance remaining
+              </Text>
+              <Text style={[styles.totalAmount, { color: palette.owed600 }]}>
+                {formatNaira(data.balanceRemaining)}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalAmount}>{formatNaira(data.amount)}</Text>
+          </View>
+        )}
 
         {data.receiptFooter && (
           <View style={styles.footer}>

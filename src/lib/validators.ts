@@ -52,6 +52,15 @@ export const settingsSchema = z.object({
   businessAddress: z.string().trim().max(200).optional().or(z.literal('')),
   whatsappNumber: z.string().trim().max(30).optional().or(z.literal('')),
   receiptFooter: z.string().trim().max(200).optional().or(z.literal('')),
+  /** Per-business receipt prefix. A-Z + 0-9 only, 1-8 chars. Defaults to "CT". */
+  receiptPrefix: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .max(8)
+    .regex(/^[A-Z0-9]+$/, 'Use uppercase letters and numbers only')
+    .optional()
+    .or(z.literal('')),
   bankName: z.string().trim().max(60).optional().or(z.literal('')),
   bankAccountNumber: z.string().trim().max(20).optional().or(z.literal('')),
   bankAccountName: z.string().trim().max(100).optional().or(z.literal('')),

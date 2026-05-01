@@ -23,8 +23,8 @@ export const POST = (req: Request) =>
     if (!parsed.success) return validationFail(parsed.error);
 
     const receipt = parsed.data.paymentId
-      ? await receiptService.ensureForPayment(user.id, parsed.data.paymentId)
-      : await receiptService.ensureForDebt(user.id, parsed.data.debtId!);
+      ? await receiptService.ensureForPayment(user.id, parsed.data.paymentId, { source: 'MANUAL' })
+      : await receiptService.ensureForDebt(user.id, parsed.data.debtId!, { source: 'DEBT' });
 
     return ok({
       id: receipt.id,

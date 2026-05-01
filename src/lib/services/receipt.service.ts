@@ -22,10 +22,26 @@ type SourceRef =
   | { paymentId: string; debtId?: never }
   | { debtId: string; paymentId?: never };
 
+export type ReceiptSource =
+  | 'MANUAL'
+  | 'PAYSTACK'
+  | 'PROMISE'
+  | 'INSTALLMENT'
+  | 'DEBT'
+  | 'CATALOG';
+
 async function buildReceiptData(
   userId: string,
   src: SourceRef,
-): Promise<{ data: ReceiptData; customerId: string | null; amount: number; phone: string | null; customerName: string }> {
+  receiptNumber?: string | null,
+): Promise<{
+  data: ReceiptData;
+  customerId: string | null;
+  amount: number;
+  phone: string | null;
+  customerName: string;
+  balanceRemaining: number | null;
+}> {
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
@@ -45,6 +61,18 @@ async function buildReceiptData(
       include: { items: true },
     });
     if (!payment || payment.userId !== userId) throw Err.notFound('Payment not found');
+
+    // If this payment was the source of a Promise-to-Pay or Debt partial settlement,
+    // surface the remaining balance so the receipt can show it.
+    let balanceRemaining: number | null = null;
+    const promisePayment = await prisma.promisePayment.findFirst({
+      where: { providerTransactionId: payment.providerTransactionId ?? '__never__' },
+      include: { promiseToPay: { select: { remainingAmount: true } } },
+    }).catch(() => null);
+    if (promisePayment?.promiseToPay && promisePayment.promiseToPay.remainingAmount > 0) {
+      balanceRemaining = promisePayment.promiseToPay.remainingAmount;
+    }
+
     return {
       data: {
         business: user.businessName || user.name || 'Seller',
@@ -52,11 +80,13 @@ async function buildReceiptData(
         whatsappNumber: user.whatsappNumber ? displayPhone(user.whatsappNumber) : null,
         receiptFooter: user.receiptFooter,
         receiptId: payment.id,
+        receiptNumber: receiptNumber ?? null,
         customerName: payment.customerNameSnapshot,
         customerPhone: displayPhone(payment.phoneSnapshot),
         createdAt: payment.createdAt,
         status: payment.status,
         amount: payment.amount,
+        balanceRemaining,
         items: payment.items.map((i) => ({
           description: i.description,
           unitPrice: i.unitPrice,
@@ -67,12 +97,15 @@ async function buildReceiptData(
       amount: payment.amount,
       phone: payment.phoneSnapshot,
       customerName: payment.customerNameSnapshot,
+      balanceRemaining,
     };
   }
 
   if ('debtId' in src && src.debtId) {
     const debt = await prisma.debt.findUnique({ where: { id: src.debtId } });
     if (!debt || debt.userId !== userId) throw Err.notFound('Debt not found');
+    const balanceRemaining =
+      debt.amountOwed > debt.amountPaid ? debt.amountOwed - debt.amountPaid : null;
     return {
       data: {
         business: user.businessName || user.name || 'Seller',
@@ -80,17 +113,20 @@ async function buildReceiptData(
         whatsappNumber: user.whatsappNumber ? displayPhone(user.whatsappNumber) : null,
         receiptFooter: user.receiptFooter,
         receiptId: debt.id,
+        receiptNumber: receiptNumber ?? null,
         customerName: debt.customerNameSnapshot,
         customerPhone: displayPhone(debt.phoneSnapshot),
         createdAt: debt.updatedAt,
         status: 'PAID',
-        amount: debt.amountOwed,
+        amount: debt.amountPaid > 0 ? debt.amountPaid : debt.amountOwed,
+        balanceRemaining,
         items: [],
       },
       customerId: debt.customerId,
-      amount: debt.amountOwed,
+      amount: debt.amountPaid > 0 ? debt.amountPaid : debt.amountOwed,
       phone: debt.phoneSnapshot,
       customerName: debt.customerNameSnapshot,
+      balanceRemaining,
     };
   }
 
@@ -111,6 +147,7 @@ export const receiptService = {
   async generate(
     userId: string,
     src: SourceRef,
+    opts?: { source?: ReceiptSource; balanceRemaining?: number | null },
   ): Promise<{ id: string; receiptNumber: string; pdfUrl: string | null; status: string }> {
     const existing =
       'paymentId' in src && src.paymentId
@@ -120,9 +157,16 @@ export const receiptService = {
           : null;
     if (existing) return existing;
 
-    const { data, customerId } = await buildReceiptData(userId, src);
-    const buffer = await renderPdfBuffer(data);
     const receiptNumber = await nextReceiptNumber(userId);
+    const built = await buildReceiptData(userId, src, receiptNumber);
+    const { customerId } = built;
+    // Caller-supplied balance (e.g., from confirmInstallmentCharge) wins over derived.
+    const effectiveBalance =
+      typeof opts?.balanceRemaining === 'number'
+        ? opts.balanceRemaining
+        : built.balanceRemaining;
+    const data: ReceiptData = { ...built.data, balanceRemaining: effectiveBalance };
+    const buffer = await renderPdfBuffer(data);
 
     let pdfUrl: string | null = null;
     try {
@@ -144,6 +188,8 @@ export const receiptService = {
       receiptNumber,
       pdfUrl,
       status: RECEIPT_STATUS.GENERATED,
+      balanceRemaining: effectiveBalance && effectiveBalance > 0 ? effectiveBalance : null,
+      source: opts?.source ?? 'MANUAL',
     });
 
     // Mark the source record as receipt-sent (for payments — existing field).
@@ -157,13 +203,21 @@ export const receiptService = {
   },
 
   /** Auto-trigger used by the verify flow. Idempotent. */
-  async ensureForPayment(userId: string, paymentId: string) {
-    return this.generate(userId, { paymentId });
+  async ensureForPayment(
+    userId: string,
+    paymentId: string,
+    opts?: { source?: ReceiptSource; balanceRemaining?: number | null },
+  ) {
+    return this.generate(userId, { paymentId }, opts);
   },
 
   /** Auto-trigger used by debtService.markPaid. Idempotent. */
-  async ensureForDebt(userId: string, debtId: string) {
-    return this.generate(userId, { debtId });
+  async ensureForDebt(
+    userId: string,
+    debtId: string,
+    opts?: { source?: ReceiptSource; balanceRemaining?: number | null },
+  ) {
+    return this.generate(userId, { debtId }, opts ?? { source: 'DEBT' });
   },
 
   /**
@@ -178,7 +232,11 @@ export const receiptService = {
       const src: SourceRef = receipt.paymentId
         ? { paymentId: receipt.paymentId }
         : { debtId: receipt.debtId! };
-      const { data } = await buildReceiptData(userId, src);
+      const built = await buildReceiptData(userId, src, receipt.receiptNumber);
+      const data: ReceiptData = {
+        ...built.data,
+        balanceRemaining: receipt.balanceRemaining ?? built.balanceRemaining,
+      };
       const buffer = await renderPdfBuffer(data);
       return { buffer, filename: `${receipt.receiptNumber}.pdf` };
     }
@@ -204,7 +262,11 @@ export const receiptService = {
       const src: SourceRef = receipt.paymentId
         ? { paymentId: receipt.paymentId }
         : { debtId: receipt.debtId! };
-      const { data } = await buildReceiptData(receipt.userId, src);
+      const built = await buildReceiptData(receipt.userId, src, receipt.receiptNumber);
+      const data: ReceiptData = {
+        ...built.data,
+        balanceRemaining: receipt.balanceRemaining ?? built.balanceRemaining,
+      };
       const buffer = await renderPdfBuffer(data);
       return { buffer, filename: `${receipt.receiptNumber}.pdf` };
     }
@@ -231,7 +293,12 @@ export const receiptService = {
     const src: SourceRef = receipt.paymentId
       ? { paymentId: receipt.paymentId }
       : { debtId: receipt.debtId! };
-    const { data, customerName } = await buildReceiptData(userId, src);
+    const built = await buildReceiptData(userId, src, receipt.receiptNumber);
+    const data: ReceiptData = {
+      ...built.data,
+      balanceRemaining: receipt.balanceRemaining ?? built.balanceRemaining,
+    };
+    const customerName = built.customerName;
     const buffer = await renderPdfBuffer(data);
     const pdfBase64 = buffer.toString('base64');
 

@@ -173,9 +173,13 @@ export const paymentConfirmationService = {
       },
     });
 
-    // Auto-generate receipt (non-blocking)
+    // Auto-generate receipt (non-blocking). Pass through the remaining balance
+    // so partial payments render correctly on the public receipt + PDF.
     try {
-      const receipt = await receiptService.ensureForPayment(promise.userId, payment.id);
+      const receipt = await receiptService.ensureForPayment(promise.userId, payment.id, {
+        source: 'PROMISE',
+        balanceRemaining: newRemaining > 0 ? newRemaining : null,
+      });
       // Send receipt email to customer if we have their email
       if (input.customerEmail && receipt) {
         const user = await prisma.user.findUnique({
@@ -283,7 +287,7 @@ export const paymentConfirmationService = {
         select: { id: true },
       });
       if (paymentRecord) {
-        const receipt = await receiptService.ensureForPayment(paymentRequest.userId, paymentRecord.id);
+        const receipt = await receiptService.ensureForPayment(paymentRequest.userId, paymentRecord.id, { source: 'PAYSTACK' });
         // Send receipt email to customer if we have their email
         if (input.customerEmail && receipt) {
           const user = await prisma.user.findUnique({
@@ -420,7 +424,7 @@ export const paymentConfirmationService = {
     });
 
     // ── Post-transaction: update installment plan ────────────
-    const { completed } = await installmentService.recordSuccessfulCharge(plan.id, confirmedAmount);
+    const { completed, remaining: planRemaining } = await installmentService.recordSuccessfulCharge(plan.id, confirmedAmount);
 
     // ── Notification ─────────────────────────────────────────
     await prisma.notification.create({
@@ -437,7 +441,10 @@ export const paymentConfirmationService = {
 
     // ── Receipt generation (non-blocking) ────────────────────
     try {
-      const receipt = await receiptService.ensureForPayment(plan.userId, payment.id);
+      const receipt = await receiptService.ensureForPayment(plan.userId, payment.id, {
+        source: 'INSTALLMENT',
+        balanceRemaining: planRemaining > 0 ? planRemaining : null,
+      });
 
       // Link receipt to the charge
       if (receipt) {

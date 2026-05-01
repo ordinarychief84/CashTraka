@@ -139,7 +139,7 @@ export const installmentService = {
   async recordSuccessfulCharge(
     planId: string,
     chargedAmount: number,
-  ): Promise<{ completed: boolean }> {
+  ): Promise<{ completed: boolean; remaining: number }> {
     const plan = await prisma.installmentPlan.findUnique({ where: { id: planId } });
     if (!plan) throw new Error(`INSTALLMENT: Plan ${planId} not found`);
 
@@ -168,7 +168,7 @@ export const installmentService = {
     console.log(`INSTALLMENT_CHARGED: Plan ${planId} charged=${chargedAmount} ` +
       `remaining=${newRemaining} completed=${isFinished ? 'YES' : 'NO'}`);
 
-    return { completed: isFinished };
+    return { completed: isFinished, remaining: newRemaining };
   },
 
   /**

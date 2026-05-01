@@ -26,6 +26,14 @@ export default async function SettingsPage() {
     bankAccountName: user.bankAccountName || '',
   };
 
+  const initialStorefront = {
+    slug: user.slug || '',
+    catalogEnabled: !!user.catalogEnabled,
+    catalogTagline: user.catalogTagline || '',
+    receiptPrefix: user.receiptPrefix || 'CT',
+    appUrl: process.env.APP_URL || '',
+  };
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -38,6 +46,7 @@ export default async function SettingsPage() {
         <SettingsShell
           initialProfile={initialProfile}
           initialAccount={initialAccount}
+          initialStorefront={initialStorefront}
           businessType={user.businessType || 'seller'}
         />
       </Suspense>

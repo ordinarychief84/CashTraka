@@ -83,7 +83,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   let receiptNumber: string | null = null;
   if (status === 'PAID' && payment.status !== 'PAID') {
     try {
-      const receipt = await receiptService.ensureForPayment(user.id, payment.id);
+      const receipt = await receiptService.ensureForPayment(user.id, payment.id, { source: 'MANUAL' });
       receiptId = receipt.id;
       receiptNumber = receipt.receiptNumber;
     } catch {

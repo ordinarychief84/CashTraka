@@ -1,0 +1,239 @@
+/**
+ * Catalog Service — public storefront read path + event logging.
+ *
+ * Public consumers (no auth):
+ *   - `getStore(slug)`   →  business header + published products
+ *   - `getProduct(slug, productId)` → single product detail
+ *   - `logOrderClick(...)` → records a CatalogEvent for analytics
+ *
+ * Per the plan: clicking "Order on WhatsApp" never creates a Payment row.
+ * The seller records payment manually when money lands → existing flow
+ * auto-generates the receipt.
+ */
+
+import { prisma } from '@/lib/prisma';
+import { Err } from '@/lib/errors';
+import { waLink, normalizeNigerianPhone } from '@/lib/whatsapp';
+import {
+  catalogOrderMessage,
+  hashClientIp,
+  productCatalogStatus,
+  sanitizePublicText,
+  CATALOG_LIMITS,
+} from '@/lib/catalog';
+
+export type PublicProduct = {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  sku: string | null;
+  images: string[];
+  status: 'AVAILABLE' | 'LOW_STOCK' | 'SOLD_OUT';
+};
+
+export type PublicStore = {
+  business: string;
+  tagline: string | null;
+  logoUrl: string | null;
+  whatsappNumber: string | null;
+  products: PublicProduct[];
+};
+
+function shapeProduct(p: {
+  id: string;
+  name: string;
+  price: number;
+  description: string | null;
+  sku: string | null;
+  images: string[];
+  trackStock: boolean;
+  stock: number;
+  lowStockAt: number;
+  catalogStatus: string;
+}): PublicProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    description: p.description,
+    sku: p.sku,
+    images: p.images,
+    status: productCatalogStatus(p),
+  };
+}
+
+export const catalogService = {
+  /**
+   * Look up a published storefront by slug.
+   * Returns null when the slug is unknown, catalog is disabled, or the user is suspended.
+   */
+  async getStore(slug: string): Promise<PublicStore | null> {
+    const user = await prisma.user.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        businessName: true,
+        catalogEnabled: true,
+        catalogTagline: true,
+        logoUrl: true,
+        whatsappNumber: true,
+        isSuspended: true,
+      },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) return null;
+
+    const products = await prisma.product.findMany({
+      where: { userId: user.id, isPublished: true, archived: false },
+      orderBy: [{ updatedAt: 'desc' }],
+      take: 200,
+    });
+
+    return {
+      business: user.businessName || user.name || 'Shop',
+      tagline: user.catalogTagline,
+      logoUrl: user.logoUrl,
+      whatsappNumber: user.whatsappNumber,
+      products: products.map(shapeProduct),
+    };
+  },
+
+  /** Fetch a single published product on a slug-mapped storefront. */
+  async getProduct(slug: string, productId: string): Promise<{
+    business: string;
+    whatsappNumber: string | null;
+    logoUrl: string | null;
+    product: PublicProduct;
+  } | null> {
+    const user = await prisma.user.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        businessName: true,
+        catalogEnabled: true,
+        logoUrl: true,
+        whatsappNumber: true,
+        isSuspended: true,
+      },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) return null;
+
+    const product = await prisma.product.findFirst({
+      where: { id: productId, userId: user.id, isPublished: true, archived: false },
+    });
+    if (!product) return null;
+
+    return {
+      business: user.businessName || user.name || 'Shop',
+      whatsappNumber: user.whatsappNumber,
+      logoUrl: user.logoUrl,
+      product: shapeProduct(product),
+    };
+  },
+
+  /**
+   * Log a "Order on WhatsApp" click. Returns a wa.me link the frontend can
+   * redirect to. No Payment row is created — the seller records payment
+   * manually after the chat resolves.
+   */
+  async logOrderClick(args: {
+    slug: string;
+    productId: string;
+    customerName?: string | null;
+    customerPhone?: string | null;
+    note?: string | null;
+    ipHash?: string | null;
+    userAgent?: string | null;
+    referrer?: string | null;
+  }): Promise<{ waLink: string }> {
+    const user = await prisma.user.findUnique({
+      where: { slug: args.slug },
+      select: {
+        id: true,
+        name: true,
+        businessName: true,
+        whatsappNumber: true,
+        catalogEnabled: true,
+        isSuspended: true,
+      },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) {
+      throw Err.notFound('Storefront not found');
+    }
+    if (!user.whatsappNumber) {
+      throw Err.validation('Seller has no WhatsApp number configured.');
+    }
+
+    const product = await prisma.product.findFirst({
+      where: { id: args.productId, userId: user.id, isPublished: true, archived: false },
+    });
+    if (!product) throw Err.notFound('Product not found');
+
+    const status = productCatalogStatus(product);
+    if (status === 'SOLD_OUT') {
+      throw Err.validation('This product is sold out.');
+    }
+
+    const customerName = sanitizePublicText(args.customerName, CATALOG_LIMITS.MAX_NAME);
+    const note = sanitizePublicText(args.note, CATALOG_LIMITS.MAX_NOTE);
+    const customerPhone = args.customerPhone
+      ? normalizeNigerianPhone(args.customerPhone)
+      : null;
+
+    await prisma.catalogEvent.create({
+      data: {
+        userId: user.id,
+        productId: product.id,
+        type: 'WHATSAPP_ORDER',
+        ipHash: args.ipHash ?? null,
+        userAgent: args.userAgent?.slice(0, 200) ?? null,
+        referrer: args.referrer?.slice(0, 500) ?? null,
+        customerName,
+        customerPhone,
+        note,
+      },
+    });
+
+    const business = user.businessName || user.name || 'Shop';
+    const message = catalogOrderMessage({
+      business,
+      productName: product.name,
+      price: product.price,
+      customerName,
+      note,
+    });
+    return { waLink: waLink(user.whatsappNumber, message) };
+  },
+
+  /** Fire-and-forget VIEW event (called from the public storefront page). */
+  async logView(args: {
+    slug: string;
+    productId?: string | null;
+    ipHash?: string | null;
+    referrer?: string | null;
+    userAgent?: string | null;
+  }): Promise<void> {
+    const user = await prisma.user.findUnique({
+      where: { slug: args.slug },
+      select: { id: true, catalogEnabled: true, isSuspended: true },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) return;
+    await prisma.catalogEvent
+      .create({
+        data: {
+          userId: user.id,
+          productId: args.productId ?? null,
+          type: 'VIEW',
+          ipHash: args.ipHash ?? null,
+          referrer: args.referrer?.slice(0, 500) ?? null,
+          userAgent: args.userAgent?.slice(0, 200) ?? null,
+        },
+      })
+      .catch(() => null);
+  },
+};
+
+// Re-export helper for callers that just need the IP hashing.
+export { hashClientIp };

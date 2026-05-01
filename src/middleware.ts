@@ -52,6 +52,8 @@ const PROTECTED_PREFIXES = [
   '/expenses',
   '/products',
   '/sales',
+  '/sell',
+  '/receipts',
   '/reports',
   '/templates',
   '/invoices',
@@ -109,6 +111,10 @@ const CSRF_EXEMPT_PREFIXES = [
   '/api/payments/claim/',
   '/api/pay/',
   '/api/cron/',
+  // Public storefront — unauthenticated browsers click "Order on WhatsApp"
+  // and POST to /api/store/[slug]/order. Per-IP rate limit lives inside the
+  // route handler (CATALOG_LIMITS.ORDER_RATE_PER_MIN, default 30/min).
+  '/api/store/',
 ];
 
 function sameOriginOk(req: NextRequest): boolean {

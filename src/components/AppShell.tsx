@@ -19,6 +19,7 @@ import {
   Target,
   FileText,
   ShoppingBag,
+  Store,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -96,6 +97,9 @@ export function AppShell({
               label={isPropManager ? 'Tenants' : 'Customers'}
             />
           )}
+          {show.payments && !isPropManager && (
+            <SideLink href="/receipts" icon={<Receipt size={18} />} label="Receipts" />
+          )}
 
           {/* Collections */}
           {!isPropManager && show.payments && (
@@ -109,6 +113,7 @@ export function AppShell({
 
           {(show.products || show.sales || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.products && <SideLink href="/products" icon={<Package size={18} />} label="Products" />}
+          {show.products && <SideLink href="/sell" icon={<Store size={18} />} label="Sell" />}
           {show.sales && <SideLink href="/sales" icon={<ShoppingBag size={18} />} label="Sales" />}
           {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}

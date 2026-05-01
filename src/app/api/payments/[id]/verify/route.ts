@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     });
     // Auto-create a persistent Receipt row (idempotent).
     const receipt = await receiptService
-      .ensureForPayment(user.id, payment.id)
+      .ensureForPayment(user.id, payment.id, { source: 'MANUAL' })
       .catch(() => null);
     return NextResponse.json({
       ok: true,
@@ -121,7 +121,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // Auto-generate a persistent Receipt row (idempotent; if one already
   // exists for this payment, the existing record is returned).
   const receipt = await receiptService
-    .ensureForPayment(user.id, payment.id)
+    .ensureForPayment(user.id, payment.id, { source: 'MANUAL' })
     .catch(() => null);
 
   // Return the receipt URL so the client can offer one-tap WhatsApp send.

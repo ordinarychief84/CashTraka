@@ -45,6 +45,16 @@ model User {
   /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
   logoUrl              String?
 
+  /// Per-business receipt prefix. Defaults to "CT" → CT-00001. Editable in Settings.
+  receiptPrefix        String?   @default("CT")
+
+  /// Public storefront slug (used in /store/[slug]). Unique, kebab-case.
+  slug                 String?   @unique
+  /// Whether the public catalog is published. Slug must also be set.
+  catalogEnabled       Boolean   @default(false)
+  /// Optional headline shown above the catalog grid.
+  catalogTagline       String?
+
   /// Billing state. `plan` (above) is the *tier name*; these fields describe
   /// the subscription lifecycle around that tier.
   /// "free" | "trialing" | "active" | "past_due" | "cancelled"
@@ -116,6 +126,7 @@ model User {
   createdAdminStaff    AdminStaff[]      @relation("AdminStaffCreator")
   promisesToPay        PromiseToPay[]
   installmentPlans     InstallmentPlan[]
+  catalogEvents        CatalogEvent[]
 
   @@index([role])
   @@index([businessType])
@@ -286,15 +297,30 @@ model Product {
   lowStockAt  Int       @default(3)
   note        String?
   archived    Boolean   @default(false)
+
+  /// Catalog (Sell) fields.
+  /// Up to 8 Uploadcare image URLs (validator enforces the cap).
+  images        String[]  @default([])
+  /// Optional SKU shown on the catalog detail page.
+  sku           String?
+  /// Public-facing description shown on /store/[slug]/[productId].
+  description   String?
+  /// When true, the product appears on /store/[slug] (requires User.catalogEnabled too).
+  isPublished   Boolean   @default(false)
+  /// "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" — manual override used only when trackStock=false.
+  catalogStatus String    @default("AVAILABLE")
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       PaymentItem[]
-  invoiceItems InvoiceItem[]
-  saleItems   SaleItem[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         PaymentItem[]
+  invoiceItems  InvoiceItem[]
+  saleItems     SaleItem[]
+  catalogEvents CatalogEvent[]
 
   @@index([userId, archived])
+  @@index([userId, isPublished])
 }
 
 // ---------- SALES (Walk-in POS) ----------
@@ -421,6 +447,21 @@ model Invoice {
   dueDate         DateTime?
   issuedAt        DateTime  @default(now())
   paidAt          DateTime?
+
+  /// 1:1 link back to the Payment that spawned this invoice (if generated from one).
+  /// Used for idempotent generation from /api/payments/[id]/invoice.
+  paymentId       String?   @unique
+
+  /// NRS (Nigeria Revenue Service) submission state.
+  /// Adapter is a Noop until NRS_API_BASE_URL is configured (see nrs-invoice.service.ts).
+  nrsSubmissionId String?
+  /// "PENDING" | "SUBMITTED" | "ACCEPTED" | "REJECTED" | "RETRYING" | "FAILED" | null
+  nrsStatus       String?
+  nrsLastError    String?
+  nrsRetryCount   Int       @default(0)
+  nrsSubmittedAt  DateTime?
+  nrsAcceptedAt   DateTime?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -753,6 +794,13 @@ model Receipt {
   status         String    @default("GENERATED")
   emailedTo      String?
   emailedAt      DateTime?
+
+  /// Outstanding balance when this receipt was generated (partial payment).
+  /// null = full payment; >0 means the receipt should display "Balance: X".
+  balanceRemaining Int?
+  /// Where this receipt originated. "MANUAL" | "PAYSTACK" | "PROMISE" | "INSTALLMENT" | "DEBT" | "CATALOG"
+  source           String   @default("MANUAL")
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -760,6 +808,7 @@ model Receipt {
 
   @@index([userId, createdAt])
   @@index([status])
+  @@index([userId, source])
 }
 
 // ---------- ADMIN ----------
@@ -783,6 +832,34 @@ model SystemSetting {
   value      String
   updatedAt  DateTime @updatedAt
   createdAt  DateTime @default(now())
+}
+
+// ---------- CATALOG (Sell) ----------
+
+/// Public catalog activity log. Used to track WhatsApp order clicks
+/// without creating Payment rows (we don't auto-pend orders — see plan).
+/// ipHash is sha256(ip + YYYY-MM-DD + AUTH_SECRET): rotates daily, prevents linkability.
+model CatalogEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String?
+  /// "VIEW" | "WHATSAPP_ORDER"
+  type        String
+  ipHash      String?
+  userAgent   String?
+  referrer    String?
+  /// Optional shopper details captured on the order form (free text, length-capped).
+  customerName  String?
+  customerPhone String?
+  note          String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([productId])
+  @@index([userId, type])
 }
 
 // ---------- BILLING ----------

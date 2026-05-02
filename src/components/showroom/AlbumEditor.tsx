@@ -411,54 +411,89 @@ export function AlbumEditor({
 
             {/* Selected products list, only shown when there ARE selections */}
             {selected.length > 0 ? (
-              <ul className="mb-3 divide-y divide-slate-100 rounded-lg ring-1 ring-border">
-                {selected.map((p, i) => (
-                  <li key={p.id} className="flex items-center gap-3 bg-white px-3 py-2.5">
-                    <div className="flex flex-col gap-0.5">
-                      <button
-                        type="button"
-                        onClick={() => move(i, i - 1)}
-                        disabled={i === 0}
-                        title="Move up"
-                        className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-ink disabled:opacity-30"
-                      >
-                        <ArrowUp size={12} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => move(i, i + 1)}
-                        disabled={i === selected.length - 1}
-                        title="Move down"
-                        className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-ink disabled:opacity-30"
-                      >
-                        <ArrowDown size={12} />
-                      </button>
+              <>
+                {selected.some((p) => !p.images?.[0]) ? (
+                  <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800">
+                    <div className="font-semibold">
+                      {selected.filter((p) => !p.images?.[0]).length} product
+                      {selected.filter((p) => !p.images?.[0]).length === 1 ? '' : 's'} in this album
+                      {' '}have no photos.
                     </div>
-                    <SafeImage
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border"
-                      fallback={
-                        <div className="flex h-full w-full items-center justify-center text-slate-300">
-                          <ImageIcon size={14} />
+                    <div className="mt-0.5">
+                      They will show as a grey placeholder on the public page. Tap "Add photos"
+                      next to each one to fix this.
+                    </div>
+                  </div>
+                ) : null}
+                <ul className="mb-3 divide-y divide-slate-100 rounded-lg ring-1 ring-border">
+                  {selected.map((p, i) => {
+                    const hasImage = !!p.images?.[0];
+                    return (
+                      <li
+                        key={p.id}
+                        className={
+                          'flex items-center gap-3 px-3 py-2.5 ' +
+                          (hasImage ? 'bg-white' : 'bg-amber-50/40')
+                        }
+                      >
+                        <div className="flex flex-col gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => move(i, i - 1)}
+                            disabled={i === 0}
+                            title="Move up"
+                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-ink disabled:opacity-30"
+                          >
+                            <ArrowUp size={12} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => move(i, i + 1)}
+                            disabled={i === selected.length - 1}
+                            title="Move down"
+                            className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-ink disabled:opacity-30"
+                          >
+                            <ArrowDown size={12} />
+                          </button>
                         </div>
-                      }
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-medium text-ink">{p.name}</div>
-                      <div className="num text-xs text-brand-600">{formatNaira(p.price)}</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => remove(p.id)}
-                      title="Remove"
-                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
-                    >
-                      <X size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                        <SafeImage
+                          src={p.images[0]}
+                          alt={p.name}
+                          className={
+                            'h-12 w-12 shrink-0 overflow-hidden rounded-lg ring-1 ' +
+                            (hasImage ? 'bg-slate-100 ring-border' : 'bg-amber-100 ring-amber-300')
+                          }
+                          fallback={
+                            <div className="flex h-full w-full items-center justify-center text-amber-500">
+                              <ImageIcon size={14} />
+                            </div>
+                          }
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium text-ink">{p.name}</div>
+                          <div className="num text-xs text-brand-600">{formatNaira(p.price)}</div>
+                          {!hasImage ? (
+                            <Link
+                              href={`/products/${p.id}/edit`}
+                              className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 hover:text-amber-900"
+                            >
+                              <ImageIcon size={11} /> Add photos
+                            </Link>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => remove(p.id)}
+                          title="Remove"
+                          className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
             ) : null}
 
             {/* Empty catalog: full empty-state CTA */}

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Banknote, Plus, Clock3, MoreHorizontal } from 'lucide-react';
+import { Home, Banknote, Plus, Clock3, LayoutGrid } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { QuickAddSheet } from './QuickAddSheet';
 import { MoreSheet } from './MoreSheet';
@@ -18,6 +18,15 @@ type Props = {
   accessRole?: AccessRole;
 };
 
+/**
+ * Floating pill bottom nav. Renders a rounded, elevated bar that hovers
+ * above the page bottom (mobile only). Active items get a subtle brand
+ * pill background; the centre slot is a raised brand-coloured FAB that
+ * opens the QuickAddSheet.
+ *
+ * The bar sits inside a fixed wrapper with safe-area padding so it
+ * clears iOS home-indicator and Android gesture areas.
+ */
 export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
   const canCreate =
     can(accessRole, 'payments.write') ||
@@ -34,45 +43,72 @@ export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-white md:hidden">
-        <div className="mx-auto grid max-w-screen-md grid-cols-5">
-          <NavItem href="/dashboard" icon={Home} label="Home" active={isActive('/dashboard')} />
-          <NavItem href="/payments" icon={Banknote} label={isPropManager ? 'Rent' : 'Payments'} active={isActive('/payments')} />
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 flex justify-center px-3 pb-3 md:hidden"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
+        <nav
+          className="pointer-events-auto flex w-full max-w-md items-center gap-1 rounded-full border border-slate-200/80 bg-white/95 px-2 py-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.10)] backdrop-blur"
+          aria-label="Main"
+        >
+          <NavItem
+            href="/dashboard"
+            icon={Home}
+            label="Home"
+            active={isActive('/dashboard')}
+          />
+          <NavItem
+            href="/payments"
+            icon={Banknote}
+            label={isPropManager ? 'Rent' : 'Pay'}
+            active={isActive('/payments')}
+          />
 
-          {/* Center FAB, Add button (hidden for read-only roles) */}
-          <div className="flex items-center justify-center">
-            {canCreate ? (
-              <button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-white shadow-md transition active:scale-95"
-                aria-label="Quick add"
-              >
-                <Plus size={24} strokeWidth={2.5} />
-              </button>
-            ) : (
-              <div className="h-12 w-12" aria-hidden />
-            )}
-          </div>
+          {/* Centre FAB. Always renders to keep the layout stable; turns
+              into a placeholder for read-only roles. */}
+          {canCreate ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              aria-label="Quick add"
+              className="mx-0.5 flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-[0_6px_16px_rgba(0,184,232,0.45)] transition active:scale-90"
+            >
+              <Plus size={22} strokeWidth={2.75} />
+            </button>
+          ) : (
+            <div className="mx-0.5 h-12 w-12 shrink-0" aria-hidden />
+          )}
 
-          <NavItem href="/debts" icon={Clock3} label={isPropManager ? 'Unpaid' : 'Owed'} active={isActive('/debts')} />
+          <NavItem
+            href="/debts"
+            icon={Clock3}
+            label={isPropManager ? 'Unpaid' : 'Owed'}
+            active={isActive('/debts')}
+          />
 
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
+            aria-label="More"
             className={cn(
-              'flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium',
-              moreOpen ? 'text-brand-600' : 'text-slate-500',
+              'group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 text-[10px] font-semibold transition',
+              moreOpen
+                ? 'bg-brand-50 text-brand-700'
+                : 'text-slate-500 hover:text-slate-900 active:scale-95',
             )}
           >
-            <MoreHorizontal size={22} />
-            More
+            <LayoutGrid size={20} strokeWidth={moreOpen ? 2.5 : 2} />
+            <span className="leading-none">More</span>
           </button>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       <QuickAddSheet open={addOpen} onClose={() => setAddOpen(false)} />
-      <MoreSheet open={moreOpen} onClose={() => setMoreOpen(false)} isPropManager={isPropManager} />
+      <MoreSheet
+        open={moreOpen}
+        onClose={() => setMoreOpen(false)}
+        isPropManager={isPropManager}
+      />
     </>
   );
 }
@@ -92,12 +128,15 @@ function NavItem({
     <Link
       href={href}
       className={cn(
-        'flex flex-col items-center justify-center gap-1 py-2.5 text-xs font-medium',
-        active ? 'text-brand-600' : 'text-slate-500',
+        'flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 text-[10px] font-semibold transition',
+        active
+          ? 'bg-brand-50 text-brand-700'
+          : 'text-slate-500 hover:text-slate-900 active:scale-95',
       )}
+      aria-current={active ? 'page' : undefined}
     >
-      <Icon size={22} />
-      {label}
+      <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+      <span className="leading-none">{label}</span>
     </Link>
   );
 }

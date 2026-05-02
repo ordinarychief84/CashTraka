@@ -79,6 +79,23 @@ async function storeFile(uuid: string): Promise<boolean> {
  * If UPLOADCARE_SECRET_KEY is also configured, storeFile() runs as a
  * belt-and-suspenders explicit store via REST after the upload.
  */
+/**
+ * Specific error thrown when the upload succeeds but the file never
+ * reaches the public CDN. Almost always means the Uploadcare project
+ * has auto-store turned off AND no UPLOADCARE_SECRET_KEY is configured
+ * to do explicit REST storage.
+ */
+export class UploadNotStoredError extends Error {
+  cdnStatus?: number;
+  uploadcareUuid: string;
+  constructor(uuid: string, cdnStatus?: number) {
+    super('Uploadcare file is not on the public CDN.');
+    this.name = 'UploadNotStoredError';
+    this.uploadcareUuid = uuid;
+    this.cdnStatus = cdnStatus;
+  }
+}
+
 async function uploadBuffer(
   buffer: Buffer,
   opts: { folder: string; publicId: string; mime: string; filename: string },
@@ -86,16 +103,17 @@ async function uploadBuffer(
   const pubKey = process.env.UPLOADCARE_PUBLIC_KEY;
   if (!pubKey) return null;
 
-  try {
-    const form = new FormData();
-    form.append('UPLOADCARE_PUB_KEY', pubKey);
-    form.append('UPLOADCARE_STORE', '1');
-    form.append(
-      'file',
-      new Blob([new Uint8Array(buffer)], { type: opts.mime }),
-      opts.filename,
-    );
+  const form = new FormData();
+  form.append('UPLOADCARE_PUB_KEY', pubKey);
+  form.append('UPLOADCARE_STORE', '1');
+  form.append(
+    'file',
+    new Blob([new Uint8Array(buffer)], { type: opts.mime }),
+    opts.filename,
+  );
 
+  let json: { file?: string };
+  try {
     const res = await fetch(UPLOAD_ENDPOINT, {
       method: 'POST',
       body: form,
@@ -107,23 +125,39 @@ async function uploadBuffer(
       }
       return null;
     }
-    const json = (await res.json()) as { file?: string };
+    json = (await res.json()) as { file?: string };
     if (!json.file) return null;
-
-    // Best-effort explicit store for projects where auto-store is off.
-    // If it fails, we still return the URL — the project may just have
-    // auto-store enabled and the file is already live.
-    await storeFile(json.file);
-
-    // Human-friendly download URL with filename suffix.
-    const url = `${CDN_BASE}/${json.file}/${encodeURIComponent(opts.filename)}`;
-    return { url, publicId: json.file };
   } catch (e) {
     if (process.env.NODE_ENV !== 'production') {
       console.warn('Uploadcare upload error', e);
     }
     return null;
   }
+
+  // Best-effort explicit store for projects where auto-store is off.
+  // No-op when UPLOADCARE_SECRET_KEY is not set.
+  await storeFile(json.file);
+
+  const url = `${CDN_BASE}/${json.file}/${encodeURIComponent(opts.filename)}`;
+
+  // Verify the file is reachable. If the project's auto-store is "Manual"
+  // and we have no secret key, the upload returns a UUID but the CDN serves
+  // 404. We throw a typed error so the API route can surface a clear,
+  // actionable message instead of silently returning a broken URL.
+  try {
+    const head = await fetch(url, { method: 'HEAD' });
+    if (!head.ok) {
+      throw new UploadNotStoredError(json.file, head.status);
+    }
+  } catch (e) {
+    if (e instanceof UploadNotStoredError) throw e;
+    // Network blip on the HEAD; trust the upload and let the caller render.
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Uploadcare HEAD check error (non-fatal)', e);
+    }
+  }
+
+  return { url, publicId: json.file };
 }
 
 function imageMime(format: string): string {

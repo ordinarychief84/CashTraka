@@ -1,6 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { handled, ok, fail } from '@/lib/api-response';
-import { uploadImage } from '@/lib/uploadcare/upload';
+import { uploadImage, UploadNotStoredError } from '@/lib/uploadcare/upload';
 
 export const runtime = 'nodejs';
 
@@ -51,13 +51,25 @@ export const POST = (req: Request) =>
         return fail(`"${file.name}" exceeds 5 MB`, 413);
       }
       const buffer = Buffer.from(await file.arrayBuffer());
-      // Format hint for the upload helper — strips "image/" prefix.
       const format = file.type.split('/')[1] === 'jpeg' ? 'jpg' : file.type.split('/')[1];
-      const result = await uploadImage(user.id, buffer, format, file.name);
-      if (!result) {
-        return fail('Image storage is not configured', 503);
+      try {
+        const result = await uploadImage(user.id, buffer, format, file.name);
+        if (!result) {
+          return fail('Image storage is not configured', 503);
+        }
+        results.push(result);
+      } catch (e) {
+        if (e instanceof UploadNotStoredError) {
+          // Specific, actionable message: tells the operator exactly what to fix.
+          return fail(
+            'Image upload reached Uploadcare but the file is not on the public CDN. ' +
+              'Enable auto-store in your Uploadcare project (Project Settings, API, ' +
+              'Automatic file storing, ON) or set UPLOADCARE_SECRET_KEY in your env.',
+            502,
+          );
+        }
+        throw e;
       }
-      results.push(result);
     }
 
     return ok({ files: results });

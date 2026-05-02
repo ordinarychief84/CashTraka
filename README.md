@@ -182,6 +182,39 @@ Visit [http://localhost:3000](http://localhost:3000).
 | `npm run db:push`   | Push schema to the database (no migrations folder)             |
 | `npm run db:seed`   | Run `prisma/seed.ts`                                           |
 | `npm run db:reset`  | Drop + recreate the database, then seed                        |
+| `npm run migrate:prod` | Sync new schema bits to production via `/api/migrate` (see below) |
+
+## Deploying schema changes
+
+Vercel's build runs `prisma generate && next build` — **not** `prisma db push`.
+The production DB has historical columns that aren't in `prisma/schema.prisma`,
+and `prisma db push` refuses to reconcile that without `--accept-data-loss`
+(which would drop those columns). Until that drift is reconciled, new schema
+bits are applied at runtime via the idempotent `/api/migrate` endpoint.
+
+### Workflow when you add new columns or tables
+
+1. **Edit `prisma/schema.prisma`** — add your model / column.
+2. **Update `src/app/api/migrate/route.ts`** — add corresponding `addCol(...)` /
+   `CREATE TABLE IF NOT EXISTS` calls. Pattern is `ADD COLUMN IF NOT EXISTS` so
+   re-runs are no-ops.
+3. **Commit and push.** Vercel deploys.
+4. **After Vercel marks the deploy Ready**, sync the schema:
+   ```bash
+   npm run migrate:prod
+   ```
+   This needs either `CRON_SECRET` in your shell or the Vercel CLI logged in
+   (it pulls the secret from production env). Exit code 0 = synced.
+
+The script tolerates pre-existing `ClockEntry` failures (that table doesn't
+exist on prod and isn't used).
+
+### Why we don't use Prisma migrations
+
+The repo started life with `prisma db push` and accumulated schema drift over
+~6 weeks of `/api/migrate` patches. Switching to `prisma migrate deploy` would
+require a one-time audit of every "extra" column in prod (keep vs. drop). Until
+someone owns that work, the runtime endpoint is the safe path.
 
 ## Business rules
 

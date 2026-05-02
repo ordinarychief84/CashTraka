@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { requireFeature } from '@/lib/gate';
 import { ensureInvoicePublicToken } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 import { emailService } from '@/lib/services/email.service';
@@ -56,6 +57,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const feature = requireFeature(user, 'paymentReminders');
+  if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);

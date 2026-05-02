@@ -15,10 +15,10 @@ export function Footer() {
                 Contact us
               </div>
               <h3 className="mt-1 text-xl font-bold text-ink md:text-2xl">
-                Questions, feedback, or a request? We'd love to hear from you.
+                Got a question or stuck on something? Send us a message.
               </h3>
               <p className="mt-1 text-sm text-slate-600">
-                Email us or open a chat, we read every message.
+                Email or open a chat. A real person reads every message.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -44,7 +44,7 @@ export function Footer() {
               <Logo size="md" />
             </Link>
             <p className="mt-3 text-sm text-slate-600">
-              Track payments, know who owes you, and follow up fast.
+              Invoices, payments, receipts, and debt collection in one app, built for Nigerian businesses.
             </p>
           </div>
 

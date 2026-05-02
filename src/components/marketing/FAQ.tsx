@@ -10,78 +10,74 @@ type QA = { q: string; a: string };
 
 const SHARED: QA[] = [
   {
-    q: 'Do I need technical knowledge?',
-    a: 'No. If you can use WhatsApp, you can use CashTraka.',
+    q: 'Do my customers need an account to pay?',
+    a: 'No. They tap the pay link, choose card or transfer, pay through Paystack, and get a receipt. No account, no app, no signup. Even a phone-only customer can complete it on their phone browser.',
   },
   {
-    q: 'Does it work on my phone?',
-    a: 'Yes. Built mobile-first. Works on any Android or iPhone in your browser, no app store install needed.',
+    q: 'Can I share invoices on WhatsApp?',
+    a: 'Yes. Every invoice has a public link. From the invoice screen, one tap opens your WhatsApp with the link and a short message ready to send. The customer opens the link, sees the invoice, and pays.',
   },
   {
-    q: 'Can I export my data?',
-    a: 'Yes. Payments, debts, customers, and expenses export to CSV with one tap. Your data is always yours.',
+    q: 'Is it really free?',
+    a: 'Yes. The free plan covers up to 50 payments a month, 20 active debts, 50 customers, 1 property and 5 tenants, with no card and no expiry. Invoices, recurring billing, credit notes, and FIRS features are on Starter.',
+  },
+  {
+    q: 'What about FIRS and tax?',
+    a: 'Starter includes tax invoices with TIN, buyer details, and item codes, plus IRN and a QR code on every receipt. You can download the XML for FIRS and pull from a 6-year document archive when they ask.',
+  },
+  {
+    q: 'Does CashTraka work without internet?',
+    a: 'You need internet for invoices and Paystack payments to send. Old records you already loaded stay readable offline. The moment you reconnect, anything pending syncs automatically.',
   },
   {
     q: 'Is my data safe?',
-    a: 'Your records are private to you. We do not sell data. Payment processing goes through Paystack (PCI-compliant). WhatsApp messages go through your own WhatsApp, we never read them.',
-  },
-  {
-    q: 'How does pricing work?',
-    a: 'One plan, Starter, gives you full access to every feature. Pick quarterly, biannual, or yearly billing. Longer commitments save you up to 25%. Every frequency starts with a 7-day free trial, no card required.',
-  },
-  {
-    q: 'How does the auto-debit / installment plan work?',
-    a: 'When a customer first pays via your PayLink, Paystack stores their card authorization (only if reusable). You can then set up an installment plan, CashTraka automatically charges their card on schedule (daily, weekly, or monthly) until the balance clears. Every charge is verified via webhook before updating your records.',
+    a: 'Your records are private. We do not sell data. Card payments go through Paystack (PCI compliant). WhatsApp messages send through your own WhatsApp, we never see them.',
   },
 ];
 
 const SELLER_QUESTIONS: QA[] = [
   {
-    q: 'How do payment links work?',
-    a: 'You create a PayLink with the amount owed, share it on WhatsApp, and the customer pays online via Paystack. The moment they complete payment, CashTraka confirms it automatically via webhook, no manual checking. A receipt emails the customer and the payment updates your dashboard instantly.',
+    q: 'How does the invoice engine work?',
+    a: 'Pick a customer, add line items, add tax or discount if you want, and save. CashTraka gives you a public pay link and a PDF. Share on WhatsApp. The customer pays online or you mark it as paid offline. The receipt sends itself.',
   },
   {
-    q: 'What is Promise to Pay?',
-    a: 'Instead of chasing a customer for money, you send them a Promise link. They open it, choose a payment date and amount, and commit. If they miss their promise, CashTraka flags it as "broken" automatically and moves them up your Collection Queue so you know who to follow up with first.',
+    q: 'Can I set up an invoice that sends itself every month?',
+    a: 'Yes. Create a recurring invoice for retainer clients, monthly subscriptions, or any regular bill. Pick the day, the customer, and the line items. CashTraka issues and sends each cycle on its own.',
   },
   {
-    q: 'How does the bank-alert verification stop fake screenshots?',
-    a: 'When a customer claims they paid, you paste your real bank SMS or email into CashTraka. The system reads the amount, sender name and reference from YOUR bank, not a screenshot from the customer. A fake receipt cannot pass this because the alert has to come from your own bank.',
+    q: 'What if I cancel a sale or refund a customer?',
+    a: 'Issue a credit note in two taps. The original invoice updates, the receipt is adjusted, and the audit log keeps a record so your books stay clean.',
   },
   {
-    q: 'Can I send proper invoices and receipts to my customers?',
-    a: 'Yes. Every payment automatically gets a shareable receipt link AND a downloadable PDF. Receipts are generated and emailed the moment payment is confirmed, whether via PayLink, auto-debit, or manual entry.',
+    q: 'I took the payment by bank transfer. Do I have to wait for Paystack?',
+    a: 'No. Paste the bank alert SMS or email. CashTraka reads the amount, sender name, and reference straight from your bank. The payment marks as verified without going through Paystack.',
   },
   {
-    q: 'Do I need to change how I sell?',
-    a: 'No. You keep using WhatsApp. CashTraka adds payment links, auto-debit, receipts, and a collection queue on top of your existing workflow.',
-  },
-  {
-    q: 'Why should I pay for this?',
-    a: 'Because one auto-collected installment, one prevented fake-screenshot fraud, or one broken promise caught early pays for the full quarter.',
+    q: 'I have customers without email. Can I still send them invoices?',
+    a: 'Yes. Save them by phone. The invoice link goes on WhatsApp. They open it on their phone, pay, and get the receipt back on WhatsApp.',
   },
 ];
 
 const PM_QUESTIONS: QA[] = [
   {
-    q: 'How does CashTraka help me track rent across multiple properties?',
-    a: "Each property has its own tenant roster and rent ledger. A single 'Rent Tracker' page shows you expected collection, actual collection, and who's behind, across every property you manage.",
+    q: 'Can I send rent invoices instead of chasing in a group chat?',
+    a: 'Yes. Create a recurring invoice per tenant for their monthly rent. CashTraka issues it on the due date, sends the pay link to their WhatsApp, and tracks who has paid.',
   },
   {
-    q: 'Can I set up auto-debit for rent collection?',
-    a: 'Yes. After a tenant pays via your PayLink for the first time, their card authorization is stored securely by Paystack. You can then set up a monthly installment plan, CashTraka automatically charges their card on the same day each month until the balance clears or the lease ends.',
+    q: 'Can rent be auto-debited every month?',
+    a: 'Yes. Once a tenant pays via your pay link the first time, Paystack stores their card authorization. Set the schedule and CashTraka charges them on the same day each month until the lease ends.',
   },
   {
-    q: 'How do the rent reminders work?',
-    a: 'Set an auto-reminder once per tenant and CashTraka surfaces it on your reminders page when it comes due. One tap opens WhatsApp with a prefilled polite reminder mentioning the property, the amount, and the due date.',
+    q: 'How do I know who is owing across all my properties?',
+    a: 'The rent tracker shows expected, collected, and outstanding for every property in one screen. Tap any tenant to see their full history and send a reminder.',
   },
   {
-    q: 'Do I need to install anything on the tenant\'s side?',
-    a: 'No. Tenants receive everything on WhatsApp, reminders, payment links, receipts, with no app, no account, no friction on their end.',
+    q: 'Do tenants need to install anything?',
+    a: 'No. They receive the invoice and pay link on WhatsApp, pay, and get the receipt back on WhatsApp. No app, no signup, no friction.',
   },
   {
-    q: 'Why should I pay for this instead of a spreadsheet?',
-    a: 'Because a spreadsheet won\'t auto-debit tenants, won\'t chase late payers, won\'t verify bank alerts, won\'t auto-issue receipts, and won\'t tell you at-a-glance what your collection rate is this month. CashTraka does all five.',
+    q: 'Can I issue a proper tax invoice if a tenant or company asks?',
+    a: 'Yes. Switch the invoice to a tax invoice, fill in TIN and buyer details, and CashTraka generates it with IRN and QR. Download the XML for FIRS if you need to.',
   },
 ];
 

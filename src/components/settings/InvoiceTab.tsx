@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { Loader2, Save, Receipt } from 'lucide-react';
 
+type ReminderCadence =
+  | 'OFF'
+  | 'FRIENDLY_3_DAYS'
+  | 'FRIENDLY_7_DAYS'
+  | 'OVERDUE_DAILY';
+
 type Settings = {
   defaultCurrency: string;
   invoicePrefix: string;
@@ -14,21 +20,45 @@ type Settings = {
   paymentInstructions: string;
   invoiceAccentColor: string;
   invoiceTemplate: 'CLASSIC' | 'MODERN' | 'MINIMAL';
+  // Workflow defaults
+  firsAutoSubmit: boolean;
+  defaultInvoiceDueDays: number | null;
+  defaultPaymentTerms: string;
+  invoiceReminderCadence: ReminderCadence;
+  autoArchiveDays: number | null;
+  recurringAutoSendDefault: boolean;
+  xmlGenerateOnFirs: boolean;
+  documentRetentionMonths: number;
+};
+
+type LimitsSnapshot = {
+  plan: string;
+  limits: {
+    firsCompliance: boolean;
+    [k: string]: unknown;
+  };
 };
 
 /**
  * Invoice + document settings. Lives under /settings?tab=invoice. Drives
- * /api/settings/invoice for both read and patch.
+ * /api/settings/invoice for both read and patch, plus /api/me/limits to
+ * decide which plan-gated controls to disable.
  */
 export function InvoiceTab() {
   const [state, setState] = useState<Settings | null>(null);
+  const [limits, setLimits] = useState<LimitsSnapshot | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/settings/invoice')
-      .then((r) => r.json())
-      .then((j) => setState(j.data))
+    Promise.all([
+      fetch('/api/settings/invoice').then((r) => r.json()),
+      fetch('/api/me/limits').then((r) => r.json()),
+    ])
+      .then(([settings, limitsRes]) => {
+        setState(settings.data);
+        setLimits(limitsRes.data ?? null);
+      })
       .catch(() => setMessage('Could not load invoice settings.'));
   }, []);
 
@@ -52,10 +82,12 @@ export function InvoiceTab() {
   if (!state) {
     return (
       <div className="flex items-center gap-2 text-sm text-slate-500">
-        <Loader2 size={14} className="animate-spin" /> Loading…
+        <Loader2 size={14} className="animate-spin" /> Loading...
       </div>
     );
   }
+
+  const firsAllowed = limits?.limits.firsCompliance === true;
 
   return (
     <div className="space-y-5 rounded-xl border border-slate-200 bg-white p-5">
@@ -172,6 +204,155 @@ export function InvoiceTab() {
         />
       </Field>
 
+      {/* ── Workflow defaults ─────────────────────────────────────── */}
+      <div className="space-y-4 border-t border-slate-200 pt-5">
+        <h3 className="text-sm font-semibold text-slate-900">Workflow defaults</h3>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="Default due in X days">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={365}
+              className="ct-input"
+              value={state.defaultInvoiceDueDays ?? ''}
+              onChange={(e) =>
+                setState({
+                  ...state,
+                  defaultInvoiceDueDays:
+                    e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+            />
+          </Field>
+
+          <Field label="Default payment terms">
+            <input
+              type="text"
+              className="ct-input"
+              maxLength={120}
+              placeholder="Net 30"
+              value={state.defaultPaymentTerms}
+              onChange={(e) =>
+                setState({ ...state, defaultPaymentTerms: e.target.value })
+              }
+            />
+          </Field>
+
+          <Field label="Reminder cadence">
+            <select
+              className="ct-input"
+              value={state.invoiceReminderCadence}
+              onChange={(e) =>
+                setState({
+                  ...state,
+                  invoiceReminderCadence: e.target.value as ReminderCadence,
+                })
+              }
+            >
+              <option value="OFF">Off</option>
+              <option value="FRIENDLY_3_DAYS">Every 3 days (gentle)</option>
+              <option value="FRIENDLY_7_DAYS">Every 7 days (gentle)</option>
+              <option value="OVERDUE_DAILY">Daily after overdue</option>
+            </select>
+          </Field>
+
+          <Field
+            label="Auto-archive PDFs after (days)"
+            help="Leave empty to keep forever"
+          >
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={3650}
+              className="ct-input"
+              value={state.autoArchiveDays ?? ''}
+              onChange={(e) =>
+                setState({
+                  ...state,
+                  autoArchiveDays:
+                    e.target.value === '' ? null : Number(e.target.value),
+                })
+              }
+            />
+          </Field>
+
+          <Field
+            label="Document retention period (months)"
+            help="Recommended 72 months for Nigerian tax records"
+          >
+            <input
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={240}
+              className="ct-input"
+              value={state.documentRetentionMonths}
+              onChange={(e) =>
+                setState({
+                  ...state,
+                  documentRetentionMonths: Number(e.target.value) || 72,
+                })
+              }
+            />
+          </Field>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={state.recurringAutoSendDefault}
+            onChange={(e) =>
+              setState({ ...state, recurringAutoSendDefault: e.target.checked })
+            }
+          />
+          Auto-send new recurring invoices by default
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            checked={state.xmlGenerateOnFirs}
+            onChange={(e) =>
+              setState({ ...state, xmlGenerateOnFirs: e.target.checked })
+            }
+          />
+          Auto-generate XML when submitting to FIRS
+        </label>
+
+        <div className="space-y-1">
+          <label
+            className={
+              'flex items-center gap-2 text-sm ' +
+              (firsAllowed ? 'text-slate-700' : 'text-slate-400')
+            }
+          >
+            <input
+              type="checkbox"
+              disabled={!firsAllowed}
+              checked={firsAllowed && state.firsAutoSubmit}
+              onChange={(e) =>
+                setState({ ...state, firsAutoSubmit: e.target.checked })
+              }
+            />
+            Auto-submit tax invoices to FIRS on creation
+          </label>
+          {!firsAllowed ? (
+            <p className="pl-6 text-xs text-slate-500">
+              Available on Starter plan.{' '}
+              <a
+                href="/settings?upgrade=starter_quarterly"
+                className="font-semibold text-brand-600 hover:underline"
+              >
+                Upgrade to Starter
+              </a>
+            </p>
+          ) : null}
+        </div>
+      </div>
+
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -188,13 +369,22 @@ export function InvoiceTab() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  help,
+  children,
+}: {
+  label: string;
+  help?: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
         {label}
       </span>
       {children}
+      {help ? <span className="mt-1 block text-xs text-slate-500">{help}</span> : null}
     </label>
   );
 }

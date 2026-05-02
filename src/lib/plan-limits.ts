@@ -70,6 +70,24 @@ export type Limits = {
   collectionScore: boolean;
   /** Phase 4 — smart action suggestions. */
   suggestions: boolean;
+  /** Issue credit notes against existing invoices. */
+  creditNotes: boolean;
+  /** Recurring invoice rules + cron-driven generation. */
+  recurringInvoices: boolean;
+  /** FIRS submission + retry on tax invoices. */
+  firsCompliance: boolean;
+  /** XML download / e-invoicing wire format. */
+  electronicXml: boolean;
+  /** Delivery note creation + convert-to-invoice. */
+  deliveryNotes: boolean;
+  /** Quote / offer creation + convert-to-invoice or order. */
+  offers: boolean;
+  /** Per-document audit trail viewer for the seller. */
+  documentAudit: boolean;
+  /** Public-pay button on invoices via Paystack. */
+  paystackPay: boolean;
+  /** Manual + automated invoice reminders (FRIENDLY/OVERDUE/FINAL). */
+  paymentReminders: boolean;
 };
 
 const FREE: Limits = {
@@ -97,6 +115,15 @@ const FREE: Limits = {
   behaviorTracking: false,
   collectionScore: false,
   suggestions: false,
+  creditNotes: false,
+  recurringInvoices: false,
+  firsCompliance: false,
+  electronicXml: false,
+  deliveryNotes: false,
+  offers: false,
+  documentAudit: false,
+  paystackPay: false,
+  paymentReminders: false,
 };
 
 const BUSINESS: Limits = {
@@ -124,6 +151,15 @@ const BUSINESS: Limits = {
   behaviorTracking: true,
   collectionScore: true,
   suggestions: true,
+  creditNotes: true,
+  recurringInvoices: true,
+  firsCompliance: true,
+  electronicXml: true,
+  deliveryNotes: true,
+  offers: true,
+  documentAudit: true,
+  paystackPay: true,
+  paymentReminders: true,
 };
 
 const BUSINESS_PLUS: Limits = {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { requireFeature } from '@/lib/gate';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
 export const runtime = 'nodejs';
@@ -44,6 +45,9 @@ export async function GET(_req: Request) {
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const feature = requireFeature(user, 'recurringInvoices');
+  if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));
   const parsed = ruleSchema.safeParse(body);

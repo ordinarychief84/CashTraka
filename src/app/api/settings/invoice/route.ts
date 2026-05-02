@@ -7,6 +7,13 @@ export const runtime = 'nodejs';
 
 const PREFIX_RE = /^[A-Z0-9-]{1,8}$/;
 
+const REMINDER_CADENCES = [
+  'OFF',
+  'FRIENDLY_3_DAYS',
+  'FRIENDLY_7_DAYS',
+  'OVERDUE_DAILY',
+] as const;
+
 const bodySchema = z.object({
   defaultCurrency: z.string().trim().length(3).toUpperCase().optional(),
   invoicePrefix: z.string().trim().toUpperCase().regex(PREFIX_RE).optional(),
@@ -22,6 +29,15 @@ const bodySchema = z.object({
     .regex(/^#[0-9A-Fa-f]{6}$/)
     .optional(),
   invoiceTemplate: z.enum(['CLASSIC', 'MODERN', 'MINIMAL']).optional(),
+  // Workflow defaults
+  firsAutoSubmit: z.boolean().optional(),
+  defaultInvoiceDueDays: z.coerce.number().int().min(0).max(365).nullable().optional(),
+  defaultPaymentTerms: z.string().trim().max(120).optional().or(z.literal('')),
+  invoiceReminderCadence: z.enum(REMINDER_CADENCES).optional(),
+  autoArchiveDays: z.coerce.number().int().min(1).max(3650).nullable().optional(),
+  recurringAutoSendDefault: z.boolean().optional(),
+  xmlGenerateOnFirs: z.boolean().optional(),
+  documentRetentionMonths: z.coerce.number().int().min(1).max(240).optional(),
 });
 
 export async function GET() {
@@ -41,6 +57,15 @@ export async function GET() {
       paymentInstructions: user.paymentInstructions ?? '',
       invoiceAccentColor: user.invoiceAccentColor ?? '#00B8E8',
       invoiceTemplate: user.invoiceTemplate ?? 'CLASSIC',
+      // Workflow defaults
+      firsAutoSubmit: user.firsAutoSubmit ?? false,
+      defaultInvoiceDueDays: user.defaultInvoiceDueDays ?? null,
+      defaultPaymentTerms: user.defaultPaymentTerms ?? '',
+      invoiceReminderCadence: user.invoiceReminderCadence ?? 'OFF',
+      autoArchiveDays: user.autoArchiveDays ?? null,
+      recurringAutoSendDefault: user.recurringAutoSendDefault ?? false,
+      xmlGenerateOnFirs: user.xmlGenerateOnFirs ?? true,
+      documentRetentionMonths: user.documentRetentionMonths ?? 72,
     },
   });
 }
@@ -74,6 +99,24 @@ export async function PATCH(req: Request) {
           : parsed.data.paymentInstructions || null,
       invoiceAccentColor: parsed.data.invoiceAccentColor ?? undefined,
       invoiceTemplate: parsed.data.invoiceTemplate ?? undefined,
+      // Workflow defaults
+      firsAutoSubmit: parsed.data.firsAutoSubmit ?? undefined,
+      defaultInvoiceDueDays:
+        parsed.data.defaultInvoiceDueDays === undefined
+          ? undefined
+          : parsed.data.defaultInvoiceDueDays,
+      defaultPaymentTerms:
+        parsed.data.defaultPaymentTerms === undefined
+          ? undefined
+          : parsed.data.defaultPaymentTerms || null,
+      invoiceReminderCadence: parsed.data.invoiceReminderCadence ?? undefined,
+      autoArchiveDays:
+        parsed.data.autoArchiveDays === undefined
+          ? undefined
+          : parsed.data.autoArchiveDays,
+      recurringAutoSendDefault: parsed.data.recurringAutoSendDefault ?? undefined,
+      xmlGenerateOnFirs: parsed.data.xmlGenerateOnFirs ?? undefined,
+      documentRetentionMonths: parsed.data.documentRetentionMonths ?? undefined,
     },
     select: {
       defaultCurrency: true,
@@ -86,6 +129,14 @@ export async function PATCH(req: Request) {
       paymentInstructions: true,
       invoiceAccentColor: true,
       invoiceTemplate: true,
+      firsAutoSubmit: true,
+      defaultInvoiceDueDays: true,
+      defaultPaymentTerms: true,
+      invoiceReminderCadence: true,
+      autoArchiveDays: true,
+      recurringAutoSendDefault: true,
+      xmlGenerateOnFirs: true,
+      documentRetentionMonths: true,
     },
   });
 

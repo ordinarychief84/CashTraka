@@ -93,6 +93,25 @@ model User {
   /// "simple" | "professional" | "compact" — chooses the PDF template.
   invoiceTemplate      String?   @default("professional")
 
+  /// ── Workflow defaults (per-user preferences inside an unlocked plan) ──
+  /// Auto-submit invoices to FIRS on creation when plan allows + user opts in.
+  firsAutoSubmit          Boolean   @default(false)
+  /// Default due date offset, in days, for new invoices. null = no default.
+  defaultInvoiceDueDays   Int?
+  /// Default payment terms text shown on every new invoice unless overridden.
+  defaultPaymentTerms     String?  @db.VarChar(120)
+  /// Reminder cadence: OFF | FRIENDLY_3_DAYS | FRIENDLY_7_DAYS | OVERDUE_DAILY.
+  invoiceReminderCadence  String   @default("OFF")
+  /// Auto-archive receipts/PDFs older than N days. null = never.
+  autoArchiveDays         Int?
+  /// Default for new recurring rules: autoSend on.
+  recurringAutoSendDefault Boolean @default(false)
+  /// Auto-generate XML when submitting to FIRS.
+  xmlGenerateOnFirs       Boolean   @default(true)
+  /// Retention hint shown on DocumentArchive (72 months = 6 years per Nigerian
+  /// tax records best practice).
+  documentRetentionMonths Int       @default(72)
+
   /// Billing state. `plan` (above) is the *tier name*; these fields describe
   /// the subscription lifecycle around that tier.
   /// "free" | "trialing" | "active" | "past_due" | "cancelled"

@@ -1,5 +1,6 @@
 import { requireUser } from '@/lib/auth';
 import { handled, ok } from '@/lib/api-response';
+import { requireFeature } from '@/lib/gate';
 import { firsInvoiceService } from '@/lib/services/firs-invoice.service';
 
 export const runtime = 'nodejs';
@@ -8,6 +9,8 @@ export const runtime = 'nodejs';
 export const POST = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
+    const feature = requireFeature(user, 'firsCompliance');
+    if (feature) return feature;
     const result = await firsInvoiceService.submitInvoice(user.id, ctx.params.id);
     return ok(result);
   });

@@ -26,20 +26,16 @@ import {
  */
 
 const STARTER_FEATURES: string[] = [
-  'Unlimited payments, debts & customers',
-  'Bank alert payment verification',
-  'Payment links via Paystack',
-  'Promise to Pay commitments',
-  'Auto debit installment plans',
-  'Smart Collection Queue',
-  'Professional invoices & auto receipts',
-  'WhatsApp reminders & follow ups',
-  'Product catalog with live inventory',
-  'Expense tracking & P&L reports',
-  'Team management, attendance & payroll',
-  'Property & tenant management (landlords)',
-  'Daily business pulse email',
-  'CSV export & email delivery',
+  'Unlimited invoices and public pay links',
+  'Recurring invoices for retainer clients',
+  'Credit notes, delivery notes, and offers',
+  'FIRS-ready tax invoices with IRN and QR',
+  'Auto receipts on every paid invoice',
+  'Bank alert verification for transfers',
+  'Smart Collection Queue with WhatsApp reminders',
+  'Customers, debts, expenses, and P&L reports',
+  'Team, attendance, payroll, and custom branding',
+  'Property and tenant management for landlords',
 ];
 
 export function PricingCards() {
@@ -160,7 +156,7 @@ export function PricingCards() {
                 Start 7-day free trial
               </Link>
               <p className="mt-3 text-center text-xs text-slate-500">
-                No card required to start. Cancel anytime.
+                No card to start. Cancel anytime.
               </p>
             </div>
           </div>
@@ -169,7 +165,7 @@ export function PricingCards() {
 
       {/* Trust line */}
       <p className="mt-8 text-center text-xs text-slate-500">
-        All plans include WhatsApp support · Full features on every plan · Switch billing cycle anytime
+        WhatsApp support · Same features on every cycle · Change cycle whenever you like
       </p>
     </div>
   );

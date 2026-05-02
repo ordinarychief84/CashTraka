@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { requireFeature } from '@/lib/gate';
 import { invoiceXmlService } from '@/lib/services/invoice-xml.service';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
@@ -19,6 +20,9 @@ export const runtime = 'nodejs';
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const feature = requireFeature(user, 'electronicXml');
+  if (feature) return feature;
 
   const invoice = await prisma.invoice.findFirst({
     where: { id: params.id, userId: user.id },

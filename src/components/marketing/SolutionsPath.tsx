@@ -16,14 +16,14 @@ export function SolutionsPath() {
         <Reveal from="up">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">
-              Two solutions · one platform
+              Two paths · one app
             </span>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Built for your kind of business
+              Pick the side that fits your work
             </h2>
             <p className="mt-3 text-slate-600">
-              Whether you sell products or collect rent, CashTraka adapts to the way
-              you work. Pick your path and see what is included.
+              Selling products or collecting rent, the engine is the same. Pick your
+              path and see what comes built in.
             </p>
           </div>
         </Reveal>
@@ -35,15 +35,15 @@ export function SolutionsPath() {
               accent="brand"
               kicker="For Small Business"
               title="CashTraka for Business"
-              desc="For sellers, vendors, tailors, and service providers, send payment links, set up auto-debit plans, verify transfers, and collect every naira you are owed."
+              desc="For sellers, tailors, salons, vendors, and service providers. Make invoices, take Paystack payments, set up recurring billing, and chase debts on WhatsApp."
               features={[
-                'Payment links & auto-debit installments',
-                'Promise to Pay with auto broken-promise alerts',
-                'Smart Collection Queue with priority actions',
-                'Auto receipts, invoices & daily business pulse',
+                'Invoice engine with public pay link via Paystack',
+                'Recurring invoices for retainer clients',
+                'FIRS-ready tax invoices with IRN and QR',
+                'Smart Collection Queue and WhatsApp reminders',
               ]}
               href="/for-business"
-              cta="Explore for Business"
+              cta="See for Business"
             />
           </Reveal>
           <Reveal from="up" delay={200}>
@@ -52,15 +52,15 @@ export function SolutionsPath() {
               accent="success"
               kicker="For Landlords"
               title="CashTraka for Landlords"
-              desc="For landlords, property managers, and estate agents, send rent payment links, set up recurring auto-debit, and know exactly who is behind."
+              desc="For landlords, property managers, and estate agents. Send rent invoices, take payments by link, set up monthly auto-debit, and see who is owing at a glance."
               features={[
-                'Rent payment links & auto-debit collection',
-                'Rent tracker with collection-rate KPI',
-                'Auto WhatsApp rent reminders',
-                'Per-property expenses & net profit',
+                'Rent invoices and pay links via Paystack',
+                'Monthly auto-debit on stored cards',
+                'Rent tracker with collection rate per property',
+                'Auto WhatsApp reminders before and after due date',
               ]}
               href="/for-landlords"
-              cta="Explore for Landlords"
+              cta="See for Landlords"
             />
           </Reveal>
         </div>

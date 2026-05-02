@@ -30,21 +30,21 @@ export function HeroSolutions() {
                   <Star size={12} fill="currentColor" />
                   <span className="ml-1">4.9</span>
                 </div>
-                <span className="text-slate-500">Trusted by Nigerian businesses & landlords</span>
+                <span className="text-slate-500">Built for Nigerian businesses and landlords</span>
               </div>
             </Reveal>
             <Reveal from="up" delay={80}>
               <span className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-gradient-to-r from-brand-50 to-success-50/60 px-3 py-1 text-xs font-semibold text-brand-700">
                 <Sparkles size={12} />
-                14-day free trial · No card required
+                Free to start. No card required.
               </span>
             </Reveal>
             <Reveal from="up" delay={140}>
               <h1 className="mt-4 text-5xl font-black leading-[1.04] tracking-tight text-ink md:text-6xl lg:text-[4.25rem]">
-                Know who paid. Know who owes.{' '}
+                Send invoices, take payments,{' '}
                 <span className="relative inline-block">
                   <span className="bg-gradient-to-r from-brand-600 via-brand-500 to-success-600 bg-clip-text text-transparent">
-                    Collect everything
+                    chase debts
                   </span>
                   <svg aria-hidden viewBox="0 0 300 12" className="absolute -bottom-1 left-0 h-2 w-full" preserveAspectRatio="none">
                     <path d="M2 8 Q 75 2 150 6 T 298 5" stroke="url(#heroStroke)" strokeWidth="3" fill="none" strokeLinecap="round" />
@@ -56,15 +56,15 @@ export function HeroSolutions() {
                     </defs>
                   </svg>
                 </span>{' '}
-                them.
+                in one place.
               </h1>
             </Reveal>
             <Reveal from="up" delay={200}>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
-                CashTraka is the all-in-one collection system for Nigerian businesses
-                and landlords. Send payment links, set up auto-debit installment plans,
-                verify transfers, issue receipts, and chase debts on WhatsApp, all
-                from your phone.
+                Built for Nigerian businesses. Make a proper invoice on your phone,
+                share the pay link on WhatsApp, take card or transfer via Paystack,
+                and let CashTraka handle the receipt, the FIRS paperwork, and the
+                follow-up.
               </p>
             </Reveal>
             <Reveal from="up" delay={260}>
@@ -86,15 +86,15 @@ export function HeroSolutions() {
               <ul className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-slate-600">
                 <li className="inline-flex items-center gap-1.5">
                   <Check size={14} className="text-success-600" strokeWidth={3} />
-                  Set up in 5 minutes
+                  Invoices, recurring billing, credit notes
                 </li>
                 <li className="inline-flex items-center gap-1.5">
                   <Check size={14} className="text-success-600" strokeWidth={3} />
-                  Auto-debit & payment links
+                  FIRS-ready tax invoices with QR
                 </li>
                 <li className="inline-flex items-center gap-1.5">
                   <Check size={14} className="text-success-600" strokeWidth={3} />
-                  Webhook-verified payments
+                  Pay via Paystack from any WhatsApp link
                 </li>
               </ul>
             </Reveal>

@@ -263,6 +263,16 @@ export async function GET(req: NextRequest) {
   await addCol('User', 'invoiceAccentColor', 'TEXT', "'#00B8E8'");
   await addCol('User', 'invoiceTemplate', 'TEXT', "'professional'");
 
+  // Workflow defaults — per-user preferences inside an unlocked plan.
+  await addCol('User', 'firsAutoSubmit', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'defaultInvoiceDueDays', 'INTEGER', 'NULL');
+  await addCol('User', 'defaultPaymentTerms', 'VARCHAR(120)', 'NULL');
+  await addCol('User', 'invoiceReminderCadence', 'TEXT NOT NULL', "'OFF'");
+  await addCol('User', 'autoArchiveDays', 'INTEGER', 'NULL');
+  await addCol('User', 'recurringAutoSendDefault', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'xmlGenerateOnFirs', 'BOOLEAN NOT NULL', 'true');
+  await addCol('User', 'documentRetentionMonths', 'INTEGER NOT NULL', '72');
+
   // Invoice: extra columns
   await addCol('Invoice', 'discount', 'INTEGER NOT NULL', '0');
   await addCol('Invoice', 'paymentTerms', 'TEXT', 'NULL');

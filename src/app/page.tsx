@@ -74,21 +74,22 @@ function Hero() {
       <div className="container-app relative z-10 grid items-center gap-10 md:grid-cols-2 md:gap-12">
         <Reveal from="up">
           <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
-            WhatsApp Sales & Cash Tracker
+            Invoices, payments and debts in one place
           </span>
           <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-            Stop losing money from customers who haven't paid
+            Send invoices, take payments, and chase debts in one place
           </h1>
           <p className="mt-4 text-lg text-slate-600 md:text-xl">
-            CashTraka helps you track payments, know who owes you, and follow up in
-            seconds from one simple system.
+            Built for Nigerian businesses. Send a proper invoice on WhatsApp,
+            take payment via Paystack, and let CashTraka handle the receipt,
+            the follow-up, and the FIRS paperwork.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/signup" className="btn-primary">Start free</Link>
             <a href="#solutions" className="btn-secondary">See how it works</a>
           </div>
           <p className="mt-4 text-sm text-slate-500">
-            Set up in under 5 minutes. No complicated tools.
+            Set up in under 5 minutes. No card required.
           </p>
         </Reveal>
         <Reveal from="right" delay={150} className="order-first md:order-last">
@@ -129,7 +130,7 @@ function AudienceMarquee() {
       <div className="container-app mb-4">
         <Reveal from="zoom" distance={10}>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Trusted by businesses across Nigeria
+            Used by Nigerian businesses every day
           </p>
         </Reveal>
       </div>
@@ -152,7 +153,7 @@ function SocialProof() {
           className="text-brand-600"
         />
       ),
-      body: 'in previously-forgotten debts, within the first 30 days.',
+      body: 'in old debts within the first 30 days of using CashTraka.',
       accent: 'brand',
     },
     {
@@ -160,13 +161,13 @@ function SocialProof() {
       number: (
         <AnimatedStat value={5} suffix=" min" className="text-success-700" />
       ),
-      body: 'from signup to recording your first payment. No tutorials.',
+      body: 'from signup to your first invoice or recorded payment.',
       accent: 'success',
     },
     {
       label: 'Collection rate',
       number: <AnimatedStat value={82} suffix="%" className="text-brand-600" />,
-      body: 'average of what is owed comes in vs 54% on spreadsheets.',
+      body: 'of money owed comes in vs 54% on a notebook or spreadsheet.',
       accent: 'brand',
     },
   ] as const;
@@ -176,10 +177,10 @@ function SocialProof() {
       <div className="container-app">
         <Reveal from="up" blur>
           <p className="text-center text-xs font-semibold uppercase tracking-wider text-brand-600">
-            Real results · Real businesses
+            Real businesses. Real money in the account.
           </p>
           <h2 className="mx-auto mt-3 max-w-2xl text-center text-2xl font-black tracking-tight text-ink md:text-3xl">
-            Numbers that speak for themselves
+            Built to put money in your account
           </h2>
         </Reveal>
         <ul className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -227,32 +228,32 @@ function SocialProof() {
 function Problem() {
   const pains = [
     {
-      icon: AlertTriangle,
-      title: '"I sent it" but nothing hit your account',
-      body: 'Fake screenshots. Forgotten transfers. You end up delivering goods on a promise, not a payment.',
+      icon: Receipt,
+      title: 'Receipts on receipt paper that fade in two months',
+      body: 'Your customer comes back asking for proof of payment. The thermal print is now a blank strip. You apologise and write a new one by hand.',
     },
     {
       icon: Inbox,
-      title: 'Yesterday\'s order is buried under 300 messages',
-      body: 'WhatsApp was never built to run a business. Important details vanish in the scroll.',
+      title: '"Boss, can you send me a proper invoice?"',
+      body: 'A WhatsApp message with the amount is not enough for a corporate client. They want a TIN, a buyer address, line items, the full thing.',
     },
     {
       icon: Clock3,
-      title: '"I\'ll pay you tomorrow" ...3 weeks ago',
-      body: 'Without a system, debts slip through the cracks. You absorb the loss quietly.',
+      title: 'You forgot to chase Chidi. Again.',
+      body: 'He owes ₦80,000 from last month. He went quiet. Your reminder is sitting in your head, not on a list, and you only remember at 2am.',
     },
     {
-      icon: SearchX,
-      title: 'Your best customer just bought from someone else',
-      body: 'No follow-up means no loyalty. The sellers who check in are the ones who keep the sale.',
+      icon: RefreshCcw,
+      title: 'Same monthly invoice, retyped from scratch',
+      body: 'Your retainer client. Same line items every month. You open Word, copy last month, change the date, save as PDF, send. Every. Single. Month.',
     },
   ];
   return (
     <Section
       id="problem"
-      eyebrow="Sound familiar?"
-      title="Running your business on WhatsApp alone is costing you real money"
-      subtitle="Unconfirmed payments. Forgotten debts. Customers who drift to the next seller because nobody followed up. It's not a people problem. It's a systems problem."
+      eyebrow="You know this story"
+      title="The boring stuff is the part that loses you money"
+      subtitle="Faded receipts. Customers asking for invoices you do not have. Debts that go quiet. FIRS rules you have not had time to read. None of it is the work you signed up for."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
         {pains.map((p) => (
@@ -271,7 +272,7 @@ function Problem() {
       </Stagger>
       <Reveal delay={400} from="zoom" distance={14}>
         <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
-          You are not lazy. You just do not have a system yet.
+          You do not need to work harder. You need a system that does the boring parts for you.
         </p>
       </Reveal>
     </Section>
@@ -283,73 +284,73 @@ function Problem() {
 function Solution() {
   const features = [
     {
-      icon: <Banknote size={22} />,
-      title: 'Record payments in seconds',
-      body: 'Cash or transfer, log it the moment money lands. Always know who paid and who still owes you.',
+      icon: <Receipt size={22} />,
+      title: 'Make an invoice in 30 seconds',
+      body: 'Pick the customer, add line items, send. The link goes to WhatsApp. The customer can view it, download a PDF, or pay it online.',
     },
     {
       icon: <CreditCard size={22} />,
-      title: 'Send payment links',
-      body: 'Create a PayLink, share it on WhatsApp, get paid online via Paystack. Auto confirmed the moment they pay.',
-    },
-    {
-      icon: <HandCoins size={22} />,
-      title: 'Promise to Pay',
-      body: 'Let customers commit to a payment date. They pick a schedule, you get notified, and broken promises get flagged automatically.',
+      title: 'Customer pays via the public pay link',
+      body: 'They tap the link, choose card or transfer, and Paystack handles the rest. Your invoice marks itself as paid the moment the money lands.',
     },
     {
       icon: <Repeat size={22} />,
-      title: 'Auto debit installment plans',
-      body: 'Set up recurring collections that charge automatically. No chasing. Payments land in your account on schedule.',
+      title: 'Recurring invoices for retainer clients',
+      body: 'Set it up once. CashTraka issues the same invoice every month, sends it on WhatsApp, and reminds the client when it is due.',
     },
     {
-      icon: <ListChecks size={22} />,
-      title: 'Smart Collection Queue',
-      body: 'Every overdue debt, expired link, broken promise, and failed installment ranked by priority with suggested next actions.',
+      icon: <Shield size={22} />,
+      title: 'Tax invoices ready for FIRS',
+      body: 'TIN, buyer address, item codes, IRN and QR code on the receipt. Download the XML and submit when FIRS asks for it.',
     },
     {
-      icon: <MessageCircle size={22} />,
-      title: 'Chase debts via WhatsApp',
-      body: 'One tap sends a polite reminder straight to the customer. No typing, no awkwardness.',
+      icon: <RefreshCcw size={22} />,
+      title: 'Credit notes when you cancel a sale',
+      body: 'Customer returned the goods? Issue a credit note in two taps. The invoice updates, the receipt updates, your books stay clean.',
     },
     {
-      icon: <Receipt size={22} />,
-      title: 'Auto receipts and invoices',
-      body: 'Receipts generate the moment payment is confirmed. Professional invoices with shareable links and PDF downloads.',
+      icon: <Banknote size={22} />,
+      title: 'Record a payment, the receipt sends itself',
+      body: 'Cash, transfer, or POS. Log the amount and CashTraka emails the receipt and shares the link on WhatsApp without you typing a word.',
     },
     {
       icon: <Shield size={22} />,
       title: 'Bank alert verification',
-      body: 'Paste your real bank SMS. CashTraka reads the amount, sender, and reference. Fake screenshots cannot pass.',
+      body: 'Got the bank SMS but Paystack has not confirmed yet? Paste the alert. CashTraka reads the amount, sender, and reference. No fake screenshots.',
+    },
+    {
+      icon: <HandCoins size={22} />,
+      title: 'Promise to Pay',
+      body: 'Customer cannot pay today? Send them a Promise link. They pick a date and amount. If they miss it, the system flags it for you.',
+    },
+    {
+      icon: <ListChecks size={22} />,
+      title: 'Smart Collection Queue',
+      body: 'Every overdue invoice, broken promise, and failed installment ranked by priority. Tap to open WhatsApp with the message ready to send.',
+    },
+    {
+      icon: <MessageCircle size={22} />,
+      title: 'Chase debts on WhatsApp',
+      body: 'One tap drafts a polite reminder in your own WhatsApp. No tone-deaf templates. Send it, close the chat, move on.',
     },
     {
       icon: <Users size={22} />,
       title: 'Your customer book builds itself',
-      body: 'Every buyer gets saved automatically with payment history, reliability scores, and last activity.',
+      body: 'Every buyer is saved with their phone, email, payment history, and what they bought. Phone-only customers welcome.',
     },
     {
       icon: <BarChart3 size={22} />,
       title: 'Daily business pulse',
-      body: 'Wake up to an email with yesterday\'s collections, who paid, who is overdue, and what needs your attention today.',
-    },
-    {
-      icon: <RefreshCcw size={22} />,
-      title: 'Win back quiet customers',
-      body: 'See who has not bought in a while and re-engage them with one tap.',
-    },
-    {
-      icon: <Sparkles size={22} />,
-      title: 'Your whole business, one screen',
-      body: 'Payments, debts, promises, installments, customers, receipts. No more hunting across 200 chats.',
+      body: 'Wake up to an email of yesterday. Who paid, who is overdue, what came in, what went out. Five seconds to read.',
     },
   ];
   return (
     <Section
       id="solutions"
       tone="muted"
-      eyebrow="Meet CashTraka"
-      title="The collection system your business has been missing"
-      subtitle="Record payments, send payment links, set up auto debit plans, chase debts on WhatsApp, and collect everything you are owed from one screen."
+      eyebrow="What you do in CashTraka"
+      title="The whole back office, on your phone"
+      subtitle="Make an invoice. Take the payment. Send the receipt. Chase the debt. Set up the next one to run on autopilot. Everything happens in one app."
     >
       <Reveal>
         <FeatureCarousel items={features} />
@@ -363,46 +364,46 @@ function Solution() {
 function DeepDives() {
   const items = [
     {
-      eyebrow: 'Payment Links',
-      title: 'Send a link. Get paid. Auto confirmed.',
-      body: 'Create a PayLink in 10 seconds, share via WhatsApp, and money hits your account via Paystack. No chasing. The webhook confirms payment instantly and the receipt sends itself.',
+      eyebrow: 'Invoice engine',
+      title: 'Send a proper invoice. Get paid by tapping a link.',
+      body: 'Build an invoice with line items, tax, discounts, and your logo. Share it on WhatsApp. The customer opens the public pay link, pays via Paystack, and the invoice marks itself as paid. No follow-up email needed.',
       bullets: [
-        'One tap PayLink creation with custom amounts',
-        'Auto confirmed via webhook, no manual checking',
-        'Receipt emails the customer the moment they pay',
+        'Public pay link, no account or app needed for the customer',
+        'Auto confirmed via Paystack webhook the second they pay',
+        'Receipt with QR and PDF emails the customer right away',
       ],
       visual: <PaymentsCard />,
     },
     {
-      eyebrow: 'Promise to Pay',
-      title: 'Let customers commit. Then hold them to it.',
-      body: 'Instead of chasing, send a Promise link. The customer picks their payment date and amount. If they miss it, the system flags it and moves them up the collection queue.',
+      eyebrow: 'Recurring invoices',
+      title: 'Set it once. Send it every month. Forever.',
+      body: 'For retainers, rent, subscriptions, anything that bills on a schedule. Pick the day of the month, the customer, and the line items. CashTraka issues, sends, and tracks each one. You just check that the money came in.',
       bullets: [
-        'Customer facing commitment page, no app needed',
-        'Automatic broken promise detection (daily scan)',
-        'Partial payments tracked against the original promise',
+        'Monthly, weekly, or custom intervals',
+        'Auto sends on WhatsApp on the issue date',
+        'Pause, edit, or cancel from one screen',
       ],
       visual: <DebtsCard />,
     },
     {
-      eyebrow: 'Auto-Debit',
-      title: 'Set it up once. Collect on autopilot.',
-      body: 'For customers who owe you a large amount, set up an installment plan. CashTraka charges their card automatically on schedule, daily, weekly, or monthly, until the balance clears.',
+      eyebrow: 'FIRS-ready tax invoices',
+      title: 'Tax invoices that pass FIRS the first time',
+      body: 'Your TIN, the buyer TIN, item codes, the right tax breakdown, and an IRN with a QR code on the receipt. Download the XML and submit when FIRS asks. Six years of document archive included.',
       bullets: [
-        'Recurring charges via Paystack authorization',
-        'Each charge verified via webhook before updating balance',
-        'Auto pauses after 3 failures and surfaces in collection queue',
+        'TIN, buyer details, line-level tax codes, all in one form',
+        'IRN and QR printed on the receipt',
+        'XML download for FIRS submission',
       ],
       visual: <InstallmentCard />,
     },
     {
       eyebrow: 'Collection Queue',
       title: 'Always know who to chase next',
-      body: 'Every overdue debt, broken promise, expired PayLink, and failed auto debit ranked by priority score with a suggested action beside each name. No more guessing who needs a nudge.',
+      body: 'Every overdue invoice, broken promise, expired pay link, and failed auto-debit ranked by priority. Each one comes with a suggested action. No more wondering which customer to call today.',
       bullets: [
-        'Priority scoring: amount × days overdue × status',
-        'Suggested actions: "Call customer", "Resend link", "Follow up"',
-        'One tap opens WhatsApp with a pre-written message',
+        'Priority ranked by amount, days overdue, and history',
+        'Suggested actions like "Call now", "Resend link", "Follow up"',
+        'One tap opens WhatsApp with the message already written',
       ],
       visual: <FollowUpCard />,
     },
@@ -420,18 +421,18 @@ function HowItWorks() {
   const steps = [
     {
       n: 1,
-      title: 'Add what you are owed',
-      body: 'Record a debt, send a PayLink, or create a Promise to Pay. Takes 10 seconds.',
+      title: 'Add the work',
+      body: 'Make an invoice, log a sale, or record a debt. Takes 30 seconds. Share it on WhatsApp from the same screen.',
     },
     {
       n: 2,
-      title: 'Let CashTraka collect',
-      body: 'Auto debit plans charge on schedule. PayLinks confirm via webhook. Broken promises get flagged.',
+      title: 'CashTraka collects',
+      body: 'Pay link confirms via Paystack. Recurring invoices send themselves. Bank alerts verify transfers. Receipts go out automatically.',
     },
     {
       n: 3,
-      title: 'Follow up on what is left',
-      body: 'Your Collection Queue ranks everyone by urgency. One tap opens WhatsApp with the message ready.',
+      title: 'You handle the rest',
+      body: 'Open the Collection Queue, pick the top name, send the WhatsApp reminder. Done in two taps.',
     },
   ];
   return (
@@ -439,7 +440,7 @@ function HowItWorks() {
       id="how-it-works"
       tone="muted"
       eyebrow="3 steps"
-      title="Set up in minutes. See results the same day."
+      title="Set up today. See money in your account this week."
     >
       <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
         {/* Desktop connector line, animated gradient sweep */}
@@ -472,18 +473,18 @@ function HowItWorks() {
 
 function ValueSection() {
   const wins = [
-    { icon: CreditCard, label: 'Collect payments online with one-tap PayLinks' },
-    { icon: Repeat, label: 'Auto debit installments that collect on autopilot' },
-    { icon: HandCoins, label: 'Promise to Pay lets customers commit while you track' },
-    { icon: RefreshCcw, label: 'Recover debts you thought were lost' },
-    { icon: MessageCircle, label: 'Send payment reminders without the awkwardness' },
-    { icon: Shield, label: 'Know your exact cash position at any moment' },
+    { icon: MessageCircle, label: 'WhatsApp first. Send invoices, receipts, and reminders the way your customers actually read messages.' },
+    { icon: PhoneCall, label: 'Phone-only customers welcome. No email? No problem. Save them by phone and send via WhatsApp.' },
+    { icon: Shield, label: 'Took payment by bank transfer? Paste the SMS alert. We verify it, no Paystack confirmation needed.' },
+    { icon: Sparkles, label: 'Mobile first. Built for the phone in your hand, not a laptop in an office.' },
+    { icon: Users, label: 'Multiple staff, one business. Add your team with the right access.' },
+    { icon: Receipt, label: 'Your branding on every invoice and receipt. Looks professional from day one.' },
   ];
   return (
     <Section
-      eyebrow="The real value"
-      title="You do not need more customers. You need to collect from the ones you have."
-      subtitle="The money is already in your business. CashTraka helps you collect it automatically, track it, and grow it."
+      eyebrow="Built around how you actually work"
+      title="No new habits. Just less typing."
+      subtitle="You already run your business on WhatsApp and bank alerts. CashTraka fits into that, it does not fight it."
     >
       <Stagger step={90} from="left" className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
         {wins.map((w) => (
@@ -505,15 +506,32 @@ function ValueSection() {
 
 function Objections() {
   const items = [
-    { title: 'Zero spreadsheets', body: 'No formulas, no columns, no confusion. Just your money, in plain Naira, on one screen.' },
-    { title: 'Zero setup headaches', body: 'Sign up, log your first sale, and you are already ahead of 90% of sellers still using notebooks.' },
-    { title: 'Zero tech skills needed', body: 'If you can send a WhatsApp message, you can use CashTraka. It was built for phones first.' },
+    {
+      title: 'New: full invoice engine',
+      body: 'Make an invoice with line items, tax, discounts, and your logo. Share via the public pay link or WhatsApp. Customer pays online or marks as paid offline.',
+    },
+    {
+      title: 'New: recurring invoices',
+      body: 'Set up once for retainer clients, monthly rent, or subscriptions. CashTraka sends and tracks each cycle. You just confirm payment.',
+    },
+    {
+      title: 'New: credit notes and delivery notes',
+      body: 'Cancel a sale, refund a customer, or document goods delivered. The full set of business documents, not just receipts.',
+    },
+    {
+      title: 'New: FIRS-ready tax invoices',
+      body: 'TIN, buyer details, item codes, IRN, QR on the receipt, and XML for FIRS submission. Six-year document archive built in.',
+    },
+    {
+      title: 'New: document audit log',
+      body: 'See who edited what, and when. Every invoice, credit note, and receipt has a full history. Useful for staff, accountants, and FIRS.',
+    },
   ];
   return (
     <Section
       tone="muted"
-      eyebrow="Built for real life"
-      title="No learning curve. No complicated software. Just results."
+      eyebrow="What is new this season"
+      title="A full invoice engine, FIRS-ready, on your phone"
     >
       <Stagger step={100} from="zoom" distance={18} className="grid gap-4 md:grid-cols-3">
         {items.map((it) => (
@@ -530,7 +548,7 @@ function Objections() {
       </Stagger>
       <Reveal delay={400} from="zoom" distance={14}>
         <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
-          If you can use WhatsApp, you can use CashTraka.
+          If you can send a WhatsApp message, you can run your business on CashTraka.
         </p>
       </Reveal>
     </Section>
@@ -544,13 +562,22 @@ function Pricing() {
     <Section
       id="pricing"
       eyebrow="Pricing"
-      title="One recovered debt pays for an entire quarter"
-      subtitle="One plan. Full features. Start with a 7-day free trial, no card required. Pick the billing frequency that suits you."
+      title="Free for small operations. ₦3,000/month for the full toolkit."
+      subtitle="Start free, no card. When you need invoices, FIRS, recurring billing, and the rest, switch to Starter for as little as ₦3,000 a month."
     >
       <Reveal>
         <div className="mx-auto max-w-3xl">
           <PricingCards />
         </div>
+      </Reveal>
+      <Reveal delay={200}>
+        <p className="mt-6 text-center text-sm text-slate-600">
+          See the full breakdown on the{' '}
+          <Link href="/pricing" className="font-semibold text-brand-700 hover:text-brand-800 underline underline-offset-2">
+            pricing page
+          </Link>
+          .
+        </p>
       </Reveal>
     </Section>
   );
@@ -564,7 +591,7 @@ function FAQSection() {
       id="faq"
       tone="muted"
       eyebrow="FAQ"
-      title="Frequently asked questions"
+      title="Questions people ask before they sign up"
     >
       <Reveal>
         <FAQ />
@@ -593,9 +620,9 @@ function FinalCTA() {
             />
             <div className="relative">
               <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-                Your customers are already there. Your money should be too.
+                Stop running around for receipts. Start the day with money in.
               </h2>
-              <p className="mt-3 text-lg text-white/90">Join Nigerian businesses that stopped chasing and started collecting on autopilot.</p>
+              <p className="mt-3 text-lg text-white/90">Free to start. Five minutes to set up. Your first invoice goes out today.</p>
               <div className="mt-7 flex flex-wrap justify-center gap-3">
                 <Link
                   href="/signup"
@@ -613,7 +640,7 @@ function FinalCTA() {
                 </Link>
               </div>
               <p className="mt-4 text-sm text-white/80">
-                7-day free trial. Set up in under 5 minutes. No card required.
+                No card. No trial expiry on the free plan. Upgrade only when you need invoices and FIRS.
               </p>
             </div>
           </div>
@@ -782,7 +809,7 @@ function FollowUpCard() {
       </div>
       <div className="mt-4 text-xs font-medium text-slate-500">Message</div>
       <div className="mt-1 rounded-lg border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-700">
-        Hi Amaka, we have new stock available. Let me know if you'd like to order.
+        Hi Amaka, your invoice INV-0142 is due tomorrow. Pay link inside if it helps.
       </div>
       <button className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1fbd5b]">
         <MessageCircle size={16} />
@@ -790,7 +817,7 @@ function FollowUpCard() {
       </button>
       <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-500">
         <Check size={12} className="text-brand-600" />
-        Uses your own WhatsApp, nothing to connect
+        Goes through your own WhatsApp. Nothing to connect.
       </div>
     </div>
   );
@@ -802,15 +829,15 @@ function PropertyManagerSpotlight() {
   const features = [
     {
       title: 'Every tenant, every unit',
-      body: 'See who lives where, how much they pay, and when rent is due, all in one view.',
+      body: 'See who lives where, how much they pay, and when rent is due, all on one screen.',
     },
     {
       title: 'Rent tracker with collection rate',
-      body: 'Monthly KPI: how much was expected, collected, and still outstanding.',
+      body: 'Each month: how much you expected, how much came in, and who is still owing.',
     },
     {
       title: 'Auto reminders on WhatsApp',
-      body: 'Nudge tenants a few days before rent is due, and again when it\'s overdue.',
+      body: 'Nudge tenants a few days before rent is due, and again when it is overdue.',
     },
     {
       title: 'Verified payments, auto receipts',
@@ -823,10 +850,10 @@ function PropertyManagerSpotlight() {
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
-              Also built for property managers
+              Also for landlords and property managers
             </span>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Every tenant. Every unit. Every naira collected.
+              Every tenant. Every unit. Every naira accounted for.
             </h2>
             <p className="mt-3 text-slate-600 md:text-lg">
               No more chasing tenants in group chats. CashTraka gives every property a clean

@@ -87,11 +87,15 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send verification OTP email (fire-and-forget)
+    // Send verification OTP email
     // Welcome email is sent later, after onboarding is completed
-    emailService
+    const emailResult = await emailService
       .sendVerificationOtp({ to: user.email, name: user.name, code: otp })
-      .catch(() => null);
+      .catch((e: unknown) => ({ ok: false, error: e instanceof Error ? e.message : 'Send failed' }));
+
+    if (!emailResult.ok) {
+      console.error('OTP_EMAIL_FAILED:', emailResult.error, '| user:', user.email);
+    }
 
     securityLog({ event: 'SIGNUP', actorId: user.id, ip, meta: { email: user.email } });
 
@@ -101,6 +105,7 @@ export async function POST(req: Request) {
       role: user.role,
       businessType: user.businessType,
       requiresVerification: true,
+      emailSent: emailResult.ok,
     });
   } catch (e) {
     console.error('SIGNUP_ERROR:', e instanceof Error ? e.message : 'unknown');

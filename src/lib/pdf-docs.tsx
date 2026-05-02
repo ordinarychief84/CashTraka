@@ -145,6 +145,9 @@ export type ReceiptData = {
   /// When > 0, the receipt represents a partial payment and the PDF will
   /// render "Amount Paid" + "Balance Remaining" rows.
   balanceRemaining?: number | null;
+  /// VAT breakdown sourced from a linked tax Invoice. When present, the
+  /// receipt PDF shows the subtotal + VAT line + total breakdown.
+  vat?: { rate: number; amount: number; subtotal: number } | null;
   items: { description: string; unitPrice: number; quantity: number }[];
 };
 
@@ -226,12 +229,25 @@ export function ReceiptDoc({ data }: { data: ReceiptData }) {
           </View>
         )}
 
-        {hasItems && itemsTotal !== data.amount && (
+        {data.vat && data.vat.amount > 0 ? (
+          <>
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>Subtotal</Text>
+              <Text style={styles.kvValue}>{formatNaira(data.vat.subtotal)}</Text>
+            </View>
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>
+                VAT ({data.vat.rate}%)
+              </Text>
+              <Text style={styles.kvValue}>{formatNaira(data.vat.amount)}</Text>
+            </View>
+          </>
+        ) : hasItems && itemsTotal !== data.amount ? (
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Items subtotal</Text>
             <Text style={styles.kvValue}>{formatNaira(itemsTotal)}</Text>
           </View>
-        )}
+        ) : null}
         {data.balanceRemaining && data.balanceRemaining > 0 ? (
           <>
             <View style={styles.kvRow}>

@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { ReceiptActions } from '@/components/ReceiptActions';
+import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { formatNaira, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -36,6 +37,12 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
     : null;
   const debt = receipt.debtId
     ? await prisma.debt.findUnique({ where: { id: receipt.debtId } })
+    : null;
+
+  // Linked tax invoice (when this receipt was issued through the manual flow
+  // with VAT applied, or via "Generate invoice" on a payment).
+  const taxInvoice = payment
+    ? await prisma.invoice.findUnique({ where: { paymentId: payment.id } })
     : null;
 
   const customerName =
@@ -167,7 +174,7 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
         </div>
 
         {/* Actions */}
-        <div>
+        <div className="space-y-4">
           <div className="rounded-xl border border-border bg-white p-5">
             <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Share &amp; export
@@ -180,6 +187,37 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
               businessName={businessName}
             />
           </div>
+
+          {/* FIRS e-Invoice — shown only when this receipt has a linked tax
+              invoice. The seller can submit it to FIRS MBS straight from
+              here without navigating to /invoices. */}
+          {taxInvoice ? (
+            <>
+              <FirsCompliancePanel
+                invoiceId={taxInvoice.id}
+                initial={{
+                  firsStatus: taxInvoice.firsStatus,
+                  firsIrn: taxInvoice.firsIrn,
+                  firsLastError: taxInvoice.firsLastError,
+                  firsRetryCount: taxInvoice.firsRetryCount,
+                  firsSubmittedAt: taxInvoice.firsSubmittedAt
+                    ? taxInvoice.firsSubmittedAt.toISOString()
+                    : null,
+                  firsAcceptedAt: taxInvoice.firsAcceptedAt
+                    ? taxInvoice.firsAcceptedAt.toISOString()
+                    : null,
+                  vatApplied: taxInvoice.vatApplied,
+                  vatRate: taxInvoice.vatRate,
+                }}
+              />
+              <a
+                href={`/invoices/${taxInvoice.id}`}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-600 hover:underline"
+              >
+                <ExternalLink size={12} /> Open tax invoice {taxInvoice.invoiceNumber}
+              </a>
+            </>
+          ) : null}
         </div>
       </div>
     </AppShell>

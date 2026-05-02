@@ -73,6 +73,21 @@ async function buildReceiptData(
       balanceRemaining = promisePayment.promiseToPay.remainingAmount;
     }
 
+    // If a tax Invoice was created for this payment (manual receipt with VAT,
+    // or invoice-from-payment), use its breakdown so the receipt PDF shows
+    // the VAT line and matches the customer's tax invoice exactly.
+    const linkedInvoice = await prisma.invoice
+      .findUnique({
+        where: { paymentId: payment.id },
+        select: { vatApplied: true, vatRate: true, tax: true, subtotal: true },
+      })
+      .catch(() => null);
+
+    const vat =
+      linkedInvoice && linkedInvoice.vatApplied && linkedInvoice.tax > 0
+        ? { rate: linkedInvoice.vatRate, amount: linkedInvoice.tax, subtotal: linkedInvoice.subtotal }
+        : null;
+
     return {
       data: {
         business: user.businessName || user.name || 'Seller',
@@ -87,6 +102,7 @@ async function buildReceiptData(
         status: payment.status,
         amount: payment.amount,
         balanceRemaining,
+        vat,
         items: payment.items.map((i) => ({
           description: i.description,
           unitPrice: i.unitPrice,

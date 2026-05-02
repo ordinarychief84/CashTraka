@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ExternalLink, Download, MessageCircle } from 'lucide-react';
+import { ExternalLink, Download, MessageCircle, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -98,6 +98,14 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: SP 
       <PageHeader
         title="Receipts"
         subtitle="Every receipt you've issued. Tap one to view, share, or download."
+        action={
+          <Link
+            href="/receipts/new"
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <Plus size={16} /> New receipt
+          </Link>
+        }
       />
 
       {/* Source filter */}

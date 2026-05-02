@@ -36,6 +36,18 @@ export default async function ReceiptPage({ params }: Props) {
   const displayReceiptNumber =
     receipt?.receiptNumber ?? payment.id.slice(-8).toUpperCase();
 
+  // Linked tax invoice (manual receipt with VAT, or invoice-from-payment).
+  // When present we show the subtotal + VAT line on the public receipt so
+  // the customer's view matches the tax invoice exactly.
+  const taxInvoice = await prisma.invoice.findUnique({
+    where: { paymentId: payment.id },
+    select: { vatApplied: true, vatRate: true, tax: true, subtotal: true },
+  });
+  const vat =
+    taxInvoice && taxInvoice.vatApplied && taxInvoice.tax > 0
+      ? { rate: taxInvoice.vatRate, amount: taxInvoice.tax, subtotal: taxInvoice.subtotal }
+      : null;
+
   return (
     <div className="min-h-screen bg-slate-50 py-8">
       <div className="mx-auto max-w-md px-4">
@@ -102,12 +114,23 @@ export default async function ReceiptPage({ params }: Props) {
 
           {/* Total */}
           <div className="px-6 py-5">
-            {hasItems && itemsTotal !== payment.amount && (
+            {vat && vat.amount > 0 ? (
+              <>
+                <div className="mb-1.5 flex items-center justify-between text-sm">
+                  <span className="text-slate-600">Subtotal</span>
+                  <span className="num text-slate-700">{formatNaira(vat.subtotal)}</span>
+                </div>
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="text-slate-600">VAT ({vat.rate}%)</span>
+                  <span className="num text-slate-700">{formatNaira(vat.amount)}</span>
+                </div>
+              </>
+            ) : hasItems && itemsTotal !== payment.amount ? (
               <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
                 <span>Items subtotal</span>
                 <span className="num">{formatNaira(itemsTotal)}</span>
               </div>
-            )}
+            ) : null}
             {balanceRemaining && balanceRemaining > 0 ? (
               <>
                 <div className="mb-2 flex items-center justify-between text-sm">

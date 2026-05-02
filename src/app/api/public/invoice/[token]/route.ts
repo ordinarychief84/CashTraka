@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { effectiveInvoiceStatus } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -16,10 +17,20 @@ export const runtime = 'nodejs';
  * Invoice.viewedAt and write an audit log entry. Subsequent fetches
  * are read-only.
  */
-export async function GET(_req: Request, { params }: { params: { token: string } }) {
+export async function GET(req: Request, { params }: { params: { token: string } }) {
   const token = params.token;
   if (!token || token.length < 16) {
     return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
+  }
+
+  // Rate limit per-IP per-token to mitigate scrapers hammering this public endpoint.
+  const ip = clientIp(req);
+  const rl = rateLimit(`public-invoice:${token}`, ip, { max: 60, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again shortly.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    );
   }
 
   const invoice = await prisma.invoice.findUnique({
@@ -47,17 +58,18 @@ export async function GET(_req: Request, { params }: { params: { token: string }
     return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
   }
 
-  // First-view side effect (idempotent).
-  if (!invoice.viewedAt) {
+  // First-view side effect (idempotent). Only fires when the invoice was
+  // SENT — once we've stamped viewedAt + lifted status to VIEWED, this
+  // guard short-circuits on subsequent fetches.
+  if (!invoice.viewedAt && invoice.status === 'SENT') {
     await prisma.invoice.update({
       where: { id: invoice.id },
       data: {
         viewedAt: new Date(),
-        // Lift status from SENT -> VIEWED if it was just sent.
-        status: invoice.status === 'SENT' ? 'VIEWED' : invoice.status,
+        status: 'VIEWED',
       },
     });
-    documentAudit.log({
+    await documentAudit.log({
       userId: invoice.userId,
       entityType: 'INVOICE',
       entityId: invoice.id,
@@ -65,8 +77,16 @@ export async function GET(_req: Request, { params }: { params: { token: string }
     });
   }
 
-  const status = effectiveInvoiceStatus(invoice);
-  const outstanding = Math.max(0, invoice.total - invoice.amountPaid);
+  // Sum credit notes against this invoice so the effective status reflects
+  // any partial credits that have been applied.
+  const creditAgg = await prisma.creditNote.aggregate({
+    where: { invoiceId: invoice.id },
+    _sum: { total: true },
+  });
+  const creditedTotal = creditAgg._sum.total ?? 0;
+
+  const status = effectiveInvoiceStatus(invoice, creditedTotal);
+  const outstanding = Math.max(0, invoice.total - creditedTotal - invoice.amountPaid);
 
   return NextResponse.json({
     success: true,

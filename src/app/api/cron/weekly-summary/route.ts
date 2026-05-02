@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 /**
  * Weekly summary email, runs every Monday at 7 AM WAT (06:00 UTC).
  * Sends each active user a digest of their past-week activity.
  */
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

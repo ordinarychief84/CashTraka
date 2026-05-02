@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { nextDocumentNumber } from '@/lib/invoice-helpers';
+import { nextDocumentNumber, withDocumentNumberRetry } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
 export const runtime = 'nodejs';
@@ -50,38 +50,69 @@ export async function POST(req: Request) {
   }
   const data = parsed.data;
 
+  // IDOR guard: validate any customerId/productId belongs to the caller.
+  if (data.customerId) {
+    const ownsCustomer = await prisma.customer.findFirst({
+      where: { id: data.customerId, userId: user.id },
+      select: { id: true },
+    });
+    if (!ownsCustomer) {
+      return NextResponse.json(
+        { error: 'Customer not found in your account.' },
+        { status: 400 },
+      );
+    }
+  }
+  const productIds = Array.from(
+    new Set(data.items.map((it) => it.productId).filter(Boolean) as string[]),
+  );
+  if (productIds.length > 0) {
+    const owned = await prisma.product.findMany({
+      where: { id: { in: productIds }, userId: user.id },
+      select: { id: true },
+    });
+    if (owned.length !== productIds.length) {
+      return NextResponse.json(
+        { error: 'One or more products do not exist in your catalog.' },
+        { status: 400 },
+      );
+    }
+  }
+
   const prefix =
     user.deliveryNotePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'DN';
 
-  const deliveryNoteNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'deliveryNote',
-    field: 'deliveryNoteNumber',
-  });
-
-  const dn = await prisma.deliveryNote.create({
-    data: {
+  const { dn, deliveryNoteNumber } = await withDocumentNumberRetry(async () => {
+    const deliveryNoteNumber = await nextDocumentNumber({
       userId: user.id,
-      customerId: data.customerId || null,
-      customerName: data.customerName,
-      customerPhone: data.customerPhone || null,
-      customerAddress: data.customerAddress || null,
-      deliveryNoteNumber,
-      status: 'ISSUED',
-      deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
-      notes: data.notes || null,
-      items: {
-        create: data.items.map((it) => ({
-          productId: it.productId || null,
-          description: it.description,
-          quantity: it.quantity,
-        })),
+      prefix,
+      table: 'deliveryNote',
+      field: 'deliveryNoteNumber',
+    });
+    const created = await prisma.deliveryNote.create({
+      data: {
+        userId: user.id,
+        customerId: data.customerId || null,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone || null,
+        customerAddress: data.customerAddress || null,
+        deliveryNoteNumber,
+        status: 'ISSUED',
+        deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
+        notes: data.notes || null,
+        items: {
+          create: data.items.map((it) => ({
+            productId: it.productId || null,
+            description: it.description,
+            quantity: it.quantity,
+          })),
+        },
       },
-    },
+    });
+    return { dn: created, deliveryNoteNumber };
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'DELIVERY_NOTE',
@@ -89,7 +120,7 @@ export async function POST(req: Request) {
     action: 'CREATED',
     metadata: { deliveryNoteNumber },
   });
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'DELIVERY_NOTE',
     documentId: dn.id,

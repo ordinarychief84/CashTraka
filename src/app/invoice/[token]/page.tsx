@@ -10,6 +10,27 @@ import { PublicInvoicePay } from '@/components/invoices/PublicInvoicePay';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Compute relative luminance of a hex color (0..1). Used to pick a
+ * readable foreground for buttons whose background is the user's
+ * configured accent - pale accents like sky-blue lose white text.
+ */
+function relativeLuminance(hex: string): number {
+  const m = /^#?([\da-f]{6}|[\da-f]{3})$/i.exec(hex.trim());
+  if (!m) return 0;
+  let h = m[1];
+  if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+  const r = parseInt(h.slice(0, 2), 16) / 255;
+  const g = parseInt(h.slice(2, 4), 16) / 255;
+  const b = parseInt(h.slice(4, 6), 16) / 255;
+  const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+}
+
+function readableOn(bg: string): string {
+  return relativeLuminance(bg) > 0.6 ? '#0a0a0a' : '#ffffff';
+}
+
 const STATUS_TONE: Record<string, { label: string; cls: string }> = {
   DRAFT: { label: 'Draft', cls: 'bg-slate-100 text-slate-700' },
   SENT: { label: 'Sent', cls: 'bg-brand-50 text-brand-700' },
@@ -84,6 +105,7 @@ export default async function PublicInvoicePage({
   const business =
     invoice.user.businessName || invoice.user.name || 'Seller';
   const accent = invoice.user.invoiceAccentColor || '#00B8E8';
+  const accentFg = readableOn(accent);
 
   // Pay-on-WhatsApp prefilled message back to the seller (asks for help).
   const helpMessage =
@@ -97,8 +119,8 @@ export default async function PublicInvoicePage({
         <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-border">
           {/* Branded header */}
           <div
-            className="px-5 py-5 text-white sm:px-7"
-            style={{ background: accent }}
+            className="px-5 py-5 sm:px-7"
+            style={{ background: accent, color: accentFg }}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -221,7 +243,7 @@ export default async function PublicInvoicePage({
               ) : null}
               {invoice.user.bankAccountNumber ? (
                 <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                  <Field label="Bank" value={invoice.user.bankName ?? '—'} />
+                  <Field label="Bank" value={invoice.user.bankName ?? '-'} />
                   <Field
                     label="Account"
                     value={invoice.user.bankAccountNumber}
@@ -246,6 +268,7 @@ export default async function PublicInvoicePage({
                 token={invoice.publicToken ?? params.token}
                 outstanding={outstanding}
                 accentColor={accent}
+                accentFg={accentFg}
               />
             ) : null}
 

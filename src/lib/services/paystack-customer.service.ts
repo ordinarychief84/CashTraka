@@ -141,10 +141,21 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
   verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
     const key = secretKey();
     if (!key) return false;
+    const sig = headers['x-paystack-signature'] || headers['X-Paystack-Signature'];
+    if (!sig) return false;
     const hash = crypto
       .createHmac('sha512', key)
       .update(rawBody)
       .digest('hex');
-    return hash === (headers['x-paystack-signature'] || headers['X-Paystack-Signature']);
+    // Constant-time compare. timingSafeEqual throws on length mismatch,
+    // so wrap defensively — different lengths just mean "no match".
+    try {
+      return crypto.timingSafeEqual(
+        Buffer.from(hash, 'hex'),
+        Buffer.from(sig, 'hex'),
+      );
+    } catch {
+      return false;
+    }
   },
 };

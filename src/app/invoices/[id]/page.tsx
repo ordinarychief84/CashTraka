@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
+import { InvoiceDetailActions } from '@/components/invoices/InvoiceDetailActions';
 import { formatNaira, formatDate } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -14,8 +15,12 @@ export const dynamic = 'force-dynamic';
 const STATUS_LABEL: Record<string, string> = {
   DRAFT: 'Draft',
   SENT: 'Sent',
+  VIEWED: 'Viewed',
+  PARTIALLY_PAID: 'Partially paid',
   PAID: 'Paid',
+  OVERDUE: 'Overdue',
   CANCELLED: 'Cancelled',
+  CREDITED: 'Credited',
 };
 
 export default async function InvoiceDetailPage({
@@ -30,6 +35,15 @@ export default async function InvoiceDetailPage({
     include: { items: true },
   });
   if (!invoice) notFound();
+
+  // Sum of credit notes against this invoice — surfaced alongside Paid /
+  // Outstanding so the seller sees the full ledger.
+  const creditAgg = await prisma.creditNote.aggregate({
+    where: { invoiceId: invoice.id, userId: user.id },
+    _sum: { total: true },
+  });
+  const creditedTotal = creditAgg._sum.total ?? 0;
+  const outstanding = Math.max(0, invoice.total - invoice.amountPaid - creditedTotal);
 
   return (
     <AppShell
@@ -147,11 +161,37 @@ export default async function InvoiceDetailPage({
                   {formatNaira(invoice.total)}
                 </span>
               </div>
+              {invoice.amountPaid > 0 ? (
+                <div className="flex justify-between text-xs text-slate-600">
+                  <span>Paid</span>
+                  <span className="num">{formatNaira(invoice.amountPaid)}</span>
+                </div>
+              ) : null}
+              {creditedTotal > 0 ? (
+                <div className="flex justify-between text-xs text-slate-600">
+                  <span>Credited</span>
+                  <span className="num">{formatNaira(creditedTotal)}</span>
+                </div>
+              ) : null}
+              {outstanding > 0 ? (
+                <div className="flex justify-between text-xs font-semibold text-red-700">
+                  <span>Outstanding</span>
+                  <span className="num">{formatNaira(outstanding)}</span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
 
-        <div>
+        <div className="space-y-4">
+          <InvoiceDetailActions
+            id={invoice.id}
+            status={invoice.status}
+            publicToken={invoice.publicToken ?? null}
+            hasCustomerEmail={!!invoice.customerEmail}
+            hasCustomerPhone={!!invoice.customerPhone}
+          />
+
           <FirsCompliancePanel
             invoiceId={invoice.id}
             initial={{

@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { nextDocumentNumber, makePublicToken } from '@/lib/invoice-helpers';
+import {
+  nextDocumentNumber,
+  makePublicToken,
+  withDocumentNumberRetry,
+} from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
 export const runtime = 'nodejs';
@@ -100,39 +104,40 @@ export async function POST(req: Request) {
   const prefix =
     user.creditNotePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'CN';
 
-  const creditNoteNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'creditNote',
-    field: 'creditNoteNumber',
-  });
-
   const fullyCredited = alreadyCredited + total >= invoice.total;
 
-  const created = await prisma.$transaction(async (tx) => {
-    const cn = await tx.creditNote.create({
-      data: {
-        userId: user.id,
-        invoiceId: invoice.id,
-        creditNoteNumber,
-        reason: parsed.data.reason ?? null,
-        subtotal,
-        taxAmount,
-        total,
-        publicToken: makePublicToken(),
-      },
+  const created = await withDocumentNumberRetry(async () => {
+    const creditNoteNumber = await nextDocumentNumber({
+      userId: user.id,
+      prefix,
+      table: 'creditNote',
+      field: 'creditNoteNumber',
     });
-
-    if (fullyCredited && invoice.status !== 'CREDITED') {
-      await tx.invoice.update({
-        where: { id: invoice.id },
-        data: { status: 'CREDITED' },
+    return prisma.$transaction(async (tx) => {
+      const cn = await tx.creditNote.create({
+        data: {
+          userId: user.id,
+          invoiceId: invoice.id,
+          creditNoteNumber,
+          reason: parsed.data.reason ?? null,
+          subtotal,
+          taxAmount,
+          total,
+          publicToken: makePublicToken(),
+        },
       });
-    }
-    return cn;
+
+      if (fullyCredited && invoice.status !== 'CREDITED') {
+        await tx.invoice.update({
+          where: { id: invoice.id },
+          data: { status: 'CREDITED' },
+        });
+      }
+      return cn;
+    });
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'CREDIT_NOTE',
@@ -141,7 +146,7 @@ export async function POST(req: Request) {
     metadata: { invoiceId: invoice.id, total, fullyCredited },
   });
   if (fullyCredited) {
-    documentAudit.log({
+    await documentAudit.log({
       userId: user.id,
       actorId: user.id,
       entityType: 'INVOICE',
@@ -150,7 +155,7 @@ export async function POST(req: Request) {
       metadata: { creditNoteId: created.id },
     });
   }
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'CREDIT_NOTE',
     documentId: created.id,

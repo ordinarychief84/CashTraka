@@ -59,6 +59,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid start date' }, { status: 400 });
   }
 
+  // IDOR guard: validate any customerId/productId belongs to the caller.
+  if (data.customerId) {
+    const ownsCustomer = await prisma.customer.findFirst({
+      where: { id: data.customerId, userId: user.id },
+      select: { id: true },
+    });
+    if (!ownsCustomer) {
+      return NextResponse.json(
+        { error: 'Customer not found in your account.' },
+        { status: 400 },
+      );
+    }
+  }
+  const productIds = Array.from(
+    new Set(data.items.map((it) => it.productId).filter(Boolean) as string[]),
+  );
+  if (productIds.length > 0) {
+    const owned = await prisma.product.findMany({
+      where: { id: { in: productIds }, userId: user.id },
+      select: { id: true },
+    });
+    if (owned.length !== productIds.length) {
+      return NextResponse.json(
+        { error: 'One or more products do not exist in your catalog.' },
+        { status: 400 },
+      );
+    }
+  }
+
   const rule = await prisma.recurringInvoiceRule.create({
     data: {
       userId: user.id,
@@ -83,7 +112,7 @@ export async function POST(req: Request) {
     },
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'RECURRING_RULE',

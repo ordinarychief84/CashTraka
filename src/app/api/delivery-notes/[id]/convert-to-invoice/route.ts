@@ -6,6 +6,7 @@ import {
   computeInvoiceTotals,
   makePublicToken,
   nextDocumentNumber,
+  withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
@@ -78,52 +79,55 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const prefix =
     user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'INV';
-  const invoiceNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'invoice',
-    field: 'invoiceNumber',
-  });
   const publicToken = makePublicToken();
 
-  const invoice = await prisma.$transaction(async (tx) => {
-    const inv = await tx.invoice.create({
-      data: {
-        userId: user.id,
-        customerId: dn.customerId || undefined,
-        invoiceNumber,
-        publicToken,
-        customerName: dn.customerName,
-        customerPhone: dn.customerPhone ?? '',
-        customerEmail: null,
-        status: 'DRAFT',
-        subtotal: totals.subtotal,
-        discount: totals.discount,
-        tax: totals.tax,
-        total: totals.total,
-        vatApplied: applyVat,
-        vatRate: totals.vatRate,
-        paymentTerms: paymentTerms || null,
-        dueDate: dueDate ? new Date(dueDate) : null,
-        items: {
-          create: items.map((it) => ({
-            productId: it.productId || null,
-            description: it.description,
-            unitPrice: it.unitPrice,
-            quantity: it.quantity,
-            itemType: 'GOODS',
-          })),
+  const { invoice, invoiceNumber } = await withDocumentNumberRetry(async () => {
+    const invoiceNumber = await nextDocumentNumber({
+      userId: user.id,
+      prefix,
+      table: 'invoice',
+      field: 'invoiceNumber',
+    });
+    const inv = await prisma.$transaction(async (tx) => {
+      const created = await tx.invoice.create({
+        data: {
+          userId: user.id,
+          customerId: dn.customerId || undefined,
+          invoiceNumber,
+          publicToken,
+          customerName: dn.customerName,
+          customerPhone: dn.customerPhone ?? '',
+          customerEmail: null,
+          status: 'DRAFT',
+          subtotal: totals.subtotal,
+          discount: totals.discount,
+          tax: totals.tax,
+          total: totals.total,
+          vatApplied: applyVat,
+          vatRate: totals.vatRate,
+          paymentTerms: paymentTerms || null,
+          dueDate: dueDate ? new Date(dueDate) : null,
+          items: {
+            create: items.map((it) => ({
+              productId: it.productId || null,
+              description: it.description,
+              unitPrice: it.unitPrice,
+              quantity: it.quantity,
+              itemType: 'GOODS',
+            })),
+          },
         },
-      },
+      });
+      await tx.deliveryNote.update({
+        where: { id: dn.id },
+        data: { status: 'CONVERTED', convertedInvoiceId: created.id },
+      });
+      return created;
     });
-    await tx.deliveryNote.update({
-      where: { id: dn.id },
-      data: { status: 'CONVERTED', convertedInvoiceId: inv.id },
-    });
-    return inv;
+    return { invoice: inv, invoiceNumber };
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'DELIVERY_NOTE',
@@ -131,7 +135,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     action: 'CONVERTED',
     metadata: { invoiceId: invoice.id, invoiceNumber },
   });
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'INVOICE',
     documentId: invoice.id,

@@ -41,6 +41,23 @@ export async function ensureInvoicePublicToken(invoiceId: string): Promise<strin
  * so we can use the same pattern for credit notes, offers, delivery
  * notes, and order confirmations without copy-pasting.
  */
+// Hard allowlist for runtime validation — defends against any path that
+// might allow user-controlled `args.table` / `args.field` to reach $queryRawUnsafe.
+const ALLOWED_TABLES = new Set([
+  'invoice',
+  'creditNote',
+  'offer',
+  'deliveryNote',
+  'orderConfirmation',
+]);
+const ALLOWED_FIELDS = new Set([
+  'invoiceNumber',
+  'creditNoteNumber',
+  'offerNumber',
+  'deliveryNoteNumber',
+  'orderNumber',
+]);
+
 export async function nextDocumentNumber(args: {
   userId: string;
   /** "INV" | "CN" | "OFF" | "DN" | "ORD" — the seller-configurable prefix. */
@@ -55,6 +72,9 @@ export async function nextDocumentNumber(args: {
     | 'deliveryNoteNumber'
     | 'orderNumber';
 }): Promise<string> {
+  if (!ALLOWED_TABLES.has(args.table) || !ALLOWED_FIELDS.has(args.field)) {
+    throw new Error('Invalid table/field');
+  }
   const safePrefix = args.prefix.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'DOC';
 
   // Find the max existing number for this prefix on this user.
@@ -86,6 +106,34 @@ export async function nextDocumentNumber(args: {
 }
 
 /**
+ * Retry wrapper for code paths that mint a document number then immediately
+ * `prisma.X.create`. The `nextDocumentNumber` SELECT step has its own
+ * inner retries, but two concurrent requests can still race past it and
+ * collide on the unique constraint at INSERT time. P2002 is the Prisma
+ * code for "unique constraint failed". On collision we re-mint and retry
+ * up to 3 times.
+ */
+export async function withDocumentNumberRetry<T>(
+  fn: () => Promise<T>,
+): Promise<T> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await fn();
+    } catch (e: any) {
+      // Prisma's P2002 = "Unique constraint failed". Retry — fn() is
+      // expected to call nextDocumentNumber again on each attempt.
+      if (e?.code === 'P2002') {
+        lastErr = e;
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw lastErr;
+}
+
+/**
  * Compute totals from a list of items + a discount + a VAT rate.
  * Used by both the manual invoice route and the recurring-invoice cron.
  */
@@ -109,15 +157,20 @@ export function computeInvoiceTotals(args: {
  * Used by the dashboard query and the public page so we don't end up with
  * stale "SENT" rows that should be "OVERDUE" or "PARTIALLY_PAID".
  */
-export function effectiveInvoiceStatus(invoice: {
-  status: string;
-  total: number;
-  amountPaid: number;
-  dueDate: Date | null;
-}): string {
+export function effectiveInvoiceStatus(
+  invoice: {
+    status: string;
+    total: number;
+    amountPaid: number;
+    dueDate: Date | null;
+  },
+  creditedTotal: number = 0,
+): string {
   if (invoice.status === 'CANCELLED' || invoice.status === 'CREDITED') return invoice.status;
-  if (invoice.amountPaid >= invoice.total && invoice.total > 0) return 'PAID';
-  if (invoice.amountPaid > 0 && invoice.amountPaid < invoice.total) return 'PARTIALLY_PAID';
+  // When credit notes have been issued, the buyer only owes (total - credited).
+  const effectiveTotal = Math.max(0, invoice.total - Math.max(0, creditedTotal));
+  if (invoice.amountPaid >= effectiveTotal && effectiveTotal > 0) return 'PAID';
+  if (invoice.amountPaid > 0 && invoice.amountPaid < effectiveTotal) return 'PARTIALLY_PAID';
   if (invoice.dueDate && invoice.dueDate.getTime() < Date.now()) return 'OVERDUE';
   return invoice.status;
 }

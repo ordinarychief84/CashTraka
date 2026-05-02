@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 /**
  * Trial lifecycle cron, runs daily at 8 AM WAT (07:00 UTC).
@@ -8,9 +9,7 @@ import { emailService } from '@/lib/services/email.service';
  * 2. Sends "trial expired" + downgrades expired trials to free.
  */
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

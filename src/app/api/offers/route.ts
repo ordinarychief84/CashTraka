@@ -6,6 +6,7 @@ import {
   computeInvoiceTotals,
   makePublicToken,
   nextDocumentNumber,
+  withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
@@ -58,6 +59,35 @@ export async function POST(req: Request) {
   }
   const data = parsed.data;
 
+  // IDOR guard: validate any customerId/productId belongs to the caller.
+  if (data.customerId) {
+    const ownsCustomer = await prisma.customer.findFirst({
+      where: { id: data.customerId, userId: user.id },
+      select: { id: true },
+    });
+    if (!ownsCustomer) {
+      return NextResponse.json(
+        { error: 'Customer not found in your account.' },
+        { status: 400 },
+      );
+    }
+  }
+  const productIds = Array.from(
+    new Set(data.items.map((it) => it.productId).filter(Boolean) as string[]),
+  );
+  if (productIds.length > 0) {
+    const owned = await prisma.product.findMany({
+      where: { id: { in: productIds }, userId: user.id },
+      select: { id: true },
+    });
+    if (owned.length !== productIds.length) {
+      return NextResponse.json(
+        { error: 'One or more products do not exist in your catalog.' },
+        { status: 400 },
+      );
+    }
+  }
+
   const effectiveVatRate = data.vatRate ?? (data.applyVat ? 7.5 : 0);
   const totals = computeInvoiceTotals({
     items: data.items,
@@ -68,40 +98,42 @@ export async function POST(req: Request) {
 
   const prefix =
     user.offerPrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'OFF';
-  const offerNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'offer',
-    field: 'offerNumber',
-  });
-
-  const offer = await prisma.offer.create({
-    data: {
+  const { offer, offerNumber } = await withDocumentNumberRetry(async () => {
+    const offerNumber = await nextDocumentNumber({
       userId: user.id,
-      customerId: data.customerId || null,
-      customerName: data.customerName,
-      customerPhone: data.customerPhone || null,
-      customerEmail: data.customerEmail || null,
-      offerNumber,
-      status: 'DRAFT',
-      validUntil: data.validUntil ? new Date(data.validUntil) : null,
-      subtotal: totals.subtotal,
-      taxAmount: totals.tax,
-      total: totals.total,
-      notes: data.notes || null,
-      publicToken: makePublicToken(),
-      items: {
-        create: data.items.map((it) => ({
-          productId: it.productId || null,
-          description: it.description,
-          unitPrice: it.unitPrice,
-          quantity: it.quantity,
-        })),
+      prefix,
+      table: 'offer',
+      field: 'offerNumber',
+    });
+    const created = await prisma.offer.create({
+      data: {
+        userId: user.id,
+        customerId: data.customerId || null,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone || null,
+        customerEmail: data.customerEmail || null,
+        offerNumber,
+        status: 'DRAFT',
+        validUntil: data.validUntil ? new Date(data.validUntil) : null,
+        subtotal: totals.subtotal,
+        taxAmount: totals.tax,
+        total: totals.total,
+        notes: data.notes || null,
+        publicToken: makePublicToken(),
+        items: {
+          create: data.items.map((it) => ({
+            productId: it.productId || null,
+            description: it.description,
+            unitPrice: it.unitPrice,
+            quantity: it.quantity,
+          })),
+        },
       },
-    },
+    });
+    return { offer: created, offerNumber };
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'OFFER',
@@ -109,7 +141,7 @@ export async function POST(req: Request) {
     action: 'CREATED',
     metadata: { offerNumber },
   });
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'OFFER',
     documentId: offer.id,

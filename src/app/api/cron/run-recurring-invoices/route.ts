@@ -4,9 +4,13 @@ import {
   computeInvoiceTotals,
   makePublicToken,
   nextDocumentNumber,
+  withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
-import { normalizeNigerianPhone } from '@/lib/whatsapp';
+import { normalizeNigerianPhone, waLink } from '@/lib/whatsapp';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
+import { emailService } from '@/lib/services/email.service';
+import { formatNaira } from '@/lib/format';
 
 export const runtime = 'nodejs';
 
@@ -59,9 +63,7 @@ function advance(date: Date, frequency: string): Date {
  * the others.
  */
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -72,7 +74,16 @@ export async function GET(req: Request) {
       nextRunAt: { lte: now },
       OR: [{ endDate: null }, { endDate: { gte: now } }],
     },
-    include: { user: { select: { id: true, invoicePrefix: true } } },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          businessName: true,
+          invoicePrefix: true,
+        },
+      },
+    },
     take: 200,
   });
 
@@ -86,8 +97,37 @@ export async function GET(req: Request) {
   for (const rule of due) {
     try {
       const tpl = JSON.parse(rule.templateData) as Template;
+
+      // Defense-in-depth: validate that any customerId on the rule and any
+      // productIds in the template still belong to this user. Drop unowned
+      // ids to null rather than crashing — historic templateData may be stale.
+      let validatedCustomerId: string | null = rule.customerId;
+      if (validatedCustomerId) {
+        const ownsCustomer = await prisma.customer.findFirst({
+          where: { id: validatedCustomerId, userId: rule.userId },
+          select: { id: true },
+        });
+        if (!ownsCustomer) validatedCustomerId = null;
+      }
+      const tplProductIds = Array.from(
+        new Set(tpl.items.map((it) => it.productId).filter(Boolean) as string[]),
+      );
+      let ownedProductIds = new Set<string>();
+      if (tplProductIds.length > 0) {
+        const ownedRows = await prisma.product.findMany({
+          where: { id: { in: tplProductIds }, userId: rule.userId },
+          select: { id: true },
+        });
+        ownedProductIds = new Set(ownedRows.map((p) => p.id));
+      }
+      const safeItems = tpl.items.map((it) => ({
+        ...it,
+        productId:
+          it.productId && ownedProductIds.has(it.productId) ? it.productId : null,
+      }));
+
       const totals = computeInvoiceTotals({
-        items: tpl.items,
+        items: safeItems,
         discount: tpl.discount,
         vatRate: tpl.vatRate,
         applyVat: tpl.applyVat,
@@ -97,72 +137,120 @@ export async function GET(req: Request) {
         rule.user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') ||
         'INV';
 
-      const invoiceNumber = await nextDocumentNumber({
-        userId: rule.userId,
-        prefix,
-        table: 'invoice',
-        field: 'invoiceNumber',
-      });
       const publicToken = makePublicToken();
 
-      const invoice = await prisma.invoice.create({
-        data: {
-          userId: rule.userId,
-          customerId: rule.customerId || undefined,
-          invoiceNumber,
-          publicToken,
-          customerName: tpl.customerName,
-          customerPhone: normalizeNigerianPhone(tpl.customerPhone),
-          customerEmail: tpl.customerEmail,
-          status: rule.autoSend ? 'SENT' : 'DRAFT',
-          subtotal: totals.subtotal,
-          discount: totals.discount,
-          tax: totals.tax,
-          total: totals.total,
-          vatApplied: tpl.applyVat,
-          vatRate: totals.vatRate,
-          note: tpl.note,
-          paymentTerms: tpl.paymentTerms,
-          recurringRuleId: rule.id,
-          sentAt: rule.autoSend ? new Date() : null,
-          items: {
-            create: tpl.items.map((it) => ({
-              productId: it.productId || null,
-              description: it.description,
-              unitPrice: it.unitPrice,
-              quantity: it.quantity,
-              itemType: 'GOODS',
-            })),
-          },
-        },
-      });
+      // Mint number + create + advance the rule in a single transaction.
+      // Wrapped in withDocumentNumberRetry to survive concurrent runs that
+      // might race past nextDocumentNumber's SELECT step.
+      const { invoice, invoiceNumber } = await withDocumentNumberRetry(
+        async () => {
+          const invoiceNumber = await nextDocumentNumber({
+            userId: rule.userId,
+            prefix,
+            table: 'invoice',
+            field: 'invoiceNumber',
+          });
+          return prisma.$transaction(async (tx) => {
+            const created = await tx.invoice.create({
+              data: {
+                userId: rule.userId,
+                customerId: validatedCustomerId || undefined,
+                invoiceNumber,
+                publicToken,
+                customerName: tpl.customerName,
+                customerPhone: normalizeNigerianPhone(tpl.customerPhone),
+                customerEmail: tpl.customerEmail,
+                status: rule.autoSend ? 'SENT' : 'DRAFT',
+                subtotal: totals.subtotal,
+                discount: totals.discount,
+                tax: totals.tax,
+                total: totals.total,
+                vatApplied: tpl.applyVat,
+                vatRate: totals.vatRate,
+                note: tpl.note,
+                paymentTerms: tpl.paymentTerms,
+                recurringRuleId: rule.id,
+                sentAt: rule.autoSend ? new Date() : null,
+                items: {
+                  create: safeItems.map((it) => ({
+                    productId: it.productId || null,
+                    description: it.description,
+                    unitPrice: it.unitPrice,
+                    quantity: it.quantity,
+                    itemType: 'GOODS',
+                  })),
+                },
+              },
+            });
 
-      const next = advance(rule.nextRunAt, rule.frequency);
-      const stop = rule.endDate && next > rule.endDate;
-      await prisma.recurringInvoiceRule.update({
-        where: { id: rule.id },
-        data: {
-          nextRunAt: next,
-          lastRunAt: now,
-          lastRunError: null,
-          runsCompleted: { increment: 1 },
-          status: stop ? 'CANCELLED' : 'ACTIVE',
+            const next = advance(rule.nextRunAt, rule.frequency);
+            const stop = rule.endDate && next > rule.endDate;
+            await tx.recurringInvoiceRule.update({
+              where: { id: rule.id },
+              data: {
+                nextRunAt: next,
+                lastRunAt: now,
+                lastRunError: null,
+                runsCompleted: { increment: 1 },
+                status: stop ? 'CANCELLED' : 'ACTIVE',
+              },
+            });
+            return { invoice: created, invoiceNumber };
+          });
         },
-      });
+      );
 
-      documentAudit.log({
+      await documentAudit.log({
         userId: rule.userId,
         entityType: 'INVOICE',
         entityId: invoice.id,
         action: 'RECURRING_GENERATED',
         metadata: { ruleId: rule.id, invoiceNumber, autoSend: rule.autoSend },
       });
-      documentAudit.archive({
+      await documentAudit.archive({
         userId: rule.userId,
         documentType: 'INVOICE',
         documentId: invoice.id,
         documentNumber: invoiceNumber,
       });
+
+      // autoSend: after the tx commits, fire courtesy email to customer
+      // (non-fatal) and capture a wa.me link for the seller in audit metadata.
+      if (rule.autoSend) {
+        const business =
+          rule.user.businessName?.trim() || rule.user.name?.trim() || 'Your seller';
+        const baseUrl = process.env.APP_URL || 'https://cashtraka.co';
+        const publicUrl = `${baseUrl}/invoice/${publicToken}`;
+        const message =
+          `Hi ${tpl.customerName}, here is your invoice ${invoiceNumber} ` +
+          `from ${business} for ${formatNaira(totals.total)}.\n` +
+          `View and pay securely: ${publicUrl}`;
+
+        if (tpl.customerEmail) {
+          try {
+            await emailService.sendInvoice({
+              to: tpl.customerEmail,
+              customerName: tpl.customerName,
+              business,
+              invoiceNumber,
+              amount: totals.total,
+              dueDate: null,
+              invoiceUrl: `/invoice/${publicToken}`,
+            });
+          } catch {
+            // Non-fatal — autoSend should never block the cron loop.
+          }
+        }
+        const phone = normalizeNigerianPhone(tpl.customerPhone);
+        const wa = phone ? waLink(phone, message) : null;
+        await documentAudit.log({
+          userId: rule.userId,
+          entityType: 'INVOICE',
+          entityId: invoice.id,
+          action: 'SENT',
+          metadata: { autoSend: true, waLink: wa, emailedTo: tpl.customerEmail },
+        });
+      }
 
       results.push({ ruleId: rule.id, invoiceId: invoice.id, invoiceNumber });
     } catch (err) {

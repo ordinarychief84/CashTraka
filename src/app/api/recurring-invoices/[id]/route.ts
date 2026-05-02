@@ -48,7 +48,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     },
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'RECURRING_RULE',
@@ -73,7 +73,7 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     where: { id: rule.id },
     data: { status: 'CANCELLED' },
   });
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'RECURRING_RULE',

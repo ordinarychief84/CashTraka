@@ -18,6 +18,9 @@ import {
   MessageCircle,
   Send,
   Target,
+  FileText,
+  FileMinus,
+  Repeat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,6 +47,9 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
           : [
               { href: '/showroom', icon: GalleryHorizontalEnd, label: 'Showroom' },
               { href: '/sales', icon: ShoppingBag, label: 'Sales' },
+              { href: '/invoices', icon: FileText, label: 'Invoices' },
+              { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
+              { href: '/recurring-invoices', icon: Repeat, label: 'Recurring invoices' },
             ]),
         { href: '/expenses', icon: Receipt, label: 'Expenses' },
         { href: '/team', icon: Users2, label: 'Team' },

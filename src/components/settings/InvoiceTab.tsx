@@ -77,11 +77,9 @@ export function InvoiceTab() {
           />
         </Field>
         <Field label="Accent color">
-          <input
-            type="color"
-            className="h-10 w-full rounded-md border border-border"
+          <AccentColorPicker
             value={state.invoiceAccentColor}
-            onChange={(e) => setState({ ...state, invoiceAccentColor: e.target.value })}
+            onChange={(c) => setState({ ...state, invoiceAccentColor: c })}
           />
         </Field>
         <Field label="Invoice prefix">
@@ -198,5 +196,53 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </span>
       {children}
     </label>
+  );
+}
+
+const SWATCHES = ['#00B8E8', '#0E7C66', '#7C3AED', '#DB2777', '#EA580C', '#0F172A'];
+
+/**
+ * Brand-safe swatch picker with a hex fallback. Native <input type="color">
+ * is unreliable on Android Chrome, so we ship our own.
+ */
+function AccentColorPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  const normalized = value?.toLowerCase?.() ?? '';
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {SWATCHES.map((c) => {
+          const selected = c.toLowerCase() === normalized;
+          return (
+            <button
+              key={c}
+              type="button"
+              aria-label={`Use accent ${c}`}
+              onClick={() => onChange(c)}
+              className={
+                'h-9 w-9 rounded-md border transition ' +
+                (selected
+                  ? 'border-slate-900 ring-2 ring-offset-1 ring-slate-900'
+                  : 'border-border hover:border-slate-400')
+              }
+              style={{ background: c }}
+            />
+          );
+        })}
+      </div>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="#00B8E8"
+        className="ct-input mt-2 font-mono text-xs"
+        maxLength={7}
+      />
+    </div>
   );
 }

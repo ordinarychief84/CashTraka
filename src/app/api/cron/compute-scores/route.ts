@@ -2,15 +2,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { behaviorService } from '@/lib/services/behavior.service';
 import { collectionScoreService } from '@/lib/services/collection-score.service';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 /**
  * Daily scoring cron, recomputes behavior tags and collection scores
  * for all active users. Runs once daily (e.g. 2 AM WAT).
  */
 export async function GET(req: Request) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

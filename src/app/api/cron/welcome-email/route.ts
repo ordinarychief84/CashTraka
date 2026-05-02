@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 /**
  * Cron: Delayed Welcome Email
@@ -15,10 +16,8 @@ import { emailService } from '@/lib/services/email.service';
  * Sends a warm, marketing-quality welcome email then marks them as sent.
  */
 export async function GET(req: Request) {
-  // Verify cron secret (Vercel sends this header)
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  // Verify cron secret (Vercel sends this header) — constant-time compare.
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

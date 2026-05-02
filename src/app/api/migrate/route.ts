@@ -1,19 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 /**
  * One-time migration endpoint to fix missing columns.
  * Adds any columns that exist in the Prisma schema but are missing from the actual DB.
  * Uses "ADD COLUMN IF NOT EXISTS" so it's safe to run multiple times.
  *
- * PROTECTED: requires CRON_SECRET as Bearer token or query param.
+ * PROTECTED: requires CRON_SECRET as Bearer token. Query string fallback was
+ * removed — secrets in URLs leak via referrers and access logs.
  */
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  const bearer = req.headers.get('authorization')?.replace('Bearer ', '');
-  const qsSecret = req.nextUrl.searchParams.get('secret');
-
-  if (!secret || (bearer !== secret && qsSecret !== secret)) {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const results: string[] = [];
@@ -58,6 +56,11 @@ export async function GET(req: NextRequest) {
   await addCol('Customer', 'lastActivityAt', 'TIMESTAMP(3)', 'NULL');
   await addCol('Customer', 'notes', 'TEXT', 'NULL');
   await addCol('Customer', 'tags', 'TEXT', 'NULL');
+  await addCol('Customer', 'behaviorTag', 'TEXT', 'NULL');
+  await addCol('Customer', 'avgPayDays', 'DOUBLE PRECISION', 'NULL');
+  await addCol('Customer', 'totalReminders', 'INTEGER NOT NULL', '0');
+  await addCol('Customer', 'lastRemindedAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Customer', 'transactionCount', 'INTEGER NOT NULL', '0');
 
   // ===== Payment table =====
   await addCol('Payment', 'notes', 'TEXT', 'NULL');
@@ -409,6 +412,7 @@ export async function GET(req: NextRequest) {
   const newInvoicingIndexes: Array<[string, string]> = [
     ['Invoice_publicToken_key2', `CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key2" ON "Invoice"("publicToken") WHERE "publicToken" IS NOT NULL`],
     ['Invoice_userId_dueDate_idx', `CREATE INDEX IF NOT EXISTS "Invoice_userId_dueDate_idx" ON "Invoice"("userId", "dueDate")`],
+    ['Invoice_userId_status_idx', `CREATE INDEX IF NOT EXISTS "Invoice_userId_status_idx" ON "Invoice"("userId", "status")`],
     ['Invoice_recurringRuleId_idx', `CREATE INDEX IF NOT EXISTS "Invoice_recurringRuleId_idx" ON "Invoice"("recurringRuleId")`],
     ['CreditNote_creditNoteNumber_key', `CREATE UNIQUE INDEX IF NOT EXISTS "CreditNote_creditNoteNumber_key" ON "CreditNote"("creditNoteNumber")`],
     ['CreditNote_publicToken_key', `CREATE UNIQUE INDEX IF NOT EXISTS "CreditNote_publicToken_key" ON "CreditNote"("publicToken") WHERE "publicToken" IS NOT NULL`],

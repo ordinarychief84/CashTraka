@@ -121,7 +121,15 @@ export default async function PublicInvoicePage({ params }: Props) {
           )}
         </div>
 
-        <InvoiceActions phone={invoice.customerPhone} customerName={invoice.customerName} invoiceNumber={invoice.invoiceNumber} total={invoice.total} businessName={business} />
+        <InvoiceActions
+          id={invoice.id}
+          phone={invoice.customerPhone}
+          customerName={invoice.customerName}
+          invoiceNumber={invoice.invoiceNumber}
+          publicToken={invoice.publicToken ?? null}
+          total={invoice.total}
+          businessName={business}
+        />
 
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500 no-print">
           <Logo size="sm" />

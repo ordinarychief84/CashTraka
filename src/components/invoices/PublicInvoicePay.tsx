@@ -8,6 +8,9 @@ type Props = {
   token: string;
   outstanding: number;
   accentColor: string;
+  /// Foreground color picked by the server based on accent luminance.
+  /// Defaults to white for backwards compatibility.
+  accentFg?: string;
 };
 
 /**
@@ -16,10 +19,16 @@ type Props = {
  * there. The webhook handler at /api/webhooks/paystack picks up
  * charge.success and reconciles Invoice.amountPaid + status.
  *
- * Public, no-auth — the publicToken is the only thing that gates the
+ * Public, no-auth - the publicToken is the only thing that gates the
  * call.
  */
-export function PublicInvoicePay({ invoiceId, token, outstanding, accentColor }: Props) {
+export function PublicInvoicePay({
+  invoiceId,
+  token,
+  outstanding,
+  accentColor,
+  accentFg = '#ffffff',
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -55,8 +64,8 @@ export function PublicInvoicePay({ invoiceId, token, outstanding, accentColor }:
         type="button"
         onClick={pay}
         disabled={busy || outstanding <= 0}
-        style={{ background: accentColor }}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-sm hover:opacity-95 disabled:opacity-60"
+        style={{ background: accentColor, color: accentFg }}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-sm hover:opacity-95 disabled:opacity-60"
       >
         {busy ? (
           <Loader2 size={16} className="animate-spin" />

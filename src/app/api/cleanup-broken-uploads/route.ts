@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 
 export const runtime = 'nodejs';
 
@@ -26,10 +27,8 @@ export const runtime = 'nodejs';
  * Auth: same Bearer CRON_SECRET pattern as /api/migrate.
  */
 export async function POST(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  const bearer = req.headers.get('authorization')?.replace('Bearer ', '');
-  const qs = req.nextUrl.searchParams.get('secret');
-  if (!secret || (bearer !== secret && qs !== secret)) {
+  // Bearer header only — query string fallback removed (secrets leak via logs).
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

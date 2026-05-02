@@ -132,7 +132,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     }
   }
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'INVOICE',

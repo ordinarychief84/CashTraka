@@ -369,7 +369,7 @@ export const emailService = {
     currentPeriodEnd: Date;
     businessName?: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const amount = naira(Math.round(args.amountKobo / 100));
     const renewDate = fmtDate(args.currentPeriodEnd);
     const today = fmtDate(new Date());
@@ -436,7 +436,7 @@ export const emailService = {
     autoConfirmedToday?: number;
     autoConfirmedAmountToday?: number;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const today = fmtDate(new Date());
 
     const deltaColor = args.revenueDelta >= 0 ? '#72B515' : '#DC2626';
@@ -541,7 +541,7 @@ export const emailService = {
     receiptUrl: string;
     pdfBase64?: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
 
     const body = `
       <div style="margin-bottom:20px;">
@@ -585,7 +585,7 @@ export const emailService = {
     plan: string;
     trialEndsAt: Date;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const endsOn = fmtDate(args.trialEndsAt);
 
     const body = `
@@ -631,7 +631,7 @@ export const emailService = {
     trialEndsAt: Date;
     daysLeft: number;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const endsOn = fmtDate(args.trialEndsAt);
 
     const body = `
@@ -672,7 +672,7 @@ export const emailService = {
     name: string;
     plan: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
 
     const body = `
       <h1 style="margin:0 0 12px;font-size:22px;font-weight:800;color:#1A1A1A;">Your ${esc(args.plan)} trial has ended</h1>
@@ -727,7 +727,7 @@ export const emailService = {
     name: string;
     plan: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
 
     const body = `
       <div style="text-align:center;margin-bottom:24px;">
@@ -768,7 +768,7 @@ export const emailService = {
     plan: string;
     accessUntil: Date | null;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const until = args.accessUntil ? fmtDate(args.accessUntil) : 'now';
 
     const body = `
@@ -808,7 +808,7 @@ export const emailService = {
     newPlan: string;
     amountKobo?: number;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const amount = args.amountKobo ? naira(Math.round(args.amountKobo / 100)) : null;
 
     const body = `
@@ -847,7 +847,7 @@ export const emailService = {
     dueDate?: Date | null;
     invoiceUrl: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const due = args.dueDate ? fmtDate(args.dueDate) : 'On receipt';
 
     const body = `
@@ -932,7 +932,7 @@ export const emailService = {
     leaseEnd: Date;
     rentAmount?: number;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const leaseDate = fmtDate(args.leaseEnd);
     const daysAgo = Math.ceil((Date.now() - new Date(args.leaseEnd).getTime()) / (1000 * 60 * 60 * 24));
 
@@ -1008,7 +1008,7 @@ export const emailService = {
     outstandingDebt: number;
     weekLabel: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
 
     const body = `
       <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Your weekly summary</h1>
@@ -1317,7 +1317,7 @@ export const emailService = {
     tone: 'gentle' | 'firm' | 'final';
     payLink?: string;
   }): Promise<SendResult> {
-    const appUrl = process.env.APP_URL || '';
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
     const toneConfig = {
       gentle: {
         icon: '💬',

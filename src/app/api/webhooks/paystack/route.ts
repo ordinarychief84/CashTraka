@@ -26,6 +26,15 @@ export async function POST(req: Request) {
     );
   }
 
-  // Always return 200 for valid signatures so Paystack doesn't retry
+  // 'failed' = signature was valid but provider verification failed (network
+  // error, transient, etc). Return 500 so Paystack retries. 'ignored',
+  // 'processed', and 'duplicate' are all healthy outcomes — return 200.
+  if (result.status === 'failed') {
+    return NextResponse.json(
+      { success: false, error: result.message },
+      { status: 500 },
+    );
+  }
+
   return NextResponse.json({ success: true, data: result });
 }

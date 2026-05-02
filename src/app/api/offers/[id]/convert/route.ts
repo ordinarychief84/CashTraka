@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import {
   makePublicToken,
   nextDocumentNumber,
+  withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
@@ -65,47 +66,50 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (target === 'INVOICE') {
     const prefix =
       user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'INV';
-    const invoiceNumber = await nextDocumentNumber({
-      userId: user.id,
-      prefix,
-      table: 'invoice',
-      field: 'invoiceNumber',
-    });
     const publicToken = makePublicToken();
-    const invoice = await prisma.$transaction(async (tx) => {
-      const inv = await tx.invoice.create({
-        data: {
-          userId: user.id,
-          customerId: offer.customerId || undefined,
-          invoiceNumber,
-          publicToken,
-          customerName: offer.customerName,
-          customerPhone: offer.customerPhone ?? '',
-          customerEmail: offer.customerEmail,
-          status: 'DRAFT',
-          subtotal: offer.subtotal,
-          tax: offer.taxAmount,
-          total: offer.total,
-          dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
-          items: {
-            create: offer.items.map((it) => ({
-              productId: it.productId || null,
-              description: it.description,
-              unitPrice: it.unitPrice,
-              quantity: it.quantity,
-              itemType: 'GOODS',
-            })),
+    const { invoice, invoiceNumber } = await withDocumentNumberRetry(async () => {
+      const invoiceNumber = await nextDocumentNumber({
+        userId: user.id,
+        prefix,
+        table: 'invoice',
+        field: 'invoiceNumber',
+      });
+      const inv = await prisma.$transaction(async (tx) => {
+        const created = await tx.invoice.create({
+          data: {
+            userId: user.id,
+            customerId: offer.customerId || undefined,
+            invoiceNumber,
+            publicToken,
+            customerName: offer.customerName,
+            customerPhone: offer.customerPhone ?? '',
+            customerEmail: offer.customerEmail,
+            status: 'DRAFT',
+            subtotal: offer.subtotal,
+            tax: offer.taxAmount,
+            total: offer.total,
+            dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
+            items: {
+              create: offer.items.map((it) => ({
+                productId: it.productId || null,
+                description: it.description,
+                unitPrice: it.unitPrice,
+                quantity: it.quantity,
+                itemType: 'GOODS',
+              })),
+            },
           },
-        },
+        });
+        await tx.offer.update({
+          where: { id: offer.id },
+          data: { status: 'CONVERTED', convertedInvoiceId: created.id },
+        });
+        return created;
       });
-      await tx.offer.update({
-        where: { id: offer.id },
-        data: { status: 'CONVERTED', convertedInvoiceId: inv.id },
-      });
-      return inv;
+      return { invoice: inv, invoiceNumber };
     });
 
-    documentAudit.log({
+    await documentAudit.log({
       userId: user.id,
       actorId: user.id,
       entityType: 'OFFER',
@@ -113,7 +117,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       action: 'CONVERTED',
       metadata: { target: 'INVOICE', invoiceId: invoice.id },
     });
-    documentAudit.archive({
+    await documentAudit.archive({
       userId: user.id,
       documentType: 'INVOICE',
       documentId: invoice.id,
@@ -129,34 +133,36 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // target === 'ORDER'
   const prefix =
     user.orderPrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'ORD';
-  const orderNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'orderConfirmation',
-    field: 'orderNumber',
+  const { order, orderNumber } = await withDocumentNumberRetry(async () => {
+    const orderNumber = await nextDocumentNumber({
+      userId: user.id,
+      prefix,
+      table: 'orderConfirmation',
+      field: 'orderNumber',
+    });
+    const o = await prisma.$transaction(async (tx) => {
+      const created = await tx.orderConfirmation.create({
+        data: {
+          userId: user.id,
+          offerId: offer.id,
+          customerId: offer.customerId || undefined,
+          customerName: offer.customerName,
+          orderNumber,
+          status: 'CONFIRMED',
+          total: offer.total,
+          notes: offer.notes,
+        },
+      });
+      await tx.offer.update({
+        where: { id: offer.id },
+        data: { status: 'CONVERTED', convertedOrderConfirmationId: created.id },
+      });
+      return created;
+    });
+    return { order: o, orderNumber };
   });
 
-  const order = await prisma.$transaction(async (tx) => {
-    const o = await tx.orderConfirmation.create({
-      data: {
-        userId: user.id,
-        offerId: offer.id,
-        customerId: offer.customerId || undefined,
-        customerName: offer.customerName,
-        orderNumber,
-        status: 'CONFIRMED',
-        total: offer.total,
-        notes: offer.notes,
-      },
-    });
-    await tx.offer.update({
-      where: { id: offer.id },
-      data: { status: 'CONVERTED', convertedOrderConfirmationId: o.id },
-    });
-    return o;
-  });
-
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'OFFER',
@@ -164,7 +170,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     action: 'CONVERTED',
     metadata: { target: 'ORDER', orderId: order.id },
   });
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'ORDER_CONFIRMATION',
     documentId: order.id,

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { paystackService } from '@/lib/services/paystack.service';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -30,6 +31,18 @@ const bodySchema = z.object({
  * Invoice.amountPaid + status via paymentConfirmationService.
  */
 export async function POST(req: Request, { params }: { params: { id: string } }) {
+  // Per-IP rate limit. 10 attempts per minute keyed by invoice id keeps the
+  // door open for a real customer retrying a failed Paystack init while
+  // shutting down a script enumerating tokens.
+  const ip = clientIp(req);
+  const rl = rateLimit(`invoice-pay:${params.id}`, ip, { max: 10, windowMs: 60_000 });
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again in a moment.' },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const parsed = bodySchema.safeParse(body);
   if (!parsed.success) {
@@ -114,8 +127,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     );
   }
 
-  // Audit (non-fatal).
-  documentAudit.log({
+  // Audit (best-effort but awaited so we don't drop writes on cold-start FaaS).
+  await documentAudit.log({
     userId: invoice.userId,
     entityType: 'INVOICE',
     entityId: invoice.id,

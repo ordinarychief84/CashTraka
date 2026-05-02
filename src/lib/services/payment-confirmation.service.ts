@@ -19,6 +19,7 @@ import type { VerifyPaymentResult } from './payment-provider.service';
 import { receiptService } from './receipt.service';
 import { emailService } from './email.service';
 import { installmentService } from './installment.service';
+import { documentAudit } from './document-audit.service';
 
 export type ConfirmPaymentInput = {
   provider: PaymentProvider;
@@ -67,6 +68,22 @@ export const paymentConfirmationService = {
     if (paymentRequest) {
       await this.confirmPaymentRequest(paymentRequest, input, now);
       return;
+    }
+
+    // Check if this is an invoice payment (public-pay flow).
+    // Reference is minted as `INV-{last12-of-id}-{ts36}` and metadata
+    // carries `{ type: 'invoice_payment', invoiceId, invoiceNumber }`.
+    const metadata = (input.metadata ?? {}) as Record<string, unknown>;
+    const metaInvoiceId =
+      typeof metadata.invoiceId === 'string' ? metadata.invoiceId : null;
+    if (metaInvoiceId || reference.startsWith('INV-')) {
+      const invoice = metaInvoiceId
+        ? await prisma.invoice.findUnique({ where: { id: metaInvoiceId } })
+        : null;
+      if (invoice) {
+        await this.confirmInvoicePayment(invoice, input, now);
+        return;
+      }
     }
 
     // No matching internal record — log but don't fail
@@ -476,6 +493,149 @@ export const paymentConfirmationService = {
     console.log(
       `INSTALLMENT_CONFIRMED: Charge ${charge.id} plan=${plan.id} ` +
       `amount=${confirmedAmount} completed=${completed} ref=${reference}`
+    );
+  },
+
+  /**
+   * Confirm a public-pay invoice payment (customer paying via /invoice/[token]).
+   * The reference is minted by /api/invoices/[id]/pay; metadata carries invoiceId.
+   */
+  async confirmInvoicePayment(
+    invoice: any,
+    input: ConfirmPaymentInput,
+    now: Date,
+  ): Promise<void> {
+    const { provider, reference, providerTransactionId, amount } = input;
+
+    // Idempotency: bail if a Payment with this externalRef already exists for this user.
+    const existingPayment = await prisma.payment.findFirst({
+      where: { externalRef: reference, userId: invoice.userId },
+      select: { id: true },
+    });
+    if (existingPayment) {
+      console.log(`INVOICE_CONFIRM: Reference ${reference} already processed — skipping`);
+      return;
+    }
+
+    // `amount` arrives in Naira (provider adapters divide kobo by 100 — see
+    // paystack-customer.service.ts:116). Use directly.
+    const paidAmount = amount;
+
+    const { payment, finalStatus } = await prisma.$transaction(async (tx) => {
+      // Re-read invoice in tx for fresh amountPaid / total
+      const fresh = await tx.invoice.findUnique({ where: { id: invoice.id } });
+      if (!fresh) throw new Error('Invoice not found in tx');
+
+      const newAmountPaid = fresh.amountPaid + paidAmount;
+      let nextStatus = fresh.status;
+      let paidAt: Date | null = fresh.paidAt;
+      if (newAmountPaid >= fresh.total && fresh.total > 0) {
+        nextStatus = 'PAID';
+        paidAt = now;
+      } else if (newAmountPaid > 0 && newAmountPaid < fresh.total) {
+        nextStatus = 'PARTIALLY_PAID';
+      }
+
+      await tx.invoice.update({
+        where: { id: fresh.id },
+        data: {
+          amountPaid: newAmountPaid,
+          status: nextStatus,
+          paidAt,
+        },
+      });
+
+      const paymentRecord = await tx.payment.create({
+        data: {
+          userId: fresh.userId,
+          customerId: fresh.customerId || '',
+          customerNameSnapshot: fresh.customerName,
+          phoneSnapshot: fresh.customerPhone,
+          amount: paidAmount,
+          status: 'PAID',
+          verified: true,
+          verifiedAt: now,
+          verificationMethod: 'PROVIDER_WEBHOOK',
+          externalRef: reference,
+          provider,
+          providerTransactionId,
+          confirmedAutomatically: true,
+          confirmedAt: now,
+          // Link payment to its source invoice for receipt rendering.
+          invoiceId: fresh.id,
+        },
+      });
+
+      // Update customer metrics
+      if (fresh.customerId) {
+        await tx.customer.update({
+          where: { id: fresh.customerId },
+          data: {
+            totalPaid: { increment: paidAmount },
+            transactionCount: { increment: 1 },
+            lastActivityAt: now,
+          },
+        });
+      }
+
+      return { payment: paymentRecord, finalStatus: nextStatus };
+    });
+
+    // Receipt generation (non-blocking)
+    try {
+      const receipt = await receiptService.ensureForPayment(invoice.userId, payment.id, {
+        source: 'PAYSTACK',
+      });
+      if (invoice.customerEmail && receipt) {
+        const user = await prisma.user.findUnique({
+          where: { id: invoice.userId },
+          select: { businessName: true, name: true },
+        });
+        const bizName = user?.businessName || user?.name || 'Business';
+        await emailService
+          .sendReceipt({
+            to: invoice.customerEmail,
+            business: bizName,
+            customerName: invoice.customerName,
+            receiptNumber: receipt.receiptNumber,
+            amount: paidAmount,
+            receiptUrl: `/receipts/${receipt.id}`,
+          })
+          .catch(() => null);
+      }
+    } catch {
+      // Non-fatal
+    }
+
+    // Notification for the seller
+    await prisma.notification
+      .create({
+        data: {
+          userId: invoice.userId,
+          type: 'info',
+          title: finalStatus === 'PAID' ? 'Invoice paid' : 'Invoice partially paid',
+          message: `${invoice.customerName} paid ₦${paidAmount.toLocaleString()} on invoice ${invoice.invoiceNumber} via ${provider.toLowerCase()}.`,
+          link: `/invoices/${invoice.id}`,
+        },
+      })
+      .catch(() => null);
+
+    // Audit log (awaited per FIX 5)
+    await documentAudit.log({
+      userId: invoice.userId,
+      entityType: 'INVOICE',
+      entityId: invoice.id,
+      action: finalStatus === 'PAID' ? 'PAID' : 'PARTIALLY_PAID',
+      metadata: {
+        paymentId: payment.id,
+        reference,
+        amountKobo: paidAmount * 100,
+      },
+    });
+
+    console.log(
+      `INVOICE_CONFIRMED: invoice=${invoice.id} ref=${reference} ` +
+        `amount=${paidAmount} status=${finalStatus}`,
     );
   },
 

@@ -10,6 +10,7 @@ import {
   computeInvoiceTotals,
   makePublicToken,
   nextDocumentNumber,
+  withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
@@ -109,50 +110,55 @@ export async function POST(req: Request) {
   const prefix =
     user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'INV';
 
-  const invoiceNumber = await nextDocumentNumber({
-    userId: user.id,
-    prefix,
-    table: 'invoice',
-    field: 'invoiceNumber',
-  });
   const publicToken = makePublicToken();
 
-  const invoice = await prisma.invoice.create({
-    data: {
+  // Mint number + create in a retry loop — two concurrent requests can race
+  // past `nextDocumentNumber`'s SELECT step and collide on INSERT (P2002).
+  const { invoice, invoiceNumber } = await withDocumentNumberRetry(async () => {
+    const invoiceNumber = await nextDocumentNumber({
       userId: user.id,
-      customerId: customer.id,
-      invoiceNumber,
-      publicToken,
-      customerName: customerName.trim(),
-      customerPhone: normalizedPhone,
-      customerEmail: customerEmail || null,
-      buyerTin: buyerTin || null,
-      buyerAddress: buyerAddress || null,
-      status: 'DRAFT',
-      subtotal: totals.subtotal,
-      discount: totals.discount,
-      tax: totals.tax,
-      total: totals.total,
-      vatApplied: vatOn,
-      vatRate: totals.vatRate,
-      note: note || null,
-      paymentTerms: paymentTerms || null,
-      dueDate: dueDate ? new Date(dueDate) : null,
-      items: {
-        create: items.map((it) => ({
-          productId: it.productId || null,
-          description: it.description,
-          unitPrice: it.unitPrice,
-          quantity: it.quantity,
-          itemType: it.itemType ?? 'GOODS',
-          hsCode: it.hsCode || null,
-          vatExempt: it.vatExempt ?? false,
-        })),
+      prefix,
+      table: 'invoice',
+      field: 'invoiceNumber',
+    });
+    const created = await prisma.invoice.create({
+      data: {
+        userId: user.id,
+        customerId: customer.id,
+        invoiceNumber,
+        publicToken,
+        customerName: customerName.trim(),
+        customerPhone: normalizedPhone,
+        customerEmail: customerEmail || null,
+        buyerTin: buyerTin || null,
+        buyerAddress: buyerAddress || null,
+        status: 'DRAFT',
+        subtotal: totals.subtotal,
+        discount: totals.discount,
+        tax: totals.tax,
+        total: totals.total,
+        vatApplied: vatOn,
+        vatRate: totals.vatRate,
+        note: note || null,
+        paymentTerms: paymentTerms || null,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        items: {
+          create: items.map((it) => ({
+            productId: it.productId || null,
+            description: it.description,
+            unitPrice: it.unitPrice,
+            quantity: it.quantity,
+            itemType: it.itemType ?? 'GOODS',
+            hsCode: it.hsCode || null,
+            vatExempt: it.vatExempt ?? false,
+          })),
+        },
       },
-    },
+    });
+    return { invoice: created, invoiceNumber };
   });
 
-  documentAudit.log({
+  await documentAudit.log({
     userId: user.id,
     actorId: user.id,
     entityType: 'INVOICE',
@@ -160,7 +166,7 @@ export async function POST(req: Request) {
     action: 'CREATED',
     metadata: { invoiceNumber, total: totals.total },
   });
-  documentAudit.archive({
+  await documentAudit.archive({
     userId: user.id,
     documentType: 'INVOICE',
     documentId: invoice.id,

@@ -52,7 +52,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         data: { xmlGeneratedAt: new Date() },
       })
       .catch(() => null);
-    documentAudit.log({
+    await documentAudit.log({
       userId: user.id,
       actorId: user.id,
       entityType: 'INVOICE',

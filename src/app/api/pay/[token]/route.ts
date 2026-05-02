@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { paylinkService } from '@/lib/services/paylink.service';
 
-/** GET /api/pay/[token] — public: get paylink details for customer */
+/** GET /api/pay/[token], public: get paylink details for customer */
 export async function GET(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const paylink = await paylinkService.getByToken(token);
@@ -31,7 +31,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ token: s
   });
 }
 
-/** POST /api/pay/[token] — public: customer claims "I've paid" */
+/** POST /api/pay/[token], public: customer claims "I've paid" */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const paylink = await paylinkService.getByToken(token);
@@ -45,7 +45,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   }
 
   if (paylink.status === 'claimed') {
-    return NextResponse.json({ error: 'Payment already claimed — waiting for seller confirmation' }, { status: 400 });
+    return NextResponse.json({ error: 'Payment already claimed, waiting for seller confirmation' }, { status: 400 });
   }
 
   await paylinkService.markClaimed(token);

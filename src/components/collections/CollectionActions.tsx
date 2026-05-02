@@ -67,7 +67,7 @@ export function CollectionActions({ item, businessName }: Props) {
         </a>
       )}
 
-      {/* View promise details — stay in collections context */}
+      {/* View promise details, stay in collections context */}
       {item.type === 'promise' && item.promiseToken && (
         <a
           href={`/collections?highlight=${item.id}`}

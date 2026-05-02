@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-/** PATCH /api/user/profile — update the logged-in user's name */
+/** PATCH /api/user/profile, update the logged-in user's name */
 export async function PATCH(req: Request) {
   try {
     const user = await getCurrentUser();

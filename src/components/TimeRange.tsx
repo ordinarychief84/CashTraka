@@ -13,7 +13,7 @@ type Props = {
 
 /**
  * Segmented control that drives a `?range=…` query param.
- * Server-component friendly — just renders `<Link>`s.
+ * Server-component friendly, just renders `<Link>`s.
  */
 export function TimeRange({ value, basePath }: Props) {
   return (

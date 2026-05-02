@@ -11,7 +11,7 @@ export const metadata = { title: 'PROJECT.md · CashTraka' };
  * Renders the PROJECT.md reference document as a styled HTML page at
  * /docs/project. Reads the file at build/request time and converts it
  * with `marked`. Styling is inline since Tailwind Typography isn't
- * installed — we hand-roll readable defaults that work with the brand
+ * installed, we hand-roll readable defaults that work with the brand
  * palette.
  */
 export default async function ProjectDocPage() {

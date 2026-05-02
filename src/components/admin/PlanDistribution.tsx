@@ -1,7 +1,7 @@
 import { PLAN_LABELS, type PlanName } from '@/lib/plan-limits';
 
 /**
- * Plan distribution bar — shows how many users are on each tier, with a
+ * Plan distribution bar, shows how many users are on each tier, with a
  * proportional stacked bar up top and a labelled breakdown below.
  *
  * Works with any `{ [plan]: count }` object; unknown plans are grouped

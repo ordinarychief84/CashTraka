@@ -2,7 +2,7 @@ import { ok, handled } from '@/lib/api-response';
 import { promiseCommitmentSchema } from '@/lib/validators';
 import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 
-/** POST /api/promises/public/[token]/commit — record a debtor commitment */
+/** POST /api/promises/public/[token]/commit, record a debtor commitment */
 export async function POST(
   req: Request,
   { params }: { params: { token: string } },

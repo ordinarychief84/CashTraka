@@ -2,7 +2,7 @@ import { requireAdmin, getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/support — List all support tickets with pagination */
+/** GET /api/admin/support, List all support tickets with pagination */
 export async function GET(req: Request) {
   try {
     await requireAdmin();
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST /api/admin/support — Create a ticket */
+/** POST /api/admin/support, Create a ticket */
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();

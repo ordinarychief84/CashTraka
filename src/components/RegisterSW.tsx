@@ -9,7 +9,7 @@ import { useEffect } from 'react';
  *    well (stale caches after every save).
  *  - Calls `registration.update()` on every mount so long-lived installs pick
  *    up new SW versions when the user opens the app.
- *  - Quiet on errors — SW registration is a progressive enhancement.
+ *  - Quiet on errors, SW registration is a progressive enhancement.
  */
 export function RegisterSW() {
   useEffect(() => {

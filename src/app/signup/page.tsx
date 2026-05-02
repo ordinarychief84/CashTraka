@@ -10,7 +10,7 @@ type SearchParams = {
 };
 
 /**
- * Signup page — reads `?type=seller | property_manager` from the URL so the
+ * Signup page, reads `?type=seller | property_manager` from the URL so the
  * headline + subhead match whichever journey the visitor came from. The
  * inline AuthForm also presets the ICP picker to the same value.
  */

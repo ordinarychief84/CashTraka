@@ -129,7 +129,7 @@ export default async function RentDashboardPage({ searchParams }: { searchParams
         >
           <AlertTriangle size={18} className="shrink-0 text-owed-600" />
           <span>
-            <strong>{expiringCount} lease{expiringCount > 1 ? 's' : ''}</strong> expiring soon or already expired — tap to view
+            <strong>{expiringCount} lease{expiringCount > 1 ? 's' : ''}</strong> expiring soon or already expired, tap to view
           </span>
         </Link>
       )}

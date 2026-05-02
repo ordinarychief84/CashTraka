@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 /**
  * GET /api/receipts/[id]
  *
- * Public — mirrors the /r/[id] page in exposure (the id is an unguessable
+ * Public, mirrors the /r/[id] page in exposure (the id is an unguessable
  * cuid). Accepts either a Receipt.id OR a Payment.id for backward compat with
  * older receipt links.
  */

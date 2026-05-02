@@ -4,7 +4,7 @@ import { requireUser, requirePermission } from '@/lib/auth';
 import { settingsSchema } from '@/lib/validators';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/settings — returns the current user's settings (no password hash). */
+/** GET /api/settings, returns the current user's settings (no password hash). */
 export const GET = () =>
   handled(async () => {
     const user = await requireUser();
@@ -12,7 +12,7 @@ export const GET = () =>
     return ok(rest);
   });
 
-/** PATCH /api/settings — alias for POST (spec uses PATCH, UI uses POST). */
+/** PATCH /api/settings, alias for POST (spec uses PATCH, UI uses POST). */
 export async function PATCH(req: Request) {
   return POST(req);
 }

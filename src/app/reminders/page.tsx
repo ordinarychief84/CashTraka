@@ -55,7 +55,7 @@ export default async function RemindersPage() {
             <section>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-owed-700">
                 <Bell size={16} />
-                Due now — send these today ({dueNow.length})
+                Due now, send these today ({dueNow.length})
               </h2>
               <ul className="space-y-2">
                 {dueNow.map((s) => {
@@ -119,7 +119,7 @@ export default async function RemindersPage() {
             <section>
               <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-500">
                 <CheckCheck size={16} />
-                Cleared — no longer sending ({completed.length})
+                Cleared, no longer sending ({completed.length})
               </h2>
               <ul className="card divide-y divide-border">
                 {completed.map((s) => (

@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/notifications — Return notifications for current user */
+/** GET /api/notifications, Return notifications for current user */
 export async function GET(req: Request) {
   try {
     const user = await getCurrentUser();
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** PATCH /api/notifications — Mark as read for current user */
+/** PATCH /api/notifications, Mark as read for current user */
 export async function PATCH(req: Request) {
   try {
     const user = await getCurrentUser();

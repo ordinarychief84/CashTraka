@@ -7,7 +7,6 @@ import {
   Users,
   LogOut,
   Receipt,
-  Package,
   BarChart3,
   Users2,
   ListTodo,
@@ -112,7 +111,6 @@ export function AppShell({
           )}
 
           {(show.products || show.sales || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
-          {show.products && <SideLink href="/products" icon={<Package size={18} />} label="Products" />}
           {show.products && <SideLink href="/showroom" icon={<GalleryHorizontalEnd size={18} />} label="Showroom" />}
           {show.sales && <SideLink href="/sales" icon={<ShoppingBag size={18} />} label="Sales" />}
           {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}

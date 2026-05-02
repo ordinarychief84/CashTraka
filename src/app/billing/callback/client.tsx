@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, Loader2 } from 'lucide-react';
  *
  * Takes the `?reference=` query string that Paystack appends on redirect,
  * hits /api/billing/verify to finalise the upgrade atomically (the webhook
- * may have beaten us here — the verify route is idempotent), then bounces
+ * may have beaten us here, the verify route is idempotent), then bounces
  * the user back to Settings with either `?billing=success` or `?billing=failed`.
  *
  * We wait a beat so users see the confirmation state before the redirect.
@@ -85,7 +85,7 @@ export function BillingCallbackClient() {
         <Loader2 size={40} className="mx-auto animate-spin text-brand-500" />
         <h1 className="mt-3 text-xl font-bold text-ink">Confirming your payment…</h1>
         <p className="mt-2 text-sm text-slate-600">
-          Hang tight — we are verifying with Paystack.
+          Hang tight, we are verifying with Paystack.
         </p>
       </div>
     );

@@ -206,7 +206,7 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
         />
       </div>
 
-      {/* Toolbar — view toggle + filter tabs + search */}
+      {/* Toolbar, view toggle + filter tabs + search */}
       <div className="mb-4 flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           {/* View toggle */}
@@ -233,7 +233,7 @@ export default async function TasksPage({ searchParams }: { searchParams: SP }) 
             </Link>
           </div>
 
-          {/* Status tabs — hidden in board view since it shows all */}
+          {/* Status tabs, hidden in board view since it shows all */}
           {view === 'list' && (
             <div className="flex gap-1 overflow-x-auto">
               {(['all', 'todo', 'in_progress', 'done'] as const).map((f) => {
@@ -471,7 +471,7 @@ function TaskListRow({
               {task.description}
             </p>
           )}
-          {/* Completion attribution — visible to the owner when the task is done */}
+          {/* Completion attribution, visible to the owner when the task is done */}
           {task.status === 'done' && doneBy && (
             <p className="mt-1 inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700">
               <Check size={10} />

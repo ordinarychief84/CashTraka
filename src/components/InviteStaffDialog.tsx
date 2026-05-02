@@ -163,7 +163,7 @@ export function InviteStaffDialog({ open, onClose, staff }: Props) {
                 <div>
                   <div className="text-sm font-bold text-ink">Link ready to share</div>
                   <div className="mt-0.5 text-xs text-slate-600">
-                    Valid for 7 days. Send it to {staff.name} — they&apos;ll set their
+                    Valid for 7 days. Send it to {staff.name}, they&apos;ll set their
                     password and can log in right away.
                   </div>
                 </div>

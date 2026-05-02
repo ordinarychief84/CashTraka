@@ -46,7 +46,7 @@ export default async function ProductsPage() {
           <ul className="mt-2 text-sm text-owed-700/90">
             {lowStock.slice(0, 5).map((p) => (
               <li key={p.id}>
-                • {p.name} — <span className="num">{p.stock} left</span>
+                • {p.name}, <span className="num">{p.stock} left</span>
               </li>
             ))}
           </ul>

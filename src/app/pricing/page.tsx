@@ -58,7 +58,7 @@ export default function PricingPage() {
                   </p>
                 </div>
 
-                {/* Biannual — Recommended */}
+                {/* Biannual, Recommended */}
                 <div className="relative flex flex-col rounded-2xl border-2 border-brand-500 bg-gradient-to-br from-brand-50 to-white p-6 shadow-md transition hover:shadow-lg">
                   <div className="absolute -top-3 left-6 rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white">
                     Best value

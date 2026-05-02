@@ -10,10 +10,10 @@ type Props = {
 const DOW_HEAD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 /**
- * Month calendar — today highlighted, days with activity get a small dot,
+ * Month calendar, today highlighted, days with activity get a small dot,
  * days with due reminders or overdue debts get an amber dot.
  *
- * Intentionally read-only; prev/next arrows are decorative — clicking them
+ * Intentionally read-only; prev/next arrows are decorative, clicking them
  * would require a client component and the data is server-side for now.
  */
 export function MonthCalendar({ activity, dueDates = {} }: Props) {

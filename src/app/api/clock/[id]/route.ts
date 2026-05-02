@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
-/** PATCH /api/clock/[id] — clock out (sets clockOut + computes hoursWorked). */
+/** PATCH /api/clock/[id], clock out (sets clockOut + computes hoursWorked). */
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -27,7 +27,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json({ ok: true, hoursWorked: hours });
 }
 
-/** DELETE /api/clock/[id] — delete a clock entry. */
+/** DELETE /api/clock/[id], delete a clock entry. */
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

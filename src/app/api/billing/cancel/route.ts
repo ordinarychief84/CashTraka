@@ -4,7 +4,7 @@ import { handled, ok } from '@/lib/api-response';
 
 export const runtime = 'nodejs';
 
-/** POST /api/billing/cancel — owner-only; staff cannot cancel the subscription. */
+/** POST /api/billing/cancel, owner-only; staff cannot cancel the subscription. */
 export const POST = () =>
   handled(async () => {
     const ctx = await requirePermission('billing.write');

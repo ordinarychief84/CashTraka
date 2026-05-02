@@ -15,7 +15,7 @@ const patchSchema = z.object({
   status: z.enum(['PAID', 'PENDING']).optional(),
 });
 
-/** GET /api/payments/[id] — single payment detail. */
+/** GET /api/payments/[id], single payment detail. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();

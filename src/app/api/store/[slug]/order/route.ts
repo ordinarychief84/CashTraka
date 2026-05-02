@@ -14,10 +14,10 @@ const bodySchema = z.object({
 });
 
 /**
- * POST /api/store/[slug]/order — public catalog order click.
+ * POST /api/store/[slug]/order, public catalog order click.
  * Logs a CatalogEvent and returns a wa.me link. No Payment row is created.
  *
- * CSRF-exempt (see middleware) — the caller is an unauthenticated browser.
+ * CSRF-exempt (see middleware), the caller is an unauthenticated browser.
  * Rate-limited per IP at CATALOG_LIMITS.ORDER_RATE_PER_MIN (default 30/min).
  */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {

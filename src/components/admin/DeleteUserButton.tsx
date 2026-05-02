@@ -71,7 +71,7 @@ export function DeleteUserButton({
 
             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
               You are about to permanently delete <strong>{userName}</strong> ({userEmail}).
-              All their data — customers, payments, debts, invoices, receipts, and settings — will be removed.
+              All their data, customers, payments, debts, invoices, receipts, and settings, will be removed.
             </div>
 
             <label className="mb-3 block">

@@ -1,6 +1,6 @@
 /**
- * GET    /api/installments/[id] — Get installment plan detail with charge history.
- * POST   /api/installments/[id] — Cancel an installment plan.
+ * GET    /api/installments/[id], Get installment plan detail with charge history.
+ * POST   /api/installments/[id], Cancel an installment plan.
  */
 
 import { NextResponse } from 'next/server';

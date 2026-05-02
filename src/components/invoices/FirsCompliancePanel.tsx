@@ -27,11 +27,11 @@ const STATUS_TONE: Record<string, { tone: 'ok' | 'warn' | 'err' | 'idle'; label:
 };
 
 /**
- * FIRS compliance panel — shown on every /invoices/[id] page.
+ * FIRS compliance panel, shown on every /invoices/[id] page.
  *
  * The buttons drive /api/invoices/[id]/firs/{submit,status,retry}. With the
  * NoopFIRSAdapter (default), Submit will fail clearly with "adapter not
- * configured" — that's the expected behaviour until you wire in real FIRS
+ * configured", that's the expected behaviour until you wire in real FIRS
  * credentials and a real adapter.
  */
 export function FirsCompliancePanel({ invoiceId, initial }: Props) {

@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** POST /api/admin/support/[id]/reply — Add reply to ticket */
+/** POST /api/admin/support/[id]/reply, Add reply to ticket */
 export async function POST(req: Request, ctx: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();

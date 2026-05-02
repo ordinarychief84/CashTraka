@@ -8,7 +8,7 @@ import { formatNaira } from '@/lib/format';
 /**
  * Settings-page card for configuring personal-expense spending thresholds.
  *
- * Weekly and monthly are independent — set either, both, or neither.
+ * Weekly and monthly are independent, set either, both, or neither.
  * Leaving a field empty (or zero) disables that specific alert. The
  * thresholds are surfaced as a red banner on /expenses whenever the
  * current-period spend crosses the configured amount.

@@ -222,7 +222,7 @@ export default async function ExpensesPage({
     >
       <PageHeader
         title="Expense Management"
-        subtitle="Track business costs and personal spending separately — know exactly where every naira goes."
+        subtitle="Track business costs and personal spending separately, know exactly where every naira goes."
         action={
           <Link href="/expenses/new" className="btn-primary">
             <Plus size={18} />
@@ -301,7 +301,7 @@ export default async function ExpensesPage({
         <ExpenseSearchBar />
       </Suspense>
 
-      {/* ── Stats grid — context-aware ── */}
+      {/* ── Stats grid, context-aware ── */}
       {kind === 'business' || kind === 'all' ? (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard
@@ -351,7 +351,7 @@ export default async function ExpensesPage({
           )}
         </div>
       ) : (
-        /* Personal-only view — show personal-relevant stats */
+        /* Personal-only view, show personal-relevant stats */
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard
             label="This week"
@@ -477,7 +477,7 @@ export default async function ExpensesPage({
               ? 'Try adjusting your search or filter.'
               : kind === 'personal'
                 ? 'Track your personal spending to set budgets and avoid overspending.'
-                : 'Log your business costs to see real profit — not just revenue.'
+                : 'Log your business costs to see real profit, not just revenue.'
           }
           actionHref="/expenses/new"
           actionLabel="Log expense"

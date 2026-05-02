@@ -10,7 +10,7 @@ const querySchema = z.object({
   skip: z.coerce.number().int().min(0).default(0),
 });
 
-/** GET /api/receipts — paginated list of receipts for the current business. */
+/** GET /api/receipts, paginated list of receipts for the current business. */
 export const GET = (req: Request) =>
   handled(async () => {
     const user = await requireUser();

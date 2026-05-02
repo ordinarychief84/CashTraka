@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-/** PATCH /api/user/email — change the logged-in user's email */
+/** PATCH /api/user/email, change the logged-in user's email */
 export async function PATCH(req: Request) {
   try {
     const user = await getCurrentUser();

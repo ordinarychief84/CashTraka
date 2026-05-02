@@ -13,7 +13,7 @@ import { AlertTriangle, Sparkles, X } from 'lucide-react';
  *  - `cancelled` w/ grace       → slate, "Access until X"
  *
  * Dismissal is per-session via sessionStorage so the banner comes back next
- * login — we don't want users silently missing a past-due state for long.
+ * login, we don't want users silently missing a past-due state for long.
  */
 
 type Status = {

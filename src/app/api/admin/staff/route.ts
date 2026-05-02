@@ -5,7 +5,7 @@ import { ASSIGNABLE_ADMIN_ROLES } from '@/lib/admin-rbac';
 import type { AdminRole } from '@/lib/admin-rbac';
 import { randomBytes, createHash } from 'crypto';
 
-/** GET /api/admin/staff — list all admin staff */
+/** GET /api/admin/staff, list all admin staff */
 export async function GET() {
   await requireAdmin();
   const staff = await prisma.adminStaff.findMany({
@@ -15,7 +15,7 @@ export async function GET() {
   return NextResponse.json({ staff });
 }
 
-/** POST /api/admin/staff — invite new staff member */
+/** POST /api/admin/staff, invite new staff member */
 export async function POST(req: Request) {
   const admin = await requireAdmin();
   try {

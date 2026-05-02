@@ -29,7 +29,7 @@ export function ReportFraudDialog({ open, onClose, phone, customerName, onReport
     setError(null);
     const r = reason.trim();
     if (r.length < 3) {
-      setError('Give a short reason — it helps other sellers.');
+      setError('Give a short reason, it helps other sellers.');
       return;
     }
     setSubmitting(true);

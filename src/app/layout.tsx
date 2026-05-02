@@ -3,9 +3,9 @@ import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
 
 export const metadata: Metadata = {
-  title: 'CashTraka — Know who paid. Know who owes. Collect everything.',
+  title: 'CashTraka, Know who paid. Know who owes. Collect everything.',
   description:
-    'The #1 payment tracker for Nigerian small businesses and landlords. Track payments, chase debts via WhatsApp, send payment links, issue receipts — all from your phone.',
+    'The #1 payment tracker for Nigerian small businesses and landlords. Track payments, chase debts via WhatsApp, send payment links, issue receipts, all from your phone.',
   // PWA metadata
   applicationName: 'CashTraka',
   manifest: '/manifest.webmanifest',
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
-        {/* Legacy meta — still picked up by some crawlers. */}
+        {/* Legacy meta, still picked up by some crawlers. */}
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>

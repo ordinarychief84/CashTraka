@@ -93,7 +93,7 @@ export function SuggestionsPanel({ isPaid }: { isPaid: boolean }) {
           <h3 className="text-sm font-semibold text-slate-800">Smart Suggestions</h3>
         </div>
         <p className="text-xs text-slate-500">
-          No suggestions right now — your collections look great!
+          No suggestions right now, your collections look great!
         </p>
       </div>
     );

@@ -9,14 +9,14 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const store = await catalogService.getStore(params.slug);
-  if (!store) return { title: 'Shop — CashTraka' };
+  if (!store) return { title: 'Shop, CashTraka' };
   return {
-    title: `All products — ${store.business}`,
+    title: `All products, ${store.business}`,
     description: `Every product on ${store.business}.`,
   };
 }
 
-/** Flat product grid — same dense layout as the previous `/store/[slug]`. */
+/** Flat product grid, same dense layout as the previous `/store/[slug]`. */
 export default async function StoreAllPage({ params }: { params: { slug: string } }) {
   const store = await catalogService.getStore(params.slug);
   if (!store) notFound();

@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { analyticsService } from '@/lib/services/analytics.service';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/admin/analytics?months=6 — monthly trend series. */
+/** GET /api/admin/analytics?months=6, monthly trend series. */
 export const GET = (req: Request) =>
   handled(async () => {
     await requireAdmin();

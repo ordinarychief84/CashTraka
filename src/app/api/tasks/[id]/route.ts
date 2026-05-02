@@ -11,7 +11,7 @@ const patchSchema = z.object({
   priority: z.enum(['low', 'normal', 'high', 'urgent']).optional(),
   status: z.enum(['todo', 'in_progress', 'done']).optional(),
   dueDate: z.string().optional().nullable(),
-  /** Optional short note when completing — appears on the owner's view. */
+  /** Optional short note when completing, appears on the owner's view. */
   completionNote: z.string().trim().max(300).optional(),
 });
 

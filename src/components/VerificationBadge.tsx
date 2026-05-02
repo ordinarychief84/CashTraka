@@ -13,7 +13,7 @@ type Props = {
  *   • Bank-matched: strongest signal (auto-verified from a parsed alert)
  *   • Manually confirmed: seller asserted receipt without bank proof
  *   • Customer claimed: /pay/[code] was tapped by the customer, but not yet verified
- *   • Unverified: no signal at all — do NOT ship
+ *   • Unverified: no signal at all, do NOT ship
  */
 export function VerificationBadge({ verified, claimed, method, size = 'sm' }: Props) {
   const base =
@@ -41,7 +41,7 @@ export function VerificationBadge({ verified, claimed, method, size = 'sm' }: Pr
     return (
       <span
         className={cn(base, 'bg-owed-50 text-owed-700')}
-        title="Customer claims they paid — verify with your bank before shipping"
+        title="Customer claims they paid, verify with your bank before shipping"
       >
         <Clock3 size={size === 'sm' ? 10 : 12} />
         Customer claimed
@@ -51,7 +51,7 @@ export function VerificationBadge({ verified, claimed, method, size = 'sm' }: Pr
   return (
     <span
       className={cn(base, 'bg-owed-50 text-owed-700')}
-      title="Unverified — do not ship until bank alert confirms"
+      title="Unverified, do not ship until bank alert confirms"
     >
       <AlertTriangle size={size === 'sm' ? 10 : 12} />
       Unverified

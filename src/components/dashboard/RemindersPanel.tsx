@@ -33,7 +33,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 /**
- * Mirrors the "Assignments" panel in the reference design — compact list of
+ * Mirrors the "Assignments" panel in the reference design, compact list of
  * reminders with status pills. Links through to the full /reminders page.
  */
 export function RemindersPanel({ reminders, isPm }: Props) {

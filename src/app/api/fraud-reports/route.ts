@@ -4,7 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { fraudReportSchema } from '@/lib/validators';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 
-/** GET /api/fraud-reports?phone=... — return aggregate stats for a phone number. */
+/** GET /api/fraud-reports?phone=..., return aggregate stats for a phone number. */
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
   });
 }
 
-/** POST /api/fraud-reports — report a phone number. Idempotent per (user, phone). */
+/** POST /api/fraud-reports, report a phone number. Idempotent per (user, phone). */
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
-/** DELETE /api/fraud-reports?phone=... — remove your own report for a number. */
+/** DELETE /api/fraud-reports?phone=..., remove your own report for a number. */
 export async function DELETE(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -221,7 +221,7 @@ export default function PnLClient() {
           <h2 className="text-sm font-bold text-slate-900">Profit & Loss Statement</h2>
           <p className="text-[11px] text-slate-500 mt-0.5">
             {new Date(data.period.start).toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}
-            {' — '}
+            {', '}
             {new Date(data.period.end).toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
         </div>

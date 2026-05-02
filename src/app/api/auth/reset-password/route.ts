@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         error:
-          'Please choose a stronger password — that one appears on common-password lists.',
+          'Please choose a stronger password, that one appears on common-password lists.',
       },
       { status: 400 },
     );

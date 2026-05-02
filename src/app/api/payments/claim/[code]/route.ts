@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 /**
- * PUBLIC endpoint — called when a customer taps "I've paid" on /pay/[code].
+ * PUBLIC endpoint, called when a customer taps "I've paid" on /pay/[code].
  * This records an UNVERIFIED claim (sets `claimedAt`). The seller must still
  * verify with their bank alert before shipping. We explicitly don't let
  * customer input flip `verified`.

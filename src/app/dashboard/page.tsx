@@ -39,7 +39,7 @@ export const dynamic = 'force-dynamic';
 const QUIET_THRESHOLD_DAYS = 30;
 
 /**
- * Dashboard — redesigned around three zones in a strict order:
+ * Dashboard, redesigned around three zones in a strict order:
  *
  *   1. TODAY   What needs my attention right now? Ranked triage list +
  *              a persistent "Create receipt" CTA since that's the
@@ -52,8 +52,8 @@ const QUIET_THRESHOLD_DAYS = 30;
  *
  * Role-aware:
  *   OWNER / MANAGER   full view
- *   CASHIER           Today zone + sales pulse only — no profit, no growth cards
- *   VIEWER            pulse + activity only — no action items
+ *   CASHIER           Today zone + sales pulse only, no profit, no growth cards
+ *   VIEWER            pulse + activity only, no action items
  */
 export default async function DashboardPage() {
   const user = await guard();
@@ -415,7 +415,7 @@ export default async function DashboardPage() {
       id: 'paylinks-claimed',
       severity: 'critical',
       icon: TriageIcons.paylink,
-      title: `${claimedPaylinkCount} PayLink${claimedPaylinkCount > 1 ? 's' : ''} claimed — confirm payment`,
+      title: `${claimedPaylinkCount} PayLink${claimedPaylinkCount > 1 ? 's' : ''} claimed, confirm payment`,
       subtitle: 'Customers say they\'ve paid. Tap to confirm.',
       href: '/paylinks?status=claimed',
     });
@@ -634,7 +634,7 @@ export default async function DashboardPage() {
         <div className="space-y-3 lg:col-span-7">
           <TopContributors rows={contributorRows} monthLabel={monthLabel} isPm={isPm} />
 
-          {/* Monthly pulse strip — placed left to balance columns */}
+          {/* Monthly pulse strip, placed left to balance columns */}
           <section className="card p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
               <TrendingUp size={16} className="text-brand-600" />

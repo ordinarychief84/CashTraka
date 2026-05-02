@@ -11,7 +11,7 @@ const ALLOWED = new Set(['image/png', 'image/jpeg', 'image/webp']);
 
 /**
  * POST /api/settings/logo
- *   multipart/form-data — field name: "file"
+ *   multipart/form-data, field name: "file"
  *
  * Uploads to Cloudinary and stores the hosted URL on the user.
  */
@@ -36,7 +36,7 @@ export const POST = (req: Request) =>
     return ok({ logoUrl: result.url });
   });
 
-/** DELETE /api/settings/logo — clear the stored logo URL. */
+/** DELETE /api/settings/logo, clear the stored logo URL. */
 export const DELETE = () =>
   handled(async () => {
     const user = await requireUser();

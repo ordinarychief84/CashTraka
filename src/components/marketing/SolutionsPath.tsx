@@ -5,7 +5,7 @@ import { Store, Home, Check, ArrowRight } from 'lucide-react';
 import { Reveal } from './Reveal';
 
 /**
- * "Pick your path" — the ICP self-select, promoted from inside the hero
+ * "Pick your path", the ICP self-select, promoted from inside the hero
  * into its own breathing-room section. Two big cards. Each routes to the
  * dedicated solution landing (/for-business, /for-landlords).
  */
@@ -35,7 +35,7 @@ export function SolutionsPath() {
               accent="brand"
               kicker="For Small Business"
               title="CashTraka for Business"
-              desc="For sellers, vendors, tailors, and service providers — send payment links, set up auto-debit plans, verify transfers, and collect every naira you are owed."
+              desc="For sellers, vendors, tailors, and service providers, send payment links, set up auto-debit plans, verify transfers, and collect every naira you are owed."
               features={[
                 'Payment links & auto-debit installments',
                 'Promise to Pay with auto broken-promise alerts',
@@ -52,7 +52,7 @@ export function SolutionsPath() {
               accent="success"
               kicker="For Landlords"
               title="CashTraka for Landlords"
-              desc="For landlords, property managers, and estate agents — send rent payment links, set up recurring auto-debit, and know exactly who is behind."
+              desc="For landlords, property managers, and estate agents, send rent payment links, set up recurring auto-debit, and know exactly who is behind."
               features={[
                 'Rent payment links & auto-debit collection',
                 'Rent tracker with collection-rate KPI',

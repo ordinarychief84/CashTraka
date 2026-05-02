@@ -12,7 +12,7 @@ import { TaskRowActions } from './TaskRowActions';
  * Kanban view for tasks.
  *
  * Three columns (To-do / In progress / Done). Each card is draggable between
- * columns via the native HTML5 drag-drop API — no dependency on a DnD library.
+ * columns via the native HTML5 drag-drop API, no dependency on a DnD library.
  * Status changes are POSTed optimistically and the server is the source of truth;
  * a failed PATCH just reverts the UI on refresh.
  */

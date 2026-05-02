@@ -9,7 +9,7 @@ import { PLAN_LABELS } from '@/lib/plan-limits';
 export const dynamic = 'force-dynamic';
 
 /**
- * Admin email overview — shows email flow status and trial-ending users
+ * Admin email overview, shows email flow status and trial-ending users
  * who might need attention. This page is about awareness, not sending —
  * emails are triggered automatically by the app's lifecycle events.
  */

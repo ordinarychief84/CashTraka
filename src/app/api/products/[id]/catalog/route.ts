@@ -16,7 +16,7 @@ const bodySchema = z.object({
 });
 
 /**
- * POST /api/products/[id]/catalog — update the catalog-specific fields on a
+ * POST /api/products/[id]/catalog, update the catalog-specific fields on a
  * product (publish toggle, images, description, sku, manual status override).
  */
 export const POST = (req: Request, ctx: { params: { id: string } }) =>

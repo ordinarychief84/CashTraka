@@ -9,7 +9,7 @@ import { requireFeature } from '@/lib/gate';
 /**
  * Staff payment API.
  *
- * Every payment to staff is logged here — salaries, advances, bonuses,
+ * Every payment to staff is logged here, salaries, advances, bonuses,
  * commissions, reimbursements. This feeds:
  *   - the "how much I still owe them" balance on the staff detail page
  *   - the monthly payroll total on /team
@@ -17,7 +17,7 @@ import { requireFeature } from '@/lib/gate';
  *
  * When a salary or daily wage is logged, we optionally mirror it into the
  * Expense table so P&L reports include it automatically. Other kinds
- * (reimbursement, advance) are not expenses — advances are loans, and
+ * (reimbursement, advance) are not expenses, advances are loans, and
  * reimbursements are already tracked as the original expense.
  */
 
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
           userId: user.id,
           amount: d.amount,
           category: 'Payroll',
-          note: `${d.kind === 'salary' ? 'Salary' : d.kind[0].toUpperCase() + d.kind.slice(1)} — ${staff.name}${d.note ? ' · ' + d.note : ''}`,
+          note: `${d.kind === 'salary' ? 'Salary' : d.kind[0].toUpperCase() + d.kind.slice(1)}, ${staff.name}${d.note ? ' · ' + d.note : ''}`,
           incurredOn: paidAt,
         },
       })

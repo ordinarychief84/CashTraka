@@ -15,9 +15,9 @@ export async function generateMetadata({
   params: { slug: string; albumSlug: string };
 }) {
   const data = await catalogService.getAlbum(params.slug, params.albumSlug);
-  if (!data) return { title: 'Album — CashTraka' };
+  if (!data) return { title: 'Album, CashTraka' };
   return {
-    title: `${data.album.title} — ${data.business}`,
+    title: `${data.album.title}, ${data.business}`,
     description: data.album.description ?? `${data.album.title} catalog`,
     openGraph: data.album.coverImageUrl
       ? { images: [{ url: data.album.coverImageUrl }] }

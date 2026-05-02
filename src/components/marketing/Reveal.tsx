@@ -7,7 +7,7 @@ type Direction = 'up' | 'down' | 'left' | 'right' | 'zoom' | 'none';
 
 type Props = {
   children: React.ReactNode;
-  /** Start delay in ms — use `Stagger` below for multi-child sequences. */
+  /** Start delay in ms, use `Stagger` below for multi-child sequences. */
   delay?: number;
   /** Distance travelled (or scale start when `zoom`). Bigger = more drama. */
   distance?: number;
@@ -17,7 +17,7 @@ type Props = {
   easing?: string;
   /** Duration in ms. Default 700. */
   duration?: number;
-  /** Blur (px) applied to hidden state — Connecteam-style dreamy enter. */
+  /** Blur (px) applied to hidden state, Connecteam-style dreamy enter. */
   blur?: boolean;
   className?: string;
 };
@@ -25,7 +25,7 @@ type Props = {
 /**
  * Scroll-triggered entrance animation.
  *
- * IntersectionObserver + CSS transitions — no animation library. Respects
+ * IntersectionObserver + CSS transitions, no animation library. Respects
  * `prefers-reduced-motion`. One-shot: reveals the first time the element
  * crosses the viewport, then detaches the observer.
  *

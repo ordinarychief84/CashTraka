@@ -241,24 +241,24 @@ export function AlbumEditor({
       : null;
 
   return (
-    <div className="pb-24">
+    <div className="pb-40 md:pb-24">
       <form onSubmit={save} className="grid gap-5 lg:grid-cols-[1fr_360px]">
         {/* LEFT: form */}
         <div className="space-y-5">
           {/* Hero title row */}
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-5">
             <input
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              placeholder="Album name (e.g. Summer 2026)"
+              placeholder="Name your album"
               maxLength={80}
               required
-              className="w-full border-0 bg-transparent p-0 text-2xl font-bold text-ink outline-none placeholder:text-slate-300 focus:ring-0"
+              className="w-full border-0 bg-transparent p-0 text-xl font-bold text-ink outline-none placeholder:text-slate-300 focus:ring-0 sm:text-2xl"
             />
             <div className="mt-2 flex flex-wrap items-center gap-1 text-xs text-slate-500">
               <span className="text-slate-400">Public link:</span>
-              <span className="font-mono">
+              <span className="break-all font-mono">
                 {storefrontSlug ? `/store/${storefrontSlug}/album/` : '/album/'}
               </span>
               <input
@@ -272,7 +272,7 @@ export function AlbumEditor({
                 maxLength={32}
                 required
                 disabled={mode === 'edit'}
-                className="rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-xs text-brand-700 focus:border-brand-500 focus:bg-white focus:outline-none disabled:text-slate-500"
+                className="min-w-0 flex-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-xs text-brand-700 focus:border-brand-500 focus:bg-white focus:outline-none disabled:text-slate-500"
               />
               {mode === 'edit' ? (
                 <span className="text-[10px] text-slate-400">(locked)</span>
@@ -281,8 +281,8 @@ export function AlbumEditor({
           </div>
 
           {/* Cover image + description */}
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-5">
+            <div className="grid gap-4 lg:grid-cols-2">
               <div>
                 <Label>Cover image</Label>
                 <ImageUploader
@@ -299,7 +299,7 @@ export function AlbumEditor({
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="A few words customers will see above the products. e.g. 'New arrivals — message us for sizes'."
+                  placeholder="A few words customers will see above the products. e.g. 'New arrivals, message us for sizes'."
                   rows={6}
                   maxLength={500}
                   className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
@@ -456,7 +456,7 @@ export function AlbumEditor({
               </ul>
             )}
 
-            {/* Picker — searchable, shown inline */}
+            {/* Picker, searchable, shown inline */}
             {catalog.length > 0 ? (
               <div className="mt-4 border-t border-border pt-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
@@ -578,7 +578,7 @@ export function AlbumEditor({
             </div>
           </div>
 
-          {/* Share helper — only on edit + meaningful URL */}
+          {/* Share helper, only on edit + meaningful URL */}
           {mode === 'edit' && publicUrl ? (
             <ShareBlock
               url={publicUrl}
@@ -597,8 +597,8 @@ export function AlbumEditor({
         </aside>
       </form>
 
-      {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-white/95 px-4 py-3 backdrop-blur md:left-56">
+      {/* Sticky action bar, lifts above mobile BottomNav (h-16) */}
+      <div className="fixed inset-x-0 bottom-16 z-20 border-t border-border bg-white/95 px-4 py-3 backdrop-blur md:bottom-0 md:left-56">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
           <Link
             href="/showroom/albums"

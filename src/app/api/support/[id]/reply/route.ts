@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** POST /api/support/[id]/reply — Add reply to own ticket */
+/** POST /api/support/[id]/reply, Add reply to own ticket */
 export async function POST(req: Request, ctx: { params: { id: string } }) {
   try {
     const user = await getCurrentUser();

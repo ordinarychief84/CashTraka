@@ -58,7 +58,7 @@ const TONE: Record<string, string> = {
 };
 
 /**
- * The "New Courses" equivalent — three at-a-glance cards showing the latest
+ * The "New Courses" equivalent, three at-a-glance cards showing the latest
  * payment, latest money-owed entry and latest invoice with deep links.
  */
 export function NewActivityCards({

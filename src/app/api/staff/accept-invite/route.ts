@@ -8,7 +8,7 @@ function hashToken(raw: string): string {
   return crypto.createHash('sha256').update(raw).digest('hex');
 }
 
-/** POST /api/staff/accept-invite — set password and activate staff account */
+/** POST /api/staff/accept-invite, set password and activate staff account */
 export async function POST(req: Request) {
   try {
     const { token, password } = await req.json();
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     }
     if (isWeakPassword(password)) {
       return NextResponse.json(
-        { error: 'Please choose a stronger password — that one appears on common-password lists.' },
+        { error: 'Please choose a stronger password, that one appears on common-password lists.' },
         { status: 400 },
       );
     }
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
   }
 }
 
-/** GET /api/staff/accept-invite?token=xxx — validate token */
+/** GET /api/staff/accept-invite?token=xxx, validate token */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get('token');

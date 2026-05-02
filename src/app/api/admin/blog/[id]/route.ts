@@ -13,7 +13,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   return NextResponse.json({ post });
 }
 
-/** PATCH /api/admin/blog/[id] — update a blog post */
+/** PATCH /api/admin/blog/[id], update a blog post */
 export async function PATCH(req: Request, ctx: Ctx) {
   await requireAdmin();
   const { id } = await ctx.params;

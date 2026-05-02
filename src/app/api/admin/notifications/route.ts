@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/notifications — List admin's own notifications */
+/** GET /api/admin/notifications, List admin's own notifications */
 export async function GET(req: Request) {
   try {
     const admin = await requireAdmin();
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST /api/admin/notifications — Broadcast notification to users */
+/** POST /api/admin/notifications, Broadcast notification to users */
 export async function POST(req: Request) {
   try {
     const admin = await requireAdmin();

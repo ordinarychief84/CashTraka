@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { ROLES } from '@/lib/constants/roles';
 
-/** DELETE /api/admin/roles/[id] — Demote an admin back to USER */
+/** DELETE /api/admin/roles/[id], Demote an admin back to USER */
 export async function DELETE(req: Request, ctx: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();

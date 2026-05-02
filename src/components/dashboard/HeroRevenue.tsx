@@ -3,7 +3,7 @@ import { formatNaira } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 /**
- * Hero revenue card — the single biggest thing on the dashboard.
+ * Hero revenue card, the single biggest thing on the dashboard.
  *
  * Redesigned as a calm, data-forward panel (white card, subtle border,
  * tabular figures) instead of the previous saturated cyan gradient that

@@ -42,7 +42,7 @@ export const POST = (req: Request) =>
     const complexityErr = checkPasswordComplexity(password);
     if (complexityErr) return fail(complexityErr, 422);
     if (isWeakPassword(password)) {
-      return fail('Please choose a stronger password — that one appears on common-password lists.', 422);
+      return fail('Please choose a stronger password, that one appears on common-password lists.', 422);
     }
 
     // Hash the raw token to match the stored hash

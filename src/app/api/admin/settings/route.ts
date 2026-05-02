@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/settings — Return all SystemSetting rows as key-value pairs */
+/** GET /api/admin/settings, Return all SystemSetting rows as key-value pairs */
 export async function GET() {
   try {
     await requireAdmin();
@@ -29,7 +29,7 @@ export async function GET() {
   }
 }
 
-/** PATCH /api/admin/settings — Update settings with upsert into SystemSetting table */
+/** PATCH /api/admin/settings, Update settings with upsert into SystemSetting table */
 export async function PATCH(req: Request) {
   try {
     const admin = await requireAdmin();

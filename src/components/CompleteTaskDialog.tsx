@@ -8,7 +8,7 @@ import { X, CheckCircle2 } from 'lucide-react';
  * "Mark task done" dialog shown when staff tick the checkbox on an assigned
  * task. Lets them leave an optional 1-line note ("Delivered at 2pm, paid
  * cash") that the owner will see on the task afterwards. The whole flow is
- * intentionally tiny — one field, one button — so the staff never has to
+ * intentionally tiny, one field, one button, so the staff never has to
  * context-switch away from their actual work.
  */
 

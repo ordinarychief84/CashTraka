@@ -32,7 +32,7 @@ type Props = {
  * /settings main form.
  *
  * Reorganised into clearly-labelled sections, each with an icon + headline +
- * description — so the page reads as a real settings surface rather than a
+ * description, so the page reads as a real settings surface rather than a
  * stack of identical-looking grey cards. The page is also tightened on
  * validation: WhatsApp shows a live formatted preview, account numbers are
  * capped to 10 digits (NUBAN), and account names are force-uppercased.
@@ -79,7 +79,7 @@ export function SettingsForm({ initial }: Props) {
   }
 
   /**
-   * Nigerian MSISDN sniff — accept 0XXXXXXXXXX (11 digits) or +234 / 234 + 10.
+   * Nigerian MSISDN sniff, accept 0XXXXXXXXXX (11 digits) or +234 / 234 + 10.
    * Return a formatted preview or null.
    */
   const whatsappPreview = useMemo(() => {
@@ -385,7 +385,7 @@ export function SettingsForm({ initial }: Props) {
         description={
           form.businessType === 'property_manager'
             ? 'Re-use templates when you remind tenants about rent on WhatsApp.'
-            : 'Re-use templates when you follow up on WhatsApp — so you don\'t type the same message twice.'
+            : 'Re-use templates when you follow up on WhatsApp, so you don\'t type the same message twice.'
         }
       >
         <Link

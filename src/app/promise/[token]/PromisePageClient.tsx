@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * Public Promise to Pay Page — CashTraka
+ * Public Promise to Pay Page, CashTraka
  *
  * Debtors see this page. They can:
  *   - Pay now (full remaining amount)
@@ -331,7 +331,7 @@ export function PromisePageClient({ token }: { token: string }) {
           </div>
         )}
 
-        {/* Action buttons — open state */}
+        {/* Action buttons, open state */}
         {view === 'open' && (
           <div className="mt-6 space-y-3">
             <button

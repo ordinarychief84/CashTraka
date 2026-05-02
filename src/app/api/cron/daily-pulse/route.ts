@@ -1,5 +1,5 @@
 /**
- * Vercel Cron — Daily Pulse Email
+ * Vercel Cron, Daily Pulse Email
  *
  * Runs daily at 7 AM WAT (06:00 UTC). Sends each active user a morning
  * summary email with revenue, debts, paylinks needing attention, and

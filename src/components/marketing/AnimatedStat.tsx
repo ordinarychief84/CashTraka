@@ -24,7 +24,7 @@ type Props = {
  *
  * Uses requestAnimationFrame and a soft ease-out curve so the number
  * eases into its destination instead of landing abruptly. Respects
- * `prefers-reduced-motion` — shows the final value immediately.
+ * `prefers-reduced-motion`, shows the final value immediately.
  */
 export function AnimatedStat({
   value,

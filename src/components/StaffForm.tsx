@@ -5,13 +5,13 @@ import { useRouter } from 'next/navigation';
 import { formatNaira } from '@/lib/format';
 
 /**
- * Staff profile form — add or edit a team member.
+ * Staff profile form, add or edit a team member.
  *
  * Shaped for Nigerian SMB reality:
  *   - Pay is cycle-based (monthly / weekly / daily / per-task), not hourly.
  *   - Bank details collected so transfers can be made directly.
- *   - Next-of-kin captured — standard informal-employment practice.
- *   - PIN is optional — only matters if staff self-mark attendance on a
+ *   - Next-of-kin captured, standard informal-employment practice.
+ *   - PIN is optional, only matters if staff self-mark attendance on a
  *     shared device (e.g. shop till).
  */
 
@@ -36,8 +36,8 @@ type Props = { initial?: Initial; redirectTo?: string };
 
 const PAY_TYPE_HELP: Record<string, string> = {
   monthly: 'Full monthly salary, paid once at month-end.',
-  weekly: 'Weekly wage — multiplied by weeks worked.',
-  daily: 'Day rate — multiplied by days present in the pay period.',
+  weekly: 'Weekly wage, multiplied by weeks worked.',
+  daily: 'Day rate, multiplied by days present in the pay period.',
   per_task: 'Paid per trip / per garment / per delivery. Amount is logged per payment.',
 };
 

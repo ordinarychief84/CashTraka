@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * Stagger wrapper — applies an incrementing delay to each direct child so a
+ * Stagger wrapper, applies an incrementing delay to each direct child so a
  * grid of cards animates in one-at-a-time rather than all at once. If a
  * child is already a `<Reveal>`, its `delay` prop is overridden with the
  * computed stagger value; otherwise the child is wrapped.

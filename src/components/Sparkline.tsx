@@ -8,7 +8,7 @@ type Props = {
 };
 
 /**
- * Tiny inline-SVG sparkline. No chart library, no axes — just the shape.
+ * Tiny inline-SVG sparkline. No chart library, no axes, just the shape.
  */
 export function Sparkline({ values, width = 120, height = 36, className }: Props) {
   if (values.length === 0) {

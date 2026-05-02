@@ -5,7 +5,7 @@ import { requireFeature } from '@/lib/gate';
 import { limitsFor, effectivePlan } from '@/lib/plan-limits';
 import { prisma } from '@/lib/prisma';
 
-/** GET /api/reminders — list user's reminder rules + stats */
+/** GET /api/reminders, list user's reminder rules + stats */
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -27,7 +27,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/reminders — create a new reminder rule */
+/** POST /api/reminders, create a new reminder rule */
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();

@@ -24,7 +24,7 @@ async function loadOwn(userId: string, id: string) {
   return album;
 }
 
-/** GET /api/showroom/albums/[id] — fetch the album with its products. */
+/** GET /api/showroom/albums/[id], fetch the album with its products. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
@@ -41,7 +41,7 @@ export const GET = (_req: Request, ctx: { params: { id: string } }) =>
     return ok(album);
   });
 
-/** PATCH /api/showroom/albums/[id] — update meta fields. */
+/** PATCH /api/showroom/albums/[id], update meta fields. */
 export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
@@ -82,7 +82,7 @@ export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
     return ok(updated);
   });
 
-/** DELETE /api/showroom/albums/[id] — remove an album (cascades to AlbumProduct). */
+/** DELETE /api/showroom/albums/[id], remove an album (cascades to AlbumProduct). */
 export const DELETE = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();

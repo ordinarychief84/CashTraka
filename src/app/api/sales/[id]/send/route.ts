@@ -112,7 +112,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const result = await emailService.raw({
     to: sale.customerEmail,
-    subject: `Receipt from ${businessName} — ${sale.saleNumber}`,
+    subject: `Receipt from ${businessName}, ${sale.saleNumber}`,
     html,
   });
 

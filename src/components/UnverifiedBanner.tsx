@@ -9,7 +9,7 @@ type Props = {
 
 /**
  * Dashboard banner: surfaces payments that have been recorded as "paid" but
- * never verified against a bank alert. These are the fraud risk — if a seller
+ * never verified against a bank alert. These are the fraud risk, if a seller
  * ships against an unverified payment, that's where scams happen.
  */
 export function UnverifiedBanner({ count, total }: Props) {
@@ -25,7 +25,7 @@ export function UnverifiedBanner({ count, total }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-bold text-owed-700">
-            {count} unverified payment{count === 1 ? '' : 's'} — don&rsquo;t ship yet
+            {count} unverified payment{count === 1 ? '' : 's'}, don&rsquo;t ship yet
           </div>
           <div className="text-xs text-owed-700/80">
             <span className="num">{formatNaira(total)}</span> pending confirmation.

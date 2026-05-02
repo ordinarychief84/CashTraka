@@ -44,7 +44,7 @@ export default function LoginPage({ searchParams }: { searchParams: SearchParams
                 <Users2 size={14} className="mt-0.5 shrink-0 text-brand-600" />
                 <div>
                   <p className="font-semibold text-ink">Team member? You log in here too.</p>
-                  <p className="mt-0.5">Use the email your employer invited you with — the same one you received the invite link on. If you haven&apos;t received one, ask your employer to resend it from their Team page.</p>
+                  <p className="mt-0.5">Use the email your employer invited you with, the same one you received the invite link on. If you haven&apos;t received one, ask your employer to resend it from their Team page.</p>
                 </div>
               </div>
             </div>

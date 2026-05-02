@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
  * GET /api/billing/verify?reference=...
  *
  * Called by the /billing/callback page when Paystack redirects the user back.
- * Idempotent — if the webhook got there first, this just reads the already-
+ * Idempotent, if the webhook got there first, this just reads the already-
  * completed state. If the webhook is delayed, this finalises synchronously.
  */
 export const GET = (req: Request) =>

@@ -65,7 +65,7 @@ export default async function ChecklistsPage() {
         <EmptyState
           icon={ClipboardList}
           title="No checklists yet"
-          description="Create your first — e.g. Daily opening, Order packing, Property inspection."
+          description="Create your first, e.g. Daily opening, Order packing, Property inspection."
           actionHref="/checklists/new"
           actionLabel="Create checklist"
         />

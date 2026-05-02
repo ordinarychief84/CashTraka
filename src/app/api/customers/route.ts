@@ -2,7 +2,7 @@ import { requireUser } from '@/lib/auth';
 import { customerService } from '@/lib/services/customer.service';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/customers — paginated list / search. */
+/** GET /api/customers, paginated list / search. */
 export const GET = (req: Request) =>
   handled(async () => {
     const user = await requireUser();

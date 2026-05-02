@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-/** PATCH /api/user/password — change the logged-in user's password */
+/** PATCH /api/user/password, change the logged-in user's password */
 export async function PATCH(req: Request) {
   try {
     const user = await getCurrentUser();

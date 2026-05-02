@@ -670,7 +670,7 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
         )}
       </div>
 
-      {/* Permissions Reference — collapsible */}
+      {/* Permissions Reference, collapsible */}
       <div className="rounded-xl border bg-white shadow-sm">
         <button onClick={() => setShowPerms(!showPerms)}
           className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-slate-50 transition">

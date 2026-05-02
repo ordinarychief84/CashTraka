@@ -96,7 +96,7 @@ export function RolesTab() {
           </div>
           <h3 className="text-base font-bold text-ink">No roles yet</h3>
           <p className="mt-1 max-w-sm text-sm text-slate-500">
-            Create your first role — like &quot;Shop Attendant&quot; or &quot;Delivery Rider&quot; — then add team members to it.
+            Create your first role, like &quot;Shop Attendant&quot; or &quot;Delivery Rider&quot;, then add team members to it.
           </p>
           <button onClick={openCreate} className="btn-primary mt-4">
             <Plus size={16} />

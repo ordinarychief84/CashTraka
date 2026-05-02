@@ -1,5 +1,5 @@
 /**
- * Vercel Cron — Run Installment Charges
+ * Vercel Cron, Run Installment Charges
  *
  * Processes all due installment plans by charging the customer's
  * stored Paystack authorization. Protected by CRON_SECRET.
@@ -10,7 +10,7 @@
  * - Only processes ACTIVE plans with reusable authorization
  * - Skips plans with pending charges from today (prevents double-charge)
  * - Caps charge amount at remaining balance (prevents overcharge)
- * - Charge is NOT confirmed here — confirmation happens via webhook
+ * - Charge is NOT confirmed here, confirmation happens via webhook
  * - All attempts are logged in InstallmentCharge table
  */
 

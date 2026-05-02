@@ -33,7 +33,7 @@ function startOfTodayUTC(): Date {
 }
 
 /**
- * Team page — the day-to-day control surface for payroll. Shows stats,
+ * Team page, the day-to-day control surface for payroll. Shows stats,
  * a quick attendance toggle per staff, and a per-row "Pay" dialog.
  * Also lists this-month's recent payments so the owner can see what's
  * already been paid out.
@@ -90,7 +90,7 @@ export default async function TeamPage() {
     >
       <PageHeader
         title="Team"
-        subtitle="Your staff, attendance, and payroll — all in one place."
+        subtitle="Your staff, attendance, and payroll, all in one place."
         action={
           <Link href="/team/new" className="btn-primary">
             <Plus size={18} />
@@ -126,7 +126,7 @@ export default async function TeamPage() {
               <EmptyState
                 icon={Users2}
                 title="No team members yet"
-                description="Add the people who work for you — shop attendants, delivery, cleaners, or tailors. You'll track attendance and log every payment in one place."
+                description="Add the people who work for you, shop attendants, delivery, cleaners, or tailors. You'll track attendance and log every payment in one place."
                 actionHref="/team/new"
                 actionLabel="Add your first team member"
               />
@@ -256,7 +256,7 @@ export default async function TeamPage() {
                 <CalendarCheck2 size={18} className="mt-0.5 text-slate-500" />
                 <div className="text-xs text-slate-600">
                   <strong className="text-ink">Tip:</strong> tap the attendance chips on each
-                  row as your staff arrive — at end of month it&apos;s the single source of
+                  row as your staff arrive, at end of month it&apos;s the single source of
                   truth for how many days each one was present.
                 </div>
               </div>

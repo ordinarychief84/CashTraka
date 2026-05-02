@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import { randomBytes, createHash } from 'crypto';
 
-/** POST /api/admin/staff/resend-invite — resend invitation email */
+/** POST /api/admin/staff/resend-invite, resend invitation email */
 export async function POST(req: Request) {
   const admin = await requireAdmin();
   try {

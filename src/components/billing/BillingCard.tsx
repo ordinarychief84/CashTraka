@@ -18,7 +18,7 @@ import { formatPriceNaira } from '@/lib/billing/pricing';
  * subscription state:
  *   - free          → "Upgrade" CTA (opens UpgradeModal via ?upgrade=<plan>)
  *   - trialing      → trial-countdown + "Upgrade now" / "Cancel trial"
- *   - active        → "Active — renews on X" + "Change plan" / "Cancel"
+ *   - active        → "Active, renews on X" + "Change plan" / "Cancel"
  *   - past_due      → red banner + "Retry payment"
  *   - cancelled     → "Access until Y" + "Resubscribe"
  *
@@ -87,7 +87,7 @@ export function BillingCard() {
     const flag = searchParams.get('billing');
     if (!flag) return;
     if (flag === 'success') {
-      setToast({ kind: 'ok', text: 'Payment confirmed — your plan is now active.' });
+      setToast({ kind: 'ok', text: 'Payment confirmed, your plan is now active.' });
     } else if (flag === 'failed') {
       setToast({
         kind: 'err',
@@ -270,7 +270,7 @@ export function BillingCard() {
         {status.subscriptionStatus === 'trialing' && (
           <p className="mt-3 text-xs text-slate-500">
             Your trial ends on <strong>{trialEndsOnLabel}</strong>. You will not be charged
-            — add a payment to keep premium access.
+           , add a payment to keep premium access.
           </p>
         )}
         {status.subscriptionStatus === 'active' && renewsOn && (
@@ -306,7 +306,7 @@ function BillingSummary({
     return (
       <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
         <Clock3 size={12} />
-        Trial — {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
+        Trial, {trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left
       </div>
     );
   }
@@ -330,7 +330,7 @@ function BillingSummary({
     return (
       <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-600">
         <XCircle size={12} />
-        Cancelled — access continues until period end
+        Cancelled, access continues until period end
       </div>
     );
   }

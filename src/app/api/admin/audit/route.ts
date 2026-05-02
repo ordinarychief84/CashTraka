@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/audit — List audit logs with pagination */
+/** GET /api/admin/audit, List audit logs with pagination */
 export async function GET(req: Request) {
   try {
     await requireAdmin();

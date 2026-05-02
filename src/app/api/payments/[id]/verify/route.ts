@@ -9,7 +9,7 @@ import {
 } from '@/lib/bank-alerts';
 import { receiptService } from '@/lib/services/receipt.service';
 
-/** Tolerance in Naira — fees are typically N10-N50 on small instant transfers. */
+/** Tolerance in Naira, fees are typically N10-N50 on small instant transfers. */
 const AMOUNT_TOLERANCE = 50;
 
 export async function POST(req: Request, { params }: { params: { id: string } }) {

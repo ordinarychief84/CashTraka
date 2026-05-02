@@ -28,7 +28,7 @@ const schema = z.object({
  *   - Returns the acceptance URL the owner should share via WhatsApp/email.
  *
  * Idempotent: calling again just rotates the token and clears any existing
- * passwordHash — useful for "resend invite" after a lost link.
+ * passwordHash, useful for "resend invite" after a lost link.
  */
 export const POST = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
@@ -99,7 +99,7 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
   });
 
 /**
- * DELETE /api/team/[id]/invite — revoke invite and/or demote a staff member
+ * DELETE /api/team/[id]/invite, revoke invite and/or demote a staff member
  * back to NONE access. Does NOT delete the staff row (kept for payroll).
  */
 export const DELETE = (_req: Request, ctx: { params: { id: string } }) =>

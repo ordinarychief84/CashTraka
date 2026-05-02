@@ -8,7 +8,7 @@ import { handled, ok, validationFail } from '@/lib/api-response';
  *
  * Owner-only (settings.write). Updates the weekly + monthly personal-
  * spending threshold fields on the user record. Both fields are optional
- * — null disables that specific alert. Amounts are in naira (whole numbers).
+ *, null disables that specific alert. Amounts are in naira (whole numbers).
  */
 const schema = z.object({
   personalBudgetWeekly: z.coerce

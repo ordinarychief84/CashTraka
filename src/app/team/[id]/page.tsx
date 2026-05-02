@@ -198,7 +198,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
         <section className="card p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
             <CalendarCheck2 size={16} className="text-brand-600" />
-            Attendance — {new Date().toLocaleString('en-NG', { month: 'long' })}
+            Attendance, {new Date().toLocaleString('en-NG', { month: 'long' })}
           </h2>
           {attendance.length === 0 ? (
             <p className="text-xs text-slate-500">
@@ -263,7 +263,7 @@ export default async function StaffDetailPage({ params }: { params: { id: string
         </section>
       </div>
 
-      {/* Meta cards — bank + next of kin */}
+      {/* Meta cards, bank + next of kin */}
       {(staff.bankAccountNumber || staff.nextOfKinName || staff.notes) && (
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {staff.bankAccountNumber && (

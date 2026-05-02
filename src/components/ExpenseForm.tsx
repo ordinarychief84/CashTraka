@@ -198,7 +198,7 @@ function CategoryCombobox({
               </button>
             ))}
 
-            {/* Other option — always at the bottom */}
+            {/* Other option, always at the bottom */}
             {showOther && (
               <>
                 <div className="mx-3 my-1 border-t border-slate-100" />
@@ -229,7 +229,7 @@ function CategoryCombobox({
         </div>
       )}
 
-      {/* Custom text input — shown when "Other" is selected */}
+      {/* Custom text input, shown when "Other" is selected */}
       {isOther && (
         <div className="mt-2">
           <input
@@ -335,7 +335,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
             onClick={() => setKind('business')}
             icon={<Briefcase size={16} />}
             label="Business"
-            sub="Operational cost — affects your P&L"
+            sub="Operational cost, affects your P&L"
             color="blue"
           />
           <KindButton
@@ -343,7 +343,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
             onClick={() => setKind('personal')}
             icon={<User size={16} />}
             label="Personal"
-            sub="Your own spending — tracked separately"
+            sub="Your own spending, tracked separately"
             color="amber"
           />
         </div>

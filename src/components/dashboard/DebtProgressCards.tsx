@@ -17,7 +17,7 @@ type Props = {
 };
 
 /**
- * "Course You're Taking" equivalent — open debts with partial payments.
+ * "Course You're Taking" equivalent, open debts with partial payments.
  * Shows a circular progress ring per debt so the seller can see at-a-glance
  * which collections are closest to done.
  */

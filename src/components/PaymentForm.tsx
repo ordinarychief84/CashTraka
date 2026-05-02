@@ -207,7 +207,7 @@ export function PaymentForm({
                     value={p.id}
                     disabled={p.trackStock && p.stock <= 0}
                   >
-                    {p.name} — {formatNaira(p.price)}
+                    {p.name}, {formatNaira(p.price)}
                     {p.trackStock ? ` · ${p.stock} in stock` : ''}
                   </option>
                 ))}

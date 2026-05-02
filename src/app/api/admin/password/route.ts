@@ -2,7 +2,7 @@ import { requireAdmin, verifyPassword, hashPassword } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** PATCH /api/admin/password — Change admin's own password */
+/** PATCH /api/admin/password, Change admin's own password */
 export async function PATCH(req: Request) {
   try {
     const admin = await requireAdmin();

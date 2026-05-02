@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * ContactPickerButton — CashTraka
+ * ContactPickerButton, CashTraka
  *
  * Reusable button that opens the device contact picker where supported.
  * Falls back to hidden state on unsupported browsers. Always keeps
- * manual entry available — this is an enhancement, not a replacement.
+ * manual entry available, this is an enhancement, not a replacement.
  */
 
 import { useState, useEffect } from 'react';

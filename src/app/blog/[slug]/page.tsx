@@ -114,7 +114,7 @@ export default async function BlogPostPage({ params }: Props) {
             </p>
           )}
 
-          {/* Content — render as simple HTML paragraphs */}
+          {/* Content, render as simple HTML paragraphs */}
           <div className="prose prose-slate mt-8 max-w-none prose-headings:text-slate-900 prose-a:text-success-700 prose-a:no-underline hover:prose-a:underline">
             {post.content.split('\n').map((paragraph, i) => {
               const trimmed = paragraph.trim();

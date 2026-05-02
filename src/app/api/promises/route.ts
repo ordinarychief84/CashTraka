@@ -5,7 +5,7 @@ import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 
 export const dynamic = 'force-dynamic';
 
-/** GET /api/promises — list user's promises */
+/** GET /api/promises, list user's promises */
 export async function GET(req: Request) {
   return handled(async () => {
     const user = await requireUser();
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   });
 }
 
-/** POST /api/promises — create a new promise to pay */
+/** POST /api/promises, create a new promise to pay */
 export async function POST(req: Request) {
   return handled(async () => {
     const user = await requireUser();

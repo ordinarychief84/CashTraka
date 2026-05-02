@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import {
   X,
-  Package,
+  GalleryHorizontalEnd,
   ShoppingBag,
   Receipt,
   Users2,
@@ -42,7 +42,7 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
         ...(isPropManager
           ? []
           : [
-              { href: '/products', icon: Package, label: 'Products' },
+              { href: '/showroom', icon: GalleryHorizontalEnd, label: 'Showroom' },
               { href: '/sales', icon: ShoppingBag, label: 'Sales' },
             ]),
         { href: '/expenses', icon: Receipt, label: 'Expenses' },

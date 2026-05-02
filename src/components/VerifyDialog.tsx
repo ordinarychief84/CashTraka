@@ -139,7 +139,7 @@ export function VerifyDialog({ open, onClose, payment }: Props) {
             <div className="rounded-lg border border-success-500/40 bg-success-50 p-3">
               <div className="flex items-center gap-2 text-sm font-bold text-success-700">
                 <Check size={16} />
-                Match confirmed{result.method === 'REFERENCE_MATCH' ? ' — reference code matched' : ' — sender name matched'}
+                Match confirmed{result.method === 'REFERENCE_MATCH' ? ', reference code matched' : ', sender name matched'}
               </div>
               {result.parsed && (
                 <div className="mt-1 text-xs text-success-700/90">

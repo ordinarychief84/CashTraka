@@ -4,7 +4,7 @@ import { paylinkService, whatsappPayLink } from '@/lib/services/paylink.service'
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
 
-/** GET /api/paylinks/[id] — get a single paylink with WhatsApp link */
+/** GET /api/paylinks/[id], get a single paylink with WhatsApp link */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   return NextResponse.json({ ...paylink, whatsappLink: waLink });
 }
 
-/** PATCH /api/paylinks/[id] — update status (confirm, cancel, mark WA sent, email sent) */
+/** PATCH /api/paylinks/[id], update status (confirm, cancel, mark WA sent, email sent) */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

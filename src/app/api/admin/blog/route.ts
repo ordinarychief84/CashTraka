@@ -10,7 +10,7 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-/** GET /api/admin/blog — list all blog posts */
+/** GET /api/admin/blog, list all blog posts */
 export async function GET() {
   await requireAdmin();
   const posts = await prisma.blogPost.findMany({
@@ -19,7 +19,7 @@ export async function GET() {
   return NextResponse.json({ posts });
 }
 
-/** POST /api/admin/blog — create a blog post */
+/** POST /api/admin/blog, create a blog post */
 export async function POST(req: Request) {
   await requireAdmin();
   try {

@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Admin "needs attention" triage list. Shows platform-level items that
- * require an owner/operator to act on — past-due billings, trials ending,
+ * require an owner/operator to act on, past-due billings, trials ending,
  * suspended users, and anything else worth surfacing.
  */
 

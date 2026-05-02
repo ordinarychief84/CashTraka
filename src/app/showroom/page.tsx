@@ -2,11 +2,6 @@ import Link from 'next/link';
 import {
   ArrowRight,
   Eye,
-  ImagePlus,
-  Library,
-  Lock,
-  MessageCircle,
-  Package,
   Sparkles,
   Settings as SettingsIcon,
 } from 'lucide-react';
@@ -14,18 +9,16 @@ import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { ShowroomHero } from '@/components/showroom/ShowroomHero';
-import { formatDateTime } from '@/lib/format';
+import { ShowroomTabs } from '@/components/showroom/ShowroomTabs';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Showroom — the seller's public-catalog control panel.
- *
- * The page guides the seller through three states with one contextual hero:
- *   1. No storefront slug yet           → "Set up your storefront"
- *   2. Slug set, no products            → "Add your first product"
- *   3. Slug + products, no album        → "Group products into an album"
- *   4. Everything ready                 → big share button + recent activity
+ * Showroom is the seller's catalog control panel. Mobile-first single-column
+ * layout: hero with the public link, smart next-step CTA, then a segmented
+ * tab strip for Albums / Products / Activity. Each tab shows its full content
+ * inline. There is no separate Products page in the sidebar; product
+ * management lives here.
  */
 export default async function ShowroomPage() {
   const user = await guard();
@@ -33,17 +26,49 @@ export default async function ShowroomPage() {
   const baseUrl = process.env.APP_URL || '';
   const publicUrl = slug ? `${baseUrl}/store/${slug}` : null;
 
-  const [productCount, publishedCount, albumCount, recentEvents] = await Promise.all([
-    prisma.product.count({ where: { userId: user.id, archived: false } }),
-    prisma.product.count({ where: { userId: user.id, archived: false, isPublished: true } }),
-    prisma.album.count({ where: { userId: user.id, isPublished: true } }),
-    prisma.catalogEvent.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      take: 8,
-      include: { product: { select: { name: true } } },
-    }),
-  ]);
+  const [productCount, publishedCount, albumCount, products, albums, events] =
+    await Promise.all([
+      prisma.product.count({ where: { userId: user.id, archived: false } }),
+      prisma.product.count({
+        where: { userId: user.id, archived: false, isPublished: true },
+      }),
+      prisma.album.count({ where: { userId: user.id, isPublished: true } }),
+      prisma.product.findMany({
+        where: { userId: user.id, archived: false },
+        orderBy: [{ updatedAt: 'desc' }],
+        take: 60,
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          images: true,
+          isPublished: true,
+          catalogStatus: true,
+          trackStock: true,
+          stock: true,
+          lowStockAt: true,
+        },
+      }),
+      prisma.album.findMany({
+        where: { userId: user.id },
+        orderBy: [{ position: 'asc' }, { createdAt: 'desc' }],
+        take: 60,
+        include: {
+          _count: { select: { products: true } },
+          products: {
+            take: 1,
+            orderBy: { position: 'asc' },
+            include: { product: { select: { images: true } } },
+          },
+        },
+      }),
+      prisma.catalogEvent.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        take: 30,
+        include: { product: { select: { name: true } } },
+      }),
+    ]);
 
   const catalogReady = !!(user.catalogEnabled && slug);
 
@@ -70,9 +95,33 @@ export default async function ShowroomPage() {
     ? {
         label: 'Create your first album',
         href: '/showroom/albums/new',
-        intent: 'Group products into a shareable, optionally-passcoded collection.',
+        intent: 'Group products into a shareable, optionally passcoded collection.',
       }
     : null;
+
+  // Shape data for the client tabs.
+  const albumCards = albums.map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    title: a.title,
+    isPublished: a.isPublished,
+    passcodeRequired: a.passcodeRequired,
+    coverImageUrl: a.coverImageUrl,
+    itemCount: a._count.products,
+    firstProductImage: a.products[0]?.product?.images?.[0] ?? null,
+  }));
+
+  const eventCards = events.map((e) => ({
+    id: e.id,
+    type: e.type,
+    productName: e.product?.name ?? null,
+    customerName: e.customerName,
+    createdAtIso: e.createdAt.toISOString(),
+  }));
+
+  const recent7d = events.filter(
+    (e) => e.createdAt.getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).length;
 
   return (
     <AppShell
@@ -82,13 +131,13 @@ export default async function ShowroomPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Title row — minimal */}
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      {/* Title row */}
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-ink">Showroom</h1>
-          <p className="text-sm text-slate-500">
-            Build a Yupoo-style catalog. Customers browse, ask on WhatsApp, you record the
-            payment — receipt auto-generates.
+          <p className="mt-0.5 text-sm text-slate-500">
+            Build a catalog. Customers browse, ask on WhatsApp, you record the payment, the
+            receipt auto-generates.
           </p>
         </div>
         <Link
@@ -96,7 +145,7 @@ export default async function ShowroomPage() {
           className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-600"
         >
           <SettingsIcon size={14} />
-          Storefront settings
+          Storefront
         </Link>
       </div>
 
@@ -108,14 +157,14 @@ export default async function ShowroomPage() {
         businessName={user.businessName || user.name || 'Showroom'}
       />
 
-      {/* Next-best-action card */}
+      {/* Next-best-action */}
       {nextStep ? (
         <Link
           href={nextStep.href}
           className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/40 px-4 py-3 transition hover:border-brand-500 hover:bg-brand-50"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white">
               <Sparkles size={16} />
             </div>
             <div>
@@ -123,193 +172,56 @@ export default async function ShowroomPage() {
               <div className="text-xs text-slate-600">{nextStep.intent}</div>
             </div>
           </div>
-          <ArrowRight size={16} className="text-brand-600" />
+          <ArrowRight size={16} className="shrink-0 text-brand-600" />
         </Link>
       ) : null}
 
-      {/* Metrics — three tight cards */}
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <MetricCard
-          icon={<Package size={16} />}
-          label="Products"
-          value={`${publishedCount}`}
-          sub={`of ${productCount} published`}
-          href="/products"
-        />
-        <MetricCard
-          icon={<Library size={16} />}
+      {/* Compact metrics row */}
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <MetricChip
           label="Albums"
-          value={`${albumCount}`}
-          sub={albumCount === 1 ? 'collection' : 'collections'}
-          href="/showroom/albums"
+          value={albumCount}
         />
-        <MetricCard
-          icon={<Eye size={16} />}
-          label="Activity (last 7 days)"
-          value={String(
-            recentEvents.filter(
-              (e) => e.createdAt.getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000,
-            ).length,
-          )}
-          sub="views + order clicks"
-          href="/showroom/events"
+        <MetricChip
+          label="Products"
+          value={`${publishedCount}/${productCount}`}
+        />
+        <MetricChip
+          icon={<Eye size={11} />}
+          label="7d activity"
+          value={recent7d}
         />
       </div>
 
-      {/* Action tiles + Activity */}
-      <div className="mt-6 grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ActionTile
-              icon={<Library size={18} />}
-              title="Albums"
-              hint="Group products into collections, optionally passcode-protected."
-              href="/showroom/albums"
-              cta={albumCount === 0 ? 'Create first album' : 'Manage albums'}
-            />
-            <ActionTile
-              icon={<Package size={18} />}
-              title="Products"
-              hint="Add or edit products, upload images, set pricing."
-              href="/showroom/products"
-              cta="Manage products"
-            />
-            <ActionTile
-              icon={<MessageCircle size={18} />}
-              title="Share"
-              hint="Copy your storefront link or share on WhatsApp."
-              href="/showroom/share"
-              cta="Share link"
-            />
-            <ActionTile
-              icon={<Eye size={18} />}
-              title="Preview"
-              hint="See exactly what your customers see."
-              href="/showroom/preview"
-              cta="Open preview"
-            />
-          </div>
-        </div>
-
-        {/* Activity */}
-        <div className="rounded-xl border border-border bg-white">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Recent activity
-            </div>
-            <Link
-              href="/showroom/events"
-              className="text-[11px] font-semibold text-brand-600 hover:underline"
-            >
-              All
-            </Link>
-          </div>
-          {recentEvents.length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-2 px-4 py-8 text-center">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                <ImagePlus size={18} />
-              </div>
-              <div className="text-sm font-medium text-slate-700">Quiet for now</div>
-              <div className="text-xs text-slate-500">
-                Once customers open your link, you&apos;ll see their visits here.
-              </div>
-            </div>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {recentEvents.map((e) => (
-                <li key={e.id} className="flex items-start gap-2.5 px-4 py-2.5 text-sm">
-                  <div
-                    className={
-                      e.type === 'WHATSAPP_ORDER'
-                        ? 'mt-1 h-2 w-2 shrink-0 rounded-full bg-[#25D366]'
-                        : 'mt-1 h-2 w-2 shrink-0 rounded-full bg-slate-300'
-                    }
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium text-ink">
-                      {e.type === 'WHATSAPP_ORDER' ? 'Order on WhatsApp' : 'View'}
-                      {e.product?.name ? ` · ${e.product.name}` : ''}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {formatDateTime(e.createdAt)}
-                      {e.customerName ? ` · ${e.customerName}` : ''}
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      {/* Tabbed surface */}
+      <div className="mt-6">
+        <ShowroomTabs
+          storefrontSlug={slug}
+          albums={albumCards}
+          products={products}
+          events={eventCards}
+        />
       </div>
-
-      {/* Footer note */}
-      <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-        <Lock size={11} />
-        Albums can be passcode-protected. Customers never see other sellers&apos; data.
-      </p>
     </AppShell>
   );
 }
 
-function MetricCard({
+function MetricChip({
   icon,
   label,
   value,
-  sub,
-  href,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   label: string;
-  value: string;
-  sub: string;
-  href: string;
+  value: number | string;
 }) {
   return (
-    <Link
-      href={href}
-      className="group flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3 transition hover:border-brand-500 hover:bg-brand-50/30"
-    >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600 group-hover:bg-brand-500 group-hover:text-white">
+    <div className="rounded-xl border border-border bg-white px-3 py-2">
+      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">
         {icon}
+        {label}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-xs uppercase tracking-wide text-slate-500">{label}</div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-lg font-bold text-ink">{value}</span>
-          <span className="truncate text-xs text-slate-500">{sub}</span>
-        </div>
-      </div>
-      <ArrowRight size={14} className="text-slate-300 group-hover:text-brand-600" />
-    </Link>
-  );
-}
-
-function ActionTile({
-  icon,
-  title,
-  hint,
-  href,
-  cta,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  hint: string;
-  href: string;
-  cta: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col rounded-xl border border-border bg-white p-4 transition hover:border-brand-500 hover:shadow-sm"
-    >
-      <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-        {icon}
-      </div>
-      <div className="text-sm font-semibold text-ink">{title}</div>
-      <div className="mt-0.5 text-xs text-slate-500">{hint}</div>
-      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
-        {cta} <ArrowRight size={12} />
-      </div>
-    </Link>
+      <div className="mt-0.5 text-lg font-bold leading-tight text-ink">{value}</div>
+    </div>
   );
 }

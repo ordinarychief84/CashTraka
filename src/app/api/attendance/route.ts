@@ -29,7 +29,7 @@ function toMidnightUTC(d: Date): Date {
   return c;
 }
 
-/** POST /api/attendance — upsert today's attendance for a staff member. */
+/** POST /api/attendance, upsert today's attendance for a staff member. */
 export async function POST(req: Request) {
   let user;
   try {

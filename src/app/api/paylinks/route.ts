@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { paylinkService } from '@/lib/services/paylink.service';
 import { prisma } from '@/lib/prisma';
 
-/** GET /api/paylinks — list user's payment request links */
+/** GET /api/paylinks, list user's payment request links */
 export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
   return NextResponse.json(result);
 }
 
-/** POST /api/paylinks — create a new payment request link */
+/** POST /api/paylinks, create a new payment request link */
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();

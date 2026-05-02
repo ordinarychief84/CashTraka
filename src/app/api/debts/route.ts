@@ -8,7 +8,7 @@ import { enforceQuota } from '@/lib/gate';
 import { debtService } from '@/lib/services/debt.service';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/debts — paginated list of the user's debts. */
+/** GET /api/debts, paginated list of the user's debts. */
 export const GET = (req: Request) =>
   handled(async () => {
     const user = await requireUser();

@@ -40,7 +40,7 @@ export function ClockActions({ staffId, staffName, openEntryId }: Props) {
       const res = await fetch(`/api/clock/${openEntryId}`, { method: 'PATCH' });
       const data = await res.json();
       if (!res.ok) alert(data.error || 'Could not clock out');
-      else alert(`${staffName} clocked out — ${data.hoursWorked}h today`);
+      else alert(`${staffName} clocked out, ${data.hoursWorked}h today`);
       router.refresh();
     } finally {
       setBusy(false);

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
 
 /**
- * Trial lifecycle cron — runs daily at 8 AM WAT (07:00 UTC).
+ * Trial lifecycle cron, runs daily at 8 AM WAT (07:00 UTC).
  * 1. Sends "trial ending soon" email 3 days before expiry.
  * 2. Sends "trial expired" + downgrades expired trials to free.
  */

@@ -16,7 +16,7 @@ import { waLink } from '@/lib/whatsapp';
 import { formatNaira } from '@/lib/format';
 
 /**
- * "Quick receipt" — create a receipt for a customer who isn't in the system yet.
+ * "Quick receipt", create a receipt for a customer who isn't in the system yet.
  *
  * Fills a small form (name / phone / amount / optional note), creates a PAID
  * Payment under the hood (which auto-generates the receipt via payment.service),
@@ -34,7 +34,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   businessName: string;
-  /** Default prefilled name — optional (e.g., if user came from a customer page). */
+  /** Default prefilled name, optional (e.g., if user came from a customer page). */
   defaultCustomer?: { name?: string; phone?: string | null };
 };
 

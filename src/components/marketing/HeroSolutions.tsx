@@ -63,7 +63,7 @@ export function HeroSolutions() {
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
                 CashTraka is the all-in-one collection system for Nigerian businesses
                 and landlords. Send payment links, set up auto-debit installment plans,
-                verify transfers, issue receipts, and chase debts on WhatsApp — all
+                verify transfers, issue receipts, and chase debts on WhatsApp, all
                 from your phone.
               </p>
             </Reveal>

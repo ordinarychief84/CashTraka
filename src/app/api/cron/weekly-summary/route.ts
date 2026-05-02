@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
 
 /**
- * Weekly summary email — runs every Monday at 7 AM WAT (06:00 UTC).
+ * Weekly summary email, runs every Monday at 7 AM WAT (06:00 UTC).
  * Sends each active user a digest of their past-week activity.
  */
 export async function GET(req: Request) {

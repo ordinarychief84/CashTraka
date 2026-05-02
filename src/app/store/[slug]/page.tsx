@@ -9,15 +9,15 @@ export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const store = await catalogService.getStore(params.slug);
-  if (!store) return { title: 'Shop — CashTraka' };
+  if (!store) return { title: 'Shop, CashTraka' };
   return {
-    title: `${store.business} — Shop`,
+    title: `${store.business}, Shop`,
     description: store.tagline ?? `Browse ${store.business} on CashTraka.`,
   };
 }
 
 /**
- * Storefront homepage — Yupoo-faithful: a grid of album cards.
+ * Storefront homepage, Yupoo-faithful: a grid of album cards.
  * If the seller has no albums yet, we redirect-style fall through to a
  * minimal CTA pointing customers at the flat product grid at /all.
  */

@@ -4,7 +4,7 @@ import { behaviorService } from '@/lib/services/behavior.service';
 import { collectionScoreService } from '@/lib/services/collection-score.service';
 
 /**
- * Daily scoring cron — recomputes behavior tags and collection scores
+ * Daily scoring cron, recomputes behavior tags and collection scores
  * for all active users. Runs once daily (e.g. 2 AM WAT).
  */
 export async function GET(req: Request) {

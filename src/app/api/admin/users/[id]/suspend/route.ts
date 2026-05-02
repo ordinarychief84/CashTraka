@@ -5,7 +5,7 @@ import { handled, ok, validationFail } from '@/lib/api-response';
 
 const schema = z.object({ reason: z.string().trim().max(300).optional() });
 
-/** PATCH /api/admin/users/[id]/suspend — suspends a user account. */
+/** PATCH /api/admin/users/[id]/suspend, suspends a user account. */
 export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const admin = await requireAdmin();

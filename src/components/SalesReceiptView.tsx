@@ -75,7 +75,7 @@ export function SalesReceiptView({
   // ── WhatsApp receipt message ───────────────────────────────────────
   function buildWhatsAppMessage(): string {
     const itemLines = sale.items
-      .map((i) => `  ${i.description} x${i.quantity} — ₦${i.total.toLocaleString()}`)
+      .map((i) => `  ${i.description} x${i.quantity}, ₦${i.total.toLocaleString()}`)
       .join('\n');
 
     let msg =

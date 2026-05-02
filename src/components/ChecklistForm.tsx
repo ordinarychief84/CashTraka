@@ -101,7 +101,7 @@ export function ChecklistForm({ redirectTo = '/checklists' }: Props) {
               <input
                 value={item}
                 onChange={(e) => updateItem(i, e.target.value)}
-                placeholder={`Step ${i + 1} — e.g. Check stock levels`}
+                placeholder={`Step ${i + 1}, e.g. Check stock levels`}
                 className="flex-1 rounded-md border border-border bg-white px-2 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-100"
               />
               <button

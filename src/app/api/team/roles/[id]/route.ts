@@ -10,7 +10,7 @@ const updateRoleSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
 });
 
-/** PATCH /api/team/roles/:id — update a custom role */
+/** PATCH /api/team/roles/:id, update a custom role */
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireUser();
@@ -67,7 +67,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   }
 }
 
-/** DELETE /api/team/roles/:id — delete a custom role (unassign staff, don't delete them) */
+/** DELETE /api/team/roles/:id, delete a custom role (unassign staff, don't delete them) */
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const user = await requireUser();

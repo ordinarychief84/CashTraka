@@ -407,7 +407,7 @@ export default async function ReportsPage() {
           Export your data
         </h2>
         <p className="mb-4 text-xs text-slate-600">
-          Download a CSV — open in Excel, Google Sheets, or hand to your bookkeeper.
+          Download a CSV, open in Excel, Google Sheets, or hand to your bookkeeper.
         </p>
         <div className="flex flex-wrap gap-2">
           <ExportLink href="/api/export/payments" label={isPm ? 'Rent payments CSV' : 'Payments CSV'} />

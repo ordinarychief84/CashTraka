@@ -2,7 +2,7 @@ import { Check, Clock3, MessageCircle, Banknote } from 'lucide-react';
 
 /**
  * A small, non-interactive preview of the CashTraka dashboard.
- * Pure markup — no data, no JS. Used in the hero to anchor the headline.
+ * Pure markup, no data, no JS. Used in the hero to anchor the headline.
  */
 export function HeroMockup() {
   return (

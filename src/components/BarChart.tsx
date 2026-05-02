@@ -8,7 +8,7 @@ type Props = {
   barClassName?: string;
 };
 
-/** Horizontal bar chart — each row is a label + bar + value. No library. */
+/** Horizontal bar chart, each row is a label + bar + value. No library. */
 export function BarChart({
   labels,
   values,
@@ -41,7 +41,7 @@ export function BarChart({
   );
 }
 
-/** Vertical bar chart — used for monthly revenue. */
+/** Vertical bar chart, used for monthly revenue. */
 export function ColumnChart({
   labels,
   values,

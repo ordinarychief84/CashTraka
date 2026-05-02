@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/refunds — List all refunds with pagination */
+/** GET /api/admin/refunds, List all refunds with pagination */
 export async function GET(req: Request) {
   try {
     await requireAdmin();
@@ -68,7 +68,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** POST /api/admin/refunds — Create a refund request */
+/** POST /api/admin/refunds, Create a refund request */
 export async function POST(req: Request) {
   try {
     await requireAdmin();

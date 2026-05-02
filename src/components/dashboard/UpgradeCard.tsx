@@ -7,7 +7,7 @@ type Props = {
 };
 
 /**
- * "Go Premium" / "Go Business" upgrade CTA card — dark bg, lime button,
+ * "Go Premium" / "Go Business" upgrade CTA card, dark bg, lime button,
  * sized to match the top-row cards in the reference design.
  */
 export function UpgradeCard({ plan, businessType }: Props) {

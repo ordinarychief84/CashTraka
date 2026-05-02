@@ -9,7 +9,7 @@ import { waLink } from '@/lib/whatsapp';
 /**
  * Quick-pay dialog for logging a payment made to a staff member.
  *
- * Five kinds supported — the copy + defaults nudge owners to pick the right
+ * Five kinds supported, the copy + defaults nudge owners to pick the right
  * one so the P&L mirrors stay accurate (salary/bonus/commission become
  * Expense rows; advance/reimbursement do not).
  */

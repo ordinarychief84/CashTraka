@@ -3,7 +3,7 @@ import { customerService } from '@/lib/services/customer.service';
 import { prisma } from '@/lib/prisma';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/customers/[id] — customer profile + recent payments + debts. */
+/** GET /api/customers/[id], customer profile + recent payments + debts. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
@@ -11,7 +11,7 @@ export const GET = (_req: Request, ctx: { params: { id: string } }) =>
     return ok(detail);
   });
 
-/** PATCH /api/customers/[id] — update customer notes and tags. */
+/** PATCH /api/customers/[id], update customer notes and tags. */
 export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();

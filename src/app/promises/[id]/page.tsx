@@ -149,7 +149,7 @@ export default async function PromiseDetailPage({ params }: { params: { id: stri
                     </div>
                     <div>
                       <p className="text-sm text-slate-700">
-                        {formatNaira(p.amount)} — {p.status.toLowerCase()}
+                        {formatNaira(p.amount)}, {p.status.toLowerCase()}
                         {p.provider && <span className="text-slate-400"> via {p.provider.toLowerCase()}</span>}
                       </p>
                       {p.verifiedAt && (

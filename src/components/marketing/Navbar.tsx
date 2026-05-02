@@ -14,15 +14,16 @@ import {
   Home,
   Store,
   ArrowRight,
+  GalleryHorizontalEnd,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
 /**
- * Solutions-first navigation (Connecteam-style).
+ * Features-first navigation (Connecteam-style).
  *
- * The dropdown leads with our two ICP product pages — "For Small Business" and
- * "For Landlords" — presented as big primary cards. A secondary grid of
+ * The dropdown leads with our two ICP product pages "For Small Business" and
+ * "For Landlords" presented as big primary cards. A secondary grid of
  * feature links sits underneath for visitors browsing by capability.
  */
 
@@ -39,7 +40,7 @@ const ICP_SOLUTIONS: Solution[] = [
     icon: Store,
     title: 'For Small Business',
     tagline:
-      'Shops, food, services, tailors — track payments, debts, invoices and receipts in one place.',
+      'Shops, food, services, tailors. Track payments, debts, invoices and receipts in one place.',
     href: '/for-business',
     accent: 'brand',
   },
@@ -54,6 +55,7 @@ const ICP_SOLUTIONS: Solution[] = [
 ];
 
 const FEATURES = [
+  { icon: GalleryHorizontalEnd, title: 'Showroom (catalog albums)', href: '/#solutions' },
   { icon: Shield, title: 'Bank-alert verification', href: '/#solutions' },
   { icon: Banknote, title: 'Payments & receipts', href: '/#solutions' },
   { icon: FileText, title: 'Invoices', href: '/#solutions' },
@@ -122,7 +124,7 @@ export function Navbar() {
                   : 'text-slate-700 hover:bg-slate-100 hover:text-ink',
               )}
             >
-              Solutions
+              Features
               <ChevronDown
                 size={14}
                 className={cn(
@@ -257,7 +259,7 @@ export function Navbar() {
         <nav className="container-app flex flex-col py-2">
           <details className="group py-1" open>
             <summary className="flex cursor-pointer items-center justify-between rounded-md px-3 py-3 text-base font-medium text-slate-800 hover:bg-slate-100">
-              Solutions
+              Features
               <ChevronDown size={18} className="text-slate-500 transition group-open:rotate-180" />
             </summary>
             <div className="mt-1 space-y-2 px-1 pb-2">

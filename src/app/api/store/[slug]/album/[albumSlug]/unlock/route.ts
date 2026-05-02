@@ -18,7 +18,7 @@ const bodySchema = z.object({
 /**
  * POST /api/store/[slug]/album/[albumSlug]/unlock
  *
- * Public endpoint — verifies a passcode against the stored bcrypt hash and,
+ * Public endpoint, verifies a passcode against the stored bcrypt hash and,
  * on success, sets a signed httpOnly cookie scoped to that album's id.
  * The cookie is good for 24h, after which the customer is asked again.
  *

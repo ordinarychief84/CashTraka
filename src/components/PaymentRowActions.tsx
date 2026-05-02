@@ -35,7 +35,7 @@ type Props = {
 /**
  * Per-row actions on the /payments list.
  *
- * Design goal: the "happy path" action — generate+send receipt — is a
+ * Design goal: the "happy path" action, generate+send receipt, is a
  * single visible click. Everything else is in an overflow menu.
  */
 export function PaymentRowActions({
@@ -168,7 +168,7 @@ export function PaymentRowActions({
             Verify
           </button>
         )}
-        {/* The primary receipt action — always visible, always one tap. */}
+        {/* The primary receipt action, always visible, always one tap. */}
         <button
           type="button"
           onClick={() => setReceiptOpen(true)}

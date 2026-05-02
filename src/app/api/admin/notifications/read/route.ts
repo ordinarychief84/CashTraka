@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** PATCH /api/admin/notifications/read — Mark notifications as read */
+/** PATCH /api/admin/notifications/read, Mark notifications as read */
 export async function PATCH(req: Request) {
   try {
     const admin = await requireAdmin();

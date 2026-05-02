@@ -25,10 +25,10 @@ const TONE: Record<string, string> = {
 };
 
 /**
- * "Today's Priorities" — mirror of the reference's Daily Schedule panel.
+ * "Today's Priorities", mirror of the reference's Daily Schedule panel.
  * 4–5 action rows with icon, title, subtitle, chevron link.
  */
-export function PriorityList({ title, items, emptyMessage = 'Nothing to do — nice!' }: Props) {
+export function PriorityList({ title, items, emptyMessage = 'Nothing to do, nice!' }: Props) {
   return (
     <div className="card p-5">
       <h3 className="text-base font-bold text-ink">{title}</h3>

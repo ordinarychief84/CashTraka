@@ -14,7 +14,7 @@ const bodySchema = z
     message: 'Provide exactly one of paymentId or debtId',
   });
 
-/** POST /api/receipts/generate — force-create a Receipt for a payment or debt. */
+/** POST /api/receipts/generate, force-create a Receipt for a payment or debt. */
 export const POST = (req: Request) =>
   handled(async () => {
     const user = await requireUser();

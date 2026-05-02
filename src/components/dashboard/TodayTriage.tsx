@@ -18,7 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 
 /**
- * "Today" triage — the first block on the dashboard.
+ * "Today" triage, the first block on the dashboard.
  *
  * Softer than the previous loud-red version. Severity is now expressed as a
  * left-edge accent strip + a small dot + the icon tint, rather than a bright

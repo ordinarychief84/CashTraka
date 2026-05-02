@@ -61,7 +61,7 @@ export function AcceptInviteForm({ token, email }: { token: string; email: strin
         {submitting ? 'Setting up…' : 'Set password & sign in'}
       </button>
 
-      {/* What-happens-next hint — removes the dead-reckoning feeling after */}
+      {/* What-happens-next hint, removes the dead-reckoning feeling after */}
       {/* staff set their password for the first time. */}
       <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
         After you sign in you&apos;ll land on your dashboard. You&apos;ll see a{' '}

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { ROLES } from '@/lib/constants/roles';
 
-/** GET /api/admin/roles — Return all users with role ADMIN */
+/** GET /api/admin/roles, Return all users with role ADMIN */
 export async function GET() {
   try {
     await requireAdmin();
@@ -32,7 +32,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/admin/roles — Promote a user to admin */
+/** POST /api/admin/roles, Promote a user to admin */
 export async function POST(req: Request) {
   try {
     const admin = await requireAdmin();

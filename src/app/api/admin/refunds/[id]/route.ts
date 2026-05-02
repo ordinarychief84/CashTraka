@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { paystackService } from '@/lib/services/paystack.service';
 import { NextResponse } from 'next/server';
 
-/** PATCH /api/admin/refunds/[id] — Process a refund */
+/** PATCH /api/admin/refunds/[id], Process a refund */
 export async function PATCH(req: Request, ctx: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();

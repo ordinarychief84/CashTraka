@@ -86,7 +86,7 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
         <StepCard
           icon={<Banknote className="text-brand-600" />}
           title="Add your first payment"
-          description="Record a sale you recently received — cash or transfer. This builds your ledger."
+          description="Record a sale you recently received, cash or transfer. This builds your ledger."
         >
           <PaymentForm
             redirectTo="/onboarding"
@@ -139,7 +139,7 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
                 Open in WhatsApp
               </a>
               <button onClick={() => setStep(5)} disabled={!reminderSent} className="btn-secondary mt-3 w-full">
-                I've sent it — continue
+                I've sent it, continue
               </button>
               {!reminderSent && (
                 <p className="mt-2 text-center text-xs text-slate-500">
@@ -278,7 +278,7 @@ function PropertyManagerOnboarding({ initial, firstName }: Omit<Props, 'business
                 Open in WhatsApp
               </a>
               <button onClick={() => setStep(5)} disabled={!reminderSent} className="btn-secondary mt-3 w-full">
-                I've sent it — continue
+                I've sent it, continue
               </button>
               {!reminderSent && (
                 <p className="mt-2 text-center text-xs text-slate-500">

@@ -5,7 +5,7 @@ import { requireFeature } from '@/lib/gate';
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** GET /api/customers/[id]/behavior — get customer behavior profile */
+/** GET /api/customers/[id]/behavior, get customer behavior profile */
 export async function GET(req: Request, ctx: Ctx) {
   try {
     const user = await getCurrentUser();
@@ -30,7 +30,7 @@ export async function GET(req: Request, ctx: Ctx) {
   }
 }
 
-/** POST /api/customers/[id]/behavior — recompute behavior tag */
+/** POST /api/customers/[id]/behavior, recompute behavior tag */
 export async function POST(req: Request, ctx: Ctx) {
   try {
     const user = await getCurrentUser();

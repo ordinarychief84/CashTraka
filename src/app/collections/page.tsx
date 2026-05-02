@@ -56,7 +56,7 @@ export default async function CollectionsPage() {
       <div className="mb-6">
         <h1 className="text-xl font-bold text-slate-900">Collections</h1>
         <p className="text-sm text-slate-500">
-          Smart queue of outstanding payments — prioritized by urgency
+          Smart queue of outstanding payments, prioritized by urgency
         </p>
       </div>
 
@@ -198,7 +198,7 @@ export default async function CollectionsPage() {
                       </span>
                       {item.status === 'claimed' && (
                         <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
-                          Claimed — confirm!
+                          Claimed, confirm!
                         </span>
                       )}
                     </div>

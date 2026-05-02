@@ -26,7 +26,7 @@ const createSchema = z
     { message: 'A passcode is required when passcodeRequired=true', path: ['passcode'] },
   );
 
-/** GET /api/showroom/albums — list this seller's albums. */
+/** GET /api/showroom/albums, list this seller's albums. */
 export const GET = () =>
   handled(async () => {
     const user = await requireUser();
@@ -38,7 +38,7 @@ export const GET = () =>
     return ok(albums);
   });
 
-/** POST /api/showroom/albums — create a new album. */
+/** POST /api/showroom/albums, create a new album. */
 export const POST = (req: Request) =>
   handled(async () => {
     const user = await requireUser();

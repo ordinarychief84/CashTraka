@@ -20,7 +20,7 @@ const bodySchema = z.object({
 });
 
 /**
- * POST /api/payments/[id]/invoice — generate an Invoice from a Payment.
+ * POST /api/payments/[id]/invoice, generate an Invoice from a Payment.
  * Idempotent: re-running for the same payment returns the existing invoice
  * (enforced by the unique Invoice.paymentId constraint).
  */

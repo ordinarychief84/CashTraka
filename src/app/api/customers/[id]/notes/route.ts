@@ -2,7 +2,7 @@ import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/customers/[id]/notes — list notes for a customer */
+/** GET /api/customers/[id]/notes, list notes for a customer */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireAuth();
@@ -14,7 +14,7 @@ export const GET = (_req: Request, ctx: { params: { id: string } }) =>
     return ok(notes);
   });
 
-/** POST /api/customers/[id]/notes — add a note to a customer */
+/** POST /api/customers/[id]/notes, add a note to a customer */
 export const POST = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireAuth();

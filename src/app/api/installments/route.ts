@@ -1,6 +1,6 @@
 /**
- * GET  /api/installments — List installment plans for the authenticated user.
- * POST /api/installments — Create a new installment plan.
+ * GET  /api/installments, List installment plans for the authenticated user.
+ * POST /api/installments, Create a new installment plan.
  */
 
 import { NextResponse } from 'next/server';

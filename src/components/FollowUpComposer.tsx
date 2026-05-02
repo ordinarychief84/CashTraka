@@ -12,7 +12,7 @@ type Props = {
   customers: CustomerOption[];
   templates: Template[];
   initialCustomerId?: string | null;
-  /** Singular label for the dropdown — "Customer" (default) or "Tenant". */
+  /** Singular label for the dropdown, "Customer" (default) or "Tenant". */
   recipientLabel?: string;
 };
 

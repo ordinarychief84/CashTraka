@@ -2,7 +2,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/support/[id] — Get ticket detail with replies (only if owned by current user) */
+/** GET /api/support/[id], Get ticket detail with replies (only if owned by current user) */
 export async function GET(req: Request, ctx: { params: { id: string } }) {
   try {
     const user = await getCurrentUser();

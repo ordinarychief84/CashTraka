@@ -5,7 +5,7 @@ import { handled, ok, validationFail } from '@/lib/api-response';
 
 const schema = z.object({ note: z.string().trim().min(2).max(1000) });
 
-/** POST /api/admin/users/[id]/notes — append an AdminNote to a user. */
+/** POST /api/admin/users/[id]/notes, append an AdminNote to a user. */
 export const POST = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const admin = await requireAdmin();

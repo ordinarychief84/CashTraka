@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { suggestionService } from '@/lib/services/suggestion.service';
 import { requireFeature } from '@/lib/gate';
 
-/** GET /api/suggestions — get smart suggestions for the user */
+/** GET /api/suggestions, get smart suggestions for the user */
 export async function GET() {
   try {
     const user = await getCurrentUser();

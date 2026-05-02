@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
  *   body: { email: string }
  *
  * Starts a password-reset flow. Always returns 200 with the same generic
- * message — we never reveal whether the email matched an account, so this
+ * message, we never reveal whether the email matched an account, so this
  * endpoint cannot be used for user-enumeration.
  *
  * Security notes:

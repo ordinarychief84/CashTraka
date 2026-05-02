@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { collectionScoreService } from '@/lib/services/collection-score.service';
 import { requireFeature } from '@/lib/gate';
 
-/** GET /api/collection-score — get latest collection score */
+/** GET /api/collection-score, get latest collection score */
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -28,7 +28,7 @@ export async function GET() {
   }
 }
 
-/** GET /api/collection-score/history — score trend data for charts */
+/** GET /api/collection-score/history, score trend data for charts */
 export async function POST() {
   try {
     const user = await getCurrentUser();

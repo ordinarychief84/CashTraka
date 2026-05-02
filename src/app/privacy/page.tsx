@@ -47,14 +47,14 @@ export default function PrivacyPage() {
       <p>We process your data based on:</p>
       <ul>
         <li>
-          <strong>Consent</strong> — when you sign up and use the platform.
+          <strong>Consent</strong>, when you sign up and use the platform.
         </li>
         <li>
-          <strong>Contractual necessity</strong> — to provide the CashTraka
+          <strong>Contractual necessity</strong>, to provide the CashTraka
           service.
         </li>
         <li>
-          <strong>Legitimate interest</strong> — to improve security and
+          <strong>Legitimate interest</strong>, to improve security and
           performance.
         </li>
       </ul>

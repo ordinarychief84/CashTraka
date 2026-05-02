@@ -8,7 +8,7 @@ const clockInSchema = z.object({
   note: z.string().trim().max(200).optional().or(z.literal('')),
 });
 
-/** POST /api/clock — clock in a staff member. */
+/** POST /api/clock, clock in a staff member. */
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

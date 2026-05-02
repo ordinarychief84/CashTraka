@@ -3,7 +3,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { behaviorService } from '@/lib/services/behavior.service';
 import { requireFeature } from '@/lib/gate';
 
-/** GET /api/behavior — get behavior breakdown for all of user's customers */
+/** GET /api/behavior, get behavior breakdown for all of user's customers */
 export async function GET() {
   try {
     const user = await getCurrentUser();

@@ -39,6 +39,16 @@ function extractIp(req: NextRequest): string {
 /* ── Request body size guard (1 MB max for API routes) ─────────── */
 const MAX_BODY_BYTES = 1_048_576; // 1 MB
 
+/**
+ * Routes that legitimately receive larger bodies (multipart image uploads).
+ * Each of these enforces its OWN per-file + per-request cap inside the
+ * handler, so we skip the global body-size check for them.
+ */
+const LARGE_BODY_PREFIXES = [
+  '/api/showroom/upload', // catalog + album image upload, 5 MB × 8 = 40 MB
+  '/api/settings/logo',   // logo upload, 2 MB
+];
+
 const PROTECTED_PREFIXES = [
   '/dashboard',
   '/onboarding',
@@ -163,8 +173,11 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ── Request body size guard — reject oversized payloads ──
-  if (isApi && isStateChanging) {
+  // ── Request body size guard, reject oversized payloads ──
+  // Upload endpoints in LARGE_BODY_PREFIXES enforce their own caps inside
+  // the route handler, so we skip the global check for those.
+  const isUploadRoute = LARGE_BODY_PREFIXES.some((p) => pathname.startsWith(p));
+  if (isApi && isStateChanging && !isUploadRoute) {
     const cl = req.headers.get('content-length');
     if (cl && parseInt(cl, 10) > MAX_BODY_BYTES) {
       return NextResponse.json(

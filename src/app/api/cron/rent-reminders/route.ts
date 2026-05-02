@@ -1,13 +1,13 @@
 /**
- * Vercel Cron — Rent Lease Lifecycle Reminders
+ * Vercel Cron, Rent Lease Lifecycle Reminders
  *
  * Runs daily at 8 AM WAT (07:00 UTC). Checks all active tenants with
  * lease end dates and sends reminders at 4 stages:
  *
- *   1. 30_day_warning  — 30 days before leaseEnd
- *   2. expiry_day      — on the exact leaseEnd date
- *   3. post_expiry     — 3 days after leaseEnd (if rent still not paid)
- *   4. notice_to_quit  — 7 days after leaseEnd (final notice)
+ *   1. 30_day_warning , 30 days before leaseEnd
+ *   2. expiry_day     , on the exact leaseEnd date
+ *   3. post_expiry    , 3 days after leaseEnd (if rent still not paid)
+ *   4. notice_to_quit , 7 days after leaseEnd (final notice)
  *
  * Each (tenant × kind) combo is sent only once, tracked via LeaseReminder.
  * The route is protected by CRON_SECRET so only Vercel Cron can call it.

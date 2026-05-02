@@ -12,9 +12,9 @@ type Props = {
 };
 
 /**
- * Receipt action bar — hidden on print, visible in browser.
+ * Receipt action bar, hidden on print, visible in browser.
  *
- * - "Download PDF" downloads a server-rendered PDF (react-pdf) — works the same
+ * - "Download PDF" downloads a server-rendered PDF (react-pdf), works the same
  *   on every browser, doesn't rely on the user's print-to-PDF flow.
  * - "Share on WhatsApp" opens a wa.me link with the receipt URL prefilled.
  * - "Print" opens the browser print dialog for users with real printers.

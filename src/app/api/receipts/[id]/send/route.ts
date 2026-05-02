@@ -9,7 +9,7 @@ const bodySchema = z.object({
   to: z.string().trim().email('Enter a valid email'),
 });
 
-/** POST /api/receipts/[id]/send — email the receipt PDF to a customer. */
+/** POST /api/receipts/[id]/send, email the receipt PDF to a customer. */
 export const POST = (req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();

@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-/** GET /api/admin/support/[id] — Get single ticket with all replies */
+/** GET /api/admin/support/[id], Get single ticket with all replies */
 export async function GET(req: Request, ctx: { params: { id: string } }) {
   try {
     await requireAdmin();
@@ -57,7 +57,7 @@ export async function GET(req: Request, ctx: { params: { id: string } }) {
   }
 }
 
-/** PATCH /api/admin/support/[id] — Update ticket */
+/** PATCH /api/admin/support/[id], Update ticket */
 export async function PATCH(req: Request, ctx: { params: { id: string } }) {
   try {
     const admin = await requireAdmin();

@@ -10,7 +10,7 @@ const createRoleSchema = z.object({
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional().nullable(),
 });
 
-/** GET /api/team/roles — list all custom roles for this user */
+/** GET /api/team/roles, list all custom roles for this user */
 export async function GET() {
   try {
     const user = await requireUser();
@@ -28,7 +28,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/team/roles — create a new custom role */
+/** POST /api/team/roles, create a new custom role */
 export async function POST(req: Request) {
   try {
     const user = await requireUser();

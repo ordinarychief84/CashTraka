@@ -15,7 +15,7 @@ export async function GET(_req: Request, ctx: Ctx) {
   return NextResponse.json({ staff });
 }
 
-/** PATCH /api/admin/staff/[id] — change role or status */
+/** PATCH /api/admin/staff/[id], change role or status */
 export async function PATCH(req: Request, ctx: Ctx) {
   const admin = await requireAdmin();
   const { id } = await ctx.params;
@@ -60,7 +60,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
 }
 
-/** DELETE /api/admin/staff/[id] — revoke access */
+/** DELETE /api/admin/staff/[id], revoke access */
 export async function DELETE(_req: Request, ctx: Ctx) {
   const admin = await requireAdmin();
   const { id } = await ctx.params;

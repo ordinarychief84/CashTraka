@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 
 /**
  * Thin top-of-page progress bar. Tracks how far the user has scrolled
- * through the whole landing page. Very subtle — 2px high, cyan gradient,
+ * through the whole landing page. Very subtle, 2px high, cyan gradient,
  * sits above the navbar.
  *
  * Intentionally lightweight: passive scroll listener + CSS width transition.

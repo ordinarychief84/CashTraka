@@ -35,7 +35,7 @@ export default async function SellAlbumsPage() {
     >
       <PageHeader
         title="Albums"
-        subtitle="Yupoo-style product albums. Group products into named collections and share each one with a link (and an optional passcode)."
+        subtitle="Group products into named collections and share each one with a link, optionally protected by a passcode."
         action={
           <Link href="/showroom/albums/new" className="btn-primary inline-flex items-center gap-2">
             <Plus size={16} /> New album

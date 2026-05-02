@@ -4,7 +4,7 @@ import { reminderService } from '@/lib/services/reminder.service';
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** PATCH /api/reminders/[id] — update a reminder rule */
+/** PATCH /api/reminders/[id], update a reminder rule */
 export async function PATCH(req: Request, ctx: Ctx) {
   try {
     const user = await getCurrentUser();
@@ -30,7 +30,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
   }
 }
 
-/** DELETE /api/reminders/[id] — delete a reminder rule */
+/** DELETE /api/reminders/[id], delete a reminder rule */
 export async function DELETE(req: Request, ctx: Ctx) {
   try {
     const user = await getCurrentUser();

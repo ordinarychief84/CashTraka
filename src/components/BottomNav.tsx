@@ -39,7 +39,7 @@ export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
           <NavItem href="/dashboard" icon={Home} label="Home" active={isActive('/dashboard')} />
           <NavItem href="/payments" icon={Banknote} label={isPropManager ? 'Rent' : 'Payments'} active={isActive('/payments')} />
 
-          {/* Center FAB — Add button (hidden for read-only roles) */}
+          {/* Center FAB, Add button (hidden for read-only roles) */}
           <div className="flex items-center justify-center">
             {canCreate ? (
               <button

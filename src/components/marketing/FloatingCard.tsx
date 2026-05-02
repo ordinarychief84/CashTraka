@@ -12,7 +12,7 @@ type Props = {
 };
 
 /**
- * Gently oscillating wrapper — drops in a hero mockup or feature card so it
+ * Gently oscillating wrapper, drops in a hero mockup or feature card so it
  * "breathes" while idle. Pure CSS keyframe animation; respects
  * `prefers-reduced-motion` via the global rule in globals.css.
  */

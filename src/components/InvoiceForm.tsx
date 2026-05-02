@@ -127,7 +127,7 @@ export function InvoiceForm({ redirectTo = '/invoices' }: Props) {
               >
                 <option value="">+ From catalog</option>
                 {products.map((p) => (
-                  <option key={p.id} value={p.id}>{p.name} — {formatNaira(p.price)}</option>
+                  <option key={p.id} value={p.id}>{p.name}, {formatNaira(p.price)}</option>
                 ))}
               </select>
             )}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { reminderService } from '@/lib/services/reminder.service';
 
 /**
- * Auto follow-up cron — runs every 6 hours (or daily).
+ * Auto follow-up cron, runs every 6 hours (or daily).
  * Processes all due ReminderRules and generates WhatsApp links / logs.
  */
 export async function GET(req: Request) {

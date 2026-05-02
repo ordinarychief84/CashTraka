@@ -14,7 +14,7 @@ type Props = {
 };
 
 /**
- * Tax compliance settings — Nigerian (FIRS) e-invoicing.
+ * Tax compliance settings, Nigerian (FIRS) e-invoicing.
  *
  * What goes here, in tax-law terms:
  *   - TIN: required on every tax invoice once VAT-registered.
@@ -156,7 +156,7 @@ export function TaxTab({ initial }: Props) {
             />
             <p className="mt-1 text-xs text-slate-500">
               Issued by FIRS once you onboard to the Merchant Buyer Solution e-invoicing
-              programme. Required for live submission to FIRS — until then, the &quot;Submit
+              programme. Required for live submission to FIRS, until then, the &quot;Submit
               to FIRS&quot; action will fail with a clear &quot;adapter not configured&quot;
               error.
             </p>

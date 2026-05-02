@@ -165,7 +165,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
       </div>
 
-      {/* Confirm password — signup only */}
+      {/* Confirm password, signup only */}
       {mode === 'signup' && (
         <div>
           <label htmlFor="confirmPassword" className="label">Confirm password</label>
@@ -192,7 +192,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         </div>
       )}
 
-      {/* Terms & Privacy checkbox — signup only */}
+      {/* Terms & Privacy checkbox, signup only */}
       {mode === 'signup' && (
         <label className="flex items-start gap-2.5 cursor-pointer group">
           <input

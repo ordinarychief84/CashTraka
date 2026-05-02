@@ -23,7 +23,7 @@ export function OverdueBanner({ count, total }: Props) {
             {count} {count === 1 ? 'debt is' : 'debts are'} overdue
           </div>
           <div className="text-xs text-owed-700/80">
-            <span className="num">{formatNaira(total)}</span> waiting — send reminders now.
+            <span className="num">{formatNaira(total)}</span> waiting, send reminders now.
           </div>
         </div>
         <ArrowRight

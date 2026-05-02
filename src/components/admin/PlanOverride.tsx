@@ -29,7 +29,7 @@ const STATUS_OPTIONS = [
 /**
  * Admin-only plan override. Sits inside the user detail page.
  *
- * Forcing a plan here bypasses Paystack entirely — use it for manual
+ * Forcing a plan here bypasses Paystack entirely, use it for manual
  * comps, support cases, or to recover from a stuck billing state. Every
  * action is logged via AdminNote on the server.
  */

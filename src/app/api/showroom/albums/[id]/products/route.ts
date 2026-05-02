@@ -14,7 +14,7 @@ const setSchema = z.object({
 });
 
 /**
- * POST /api/showroom/albums/[id]/products — replace the album's product set
+ * POST /api/showroom/albums/[id]/products, replace the album's product set
  * with the supplied list (in order). The endpoint is intentionally
  * "set semantics" not "append" so the editor can re-render after a
  * drag-reorder by sending the whole new ordering.

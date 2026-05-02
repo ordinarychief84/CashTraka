@@ -6,7 +6,7 @@ import { formatNaira } from '@/lib/format';
  * Top customers this month, by revenue contribution.
  *
  * Surfaces *who* is driving the business so the owner can prioritise
- * relationships. Intentionally simple — one click takes you to that
+ * relationships. Intentionally simple, one click takes you to that
  * customer's detail page.
  */
 
@@ -36,7 +36,7 @@ export function TopContributors({
       <section className="card p-5">
         <h2 className="mb-2 flex items-center gap-2 text-sm font-bold text-ink">
           <Users size={16} className="text-slate-500" />
-          {heading} — {monthLabel}
+          {heading}, {monthLabel}
         </h2>
         <p className="text-xs text-slate-500">{emptyMsg}</p>
       </section>
@@ -50,7 +50,7 @@ export function TopContributors({
     <section className="card p-5">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-ink">
         <Users size={16} className="text-brand-600" />
-        {heading} — {monthLabel}
+        {heading}, {monthLabel}
       </h2>
       <ul className="space-y-2">
         {rows.map((row, i) => {

@@ -9,7 +9,7 @@ const ticketSchema = z.object({
   description: z.string().trim().min(1, 'Description is required').max(5000, 'Description too long'),
 });
 
-/** GET /api/support — List current user's own tickets */
+/** GET /api/support, List current user's own tickets */
 export async function GET() {
   try {
     const user = await getCurrentUser();
@@ -48,7 +48,7 @@ export async function GET() {
   }
 }
 
-/** POST /api/support — Create a ticket */
+/** POST /api/support, Create a ticket */
 export async function POST(req: Request) {
   try {
     const user = await getCurrentUser();

@@ -14,9 +14,9 @@ export async function generateMetadata({
   params: { slug: string; productId: string };
 }) {
   const data = await catalogService.getProduct(params.slug, params.productId);
-  if (!data) return { title: 'Shop — CashTraka' };
+  if (!data) return { title: 'Shop, CashTraka' };
   return {
-    title: `${data.product.name} — ${data.business}`,
+    title: `${data.product.name}, ${data.business}`,
     description: data.product.description ?? data.product.name,
     openGraph: data.product.images[0]
       ? { images: [{ url: data.product.images[0] }] }

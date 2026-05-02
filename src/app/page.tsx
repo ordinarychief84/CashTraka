@@ -442,7 +442,7 @@ function HowItWorks() {
       title="Set up in minutes. See results the same day."
     >
       <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
-        {/* Desktop connector line — animated gradient sweep */}
+        {/* Desktop connector line, animated gradient sweep */}
         <div
           aria-hidden
           className="absolute left-0 right-0 top-6 hidden h-0.5 overflow-hidden bg-brand-100 md:block"
@@ -581,7 +581,7 @@ function FinalCTA() {
       <div className="container-app">
         <Reveal from="zoom" distance={20} blur>
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-success-500 px-6 py-12 text-center text-white md:px-12 md:py-16">
-            {/* Ambient glows — slow-spin gives the background faint motion */}
+            {/* Ambient glows, slow-spin gives the background faint motion */}
             <div
               aria-hidden
               className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-slow-spin"

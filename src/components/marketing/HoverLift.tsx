@@ -12,7 +12,7 @@ type Props = {
  *
  * Adds a subtle upward translate and a soft ring-glow in the brand colour
  * on hover. Built on plain CSS transitions so it doesn't require client
- * JS — safe to drop inside server components.
+ * JS, safe to drop inside server components.
  */
 export function HoverLift({ children, className, glow = true }: Props) {
   return (

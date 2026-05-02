@@ -12,7 +12,7 @@ const bodySchema = z.object({
   catalogEnabled: z.boolean().optional(),
 });
 
-/** POST /api/settings/slug — set or update the storefront slug + catalog flags. */
+/** POST /api/settings/slug, set or update the storefront slug + catalog flags. */
 export async function POST(req: Request) {
   const user = await requireUser();
   const body = await req.json().catch(() => ({}));

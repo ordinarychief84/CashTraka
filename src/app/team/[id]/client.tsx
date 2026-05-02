@@ -16,7 +16,7 @@ type Staff = {
 };
 
 /**
- * Client sliver of the staff detail page — just the big "Pay" button plus
+ * Client sliver of the staff detail page, just the big "Pay" button plus
  * the pay dialog it opens. Kept separate so the server page stays a
  * server component.
  */

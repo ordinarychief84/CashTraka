@@ -8,7 +8,7 @@ import { receiptService } from '@/lib/services/receipt.service';
 import { debtService } from '@/lib/services/debt.service';
 import { handled, ok } from '@/lib/api-response';
 
-/** GET /api/debts/[id] — single debt detail. */
+/** GET /api/debts/[id], single debt detail. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();

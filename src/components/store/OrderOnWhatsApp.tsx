@@ -13,7 +13,7 @@ type Props = {
 /**
  * Two-step "Order on WhatsApp" flow.
  *  1. Customer enters optional name + phone + note.
- *  2. We POST /api/store/[slug]/order — the server logs a CatalogEvent and
+ *  2. We POST /api/store/[slug]/order, the server logs a CatalogEvent and
  *     returns a wa.me link, which we redirect to.
  *
  * No Payment row is created. The seller records payment manually after the

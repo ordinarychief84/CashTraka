@@ -7,7 +7,7 @@ import { handled, ok } from '@/lib/api-response';
 export const runtime = 'nodejs';
 
 /**
- * GET /api/billing/status — current billing state + the price of the plan
+ * GET /api/billing/status, current billing state + the price of the plan
  * the user would upgrade to next. Powers the Settings Billing card.
  */
 export const GET = () =>

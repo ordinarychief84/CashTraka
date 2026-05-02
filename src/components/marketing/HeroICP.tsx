@@ -16,7 +16,7 @@ const COPY = {
     headline: 'Know who paid. Know who owes. Collect what is yours.',
     sub:
       'CashTraka replaces your notebook, your spreadsheet, and your memory. Track every payment, send invoices, chase debts via WhatsApp, and never lose another naira.',
-    ctaPrimary: 'Start free — no card needed',
+    ctaPrimary: 'Start free, no card needed',
     ctaSecondary: 'See how it works',
     ctaHref: '/signup?type=seller',
   },
@@ -24,8 +24,8 @@ const COPY = {
     eyebrow: 'The Smartest Rent Tracker for Nigerian Landlords',
     headline: 'Every tenant. Every unit. Every naira collected.',
     sub:
-      'Track rent across all your properties, send automatic WhatsApp reminders, verify bank payments, and issue receipts — without lifting a finger.',
-    ctaPrimary: 'Start free — no card needed',
+      'Track rent across all your properties, send automatic WhatsApp reminders, verify bank payments, and issue receipts, without lifting a finger.',
+    ctaPrimary: 'Start free, no card needed',
     ctaSecondary: 'See how it works',
     ctaHref: '/signup?type=property_manager',
   },

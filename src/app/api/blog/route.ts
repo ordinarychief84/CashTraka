@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-/** GET /api/blog — list published blog posts */
+/** GET /api/blog, list published blog posts */
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const category = url.searchParams.get('category') || undefined;

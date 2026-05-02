@@ -26,7 +26,7 @@ import { formatNaira, formatDate } from '@/lib/format';
  *        - View online (opens /r/[paymentId])
  *        - Download PDF
  *
- * The service is idempotent, so clicking Generate twice is safe — it will
+ * The service is idempotent, so clicking Generate twice is safe, it will
  * return the existing receipt for this payment.
  */
 

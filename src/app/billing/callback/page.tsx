@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  * Paystack redirects here with `?reference=<paystackRef>` after the user
  * completes (or abandons) checkout. The client component below hits
  * `/api/billing/verify` which performs the authoritative check against
- * Paystack's API — whichever arrives first (webhook or this) wins, the
+ * Paystack's API, whichever arrives first (webhook or this) wins, the
  * other is a no-op.
  */
 export default function BillingCallbackPage() {

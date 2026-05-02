@@ -14,7 +14,7 @@ const ALLOWED = new Set([
 ]);
 
 /**
- * POST /api/showroom/upload — multipart/form-data, field "files" (one or many).
+ * POST /api/showroom/upload, multipart/form-data, field "files" (one or many).
  *
  * Streams each image to Uploadcare and returns the hosted URLs in the same
  * order they were submitted. Used by the catalog (product images) and the

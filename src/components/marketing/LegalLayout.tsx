@@ -10,7 +10,7 @@ type Props = {
 
 /**
  * Shared layout for legal pages (Privacy, Terms). Applies consistent
- * typography to every descendant element — headings, paragraphs, lists —
+ * typography to every descendant element, headings, paragraphs, lists —
  * so each page author can just write semantic HTML without re-specifying
  * classes on every tag.
  *

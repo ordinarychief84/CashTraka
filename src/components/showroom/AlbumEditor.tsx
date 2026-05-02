@@ -372,40 +372,27 @@ export function AlbumEditor({
           </div>
 
           {/* Products: selected + picker */}
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
+          <div className="rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-2">
               <Label className="m-0">Products in this album</Label>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                {selected.length} {selected.length === 1 ? 'item' : 'items'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                  {selected.length} {selected.length === 1 ? 'item' : 'items'}
+                </span>
+                <Link
+                  href="/products/new"
+                  className="inline-flex items-center gap-1 rounded-lg border border-border bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:border-brand-500 hover:text-brand-600"
+                >
+                  <Plus size={11} /> New product
+                </Link>
+              </div>
             </div>
 
-            {selected.length === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center">
-                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-border">
-                  <ImageIcon size={18} />
-                </div>
-                <div className="text-sm font-medium text-slate-700">
-                  No products yet
-                </div>
-                <div className="mt-0.5 text-xs text-slate-500">
-                  {catalog.length === 0
-                    ? 'Add your first product to get started.'
-                    : 'Pick from the catalog below.'}
-                </div>
-                {catalog.length === 0 ? (
-                  <Link
-                    href="/products/new"
-                    className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-600"
-                  >
-                    <Plus size={12} /> New product
-                  </Link>
-                ) : null}
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-100">
+            {/* Selected products list, only shown when there ARE selections */}
+            {selected.length > 0 ? (
+              <ul className="mb-3 divide-y divide-slate-100 rounded-lg ring-1 ring-border">
                 {selected.map((p, i) => (
-                  <li key={p.id} className="flex items-center gap-3 py-2.5">
+                  <li key={p.id} className="flex items-center gap-3 bg-white px-3 py-2.5">
                     <div className="flex flex-col gap-0.5">
                       <button
                         type="button"
@@ -432,6 +419,7 @@ export function AlbumEditor({
                           src={p.images[0]}
                           alt={p.name}
                           className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-slate-300">
@@ -454,14 +442,33 @@ export function AlbumEditor({
                   </li>
                 ))}
               </ul>
-            )}
+            ) : null}
 
-            {/* Picker, searchable, shown inline */}
-            {catalog.length > 0 ? (
-              <div className="mt-4 border-t border-border pt-4">
+            {/* Empty catalog: full empty-state CTA */}
+            {catalog.length === 0 ? (
+              <div className="rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center">
+                <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-400 ring-1 ring-border">
+                  <ImageIcon size={18} />
+                </div>
+                <div className="text-sm font-medium text-slate-700">
+                  You have not added any products yet
+                </div>
+                <div className="mt-0.5 text-xs text-slate-500">
+                  Create a product first (with photos), then come back to add it to this album.
+                </div>
+                <Link
+                  href="/products/new"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white hover:bg-brand-600"
+                >
+                  <Plus size={12} /> Create a product
+                </Link>
+              </div>
+            ) : (
+              /* Catalog has items: show the picker prominently as the action surface */
+              <div className={selected.length > 0 ? 'border-t border-border pt-4' : ''}>
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <Label className="m-0">
-                    Add from your catalog
+                    {selected.length === 0 ? 'Pick products to add' : 'Add more from your catalog'}
                     <span className="ml-1 font-normal text-slate-400">
                       ({filteredAvailable.length})
                     </span>
@@ -522,7 +529,7 @@ export function AlbumEditor({
                   </ul>
                 )}
               </div>
-            ) : null}
+            )}
           </div>
         </div>
 

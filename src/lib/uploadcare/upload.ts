@@ -68,13 +68,16 @@ async function storeFile(uuid: string): Promise<boolean> {
 }
 
 /**
- * POST the buffer to Uploadcare's anonymous upload endpoint, then (if a
- * secret key is configured) explicitly store it.
+ * POST the buffer to Uploadcare's anonymous upload endpoint.
  *
- * `UPLOADCARE_STORE: 'auto'` asks Uploadcare to respect the project-level
- * auto-store setting. For projects where that's ON, the file is immediately
- * persistent; for projects where it's OFF, we fall through to the explicit
- * storeFile() path if a secret key is available.
+ * `UPLOADCARE_STORE: '1'` forces the file to be permanently stored on the
+ * public CDN at upload time, regardless of the project-level default. This
+ * is the safe choice: with 'auto' a project set to "Manual" storage would
+ * accept the upload but never publish it, leaving the URL as a broken
+ * image. `'1'` always works.
+ *
+ * If UPLOADCARE_SECRET_KEY is also configured, storeFile() runs as a
+ * belt-and-suspenders explicit store via REST after the upload.
  */
 async function uploadBuffer(
   buffer: Buffer,
@@ -86,7 +89,7 @@ async function uploadBuffer(
   try {
     const form = new FormData();
     form.append('UPLOADCARE_PUB_KEY', pubKey);
-    form.append('UPLOADCARE_STORE', 'auto');
+    form.append('UPLOADCARE_STORE', '1');
     form.append(
       'file',
       new Blob([new Uint8Array(buffer)], { type: opts.mime }),

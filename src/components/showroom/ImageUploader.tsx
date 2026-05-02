@@ -118,7 +118,17 @@ export function ImageUploader({
         />
         {url ? (
           <div className="group relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100 ring-1 ring-border">
-            <img src={url} alt="" className="h-full w-full object-cover" />
+            <img
+              src={url}
+              alt=""
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover"
+              onError={(e) =>
+                onError?.('That image could not be loaded. Try uploading again.') ??
+                ((e.currentTarget.style.display = 'none') as unknown as void)
+              }
+            />
             <div className="absolute inset-0 hidden items-end justify-end gap-2 bg-gradient-to-t from-black/40 to-transparent p-2 group-hover:flex">
               <button
                 type="button"
@@ -188,7 +198,17 @@ export function ImageUploader({
               key={url + i}
               className="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border"
             >
-              <img src={url} alt="" className="h-full w-full object-cover" />
+              <img
+                src={url}
+                alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.opacity = '0.2';
+                  onError?.('Image could not be loaded.');
+                }}
+              />
               {i === 0 ? (
                 <span className="absolute left-1.5 top-1.5 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
                   Main

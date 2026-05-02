@@ -125,6 +125,9 @@ const CSRF_EXEMPT_PREFIXES = [
   // and POST to /api/store/[slug]/order. Per-IP rate limit lives inside the
   // route handler (CATALOG_LIMITS.ORDER_RATE_PER_MIN, default 30/min).
   '/api/store/',
+  // One-shot maintenance endpoints called server-to-server with CRON_SECRET.
+  '/api/cleanup-broken-uploads',
+  '/api/migrate',
 ];
 
 function sameOriginOk(req: NextRequest): boolean {

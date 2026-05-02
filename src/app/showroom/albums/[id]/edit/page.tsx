@@ -2,8 +2,7 @@ import { notFound } from 'next/navigation';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { AlbumEditor } from '@/components/sell/AlbumEditor';
+import { AlbumEditor } from '@/components/showroom/AlbumEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,10 +36,6 @@ export default async function EditAlbumPage({ params }: { params: { id: string }
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title={album.title}
-        subtitle={`Editing album · /album/${album.slug}`}
-      />
       <AlbumEditor
         mode="edit"
         storefrontSlug={user.slug ?? null}

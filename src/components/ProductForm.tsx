@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ImageUploader } from '@/components/showroom/ImageUploader';
 
 type Initial = {
   id?: string;
@@ -12,6 +13,7 @@ type Initial = {
   trackStock?: boolean;
   lowStockAt?: number;
   note?: string;
+  images?: string[];
 };
 
 type Props = {
@@ -25,6 +27,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [trackStock, setTrackStock] = useState(initial?.trackStock ?? true);
+  const [images, setImages] = useState<string[]>(initial?.images ?? []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,6 +43,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
       trackStock,
       lowStockAt: Number(form.get('lowStockAt') || 3),
       note: String(form.get('note') || ''),
+      images,
     };
     try {
       const res = await fetch(
@@ -61,7 +65,19 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Images */}
+      <div>
+        <label className="label">Photos</label>
+        <ImageUploader
+          value={images}
+          onChange={setImages}
+          maxFiles={8}
+          onError={(msg) => setError(msg)}
+          hint="The first image becomes the product card thumbnail. Up to 8 images."
+        />
+      </div>
+
       <div>
         <label htmlFor="name" className="label">Product name</label>
         <input
@@ -73,6 +89,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
           required
         />
       </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor="price" className="label">Sale price (₦)</label>
@@ -100,6 +117,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
           />
         </div>
       </div>
+
       <div className="rounded-lg border border-border bg-slate-50 p-3">
         <label className="flex cursor-pointer items-start gap-2 text-sm">
           <input
@@ -142,6 +160,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
           </div>
         )}
       </div>
+
       <div>
         <label htmlFor="note" className="label">Note (optional)</label>
         <input
@@ -152,9 +171,11 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
           defaultValue={initial?.note ?? ''}
         />
       </div>
+
       {error && (
         <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
       )}
+
       <button type="submit" disabled={submitting} className="btn-primary w-full">
         {submitting ? 'Saving…' : editing ? 'Save changes' : 'Save product'}
       </button>

@@ -146,6 +146,31 @@ export function uploadLogo(
   });
 }
 
+/**
+ * Upload a generic catalog/album image. Filename collisions are avoided by
+ * suffixing with a short timestamp+random token so two different products
+ * can share the same source filename without clobbering.
+ */
+export function uploadImage(
+  userId: string,
+  buffer: Buffer,
+  format: string,
+  originalName?: string,
+): Promise<UploadResult | null> {
+  const stamp =
+    Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const safeBase = (originalName || 'image')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/\.[^.]+$/, '')
+    .slice(0, 40) || 'image';
+  return uploadBuffer(buffer, {
+    folder: `cashtraka/showroom/${userId}`,
+    publicId: `${safeBase}-${stamp}`,
+    mime: imageMime(format),
+    filename: `${safeBase}-${stamp}.${format}`,
+  });
+}
+
 /** Upload a receipt PDF. Returns hosted URL. */
 export function uploadPdf(
   buffer: Buffer,

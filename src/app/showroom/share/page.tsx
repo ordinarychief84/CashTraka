@@ -3,7 +3,7 @@ import { ExternalLink } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
-import { ShareCatalogActions } from '@/components/sell/ShareCatalogActions';
+import { ShareCatalogActions } from '@/components/showroom/ShareCatalogActions';
 
 export const dynamic = 'force-dynamic';
 

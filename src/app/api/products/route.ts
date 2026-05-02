@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { name, price, cost, stock, trackStock, lowStockAt, note } = parsed.data;
+  const { name, price, cost, stock, trackStock, lowStockAt, note, images } = parsed.data;
 
   const product = await prisma.product.create({
     data: {
@@ -41,6 +41,7 @@ export async function POST(req: Request) {
       trackStock,
       lowStockAt,
       note: note || null,
+      images: images ?? [],
     },
   });
 

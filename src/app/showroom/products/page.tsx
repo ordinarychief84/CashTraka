@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNaira } from '@/lib/format';
 import { productCatalogStatus } from '@/lib/catalog';
-import { ToggleProductPublish } from '@/components/sell/ToggleProductPublish';
+import { ToggleProductPublish } from '@/components/showroom/ToggleProductPublish';
 
 export const dynamic = 'force-dynamic';
 

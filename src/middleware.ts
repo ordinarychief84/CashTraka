@@ -52,7 +52,7 @@ const PROTECTED_PREFIXES = [
   '/expenses',
   '/products',
   '/sales',
-  '/sell',
+  '/showroom',
   '/receipts',
   '/reports',
   '/templates',

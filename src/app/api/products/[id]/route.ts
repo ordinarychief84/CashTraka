@@ -36,6 +36,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     note,
     archived,
     stockDelta,
+    images,
   } = parsed.data;
 
   // stockDelta is a convenience — "add 10 to stock" without having to do math client-side.
@@ -55,6 +56,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       lowStockAt: lowStockAt ?? product.lowStockAt,
       note: note === undefined ? product.note : note || null,
       archived: archived ?? product.archived,
+      images: images ?? undefined,
     },
   });
 

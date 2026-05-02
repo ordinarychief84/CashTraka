@@ -1,8 +1,7 @@
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { AlbumEditor } from '@/components/sell/AlbumEditor';
+import { AlbumEditor } from '@/components/showroom/AlbumEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,10 +22,6 @@ export default async function NewAlbumPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="New album"
-        subtitle="Group products into a shareable collection."
-      />
       <AlbumEditor
         mode="new"
         storefrontSlug={user.slug ?? null}

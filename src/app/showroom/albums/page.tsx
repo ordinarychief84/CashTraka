@@ -37,7 +37,7 @@ export default async function SellAlbumsPage() {
         title="Albums"
         subtitle="Yupoo-style product albums. Group products into named collections and share each one with a link (and an optional passcode)."
         action={
-          <Link href="/sell/albums/new" className="btn-primary inline-flex items-center gap-2">
+          <Link href="/showroom/albums/new" className="btn-primary inline-flex items-center gap-2">
             <Plus size={16} /> New album
           </Link>
         }
@@ -47,7 +47,7 @@ export default async function SellAlbumsPage() {
         <EmptyState
           title="No albums yet"
           description="Create your first album, drop products into it, and share the link with customers instead of forwarding individual photos on WhatsApp."
-          actionHref="/sell/albums/new"
+          actionHref="/showroom/albums/new"
           actionLabel="Create album"
         />
       ) : (
@@ -95,7 +95,7 @@ export default async function SellAlbumsPage() {
                         </Link>
                       ) : null}
                       <Link
-                        href={`/sell/albums/${a.id}/edit`}
+                        href={`/showroom/albums/${a.id}/edit`}
                         title="Edit"
                         className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-brand-600"
                       >

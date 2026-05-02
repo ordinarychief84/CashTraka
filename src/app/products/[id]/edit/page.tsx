@@ -29,6 +29,7 @@ export default async function EditProductPage({ params }: { params: { id: string
             trackStock: product.trackStock,
             lowStockAt: product.lowStockAt,
             note: product.note ?? '',
+            images: product.images ?? [],
           }}
         />
       </div>

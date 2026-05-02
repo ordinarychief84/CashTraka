@@ -34,7 +34,7 @@ export default async function CatalogEventsPage() {
         <EmptyState
           title="No activity yet"
           description="Once you share your catalog link, views and order clicks will show up here."
-          actionHref="/sell/share"
+          actionHref="/showroom/share"
           actionLabel="Share my catalog"
         />
       ) : (

@@ -199,6 +199,9 @@ export const productSchema = z.object({
   trackStock: z.coerce.boolean().default(true),
   lowStockAt: z.coerce.number().int().nonnegative().default(3),
   note: z.string().trim().max(200).optional().or(z.literal('')),
+  /// Up to 8 hosted image URLs. Order matters — first is the "main" image
+  /// shown as the product card thumbnail.
+  images: z.array(z.string().url()).max(8).optional(),
 });
 
 export const saleItemSchema = z.object({

@@ -33,7 +33,24 @@
 
 const UPLOAD_ENDPOINT = 'https://upload.uploadcare.com/base/';
 const REST_BASE = 'https://api.uploadcare.com';
-const CDN_BASE = 'https://ucarecdn.com';
+
+/**
+ * Public delivery domain for the project's files.
+ *
+ * Newer Uploadcare projects ship with a project-specific subdomain
+ * (e.g. https://5jowdl24z8.ucarecd.net) shown on the file detail page in
+ * the dashboard. Older / legacy projects share https://ucarecdn.com.
+ * Files only resolve via the project's assigned domain — using the wrong
+ * one returns 404.
+ *
+ * We read it from UPLOADCARE_CDN_BASE so each environment can point at the
+ * right host, and fall back to ucarecdn.com for legacy compatibility.
+ */
+function cdnBase(): string {
+  const env = process.env.UPLOADCARE_CDN_BASE?.trim();
+  if (env) return env.replace(/\/$/, '');
+  return 'https://ucarecdn.com';
+}
 
 type UploadResult = { url: string; publicId: string };
 
@@ -138,7 +155,7 @@ async function uploadBuffer(
   // No-op when UPLOADCARE_SECRET_KEY is not set.
   await storeFile(json.file);
 
-  const url = `${CDN_BASE}/${json.file}/${encodeURIComponent(opts.filename)}`;
+  const url = `${cdnBase()}/${json.file}/${encodeURIComponent(opts.filename)}`;
 
   // Verify the file is reachable. If the project's auto-store is "Manual"
   // and we have no secret key, the upload returns a UUID but the CDN serves

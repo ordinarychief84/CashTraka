@@ -69,6 +69,30 @@ model User {
   /// Required by the real FIRS adapter; not used by NoopFIRSAdapter.
   firsMerchantId       String?
 
+  /// ── Invoice settings ──────────────────────────────────────────
+  /// Default currency code (ISO-4217). NGN by default for Nigerian SMBs.
+  defaultCurrency      String    @default("NGN")
+  /// Per-business invoice number prefix. e.g. "INV" -> INV-00042.
+  invoicePrefix        String?   @default("INV")
+  /// Per-business credit-note prefix. e.g. "CN" -> CN-00042.
+  creditNotePrefix     String?   @default("CN")
+  /// Per-business offer/quote prefix. e.g. "OFF" -> OFF-00042.
+  offerPrefix          String?   @default("OFF")
+  /// Per-business delivery-note prefix.
+  deliveryNotePrefix   String?   @default("DN")
+  /// Per-business order-confirmation prefix.
+  orderPrefix          String?   @default("ORD")
+  /// Whether tax (VAT) is enabled by default on new invoices. Mirrors
+  /// vatRegistered for the common case but can be overridden per invoice.
+  taxEnabled           Boolean   @default(false)
+  /// Free-form payment instructions printed on invoices ("Pay to bank X
+  /// account 1234567890. Reference your invoice number.").
+  paymentInstructions  String?
+  /// Hex accent color used on invoice PDFs and the public page.
+  invoiceAccentColor   String?   @default("#00B8E8")
+  /// "simple" | "professional" | "compact" — chooses the PDF template.
+  invoiceTemplate      String?   @default("professional")
+
   /// Billing state. `plan` (above) is the *tier name*; these fields describe
   /// the subscription lifecycle around that tier.
   /// "free" | "trialing" | "active" | "past_due" | "cancelled"
@@ -142,6 +166,14 @@ model User {
   installmentPlans     InstallmentPlan[]
   catalogEvents        CatalogEvent[]
   albums               Album[]
+  invoiceReminders     InvoiceReminder[]
+  creditNotes          CreditNote[]
+  recurringInvoices    RecurringInvoiceRule[]
+  deliveryNotes        DeliveryNote[]
+  offers               Offer[]
+  orderConfirmations   OrderConfirmation[]
+  documentArchives     DocumentArchive[]
+  documentAuditLogs    DocumentAuditLog[]
 
   @@index([role])
   @@index([businessType])
@@ -198,6 +230,9 @@ model Customer {
   paymentRequests  PaymentRequest[]
   customerNotes    CustomerNote[]
   promisesToPay    PromiseToPay[]
+  deliveryNotes    DeliveryNote[]
+  offers           Offer[]
+  orderConfirmations OrderConfirmation[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -334,6 +369,8 @@ model Product {
   saleItems     SaleItem[]
   catalogEvents CatalogEvent[]
   albumLinks    AlbumProduct[]
+  deliveryNoteItems DeliveryNoteItem[]
+  offerItems    OfferItem[]
 
   @@index([userId, archived])
   @@index([userId, isPublished])
@@ -454,15 +491,48 @@ model Invoice {
   customerName    String
   customerPhone   String
   customerEmail   String?
-  /// "DRAFT" | "SENT" | "PAID" | "CANCELLED"
+  /// Status pipeline:
+  ///   DRAFT  -> SENT   when /send is invoked
+  ///   SENT   -> VIEWED when the public page is opened
+  ///   any    -> PARTIALLY_PAID / PAID when payments arrive
+  ///   any    -> OVERDUE when dueDate passes and not fully paid
+  ///   any    -> CANCELLED / CREDITED via credit-note flow
   status          String    @default("DRAFT")
   subtotal        Int       @default(0)
+  /// Optional flat-amount discount in the invoice currency (subtracted from
+  /// subtotal before VAT). Percent discounts can be modeled as line-item
+  /// edits to keep the math simple here.
+  discount        Int       @default(0)
   tax             Int       @default(0)
   total           Int       @default(0)
   note            String?
+  /// Free-text payment terms shown on the invoice (e.g. "Net 14",
+  /// "Due on receipt"). Falls back to User.paymentInstructions when empty.
+  paymentTerms    String?
   dueDate         DateTime?
   issuedAt        DateTime  @default(now())
   paidAt          DateTime?
+  /// Cumulative amount paid against this invoice (across one or more
+  /// PaymentRequest/Payment rows). Used to compute outstanding balance.
+  amountPaid      Int       @default(0)
+  /// Set the first time the public /invoice/[publicToken] page renders.
+  viewedAt        DateTime?
+  /// Set when /api/invoices/[id]/send fires. Used by the dashboard to
+  /// distinguish issued-but-not-sent vs. issued-and-sent invoices.
+  sentAt          DateTime?
+  /// Non-guessable token that powers /invoice/[publicToken]. We rotate
+  /// the model default to a cuid+random suffix so brute-force is impractical.
+  publicToken     String?   @unique
+  /// Internal XML export URL (not an official FIRS-schema submission;
+  /// see invoice-xml.service.ts comments). Used by the "Download XML" button.
+  xmlUrl          String?
+  xmlGeneratedAt  DateTime?
+  /// Optional electronic-submission status separate from firsStatus.
+  /// "DRAFT" | "READY_FOR_SUBMISSION" | "SUBMITTED" | "FAILED" | "ACCEPTED" |
+  /// "REJECTED" | "NOT_CONFIGURED"
+  electronicStatus String?
+  /// Optional link to a recurring rule that produced this invoice.
+  recurringRuleId String?
 
   /// 1:1 link back to the Payment that spawned this invoice (if generated from one).
   /// Used for idempotent generation from /api/payments/[id]/invoice.
@@ -499,12 +569,17 @@ model Invoice {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer        Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer        Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
   items           InvoiceItem[]
   payments        Payment[]
+  reminders       InvoiceReminder[]
+  creditNotes     CreditNote[]
+  recurringRule   RecurringInvoiceRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
+  @@index([userId, dueDate])
+  @@index([recurringRuleId])
 }
 
 model InvoiceItem {
@@ -526,6 +601,259 @@ model InvoiceItem {
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([invoiceId])
+}
+
+/// Reminder sent (or scheduled) for an unpaid invoice. Manual reminders
+/// fire from the invoice detail page; automated reminders are produced by
+/// /api/cron/run-recurring-invoices when a rule schedules them.
+model InvoiceReminder {
+  id        String   @id @default(cuid())
+  userId    String
+  invoiceId String
+  /// "FRIENDLY_REMINDER" | "OVERDUE_NOTICE" | "FINAL_NOTICE"
+  type      String   @default("FRIENDLY_REMINDER")
+  /// "EMAIL" | "WHATSAPP"
+  channel   String
+  /// The message body actually sent (or queued). Snapshot so we can
+  /// audit what the customer received even if templates change later.
+  message   String
+  sentAt    DateTime?
+  /// "QUEUED" | "SENT" | "FAILED"
+  status    String   @default("QUEUED")
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([invoiceId, createdAt])
+}
+
+/// Credit note (a.k.a. cancellation invoice). Generated when a finalized
+/// invoice is reversed in part or in whole. The original invoice flips
+/// to CREDITED or CANCELLED depending on whether the credit-note total
+/// equals the invoice total.
+model CreditNote {
+  id               String   @id @default(cuid())
+  userId           String
+  invoiceId        String
+  creditNoteNumber String   @unique
+  reason           String?
+  subtotal         Int      @default(0)
+  taxAmount        Int      @default(0)
+  total            Int      @default(0)
+  pdfUrl           String?
+  /// Non-guessable token if we ever expose a public credit-note page.
+  publicToken      String?  @unique
+  createdAt        DateTime @default(now())
+
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([invoiceId])
+}
+
+/// Schedule that auto-creates invoices on a recurring cadence (rent,
+/// retainers, monthly service fees). The cron at
+/// /api/cron/run-recurring-invoices reads `nextRunAt` and produces an
+/// invoice when due, then advances `nextRunAt` by `frequency`.
+model RecurringInvoiceRule {
+  id            String    @id @default(cuid())
+  userId        String
+  customerId    String?
+  /// "WEEKLY" | "MONTHLY" | "QUARTERLY" | "YEARLY"
+  frequency     String
+  startDate     DateTime
+  nextRunAt     DateTime
+  endDate       DateTime?
+  autoSend      Boolean   @default(false)
+  /// "ACTIVE" | "PAUSED" | "CANCELLED"
+  status        String    @default("ACTIVE")
+  /// JSON snapshot of invoice fields (line items, currency, vat etc.).
+  /// Stored as text to keep schema simple; service layer JSON.parses.
+  templateData  String
+  /// Number of invoices this rule has produced; useful for naming.
+  runsCompleted Int       @default(0)
+  lastRunAt     DateTime?
+  lastRunError  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices      Invoice[]
+
+  @@index([userId, status])
+  @@index([nextRunAt, status])
+}
+
+/// Goods-out tracking. A delivery note can be issued before payment
+/// (e.g. when goods ship before invoicing) and converted into an invoice
+/// later via /api/delivery-notes/[id]/convert-to-invoice.
+model DeliveryNote {
+  id                 String   @id @default(cuid())
+  userId             String
+  customerId         String?
+  customerName       String
+  customerPhone      String?
+  customerAddress    String?
+  deliveryNoteNumber String   @unique
+  /// "DRAFT" | "ISSUED" | "DELIVERED" | "CONVERTED" | "CANCELLED"
+  status             String   @default("DRAFT")
+  deliveryDate       DateTime?
+  notes              String?
+  pdfUrl             String?
+  /// When converted to an invoice, link to the resulting Invoice.
+  convertedInvoiceId String?  @unique
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer           Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items              DeliveryNoteItem[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model DeliveryNoteItem {
+  id              String   @id @default(cuid())
+  deliveryNoteId  String
+  productId       String?
+  description     String
+  quantity        Int      @default(1)
+
+  deliveryNote    DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  product         Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([deliveryNoteId])
+}
+
+/// Quote / offer the seller can send before issuing an invoice. Convertible
+/// to either an Invoice or an OrderConfirmation.
+model Offer {
+  id            String   @id @default(cuid())
+  userId        String
+  customerId    String?
+  customerName  String
+  customerPhone String?
+  customerEmail String?
+  offerNumber   String   @unique
+  /// "DRAFT" | "SENT" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CONVERTED"
+  status        String   @default("DRAFT")
+  validUntil    DateTime?
+  subtotal      Int      @default(0)
+  taxAmount     Int      @default(0)
+  total         Int      @default(0)
+  notes         String?
+  pdfUrl        String?
+  publicToken   String?  @unique
+  /// When converted, link to the produced Invoice or OrderConfirmation.
+  convertedInvoiceId           String?  @unique
+  convertedOrderConfirmationId String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer      Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items         OfferItem[]
+  orderConfirmations OrderConfirmation[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model OfferItem {
+  id          String   @id @default(cuid())
+  offerId     String
+  productId   String?
+  description String
+  unitPrice   Int
+  quantity    Int      @default(1)
+
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([offerId])
+}
+
+/// Order confirmation (a.k.a. sales order) generated from an accepted Offer.
+/// Snapshots the offer's items so price changes on the offer cannot
+/// retroactively change the order.
+model OrderConfirmation {
+  id            String   @id @default(cuid())
+  userId        String
+  offerId       String?
+  customerId    String?
+  customerName  String
+  orderNumber   String   @unique
+  /// "DRAFT" | "CONFIRMED" | "FULFILLED" | "CANCELLED"
+  status        String   @default("CONFIRMED")
+  total         Int      @default(0)
+  notes         String?
+  pdfUrl        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer         Offer?    @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+/// Document archive — one row per finalized document for retention and
+/// search. Receipts/Invoices/CreditNotes/etc. write here on creation.
+/// `retentionUntil` is a hint for soft-purge tooling; we do not auto-delete.
+model DocumentArchive {
+  id             String   @id @default(cuid())
+  userId         String
+  /// "RECEIPT" | "INVOICE" | "CREDIT_NOTE" | "DELIVERY_NOTE" | "OFFER" |
+  /// "ORDER_CONFIRMATION"
+  documentType   String
+  /// FK-style reference to the originating record (Invoice.id, Receipt.id, ...).
+  documentId     String
+  /// Public number displayed to humans (INV-00042 etc.). Helps search.
+  documentNumber String?
+  pdfUrl         String?
+  xmlUrl         String?
+  /// "ACTIVE" | "ARCHIVED" | "PURGED"
+  status         String   @default("ACTIVE")
+  /// Optional soft-retention hint; UI surfaces a warning before this date.
+  retentionUntil DateTime?
+  createdAt      DateTime @default(now())
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentType, documentId])
+  @@index([userId, documentType, createdAt])
+  @@index([userId, documentNumber])
+}
+
+/// Per-document audit log. Every state change (created, sent, viewed,
+/// paid, cancelled, credited) writes a row. Distinct from the existing
+/// admin-only `AuditLog` model.
+model DocumentAuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  /// Actor who triggered the action. Null when the system did it
+  /// (e.g. webhook, cron).
+  actorId    String?
+  /// "INVOICE" | "RECEIPT" | "CREDIT_NOTE" | "DELIVERY_NOTE" | "OFFER" |
+  /// "ORDER_CONFIRMATION" | "RECURRING_RULE"
+  entityType String
+  entityId   String
+  /// e.g. "CREATED" | "SENT" | "VIEWED" | "PAID" | "CANCELLED" | "CREDITED" |
+  /// "REMINDER_SENT" | "RECURRING_GENERATED" | "XML_GENERATED" | "FIRS_SUBMITTED"
+  action     String
+  /// Free-form JSON metadata as a string (kept as text for schema simplicity).
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, entityType, entityId, createdAt])
+  @@index([userId, action, createdAt])
 }
 
 // ---------- REMINDERS ----------

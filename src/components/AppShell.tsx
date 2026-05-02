@@ -99,6 +99,9 @@ export function AppShell({
           {show.payments && !isPropManager && (
             <SideLink href="/receipts" icon={<Receipt size={18} />} label="Receipts" />
           )}
+          {show.payments && !isPropManager && (
+            <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
+          )}
 
           {/* Collections */}
           {!isPropManager && show.payments && (

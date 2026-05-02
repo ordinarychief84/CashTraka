@@ -4,24 +4,41 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { upsertCustomer } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
-import { nextInvoiceNumber } from '@/lib/invoice-number';
 import { requireFeature } from '@/lib/gate';
 import { emailService } from '@/lib/services/email.service';
+import {
+  computeInvoiceTotals,
+  makePublicToken,
+  nextDocumentNumber,
+} from '@/lib/invoice-helpers';
+import { documentAudit } from '@/lib/services/document-audit.service';
 
 const itemSchema = z.object({
   productId: z.string().optional().nullable(),
   description: z.string().trim().min(1),
   unitPrice: z.coerce.number().int().nonnegative(),
   quantity: z.coerce.number().int().positive(),
+  itemType: z.enum(['GOODS', 'SERVICE']).optional(),
+  hsCode: z.string().trim().max(20).optional().or(z.literal('')),
+  vatExempt: z.boolean().optional(),
 });
 
 const invoiceSchema = z.object({
   customerName: z.string().trim().min(1, 'Customer name is required'),
   customerPhone: z.string().trim().min(7, 'Phone is required'),
   customerEmail: z.string().trim().email().optional().or(z.literal('')),
+  buyerTin: z.string().trim().max(20).optional().or(z.literal('')),
+  buyerAddress: z.string().trim().max(300).optional().or(z.literal('')),
   note: z.string().trim().max(500).optional().or(z.literal('')),
+  paymentTerms: z.string().trim().max(120).optional().or(z.literal('')),
   dueDate: z.string().optional(),
+  /// Manual tax override (kept for backwards compatibility). When
+  /// `applyVat=true`, tax is recomputed from `vatRate` and this field
+  /// is ignored.
   tax: z.coerce.number().int().nonnegative().default(0),
+  applyVat: z.boolean().optional(),
+  vatRate: z.coerce.number().nonnegative().max(100).optional(),
+  discount: z.coerce.number().int().nonnegative().default(0),
   items: z.array(itemSchema).min(1, 'Add at least one line item'),
 });
 
@@ -40,15 +57,27 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { customerName, customerPhone, customerEmail, note, dueDate, tax, items } = parsed.data;
+  const {
+    customerName,
+    customerPhone,
+    customerEmail,
+    buyerTin,
+    buyerAddress,
+    note,
+    paymentTerms,
+    dueDate,
+    tax,
+    applyVat,
+    vatRate,
+    discount,
+    items,
+  } = parsed.data;
 
   const normalizedPhone = normalizeNigerianPhone(customerPhone);
   const customer = await upsertCustomer(user.id, customerName, customerPhone);
-  const invoiceNumber = await nextInvoiceNumber(user.id);
 
   // IDOR guard: any productId supplied in a line item must belong to the
-  // caller's tenant. Without this, an attacker can link invoice lines to a
-  // different tenant's product and leak its name via the invoice record.
+  // caller's tenant.
   const productIds = Array.from(
     new Set(items.map((it) => it.productId).filter(Boolean) as string[]),
   );
@@ -65,22 +94,49 @@ export async function POST(req: Request) {
     }
   }
 
-  const subtotal = items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
-  const total = subtotal + tax;
+  // Resolve totals. When VAT is on, recompute tax from rate; otherwise
+  // honour the manual `tax` field for full backwards compatibility.
+  const vatOn = applyVat ?? user.taxEnabled ?? false;
+  const effectiveVatRate = vatRate ?? (vatOn ? 7.5 : 0);
+  const totals = vatOn
+    ? computeInvoiceTotals({ items, discount, vatRate: effectiveVatRate, applyVat: true })
+    : (() => {
+        const sub = items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
+        const disc = Math.max(0, Math.min(discount, sub));
+        return { subtotal: sub, discount: disc, tax, total: sub - disc + tax, vatRate: 0 };
+      })();
+
+  const prefix =
+    user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'INV';
+
+  const invoiceNumber = await nextDocumentNumber({
+    userId: user.id,
+    prefix,
+    table: 'invoice',
+    field: 'invoiceNumber',
+  });
+  const publicToken = makePublicToken();
 
   const invoice = await prisma.invoice.create({
     data: {
       userId: user.id,
       customerId: customer.id,
       invoiceNumber,
+      publicToken,
       customerName: customerName.trim(),
       customerPhone: normalizedPhone,
       customerEmail: customerEmail || null,
+      buyerTin: buyerTin || null,
+      buyerAddress: buyerAddress || null,
       status: 'DRAFT',
-      subtotal,
-      tax,
-      total,
+      subtotal: totals.subtotal,
+      discount: totals.discount,
+      tax: totals.tax,
+      total: totals.total,
+      vatApplied: vatOn,
+      vatRate: totals.vatRate,
       note: note || null,
+      paymentTerms: paymentTerms || null,
       dueDate: dueDate ? new Date(dueDate) : null,
       items: {
         create: items.map((it) => ({
@@ -88,12 +144,30 @@ export async function POST(req: Request) {
           description: it.description,
           unitPrice: it.unitPrice,
           quantity: it.quantity,
+          itemType: it.itemType ?? 'GOODS',
+          hsCode: it.hsCode || null,
+          vatExempt: it.vatExempt ?? false,
         })),
       },
     },
   });
 
-  // Send invoice email if customer has an email address
+  documentAudit.log({
+    userId: user.id,
+    actorId: user.id,
+    entityType: 'INVOICE',
+    entityId: invoice.id,
+    action: 'CREATED',
+    metadata: { invoiceNumber, total: totals.total },
+  });
+  documentAudit.archive({
+    userId: user.id,
+    documentType: 'INVOICE',
+    documentId: invoice.id,
+    documentNumber: invoiceNumber,
+  });
+
+  // Optional courtesy email when the buyer has an address. Non-fatal.
   if (customerEmail) {
     emailService
       .sendInvoice({
@@ -101,12 +175,12 @@ export async function POST(req: Request) {
         customerName,
         business: user.businessName || user.name,
         invoiceNumber,
-        amount: total,
+        amount: totals.total,
         dueDate: dueDate ? new Date(dueDate) : null,
-        invoiceUrl: `/invoice/${invoiceNumber}`,
+        invoiceUrl: `/invoice/${publicToken}`,
       })
       .catch(() => null);
   }
 
-  return NextResponse.json({ id: invoice.id, invoiceNumber });
+  return NextResponse.json({ id: invoice.id, invoiceNumber, publicToken });
 }

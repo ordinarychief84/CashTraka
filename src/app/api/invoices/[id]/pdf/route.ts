@@ -11,31 +11,58 @@ export const runtime = 'nodejs';
 /**
  * GET /api/invoices/[id]/pdf → streams a PDF of the invoice.
  *
- * SECURITY: requires authentication AND ownership check.
+ * Two access modes:
+ *   1. Authenticated seller — session cookie + ownership check.
+ *   2. Public — `?token=<publicToken>` matches Invoice.publicToken.
+ *
  * Only accepts the cuid `id`, NOT the sequential invoiceNumber.
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const url = new URL(req.url);
+  const publicToken = url.searchParams.get('token');
 
-  const invoice = await prisma.invoice.findFirst({
-    where: { id: params.id, userId: user.id },
-    include: {
-      user: {
-        select: {
-          name: true,
-          businessName: true,
-          businessAddress: true,
-          whatsappNumber: true,
-          bankName: true,
-          bankAccountNumber: true,
-          bankAccountName: true,
-          tin: true,
+  let invoice;
+  if (publicToken && publicToken.length >= 16) {
+    invoice = await prisma.invoice.findFirst({
+      where: { id: params.id, publicToken },
+      include: {
+        user: {
+          select: {
+            name: true,
+            businessName: true,
+            businessAddress: true,
+            whatsappNumber: true,
+            bankName: true,
+            bankAccountNumber: true,
+            bankAccountName: true,
+            tin: true,
+          },
         },
+        items: true,
       },
-      items: true,
-    },
-  });
+    });
+  } else {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    invoice = await prisma.invoice.findFirst({
+      where: { id: params.id, userId: user.id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            businessName: true,
+            businessAddress: true,
+            whatsappNumber: true,
+            bankName: true,
+            bankAccountNumber: true,
+            bankAccountName: true,
+            tin: true,
+          },
+        },
+        items: true,
+      },
+    });
+  }
   if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Render the FIRS QR code (if we have an IRN payload from a successful

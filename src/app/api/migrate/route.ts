@@ -247,6 +247,293 @@ export async function GET(req: NextRequest) {
     results.push('FK FAIL: Album/AlbumProduct - ' + e.message?.substring(0, 100));
   }
 
+  // ===== Full invoicing upgrade (2026-05-02) =====
+  // User: invoice settings
+  await addCol('User', 'defaultCurrency', 'TEXT NOT NULL', "'NGN'");
+  await addCol('User', 'invoicePrefix', 'TEXT', "'INV'");
+  await addCol('User', 'creditNotePrefix', 'TEXT', "'CN'");
+  await addCol('User', 'offerPrefix', 'TEXT', "'OFF'");
+  await addCol('User', 'deliveryNotePrefix', 'TEXT', "'DN'");
+  await addCol('User', 'orderPrefix', 'TEXT', "'ORD'");
+  await addCol('User', 'taxEnabled', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'paymentInstructions', 'TEXT', 'NULL');
+  await addCol('User', 'invoiceAccentColor', 'TEXT', "'#00B8E8'");
+  await addCol('User', 'invoiceTemplate', 'TEXT', "'professional'");
+
+  // Invoice: extra columns
+  await addCol('Invoice', 'discount', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'paymentTerms', 'TEXT', 'NULL');
+  await addCol('Invoice', 'amountPaid', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'viewedAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Invoice', 'sentAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Invoice', 'publicToken', 'TEXT', 'NULL');
+  await addCol('Invoice', 'xmlUrl', 'TEXT', 'NULL');
+  await addCol('Invoice', 'xmlGeneratedAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Invoice', 'electronicStatus', 'TEXT', 'NULL');
+  await addCol('Invoice', 'recurringRuleId', 'TEXT', 'NULL');
+
+  // New tables
+  const newTables: Array<[string, string]> = [
+    [
+      'InvoiceReminder',
+      `CREATE TABLE IF NOT EXISTS "InvoiceReminder" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "invoiceId" TEXT NOT NULL,
+         "type" TEXT NOT NULL DEFAULT 'FRIENDLY_REMINDER',
+         "channel" TEXT NOT NULL, "message" TEXT NOT NULL,
+         "sentAt" TIMESTAMP(3), "status" TEXT NOT NULL DEFAULT 'QUEUED',
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         CONSTRAINT "InvoiceReminder_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'CreditNote',
+      `CREATE TABLE IF NOT EXISTS "CreditNote" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "invoiceId" TEXT NOT NULL,
+         "creditNoteNumber" TEXT NOT NULL, "reason" TEXT,
+         "subtotal" INTEGER NOT NULL DEFAULT 0,
+         "taxAmount" INTEGER NOT NULL DEFAULT 0,
+         "total" INTEGER NOT NULL DEFAULT 0,
+         "pdfUrl" TEXT, "publicToken" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         CONSTRAINT "CreditNote_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'RecurringInvoiceRule',
+      `CREATE TABLE IF NOT EXISTS "RecurringInvoiceRule" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "customerId" TEXT,
+         "frequency" TEXT NOT NULL,
+         "startDate" TIMESTAMP(3) NOT NULL,
+         "nextRunAt" TIMESTAMP(3) NOT NULL,
+         "endDate" TIMESTAMP(3),
+         "autoSend" BOOLEAN NOT NULL DEFAULT false,
+         "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+         "templateData" TEXT NOT NULL,
+         "runsCompleted" INTEGER NOT NULL DEFAULT 0,
+         "lastRunAt" TIMESTAMP(3), "lastRunError" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         "updatedAt" TIMESTAMP(3) NOT NULL,
+         CONSTRAINT "RecurringInvoiceRule_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'DeliveryNote',
+      `CREATE TABLE IF NOT EXISTS "DeliveryNote" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "customerId" TEXT,
+         "customerName" TEXT NOT NULL, "customerPhone" TEXT, "customerAddress" TEXT,
+         "deliveryNoteNumber" TEXT NOT NULL,
+         "status" TEXT NOT NULL DEFAULT 'DRAFT',
+         "deliveryDate" TIMESTAMP(3), "notes" TEXT, "pdfUrl" TEXT,
+         "convertedInvoiceId" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         "updatedAt" TIMESTAMP(3) NOT NULL,
+         CONSTRAINT "DeliveryNote_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'DeliveryNoteItem',
+      `CREATE TABLE IF NOT EXISTS "DeliveryNoteItem" (
+         "id" TEXT NOT NULL, "deliveryNoteId" TEXT NOT NULL, "productId" TEXT,
+         "description" TEXT NOT NULL,
+         "quantity" INTEGER NOT NULL DEFAULT 1,
+         CONSTRAINT "DeliveryNoteItem_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'Offer',
+      `CREATE TABLE IF NOT EXISTS "Offer" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "customerId" TEXT,
+         "customerName" TEXT NOT NULL, "customerPhone" TEXT, "customerEmail" TEXT,
+         "offerNumber" TEXT NOT NULL,
+         "status" TEXT NOT NULL DEFAULT 'DRAFT',
+         "validUntil" TIMESTAMP(3),
+         "subtotal" INTEGER NOT NULL DEFAULT 0,
+         "taxAmount" INTEGER NOT NULL DEFAULT 0,
+         "total" INTEGER NOT NULL DEFAULT 0,
+         "notes" TEXT, "pdfUrl" TEXT, "publicToken" TEXT,
+         "convertedInvoiceId" TEXT,
+         "convertedOrderConfirmationId" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         "updatedAt" TIMESTAMP(3) NOT NULL,
+         CONSTRAINT "Offer_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'OfferItem',
+      `CREATE TABLE IF NOT EXISTS "OfferItem" (
+         "id" TEXT NOT NULL, "offerId" TEXT NOT NULL, "productId" TEXT,
+         "description" TEXT NOT NULL,
+         "unitPrice" INTEGER NOT NULL,
+         "quantity" INTEGER NOT NULL DEFAULT 1,
+         CONSTRAINT "OfferItem_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'OrderConfirmation',
+      `CREATE TABLE IF NOT EXISTS "OrderConfirmation" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "offerId" TEXT,
+         "customerId" TEXT, "customerName" TEXT NOT NULL,
+         "orderNumber" TEXT NOT NULL,
+         "status" TEXT NOT NULL DEFAULT 'CONFIRMED',
+         "total" INTEGER NOT NULL DEFAULT 0,
+         "notes" TEXT, "pdfUrl" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         "updatedAt" TIMESTAMP(3) NOT NULL,
+         CONSTRAINT "OrderConfirmation_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'DocumentArchive',
+      `CREATE TABLE IF NOT EXISTS "DocumentArchive" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL,
+         "documentType" TEXT NOT NULL, "documentId" TEXT NOT NULL,
+         "documentNumber" TEXT, "pdfUrl" TEXT, "xmlUrl" TEXT,
+         "status" TEXT NOT NULL DEFAULT 'ACTIVE',
+         "retentionUntil" TIMESTAMP(3),
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         CONSTRAINT "DocumentArchive_pkey" PRIMARY KEY ("id"))`,
+    ],
+    [
+      'DocumentAuditLog',
+      `CREATE TABLE IF NOT EXISTS "DocumentAuditLog" (
+         "id" TEXT NOT NULL, "userId" TEXT NOT NULL, "actorId" TEXT,
+         "entityType" TEXT NOT NULL, "entityId" TEXT NOT NULL,
+         "action" TEXT NOT NULL, "metadata" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         CONSTRAINT "DocumentAuditLog_pkey" PRIMARY KEY ("id"))`,
+    ],
+  ];
+
+  for (const [name, sql] of newTables) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name + ' table');
+    } catch (e: any) {
+      results.push('FAIL: ' + name + ' table - ' + e.message?.substring(0, 100));
+    }
+  }
+
+  // Indexes for the new tables
+  const newInvoicingIndexes: Array<[string, string]> = [
+    ['Invoice_publicToken_key2', `CREATE UNIQUE INDEX IF NOT EXISTS "Invoice_publicToken_key2" ON "Invoice"("publicToken") WHERE "publicToken" IS NOT NULL`],
+    ['Invoice_userId_dueDate_idx', `CREATE INDEX IF NOT EXISTS "Invoice_userId_dueDate_idx" ON "Invoice"("userId", "dueDate")`],
+    ['Invoice_recurringRuleId_idx', `CREATE INDEX IF NOT EXISTS "Invoice_recurringRuleId_idx" ON "Invoice"("recurringRuleId")`],
+    ['CreditNote_creditNoteNumber_key', `CREATE UNIQUE INDEX IF NOT EXISTS "CreditNote_creditNoteNumber_key" ON "CreditNote"("creditNoteNumber")`],
+    ['CreditNote_publicToken_key', `CREATE UNIQUE INDEX IF NOT EXISTS "CreditNote_publicToken_key" ON "CreditNote"("publicToken") WHERE "publicToken" IS NOT NULL`],
+    ['CreditNote_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "CreditNote_userId_createdAt_idx" ON "CreditNote"("userId", "createdAt")`],
+    ['CreditNote_invoiceId_idx', `CREATE INDEX IF NOT EXISTS "CreditNote_invoiceId_idx" ON "CreditNote"("invoiceId")`],
+    ['InvoiceReminder_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "InvoiceReminder_userId_createdAt_idx" ON "InvoiceReminder"("userId", "createdAt")`],
+    ['InvoiceReminder_invoiceId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "InvoiceReminder_invoiceId_createdAt_idx" ON "InvoiceReminder"("invoiceId", "createdAt")`],
+    ['RecurringInvoiceRule_userId_status_idx', `CREATE INDEX IF NOT EXISTS "RecurringInvoiceRule_userId_status_idx" ON "RecurringInvoiceRule"("userId", "status")`],
+    ['RecurringInvoiceRule_nextRunAt_status_idx', `CREATE INDEX IF NOT EXISTS "RecurringInvoiceRule_nextRunAt_status_idx" ON "RecurringInvoiceRule"("nextRunAt", "status")`],
+    ['DeliveryNote_deliveryNoteNumber_key', `CREATE UNIQUE INDEX IF NOT EXISTS "DeliveryNote_deliveryNoteNumber_key" ON "DeliveryNote"("deliveryNoteNumber")`],
+    ['DeliveryNote_convertedInvoiceId_key', `CREATE UNIQUE INDEX IF NOT EXISTS "DeliveryNote_convertedInvoiceId_key" ON "DeliveryNote"("convertedInvoiceId") WHERE "convertedInvoiceId" IS NOT NULL`],
+    ['DeliveryNote_userId_status_idx', `CREATE INDEX IF NOT EXISTS "DeliveryNote_userId_status_idx" ON "DeliveryNote"("userId", "status")`],
+    ['DeliveryNote_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "DeliveryNote_userId_createdAt_idx" ON "DeliveryNote"("userId", "createdAt")`],
+    ['DeliveryNoteItem_deliveryNoteId_idx', `CREATE INDEX IF NOT EXISTS "DeliveryNoteItem_deliveryNoteId_idx" ON "DeliveryNoteItem"("deliveryNoteId")`],
+    ['Offer_offerNumber_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Offer_offerNumber_key" ON "Offer"("offerNumber")`],
+    ['Offer_publicToken_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Offer_publicToken_key" ON "Offer"("publicToken") WHERE "publicToken" IS NOT NULL`],
+    ['Offer_convertedInvoiceId_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Offer_convertedInvoiceId_key" ON "Offer"("convertedInvoiceId") WHERE "convertedInvoiceId" IS NOT NULL`],
+    ['Offer_convertedOrderConfirmationId_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Offer_convertedOrderConfirmationId_key" ON "Offer"("convertedOrderConfirmationId") WHERE "convertedOrderConfirmationId" IS NOT NULL`],
+    ['Offer_userId_status_idx', `CREATE INDEX IF NOT EXISTS "Offer_userId_status_idx" ON "Offer"("userId", "status")`],
+    ['Offer_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "Offer_userId_createdAt_idx" ON "Offer"("userId", "createdAt")`],
+    ['OfferItem_offerId_idx', `CREATE INDEX IF NOT EXISTS "OfferItem_offerId_idx" ON "OfferItem"("offerId")`],
+    ['OrderConfirmation_orderNumber_key', `CREATE UNIQUE INDEX IF NOT EXISTS "OrderConfirmation_orderNumber_key" ON "OrderConfirmation"("orderNumber")`],
+    ['OrderConfirmation_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "OrderConfirmation_userId_createdAt_idx" ON "OrderConfirmation"("userId", "createdAt")`],
+    ['DocumentArchive_unique_doc', `CREATE UNIQUE INDEX IF NOT EXISTS "DocumentArchive_documentType_documentId_key" ON "DocumentArchive"("documentType", "documentId")`],
+    ['DocumentArchive_userId_documentType_createdAt_idx', `CREATE INDEX IF NOT EXISTS "DocumentArchive_userId_documentType_createdAt_idx" ON "DocumentArchive"("userId", "documentType", "createdAt")`],
+    ['DocumentArchive_userId_documentNumber_idx', `CREATE INDEX IF NOT EXISTS "DocumentArchive_userId_documentNumber_idx" ON "DocumentArchive"("userId", "documentNumber")`],
+    ['DocumentAuditLog_entity_idx', `CREATE INDEX IF NOT EXISTS "DocumentAuditLog_entity_idx" ON "DocumentAuditLog"("userId", "entityType", "entityId", "createdAt")`],
+    ['DocumentAuditLog_action_idx', `CREATE INDEX IF NOT EXISTS "DocumentAuditLog_action_idx" ON "DocumentAuditLog"("userId", "action", "createdAt")`],
+  ];
+  for (const [name, sql] of newInvoicingIndexes) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name);
+    } catch (e: any) {
+      results.push('INDEX FAIL: ' + name + ' - ' + e.message?.substring(0, 80));
+    }
+  }
+
+  // Foreign keys for the new invoicing tables (idempotent via DO blocks)
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'InvoiceReminder_userId_fkey') THEN
+          ALTER TABLE "InvoiceReminder" ADD CONSTRAINT "InvoiceReminder_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'InvoiceReminder_invoiceId_fkey') THEN
+          ALTER TABLE "InvoiceReminder" ADD CONSTRAINT "InvoiceReminder_invoiceId_fkey"
+            FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'CreditNote_userId_fkey') THEN
+          ALTER TABLE "CreditNote" ADD CONSTRAINT "CreditNote_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'CreditNote_invoiceId_fkey') THEN
+          ALTER TABLE "CreditNote" ADD CONSTRAINT "CreditNote_invoiceId_fkey"
+            FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'RecurringInvoiceRule_userId_fkey') THEN
+          ALTER TABLE "RecurringInvoiceRule" ADD CONSTRAINT "RecurringInvoiceRule_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Invoice_recurringRuleId_fkey') THEN
+          ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_recurringRuleId_fkey"
+            FOREIGN KEY ("recurringRuleId") REFERENCES "RecurringInvoiceRule"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DeliveryNote_userId_fkey') THEN
+          ALTER TABLE "DeliveryNote" ADD CONSTRAINT "DeliveryNote_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DeliveryNote_customerId_fkey') THEN
+          ALTER TABLE "DeliveryNote" ADD CONSTRAINT "DeliveryNote_customerId_fkey"
+            FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DeliveryNoteItem_deliveryNoteId_fkey') THEN
+          ALTER TABLE "DeliveryNoteItem" ADD CONSTRAINT "DeliveryNoteItem_deliveryNoteId_fkey"
+            FOREIGN KEY ("deliveryNoteId") REFERENCES "DeliveryNote"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DeliveryNoteItem_productId_fkey') THEN
+          ALTER TABLE "DeliveryNoteItem" ADD CONSTRAINT "DeliveryNoteItem_productId_fkey"
+            FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Offer_userId_fkey') THEN
+          ALTER TABLE "Offer" ADD CONSTRAINT "Offer_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Offer_customerId_fkey') THEN
+          ALTER TABLE "Offer" ADD CONSTRAINT "Offer_customerId_fkey"
+            FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OfferItem_offerId_fkey') THEN
+          ALTER TABLE "OfferItem" ADD CONSTRAINT "OfferItem_offerId_fkey"
+            FOREIGN KEY ("offerId") REFERENCES "Offer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OfferItem_productId_fkey') THEN
+          ALTER TABLE "OfferItem" ADD CONSTRAINT "OfferItem_productId_fkey"
+            FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OrderConfirmation_userId_fkey') THEN
+          ALTER TABLE "OrderConfirmation" ADD CONSTRAINT "OrderConfirmation_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OrderConfirmation_offerId_fkey') THEN
+          ALTER TABLE "OrderConfirmation" ADD CONSTRAINT "OrderConfirmation_offerId_fkey"
+            FOREIGN KEY ("offerId") REFERENCES "Offer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'OrderConfirmation_customerId_fkey') THEN
+          ALTER TABLE "OrderConfirmation" ADD CONSTRAINT "OrderConfirmation_customerId_fkey"
+            FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DocumentArchive_userId_fkey') THEN
+          ALTER TABLE "DocumentArchive" ADD CONSTRAINT "DocumentArchive_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DocumentAuditLog_userId_fkey') THEN
+          ALTER TABLE "DocumentAuditLog" ADD CONSTRAINT "DocumentAuditLog_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('OK: invoicing FKs');
+  } catch (e: any) {
+    results.push('FK FAIL: invoicing - ' + e.message?.substring(0, 100));
+  }
+
   // CatalogEvent table — public storefront activity log
   try {
     await prisma.$executeRawUnsafe(`

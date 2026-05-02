@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useRef, useState } from 'react';
-import { Upload, X, Loader2, ImagePlus, Move } from 'lucide-react';
+import {
+  Upload,
+  X,
+  Loader2,
+  ImagePlus,
+  Move,
+  AlertTriangle,
+  RefreshCw,
+} from 'lucide-react';
 
 type Props = {
   /// Current list of hosted image URLs (controlled). Keep state in the parent.
@@ -9,14 +17,13 @@ type Props = {
   onChange: (next: string[]) => void;
   /// Hard cap matching the schema. Defaults to 8 (Product images cap).
   maxFiles?: number;
-  /// Called when a per-file upload error happens.
+  /// Called when a per-file UPLOAD error happens (not when a stored image
+  /// later fails to render — those are handled silently inside the component).
   onError?: (msg: string) => void;
   /// Visual layout: "grid" for product images, "single" for an album cover.
   variant?: 'grid' | 'single';
   /// Optional helper text below the uploader.
   hint?: string;
-  /// When variant=single, allow choosing one image (replace existing on upload).
-  /// Ignored for grid.
   className?: string;
 };
 
@@ -26,7 +33,12 @@ const ACCEPT = 'image/png,image/jpeg,image/jpg,image/webp,image/gif';
  * Drag-drop image uploader. Keeps state external (`value` + `onChange`) so
  * the consumer form can include the URL list in its own submit payload.
  *
- * Sends multipart POST → /api/showroom/upload, expects { files: [{url}] }.
+ * Broken-image handling: when an `<img>` fails to load (404 from the CDN,
+ * network blip, etc.) we mark that index as broken and render a clear
+ * "Image broken, replace" placeholder over it. We do NOT call onError for
+ * render failures because the legacy URLs are noisy; they would push a
+ * toast on every page load. The seller sees the broken state inline and
+ * replaces with one tap.
  */
 export function ImageUploader({
   value,
@@ -40,13 +52,23 @@ export function ImageUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(0);
   const [dragOver, setDragOver] = useState(false);
+  const [brokenUrls, setBrokenUrls] = useState<Set<string>>(new Set());
 
   const remaining = Math.max(0, maxFiles - value.length);
+
+  function markBroken(url: string) {
+    setBrokenUrls((prev) => {
+      if (prev.has(url)) return prev;
+      const next = new Set(prev);
+      next.add(url);
+      return next;
+    });
+  }
 
   const onPick = useCallback(
     async (filesIn: FileList | File[] | null) => {
       if (!filesIn) return;
-      const files = Array.from(filesIn).slice(0, remaining);
+      const files = Array.from(filesIn).slice(0, remaining || 1);
       if (files.length === 0) {
         onError?.(`You can only upload up to ${maxFiles} images.`);
         return;
@@ -105,8 +127,11 @@ export function ImageUploader({
     onPick(e.dataTransfer.files);
   }
 
+  /* ─────────────────── Single variant (album cover) ─────────────────── */
   if (variant === 'single') {
     const url = value[0] ?? null;
+    const isBroken = !!url && brokenUrls.has(url);
+
     return (
       <div className={className}>
         <input
@@ -117,31 +142,50 @@ export function ImageUploader({
           onChange={(e) => onPick(e.target.files)}
         />
         {url ? (
-          <div className="group relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100 ring-1 ring-border">
-            <img
-              src={url}
-              alt=""
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              className="h-full w-full object-cover"
-              onError={(e) =>
-                onError?.('That image could not be loaded. Try uploading again.') ??
-                ((e.currentTarget.style.display = 'none') as unknown as void)
-              }
-            />
-            <div className="absolute inset-0 hidden items-end justify-end gap-2 bg-gradient-to-t from-black/40 to-transparent p-2 group-hover:flex">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-slate-100 ring-1 ring-border">
+            {!isBroken ? (
+              <img
+                src={url}
+                alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+                onError={() => markBroken(url)}
+              />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 px-4 text-center">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                  <AlertTriangle size={16} />
+                </div>
+                <div className="text-xs font-semibold text-slate-700">
+                  Image not available
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  Tap Replace to upload again.
+                </div>
+              </div>
+            )}
+
+            {/* Always-visible action chips (touch-friendly), pinned bottom-right.
+                On hover for mouse users they fade in slightly stronger. */}
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-end gap-1.5 bg-gradient-to-t from-black/55 to-transparent px-2 py-1.5">
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="rounded-lg bg-white/95 px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow hover:bg-white"
+                className="inline-flex items-center gap-1 rounded-md bg-white/95 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-white"
               >
+                <RefreshCw size={11} />
                 Replace
               </button>
               <button
                 type="button"
-                onClick={() => onChange([])}
-                className="rounded-lg bg-red-500/95 px-2.5 py-1.5 text-xs font-semibold text-white shadow hover:bg-red-500"
+                onClick={() => {
+                  onChange([]);
+                  setBrokenUrls(new Set());
+                }}
+                className="inline-flex items-center gap-1 rounded-md bg-red-500/95 px-2 py-1 text-[11px] font-semibold text-white shadow-sm hover:bg-red-500"
               >
+                <X size={11} />
                 Remove
               </button>
             </div>
@@ -171,7 +215,7 @@ export function ImageUploader({
             <span className="font-medium">
               {uploading > 0 ? 'Uploading…' : 'Add cover image'}
             </span>
-            <span className="text-xs text-slate-400">PNG, JPG or WEBP · up to 5 MB</span>
+            <span className="text-xs text-slate-400">PNG, JPG or WEBP, up to 5 MB</span>
           </button>
         )}
         {hint ? <p className="mt-1.5 text-xs text-slate-500">{hint}</p> : null}
@@ -179,7 +223,7 @@ export function ImageUploader({
     );
   }
 
-  // Grid (multi-file)
+  /* ─────────────────── Grid variant (product photos) ─────────────────── */
   return (
     <div className={className}>
       <input
@@ -193,29 +237,39 @@ export function ImageUploader({
 
       {value.length > 0 ? (
         <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {value.map((url, i) => (
-            <li
-              key={url + i}
-              className="group relative aspect-square overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border"
-            >
-              <img
-                src={url}
-                alt=""
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).style.opacity = '0.2';
-                  onError?.('Image could not be loaded.');
-                }}
-              />
-              {i === 0 ? (
-                <span className="absolute left-1.5 top-1.5 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
-                  Main
-                </span>
-              ) : null}
-              <div className="absolute inset-0 hidden items-end justify-between bg-gradient-to-t from-black/50 to-transparent p-1.5 group-hover:flex">
-                <div className="flex gap-1">
+          {value.map((url, i) => {
+            const isBroken = brokenUrls.has(url);
+            return (
+              <li
+                key={url + i}
+                className="relative aspect-square overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border"
+              >
+                {!isBroken ? (
+                  <img
+                    src={url}
+                    alt=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="h-full w-full object-cover"
+                    onError={() => markBroken(url)}
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
+                    <AlertTriangle size={14} className="text-amber-500" />
+                    <span className="text-[9px] font-semibold text-slate-600">
+                      Broken
+                    </span>
+                  </div>
+                )}
+
+                {i === 0 && !isBroken ? (
+                  <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
+                    Main
+                  </span>
+                ) : null}
+
+                {/* Always-visible touch action bar */}
+                <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/55 to-transparent px-1 py-1">
                   <button
                     type="button"
                     onClick={() => move(i, i - 1)}
@@ -225,18 +279,18 @@ export function ImageUploader({
                   >
                     <Move size={11} />
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => remove(i)}
+                    title="Remove"
+                    className="rounded-md bg-red-500/95 p-1 text-white hover:bg-red-500"
+                  >
+                    <X size={11} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => remove(i)}
-                  title="Remove"
-                  className="rounded-md bg-red-500/95 p-1 text-white hover:bg-red-500"
-                >
-                  <X size={11} />
-                </button>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
 
           {remaining > 0 ? (
             <li>
@@ -290,7 +344,7 @@ export function ImageUploader({
             {uploading > 0 ? 'Uploading…' : 'Drop images or click to upload'}
           </span>
           <span className="text-xs text-slate-400">
-            Up to {maxFiles} images · PNG, JPG, WEBP · 5 MB each
+            Up to {maxFiles} images, PNG, JPG, WEBP, 5 MB each
           </span>
         </button>
       )}

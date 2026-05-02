@@ -22,6 +22,7 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { ImageUploader } from './ImageUploader';
+import { SafeImage } from '@/components/SafeImage';
 
 type ProductLite = {
   id: string;
@@ -290,7 +291,7 @@ export function AlbumEditor({
                   value={coverImageUrl ? [coverImageUrl] : []}
                   onChange={(urls) => setCoverImageUrl(urls[0] ?? '')}
                   onError={(msg) => setError(msg)}
-                  hint="Defaults to your first product's first image."
+                  hint="Falls back to your first product's first image."
                 />
               </div>
 
@@ -413,20 +414,16 @@ export function AlbumEditor({
                         <ArrowDown size={12} />
                       </button>
                     </div>
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border">
-                      {p.images[0] ? (
-                        <img
-                          src={p.images[0]}
-                          alt={p.name}
-                          className="h-full w-full object-cover"
-                          referrerPolicy="no-referrer"
-                        />
-                      ) : (
+                    <SafeImage
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-100 ring-1 ring-border"
+                      fallback={
                         <div className="flex h-full w-full items-center justify-center text-slate-300">
                           <ImageIcon size={14} />
                         </div>
-                      )}
-                    </div>
+                      }
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-medium text-ink">{p.name}</div>
                       <div className="num text-xs text-brand-600">{formatNaira(p.price)}</div>
@@ -500,15 +497,16 @@ export function AlbumEditor({
                         key={p.id}
                         className="flex items-center gap-2 bg-white px-2.5 py-2 hover:bg-slate-50"
                       >
-                        <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-slate-100">
-                          {p.images[0] ? (
-                            <img
-                              src={p.images[0]}
-                              alt={p.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : null}
-                        </div>
+                        <SafeImage
+                          src={p.images[0]}
+                          alt={p.name}
+                          className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-slate-100"
+                          fallback={
+                            <div className="flex h-full w-full items-center justify-center text-slate-300">
+                              <ImageIcon size={12} />
+                            </div>
+                          }
+                        />
                         <div className="min-w-0 flex-1">
                           <div className="truncate text-xs font-medium text-ink">
                             {p.name}
@@ -552,17 +550,16 @@ export function AlbumEditor({
             </div>
             <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border transition hover:shadow-md">
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
-                {previewCover ? (
-                  <img
-                    src={previewCover}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                    Cover preview
-                  </div>
-                )}
+                <SafeImage
+                  src={previewCover}
+                  className="h-full w-full"
+                  imgClassName="h-full w-full object-cover"
+                  fallback={
+                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                      Cover preview
+                    </div>
+                  }
+                />
                 {passcodeRequired ? (
                   <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
                     <Lock size={10} /> Private

@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Lock, Grid3x3 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { catalogService, hashClientIp } from '@/lib/services/catalog.service';
-import { formatNaira } from '@/lib/format';
 import { headers } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
@@ -16,6 +16,11 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
+/**
+ * Storefront homepage — Yupoo-faithful: a grid of album cards.
+ * If the seller has no albums yet, we redirect-style fall through to a
+ * minimal CTA pointing customers at the flat product grid at /all.
+ */
 export default async function StorePage({ params }: { params: { slug: string } }) {
   const store = await catalogService.getStore(params.slug);
   if (!store) notFound();
@@ -29,6 +34,9 @@ export default async function StorePage({ params }: { params: { slug: string } }
     referrer: h.get('referer'),
     userAgent: h.get('user-agent'),
   });
+
+  const hasAlbums = store.albums.length > 0;
+  const hasProducts = store.products.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -52,54 +60,83 @@ export default async function StorePage({ params }: { params: { slug: string } }
               <p className="truncate text-xs text-slate-600">{store.tagline}</p>
             ) : null}
           </div>
+          {hasAlbums && hasProducts ? (
+            <Link
+              href={`/store/${params.slug}/all`}
+              className="hidden text-xs font-semibold text-brand-600 hover:underline sm:inline-flex sm:items-center sm:gap-1"
+            >
+              <Grid3x3 size={14} /> All products
+            </Link>
+          ) : null}
         </div>
       </header>
 
-      {/* Grid */}
       <main className="mx-auto max-w-5xl px-4 py-6">
-        {store.products.length === 0 ? (
+        {!hasAlbums && !hasProducts ? (
           <div className="rounded-xl border border-dashed border-border bg-white p-10 text-center text-sm text-slate-500">
-            No products listed yet.
+            No catalog yet. Check back soon.
+          </div>
+        ) : !hasAlbums ? (
+          // Fallback for sellers without albums — show a CTA to view all products.
+          <div className="rounded-xl bg-white p-6 text-center shadow-sm ring-1 ring-border">
+            <p className="text-sm text-slate-700">
+              {store.products.length} {store.products.length === 1 ? 'product' : 'products'} available.
+            </p>
+            <Link
+              href={`/store/${params.slug}/all`}
+              className="mt-3 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+            >
+              <Grid3x3 size={16} /> Browse all products
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-            {store.products.map((p) => (
-              <Link
-                key={p.id}
-                href={`/store/${params.slug}/${p.id}`}
-                className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border transition hover:shadow-md"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                  {p.images[0] ? (
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="h-full w-full object-cover transition group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-slate-400 text-xs">
-                      No image
-                    </div>
-                  )}
-                  {p.status === 'SOLD_OUT' ? (
-                    <div className="absolute right-2 top-2 rounded-full bg-slate-900/80 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                      Sold out
-                    </div>
-                  ) : p.status === 'LOW_STOCK' ? (
-                    <div className="absolute right-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                      Low stock
-                    </div>
-                  ) : null}
-                </div>
-                <div className="flex flex-1 flex-col p-3">
-                  <div className="line-clamp-2 text-sm font-medium text-ink">{p.name}</div>
-                  <div className="num mt-1 text-base font-bold text-brand-600">
-                    {formatNaira(p.price)}
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {store.albums.map((a) => (
+                <Link
+                  key={a.slug}
+                  href={`/store/${params.slug}/album/${a.slug}`}
+                  className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-border transition hover:shadow-md"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                    {a.coverImageUrl ? (
+                      <img
+                        src={a.coverImageUrl}
+                        alt={a.title}
+                        className="h-full w-full object-cover transition group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                        No cover
+                      </div>
+                    )}
+                    {a.passcodeRequired ? (
+                      <div className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-slate-900/70 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
+                        <Lock size={10} /> Private
+                      </div>
+                    ) : null}
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                  <div className="p-3">
+                    <div className="line-clamp-2 text-sm font-semibold text-ink">{a.title}</div>
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      {a.itemCount} {a.itemCount === 1 ? 'item' : 'items'}
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {hasProducts ? (
+              <div className="mt-6 text-center sm:hidden">
+                <Link
+                  href={`/store/${params.slug}/all`}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:underline"
+                >
+                  <Grid3x3 size={14} /> Browse all products
+                </Link>
+              </div>
+            ) : null}
+          </>
         )}
       </main>
 

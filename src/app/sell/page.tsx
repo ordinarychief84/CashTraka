@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ExternalLink, Eye, MessageCircle, Package, Settings as SettingsIcon } from 'lucide-react';
+import { ExternalLink, Eye, MessageCircle, Package, Settings as SettingsIcon, Library } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function SellOverviewPage() {
   const user = await guard();
 
-  const [productCount, publishedCount, recentEvents, topProducts] = await Promise.all([
+  const [productCount, publishedCount, recentEvents, topProducts, albumCount] = await Promise.all([
     prisma.product.count({ where: { userId: user.id, archived: false } }),
     prisma.product.count({ where: { userId: user.id, archived: false, isPublished: true } }),
     prisma.catalogEvent.findMany({
@@ -27,6 +27,7 @@ export default async function SellOverviewPage() {
       orderBy: { _count: { productId: 'desc' } },
       take: 5,
     }),
+    prisma.album.count({ where: { userId: user.id, isPublished: true } }),
   ]);
 
   const topProductIds = topProducts.map((t) => t.productId).filter(Boolean) as string[];
@@ -86,11 +87,9 @@ export default async function SellOverviewPage() {
           tone="muted"
         />
         <SummaryCard
-          label="Order clicks (last 10)"
-          value={String(
-            recentEvents.filter((e) => e.type === 'WHATSAPP_ORDER').length,
-          )}
-          tone="muted"
+          label="Published albums"
+          value={String(albumCount)}
+          tone={albumCount > 0 ? 'success' : 'muted'}
         />
         <SummaryCard
           label="Storefront URL"
@@ -107,6 +106,12 @@ export default async function SellOverviewPage() {
           className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-brand-500"
         >
           <Package size={16} /> Manage products
+        </Link>
+        <Link
+          href="/sell/albums"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-brand-500"
+        >
+          <Library size={16} /> Albums
         </Link>
         <Link
           href="/sell/share"

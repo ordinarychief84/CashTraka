@@ -32,12 +32,22 @@ export type PublicProduct = {
   status: 'AVAILABLE' | 'LOW_STOCK' | 'SOLD_OUT';
 };
 
+export type PublicAlbumCard = {
+  slug: string;
+  title: string;
+  description: string | null;
+  coverImageUrl: string | null;
+  itemCount: number;
+  passcodeRequired: boolean;
+};
+
 export type PublicStore = {
   business: string;
   tagline: string | null;
   logoUrl: string | null;
   whatsappNumber: string | null;
   products: PublicProduct[];
+  albums: PublicAlbumCard[];
 };
 
 function shapeProduct(p: {
@@ -67,6 +77,10 @@ export const catalogService = {
   /**
    * Look up a published storefront by slug.
    * Returns null when the slug is unknown, catalog is disabled, or the user is suspended.
+   *
+   * Returns BOTH `albums` (Yupoo-style) and `products` (flat fallback list).
+   * The public homepage shows albums first; the flat list is also available
+   * at /store/[slug]/all for sellers who don't organise into albums.
    */
   async getStore(slug: string): Promise<PublicStore | null> {
     const user = await prisma.user.findUnique({
@@ -84,11 +98,38 @@ export const catalogService = {
     });
     if (!user || !user.catalogEnabled || user.isSuspended) return null;
 
-    const products = await prisma.product.findMany({
-      where: { userId: user.id, isPublished: true, archived: false },
-      orderBy: [{ updatedAt: 'desc' }],
-      take: 200,
-    });
+    const [products, albums] = await Promise.all([
+      prisma.product.findMany({
+        where: { userId: user.id, isPublished: true, archived: false },
+        orderBy: [{ updatedAt: 'desc' }],
+        take: 200,
+      }),
+      prisma.album.findMany({
+        where: { userId: user.id, isPublished: true },
+        orderBy: [{ position: 'asc' }, { createdAt: 'desc' }],
+        include: {
+          _count: { select: { products: true } },
+          products: {
+            take: 1,
+            orderBy: { position: 'asc' },
+            include: { product: { select: { images: true } } },
+          },
+        },
+        take: 100,
+      }),
+    ]);
+
+    const albumCards: PublicAlbumCard[] = albums.map((a) => ({
+      slug: a.slug,
+      title: a.title,
+      description: a.description,
+      coverImageUrl:
+        a.coverImageUrl ||
+        a.products[0]?.product?.images?.[0] ||
+        null,
+      itemCount: a._count.products,
+      passcodeRequired: a.passcodeRequired,
+    }));
 
     return {
       business: user.businessName || user.name || 'Shop',
@@ -96,6 +137,101 @@ export const catalogService = {
       logoUrl: user.logoUrl,
       whatsappNumber: user.whatsappNumber,
       products: products.map(shapeProduct),
+      albums: albumCards,
+    };
+  },
+
+  /**
+   * Look up an album by storefront slug + album slug. Returns both the
+   * meta (title, description, passcode requirement) and the product list.
+   * Caller is expected to gate access on the cookie / passcode for protected
+   * albums BEFORE rendering the products.
+   */
+  async getAlbum(slug: string, albumSlug: string): Promise<{
+    business: string;
+    whatsappNumber: string | null;
+    logoUrl: string | null;
+    album: {
+      id: string;
+      slug: string;
+      title: string;
+      description: string | null;
+      coverImageUrl: string | null;
+      passcodeRequired: boolean;
+    };
+    products: PublicProduct[];
+  } | null> {
+    const user = await prisma.user.findUnique({
+      where: { slug },
+      select: {
+        id: true,
+        name: true,
+        businessName: true,
+        catalogEnabled: true,
+        logoUrl: true,
+        whatsappNumber: true,
+        isSuspended: true,
+      },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) return null;
+
+    const album = await prisma.album.findFirst({
+      where: { userId: user.id, slug: albumSlug, isPublished: true },
+      include: {
+        products: {
+          orderBy: { position: 'asc' },
+          include: { product: true },
+        },
+      },
+    });
+    if (!album) return null;
+
+    const products = album.products
+      .map((ap) => ap.product)
+      .filter((p) => p && p.isPublished && !p.archived)
+      .map(shapeProduct);
+
+    return {
+      business: user.businessName || user.name || 'Shop',
+      whatsappNumber: user.whatsappNumber,
+      logoUrl: user.logoUrl,
+      album: {
+        id: album.id,
+        slug: album.slug,
+        title: album.title,
+        description: album.description,
+        coverImageUrl: album.coverImageUrl,
+        passcodeRequired: album.passcodeRequired,
+      },
+      products,
+    };
+  },
+
+  /**
+   * Verify a passcode submitted from the unlock page. Returns the album row
+   * (just id + hash + meta) so the API route can issue a signed cookie.
+   * Returns null when the slug+albumSlug doesn't resolve or the album is
+   * unpublished. Throws 'NO_PASSCODE' when the album doesn't require one.
+   */
+  async getAlbumForUnlock(slug: string, albumSlug: string): Promise<{
+    albumId: string;
+    passcodeRequired: boolean;
+    passcodeHash: string | null;
+  } | null> {
+    const user = await prisma.user.findUnique({
+      where: { slug },
+      select: { id: true, catalogEnabled: true, isSuspended: true },
+    });
+    if (!user || !user.catalogEnabled || user.isSuspended) return null;
+    const album = await prisma.album.findFirst({
+      where: { userId: user.id, slug: albumSlug, isPublished: true },
+      select: { id: true, passcodeRequired: true, passcodeHash: true },
+    });
+    if (!album) return null;
+    return {
+      albumId: album.id,
+      passcodeRequired: album.passcodeRequired,
+      passcodeHash: album.passcodeHash,
     };
   },
 

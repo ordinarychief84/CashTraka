@@ -171,6 +171,82 @@ export async function GET(req: NextRequest) {
   await addCol('InvoiceItem', 'hsCode', 'TEXT', 'NULL');
   await addCol('InvoiceItem', 'vatExempt', 'BOOLEAN NOT NULL', 'false');
 
+  // ===== Yupoo-style albums (2026-05-02) =====
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Album" (
+        "id"               TEXT        NOT NULL,
+        "userId"           TEXT        NOT NULL,
+        "slug"             TEXT        NOT NULL,
+        "title"            TEXT        NOT NULL,
+        "description"      TEXT,
+        "coverImageUrl"    TEXT,
+        "passcodeRequired" BOOLEAN     NOT NULL DEFAULT false,
+        "passcodeHash"     TEXT,
+        "isPublished"      BOOLEAN     NOT NULL DEFAULT true,
+        "position"         INTEGER     NOT NULL DEFAULT 0,
+        "createdAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"        TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "Album_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: Album table');
+  } catch (e: any) {
+    results.push('FAIL: Album table - ' + e.message?.substring(0, 100));
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "AlbumProduct" (
+        "albumId"   TEXT NOT NULL,
+        "productId" TEXT NOT NULL,
+        "position"  INTEGER NOT NULL DEFAULT 0,
+        "addedAt"   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AlbumProduct_pkey" PRIMARY KEY ("albumId", "productId")
+      )
+    `);
+    results.push('OK: AlbumProduct table');
+  } catch (e: any) {
+    results.push('FAIL: AlbumProduct table - ' + e.message?.substring(0, 100));
+  }
+
+  const albumIndexes: Array<[string, string]> = [
+    ['Album_userId_slug_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Album_userId_slug_key" ON "Album"("userId", "slug")`],
+    ['Album_userId_isPublished_idx', `CREATE INDEX IF NOT EXISTS "Album_userId_isPublished_idx" ON "Album"("userId", "isPublished")`],
+    ['AlbumProduct_albumId_position_idx', `CREATE INDEX IF NOT EXISTS "AlbumProduct_albumId_position_idx" ON "AlbumProduct"("albumId", "position")`],
+    ['AlbumProduct_productId_idx', `CREATE INDEX IF NOT EXISTS "AlbumProduct_productId_idx" ON "AlbumProduct"("productId")`],
+  ];
+  for (const [name, sql] of albumIndexes) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name);
+    } catch (e: any) {
+      results.push('INDEX FAIL: ' + name + ' - ' + e.message?.substring(0, 80));
+    }
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Album_userId_fkey') THEN
+          ALTER TABLE "Album" ADD CONSTRAINT "Album_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'AlbumProduct_albumId_fkey') THEN
+          ALTER TABLE "AlbumProduct" ADD CONSTRAINT "AlbumProduct_albumId_fkey"
+            FOREIGN KEY ("albumId") REFERENCES "Album"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'AlbumProduct_productId_fkey') THEN
+          ALTER TABLE "AlbumProduct" ADD CONSTRAINT "AlbumProduct_productId_fkey"
+            FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('OK: Album + AlbumProduct foreign keys');
+  } catch (e: any) {
+    results.push('FK FAIL: Album/AlbumProduct - ' + e.message?.substring(0, 100));
+  }
+
   // CatalogEvent table — public storefront activity log
   try {
     await prisma.$executeRawUnsafe(`

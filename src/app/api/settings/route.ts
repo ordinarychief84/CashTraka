@@ -46,6 +46,10 @@ export async function POST(req: Request) {
     bankAccountNumber,
     bankAccountName,
     businessType,
+    tin,
+    vatRegistered,
+    vatRate,
+    firsMerchantId,
   } = parsed.data;
 
   // Only update fields that were actually sent. Previously every absent
@@ -60,6 +64,10 @@ export async function POST(req: Request) {
   if (bankAccountNumber !== undefined) data.bankAccountNumber = bankAccountNumber?.trim() || null;
   if (bankAccountName !== undefined) data.bankAccountName = bankAccountName?.trim() || null;
   if (businessType !== undefined) data.businessType = businessType || user.businessType;
+  if (tin !== undefined) data.tin = tin?.trim() || null;
+  if (vatRegistered !== undefined) data.vatRegistered = vatRegistered;
+  if (vatRate !== undefined) data.vatRate = vatRate;
+  if (firsMerchantId !== undefined) data.firsMerchantId = firsMerchantId?.trim() || null;
 
   await prisma.user.update({
     where: { id: user.id },

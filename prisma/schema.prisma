@@ -55,6 +55,20 @@ model User {
   /// Optional headline shown above the catalog grid.
   catalogTagline       String?
 
+  /// ── Nigerian tax / FIRS compliance ────────────────────────────
+  /// Tax Identification Number issued by FIRS. Required on tax invoices
+  /// once the business is VAT-registered.
+  tin                  String?
+  /// Whether the business is VAT-registered with FIRS. Mandatory for
+  /// businesses with annual turnover > ₦25M; optional below that threshold.
+  vatRegistered        Boolean   @default(false)
+  /// Default VAT rate (percent) applied when vatRegistered=true. Standard
+  /// Nigerian rate is 7.5; some categories may use a different rate.
+  vatRate              Float     @default(7.5)
+  /// Merchant ID assigned by FIRS once the business onboards to MBS.
+  /// Required by the real FIRS adapter; not used by NoopFIRSAdapter.
+  firsMerchantId       String?
+
   /// Billing state. `plan` (above) is the *tier name*; these fields describe
   /// the subscription lifecycle around that tier.
   /// "free" | "trialing" | "active" | "past_due" | "cancelled"
@@ -452,15 +466,33 @@ model Invoice {
   /// Used for idempotent generation from /api/payments/[id]/invoice.
   paymentId       String?   @unique
 
-  /// NRS (Nigeria Revenue Service) submission state.
-  /// Adapter is a Noop until NRS_API_BASE_URL is configured (see nrs-invoice.service.ts).
-  nrsSubmissionId String?
+  /// ── Nigerian tax compliance fields ─────────────────────────────
+  /// Buyer's TIN (required on B2B tax invoices when issuing under FIRS rules).
+  buyerTin        String?
+  /// Buyer's billing address.
+  buyerAddress    String?
+  /// Was VAT applied to this invoice? Snapshot at issue time.
+  vatApplied      Boolean   @default(false)
+  /// VAT rate (percent) at issue time. Snapshot from User.vatRate.
+  vatRate         Float     @default(0)
+  /// Currency code. Defaults to NGN. ISO-4217.
+  currency        String    @default("NGN")
+
+  /// ── FIRS MBS (Merchant Buyer Solution) submission state ────────
+  /// Adapter is a Noop until FIRS_API_BASE_URL + FIRS_API_KEY are configured
+  /// (see firs-invoice.service.ts).
+  firsTransmissionRef String?
+  /// Invoice Reference Number issued by FIRS on successful submission.
+  /// Must be rendered on the invoice once received.
+  firsIrn         String?
+  /// Opaque QR code payload returned by FIRS. Rendered as a QR on the invoice.
+  firsQrPayload   String?
   /// "PENDING" | "SUBMITTED" | "ACCEPTED" | "REJECTED" | "RETRYING" | "FAILED" | null
-  nrsStatus       String?
-  nrsLastError    String?
-  nrsRetryCount   Int       @default(0)
-  nrsSubmittedAt  DateTime?
-  nrsAcceptedAt   DateTime?
+  firsStatus      String?
+  firsLastError   String?
+  firsRetryCount  Int       @default(0)
+  firsSubmittedAt DateTime?
+  firsAcceptedAt  DateTime?
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -480,6 +512,13 @@ model InvoiceItem {
   description String
   unitPrice   Int
   quantity    Int      @default(1)
+
+  /// "GOODS" | "SERVICE". Required for FIRS classification.
+  itemType    String   @default("GOODS")
+  /// Harmonized System code (e.g., "8517.12"). Required for goods on tax invoices.
+  hsCode      String?
+  /// Whether this line is VAT-exempt (basic food, books, medical, etc.).
+  vatExempt   Boolean  @default(false)
 
   invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)

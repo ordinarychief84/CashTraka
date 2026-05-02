@@ -1,13 +1,13 @@
 import { requireUser } from '@/lib/auth';
 import { handled, ok } from '@/lib/api-response';
-import { nrsInvoiceService } from '@/lib/services/nrs-invoice.service';
+import { firsInvoiceService } from '@/lib/services/firs-invoice.service';
 
 export const runtime = 'nodejs';
 
-/** GET /api/invoices/[id]/nrs/status — check NRS submission status (stub adapter). */
+/** GET /api/invoices/[id]/firs/status — poll FIRS for transmission status. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
-    const result = await nrsInvoiceService.checkInvoiceStatus(user.id, ctx.params.id);
+    const result = await firsInvoiceService.checkInvoiceStatus(user.id, ctx.params.id);
     return ok(result);
   });

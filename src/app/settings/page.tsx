@@ -34,6 +34,14 @@ export default async function SettingsPage() {
     appUrl: process.env.APP_URL || '',
   };
 
+  const initialTax = {
+    tin: user.tin || '',
+    vatRegistered: !!user.vatRegistered,
+    vatRate: typeof user.vatRate === 'number' ? user.vatRate : 7.5,
+    firsMerchantId: user.firsMerchantId || '',
+    businessAddress: user.businessAddress || '',
+  };
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -47,6 +55,7 @@ export default async function SettingsPage() {
           initialProfile={initialProfile}
           initialAccount={initialAccount}
           initialStorefront={initialStorefront}
+          initialTax={initialTax}
           businessType={user.businessType || 'seller'}
         />
       </Suspense>

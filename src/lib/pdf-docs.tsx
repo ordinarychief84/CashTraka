@@ -4,6 +4,7 @@ import {
   Page,
   View,
   Text,
+  Image,
   StyleSheet,
 } from '@react-pdf/renderer';
 
@@ -274,23 +275,46 @@ export type InvoiceData = {
   business: string;
   businessAddress?: string | null;
   whatsappNumber?: string | null;
+  /// Seller TIN — printed on every tax invoice once the business is VAT-registered.
+  tin?: string | null;
   invoiceNumber: string;
   status: string;
   customerName: string;
   customerPhone: string;
   customerEmail?: string | null;
+  /// Buyer TIN (mandatory on B2B tax invoices).
+  buyerTin?: string | null;
+  /// Buyer billing address.
+  buyerAddress?: string | null;
   issuedAt: Date;
   dueDate?: Date | null;
+  /// Currency code (default NGN).
+  currency?: string | null;
   subtotal: number;
+  /// VAT amount in the invoice currency.
   tax: number;
+  /// VAT rate in percent (e.g. 7.5). When 0, the VAT line is hidden.
+  vatRate?: number | null;
   total: number;
   note?: string | null;
-  items: { description: string; unitPrice: number; quantity: number }[];
+  items: {
+    description: string;
+    unitPrice: number;
+    quantity: number;
+    itemType?: 'GOODS' | 'SERVICE';
+    hsCode?: string | null;
+    vatExempt?: boolean;
+  }[];
   bank?: {
     name?: string | null;
     accountNumber?: string | null;
     accountName?: string | null;
   } | null;
+  /// FIRS Invoice Reference Number (returned by FIRS MBS on successful submission).
+  firsIrn?: string | null;
+  /// Pre-rendered QR code as a base64 PNG data URL ("data:image/png;base64,...").
+  /// Generated from `firsQrPayload` at PDF render time using `qrcode`.
+  firsQrDataUrl?: string | null;
 };
 
 export function InvoiceDoc({ data }: { data: InvoiceData }) {
@@ -300,15 +324,33 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
     : data.status === 'CANCELLED' ? 'Cancelled'
     : data.status === 'SENT' ? 'Awaiting payment'
     : 'Draft';
+
+  // Tax-invoice mode: when seller has a TIN, this is a formal Nigerian tax
+  // invoice. We surface the TIN in the header and label it accordingly.
+  const isTaxInvoice = !!data.tin;
+  const currency = data.currency || 'NGN';
+  const showVatLine = data.tax > 0 || (data.vatRate ?? 0) > 0;
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.docNumber}>{data.invoiceNumber}</Text>
+            <Text style={[styles.eyebrow, { color: palette.brand }]}>
+              {isTaxInvoice ? 'Tax Invoice' : 'Invoice'}
+            </Text>
+            <Text style={[styles.docNumber, { marginTop: 2 }]}>{data.invoiceNumber}</Text>
             <Text style={[styles.business, { marginTop: 4 }]}>{data.business}</Text>
             {data.businessAddress ? (
               <Text style={styles.businessSub}>{data.businessAddress}</Text>
+            ) : null}
+            {data.tin ? (
+              <Text style={[styles.businessSub, { fontFamily: 'Helvetica-Bold', color: palette.ink }]}>
+                TIN: {data.tin}
+              </Text>
+            ) : null}
+            {data.whatsappNumber ? (
+              <Text style={styles.businessSub}>Tel: {data.whatsappNumber}</Text>
             ) : null}
           </View>
           <View
@@ -330,6 +372,12 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
             <Text style={styles.kvLabel}>Name</Text>
             <Text style={styles.kvValue}>{data.customerName}</Text>
           </View>
+          {data.buyerTin ? (
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>Buyer TIN</Text>
+              <Text style={styles.kvValue}>{data.buyerTin}</Text>
+            </View>
+          ) : null}
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Phone</Text>
             <Text style={styles.kvValue}>{data.customerPhone}</Text>
@@ -338,6 +386,12 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
             <View style={styles.kvRow}>
               <Text style={styles.kvLabel}>Email</Text>
               <Text style={styles.kvValue}>{data.customerEmail}</Text>
+            </View>
+          ) : null}
+          {data.buyerAddress ? (
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>Address</Text>
+              <Text style={styles.kvValue}>{data.buyerAddress}</Text>
             </View>
           ) : null}
           <View style={styles.kvRow}>
@@ -350,35 +404,54 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
               <Text style={styles.kvValue}>{formatDate(data.dueDate)}</Text>
             </View>
           ) : null}
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Currency</Text>
+            <Text style={styles.kvValue}>{currency}</Text>
+          </View>
         </View>
 
         <View style={styles.sectionBox}>
           <Text style={styles.sectionTitle}>Items</Text>
           <View style={styles.tableHead}>
-            <Text style={[styles.tableCol, { flex: 3 }]}>Description</Text>
+            <Text style={[styles.tableCol, { flex: 4 }]}>Description</Text>
+            <Text style={[styles.tableCol, { flex: 1.5 }]}>HS / Type</Text>
             <Text style={[styles.tableCol, { flex: 1, textAlign: 'center' }]}>Qty</Text>
             <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>Price</Text>
             <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>Total</Text>
           </View>
-          {data.items.map((it, i) => (
-            <View key={i} style={styles.tableRow}>
-              <Text style={styles.itemLabel}>{it.description}</Text>
-              <Text style={styles.itemQty}>{it.quantity}</Text>
-              <Text style={styles.itemPrice}>{formatNaira(it.unitPrice)}</Text>
-              <Text style={styles.itemTotal}>
-                {formatNaira(it.unitPrice * it.quantity)}
-              </Text>
-            </View>
-          ))}
+          {data.items.map((it, i) => {
+            const typeLabel =
+              it.itemType === 'SERVICE' ? 'Service' :
+              it.hsCode ? it.hsCode :
+              'Goods';
+            return (
+              <View key={i} style={styles.tableRow}>
+                <Text style={[styles.itemLabel, { flex: 4 }]}>
+                  {it.description}
+                  {it.vatExempt ? ' (VAT-exempt)' : ''}
+                </Text>
+                <Text style={[styles.itemQty, { flex: 1.5, textAlign: 'left', color: palette.slate500, fontSize: 9 }]}>
+                  {typeLabel}
+                </Text>
+                <Text style={[styles.itemQty, { flex: 1 }]}>{it.quantity}</Text>
+                <Text style={[styles.itemPrice, { flex: 2 }]}>{formatNaira(it.unitPrice)}</Text>
+                <Text style={[styles.itemTotal, { flex: 2 }]}>
+                  {formatNaira(it.unitPrice * it.quantity)}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.kvRow}>
           <Text style={styles.kvLabel}>Subtotal</Text>
           <Text style={styles.kvValue}>{formatNaira(data.subtotal)}</Text>
         </View>
-        {data.tax > 0 && (
+        {showVatLine && (
           <View style={styles.kvRow}>
-            <Text style={styles.kvLabel}>Tax / VAT</Text>
+            <Text style={styles.kvLabel}>
+              VAT{data.vatRate ? ` (${data.vatRate}%)` : ''}
+            </Text>
             <Text style={styles.kvValue}>{formatNaira(data.tax)}</Text>
           </View>
         )}
@@ -386,6 +459,34 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
           <Text style={styles.totalLabel}>Total</Text>
           <Text style={styles.totalAmount}>{formatNaira(data.total)}</Text>
         </View>
+
+        {/* FIRS compliance block — only shown once the invoice has been
+            transmitted to FIRS and an IRN has been issued. */}
+        {data.firsIrn ? (
+          <View
+            style={[
+              styles.sectionBox,
+              { marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+            ]}
+          >
+            {data.firsQrDataUrl ? (
+              <Image src={data.firsQrDataUrl} style={{ width: 90, height: 90 }} />
+            ) : null}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.sectionTitle}>FIRS e-Invoice</Text>
+              <View style={styles.kvRow}>
+                <Text style={styles.kvLabel}>IRN</Text>
+                <Text style={[styles.kvValue, { fontFamily: 'Helvetica' }]}>
+                  {data.firsIrn}
+                </Text>
+              </View>
+              <Text style={{ fontSize: 8, color: palette.slate500, marginTop: 4 }}>
+                This invoice has been transmitted to the Federal Inland Revenue Service
+                under the Merchant Buyer Solution. Scan the QR code to verify.
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         {!isPaid && data.bank && data.bank.name && data.bank.accountNumber && (
           <View
@@ -419,7 +520,9 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
         ) : null}
         <View style={{ marginTop: 20, textAlign: 'center' }}>
           <Text style={{ fontSize: 8, color: palette.slate500 }}>
-            Invoice by CashTraka
+            {isTaxInvoice
+              ? 'Tax invoice issued under Nigerian tax law · Generated by CashTraka'
+              : 'Invoice by CashTraka'}
           </Text>
         </View>
       </Page>

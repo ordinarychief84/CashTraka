@@ -65,6 +65,18 @@ export const settingsSchema = z.object({
   bankAccountNumber: z.string().trim().max(20).optional().or(z.literal('')),
   bankAccountName: z.string().trim().max(100).optional().or(z.literal('')),
   businessType: z.enum(['seller', 'property_manager']).optional(),
+
+  /// ── Nigerian tax compliance ────────────────────────────────
+  /// FIRS-issued TIN. Empty string clears it. Format is typically
+  /// "12345678-0001" but FIRS accepts variations; we just length-cap and
+  /// strip whitespace.
+  tin: z.string().trim().max(20).optional().or(z.literal('')),
+  /// Whether the business is VAT-registered with FIRS.
+  vatRegistered: z.boolean().optional(),
+  /// Default VAT rate (percent) applied when vatRegistered=true.
+  vatRate: z.coerce.number().min(0).max(50).optional(),
+  /// FIRS MBS merchant ID (provided by FIRS once the business onboards).
+  firsMerchantId: z.string().trim().max(64).optional().or(z.literal('')),
 });
 
 export const fraudReportSchema = z.object({

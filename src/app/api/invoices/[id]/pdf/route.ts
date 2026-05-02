@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
+import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { InvoiceDoc, type InvoiceData } from '@/lib/pdf-docs';
@@ -29,6 +30,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           bankName: true,
           bankAccountNumber: true,
           bankAccountName: true,
+          tin: true,
         },
       },
       items: true,
@@ -36,33 +38,59 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
   if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  // Render the FIRS QR code (if we have an IRN payload from a successful
+  // submission). Fall back to undefined if QR generation fails — the rest of
+  // the PDF still renders.
+  let firsQrDataUrl: string | null = null;
+  if (invoice.firsQrPayload) {
+    try {
+      firsQrDataUrl = await QRCode.toDataURL(invoice.firsQrPayload, {
+        errorCorrectionLevel: 'M',
+        margin: 1,
+        width: 240,
+      });
+    } catch {
+      firsQrDataUrl = null;
+    }
+  }
+
   const data: InvoiceData = {
     business: invoice.user.businessName || invoice.user.name || 'Seller',
     businessAddress: invoice.user.businessAddress,
     whatsappNumber: invoice.user.whatsappNumber
       ? displayPhone(invoice.user.whatsappNumber)
       : null,
+    tin: invoice.user.tin,
     invoiceNumber: invoice.invoiceNumber,
     status: invoice.status,
     customerName: invoice.customerName,
     customerPhone: displayPhone(invoice.customerPhone),
     customerEmail: invoice.customerEmail,
+    buyerTin: invoice.buyerTin,
+    buyerAddress: invoice.buyerAddress,
     issuedAt: invoice.issuedAt,
     dueDate: invoice.dueDate,
+    currency: invoice.currency,
     subtotal: invoice.subtotal,
     tax: invoice.tax,
+    vatRate: invoice.vatApplied ? invoice.vatRate : null,
     total: invoice.total,
     note: invoice.note,
     items: invoice.items.map((i) => ({
       description: i.description,
       unitPrice: i.unitPrice,
       quantity: i.quantity,
+      itemType: i.itemType === 'SERVICE' ? 'SERVICE' : 'GOODS',
+      hsCode: i.hsCode,
+      vatExempt: i.vatExempt,
     })),
     bank: {
       name: invoice.user.bankName,
       accountNumber: invoice.user.bankAccountNumber,
       accountName: invoice.user.bankAccountName,
     },
+    firsIrn: invoice.firsIrn,
+    firsQrDataUrl,
   };
 
   const buffer = await renderToBuffer(InvoiceDoc({ data }));

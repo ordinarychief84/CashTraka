@@ -1,13 +1,13 @@
 import { requireUser } from '@/lib/auth';
 import { handled, ok } from '@/lib/api-response';
-import { nrsInvoiceService } from '@/lib/services/nrs-invoice.service';
+import { firsInvoiceService } from '@/lib/services/firs-invoice.service';
 
 export const runtime = 'nodejs';
 
-/** POST /api/invoices/[id]/nrs/retry — retry a failed NRS submission. */
+/** POST /api/invoices/[id]/firs/retry — retry a failed FIRS submission. */
 export const POST = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
-    const result = await nrsInvoiceService.retrySubmission(user.id, ctx.params.id);
+    const result = await firsInvoiceService.retrySubmission(user.id, ctx.params.id);
     return ok(result);
   });

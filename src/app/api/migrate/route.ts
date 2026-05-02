@@ -135,7 +135,7 @@ export async function GET(req: NextRequest) {
   await addCol('Product', 'isPublished', 'BOOLEAN NOT NULL', 'false');
   await addCol('Product', 'catalogStatus', 'TEXT NOT NULL', "'AVAILABLE'");
 
-  // Invoices (NRS-ready)
+  // Invoices (legacy NRS field names — kept for backwards compat; new code uses firs* below)
   await addCol('Invoice', 'paymentId', 'TEXT', 'NULL');
   await addCol('Invoice', 'nrsSubmissionId', 'TEXT', 'NULL');
   await addCol('Invoice', 'nrsStatus', 'TEXT', 'NULL');
@@ -143,6 +143,33 @@ export async function GET(req: NextRequest) {
   await addCol('Invoice', 'nrsRetryCount', 'INTEGER NOT NULL', '0');
   await addCol('Invoice', 'nrsSubmittedAt', 'TIMESTAMP(3)', 'NULL');
   await addCol('Invoice', 'nrsAcceptedAt', 'TIMESTAMP(3)', 'NULL');
+
+  // ===== Nigerian tax / FIRS e-invoicing compliance (2026-05-01) =====
+  // User: TIN, VAT registration, FIRS merchant ID
+  await addCol('User', 'tin', 'TEXT', 'NULL');
+  await addCol('User', 'vatRegistered', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'vatRate', 'DOUBLE PRECISION NOT NULL', '7.5');
+  await addCol('User', 'firsMerchantId', 'TEXT', 'NULL');
+
+  // Invoice: buyer details, VAT snapshot, currency, FIRS submission state
+  await addCol('Invoice', 'buyerTin', 'TEXT', 'NULL');
+  await addCol('Invoice', 'buyerAddress', 'TEXT', 'NULL');
+  await addCol('Invoice', 'vatApplied', 'BOOLEAN NOT NULL', 'false');
+  await addCol('Invoice', 'vatRate', 'DOUBLE PRECISION NOT NULL', '0');
+  // currency is already added above (line ~85), no-op re-run is safe
+  await addCol('Invoice', 'firsTransmissionRef', 'TEXT', 'NULL');
+  await addCol('Invoice', 'firsIrn', 'TEXT', 'NULL');
+  await addCol('Invoice', 'firsQrPayload', 'TEXT', 'NULL');
+  await addCol('Invoice', 'firsStatus', 'TEXT', 'NULL');
+  await addCol('Invoice', 'firsLastError', 'TEXT', 'NULL');
+  await addCol('Invoice', 'firsRetryCount', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'firsSubmittedAt', 'TIMESTAMP(3)', 'NULL');
+  await addCol('Invoice', 'firsAcceptedAt', 'TIMESTAMP(3)', 'NULL');
+
+  // InvoiceItem: classification + HS code + VAT-exempt flag
+  await addCol('InvoiceItem', 'itemType', 'TEXT NOT NULL', "'GOODS'");
+  await addCol('InvoiceItem', 'hsCode', 'TEXT', 'NULL');
+  await addCol('InvoiceItem', 'vatExempt', 'BOOLEAN NOT NULL', 'false');
 
   // CatalogEvent table — public storefront activity log
   try {

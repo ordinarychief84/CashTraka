@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Shield, CreditCard, Palette, AlertTriangle, Store } from 'lucide-react';
+import { User, Shield, CreditCard, Palette, AlertTriangle, Store, FileText } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AccountTab } from './AccountTab';
 import { BillingTab } from './BillingTab';
 import { AppearanceTab } from './AppearanceTab';
 import { DangerZoneTab } from './DangerZoneTab';
 import { StorefrontTab } from './StorefrontTab';
+import { TaxTab } from './TaxTab';
 
-type Tab = 'profile' | 'account' | 'storefront' | 'billing' | 'appearance' | 'danger';
+type Tab = 'profile' | 'account' | 'storefront' | 'tax' | 'billing' | 'appearance' | 'danger';
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'account', label: 'Account', icon: Shield },
   { id: 'storefront', label: 'Storefront', icon: Store },
+  { id: 'tax', label: 'Tax & FIRS', icon: FileText },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
@@ -43,6 +45,13 @@ type Props = {
     receiptPrefix: string;
     appUrl: string;
   };
+  initialTax: {
+    tin: string;
+    vatRegistered: boolean;
+    vatRate: number;
+    firsMerchantId: string;
+    businessAddress: string;
+  };
   businessType: string;
 };
 
@@ -50,6 +59,7 @@ export function SettingsShell({
   initialProfile,
   initialAccount,
   initialStorefront,
+  initialTax,
   businessType,
 }: Props) {
   const search = useSearchParams();
@@ -107,6 +117,9 @@ export function SettingsShell({
           )}
           {activeTab === 'storefront' && (
             <StorefrontTab initial={initialStorefront} />
+          )}
+          {activeTab === 'tax' && (
+            <TaxTab initial={initialTax} />
           )}
           {activeTab === 'billing' && (
             <BillingTab />

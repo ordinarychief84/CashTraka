@@ -7,10 +7,26 @@ export const dynamic = 'force-dynamic';
 export default async function AdminDashboardPage() {
   const admin = await requireAdminSection('dashboard');
 
-  const [userCount, paymentCount, ticketCount] = await Promise.all([
+  const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const [
+    userCount,
+    paymentCount,
+    ticketCount,
+    invoiceCount,
+    firsSubmittedToday,
+    activeRecurring,
+    docAuditLast24h,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.payment.count(),
     prisma.supportTicket.count({ where: { status: 'open' } }).catch(() => 0),
+    prisma.invoice.count(),
+    prisma.invoice.count({ where: { firsSubmittedAt: { gte: todayStart } } }),
+    prisma.recurringInvoiceRule.count({ where: { status: 'ACTIVE' } }),
+    prisma.documentAuditLog.count({ where: { createdAt: { gte: dayAgo } } }),
   ]);
 
   return (
@@ -31,6 +47,13 @@ export default async function AdminDashboardPage() {
         <StatCard label="Total Users" value={userCount} />
         <StatCard label="Total Payments" value={paymentCount} />
         <StatCard label="Open Tickets" value={ticketCount} />
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Total Invoices" value={invoiceCount} />
+        <StatCard label="FIRS submitted today" value={firsSubmittedToday} />
+        <StatCard label="Active recurring rules" value={activeRecurring} />
+        <StatCard label="Doc audit (last 24h)" value={docAuditLast24h} />
       </div>
     </AdminShell>
   );

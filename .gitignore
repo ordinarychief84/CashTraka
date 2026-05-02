@@ -21,3 +21,6 @@ prisma/migrations/dev.db*
 Thumbs.db
 .vercel
 .env*.local
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo

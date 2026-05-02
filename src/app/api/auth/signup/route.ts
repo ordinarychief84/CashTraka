@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     // Common password check
     if (isWeakPassword(password)) {
       return fail(
-        'Please choose a stronger password — that one appears on common-password lists.',
+        'Please choose a stronger password, that one appears on common-password lists.',
         422,
       );
     }

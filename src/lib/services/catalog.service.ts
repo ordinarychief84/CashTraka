@@ -186,9 +186,13 @@ export const catalogService = {
     });
     if (!album) return null;
 
+    // Album curation IS the publication signal here — once a seller adds
+    // a product to a published album, it shows in that album even if the
+    // product's storefront-homepage `isPublished` flag is still off. We
+    // only hide archived (deleted) rows.
     const products = album.products
       .map((ap) => ap.product)
-      .filter((p) => p && p.isPublished && !p.archived)
+      .filter((p): p is NonNullable<typeof p> => !!p && !p.archived)
       .map(shapeProduct);
 
     return {

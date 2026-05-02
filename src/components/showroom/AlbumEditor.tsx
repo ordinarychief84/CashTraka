@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useTransition } from 'react';
+import { useMemo, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -76,6 +76,8 @@ export function AlbumEditor({
   const [pending, startTransition] = useTransition();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const slugRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(initial.title);
   const [slug, setSlug] = useState(initial.slug);
@@ -101,7 +103,9 @@ export function AlbumEditor({
     );
   }, [catalog, pickerQuery, productIds]);
 
-  const canSave = title.trim().length > 0 && slug.trim().length >= 3;
+  const titleEmpty = title.trim().length === 0;
+  const slugTooShort = slug.trim().length < 3;
+  const canSave = !titleEmpty && !slugTooShort;
 
   function onTitleChange(v: string) {
     setTitle(v);
@@ -129,7 +133,19 @@ export function AlbumEditor({
 
   async function save(e?: React.FormEvent) {
     e?.preventDefault();
-    if (!canSave || saving) return;
+    if (saving) return;
+    if (titleEmpty) {
+      setError('Give the album a name to continue.');
+      titleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      titleRef.current?.focus();
+      return;
+    }
+    if (slugTooShort) {
+      setError('The link slug needs at least 3 characters.');
+      slugRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      slugRef.current?.focus();
+      return;
+    }
     setError(null);
     setSaving(true);
     try {
@@ -249,12 +265,14 @@ export function AlbumEditor({
           {/* Hero title row */}
           <div className="rounded-2xl border border-border bg-white p-4 shadow-sm sm:p-5">
             <input
+              ref={titleRef}
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
               placeholder="Name your album"
               maxLength={80}
               required
+              aria-label="Album name"
               className="w-full border-0 bg-transparent p-0 text-xl font-bold text-ink outline-none placeholder:text-slate-300 focus:ring-0 sm:text-2xl"
             />
             <div className="mt-2 flex flex-wrap items-center gap-1 text-xs text-slate-500">
@@ -263,6 +281,7 @@ export function AlbumEditor({
                 {storefrontSlug ? `/store/${storefrontSlug}/album/` : '/album/'}
               </span>
               <input
+                ref={slugRef}
                 type="text"
                 value={slug}
                 onChange={(e) => {
@@ -273,6 +292,7 @@ export function AlbumEditor({
                 maxLength={32}
                 required
                 disabled={mode === 'edit'}
+                aria-label="Album link slug"
                 className="min-w-0 flex-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono text-xs text-brand-700 focus:border-brand-500 focus:bg-white focus:outline-none disabled:text-slate-500"
               />
               {mode === 'edit' ? (
@@ -627,8 +647,20 @@ export function AlbumEditor({
             <button
               type="submit"
               onClick={save}
-              disabled={!canSave || saving || pending}
-              className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={saving || pending}
+              title={
+                titleEmpty
+                  ? 'Add an album name first'
+                  : slugTooShort
+                    ? 'Link slug needs at least 3 characters'
+                    : undefined
+              }
+              className={
+                'inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-60 ' +
+                (canSave
+                  ? 'bg-brand-500 hover:bg-brand-600'
+                  : 'bg-slate-400 hover:bg-slate-500')
+              }
             >
               {saving || pending ? (
                 <Loader2 size={14} className="animate-spin" />

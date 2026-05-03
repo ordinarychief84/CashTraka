@@ -42,12 +42,18 @@ import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="relative min-h-screen overflow-hidden bg-[#0a1730] text-white">
+      {/* Page-wide ambient gradient. A cyan-tinted base with two soft
+          glows that drift behind every section, giving the whole page a
+          luminous "studio backdrop" feel rather than a flat black. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_-10%,rgba(0,184,232,0.18),transparent_55%),radial-gradient(circle_at_85%_110%,rgba(99,102,241,0.18),transparent_55%),linear-gradient(180deg,#0a1730_0%,#0c1e3c_50%,#0a1730_100%)]"
+      />
       <ScrollProgress />
       <Navbar />
       <main>
         <HeroDark />
-        <AudienceMarqueeDark />
         <FeatureCardsBig />
         <ExploreFeatures />
         <BentoTestimonials />
@@ -64,7 +70,7 @@ export default function LandingPage() {
 
 function HeroDark() {
   return (
-    <section className="relative overflow-hidden bg-slate-950">
+    <section className="relative overflow-hidden">
       {/* Soft brand glows */}
       <div
         aria-hidden
@@ -254,10 +260,10 @@ function AudienceMarqueeDark() {
 
 function FeatureCardsBig() {
   return (
-    <section className="bg-slate-950 py-16 md:py-24">
+    <section className="py-16 md:py-24">
       <div className="mx-auto max-w-6xl space-y-4 px-5">
         {/* Card 1: phone left, copy right */}
-        <article className="grid overflow-hidden rounded-3xl bg-slate-900 ring-1 ring-white/10 md:grid-cols-2">
+        <article className="grid overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10 backdrop-blur-sm md:grid-cols-2">
           <div className="relative flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-brand-900/40 p-8 md:p-12">
             <div
               aria-hidden
@@ -298,7 +304,7 @@ function FeatureCardsBig() {
         </article>
 
         {/* Card 2: copy left, dashboard right */}
-        <article className="grid overflow-hidden rounded-3xl bg-slate-900 ring-1 ring-white/10 md:grid-cols-2">
+        <article className="grid overflow-hidden rounded-3xl bg-white/[0.04] ring-1 ring-white/10 backdrop-blur-sm md:grid-cols-2">
           <div className="order-2 flex flex-col justify-center p-8 md:order-1 md:p-12">
             <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-400">
               Tax &amp; compliance
@@ -518,7 +524,7 @@ function ExploreFeatures() {
   ];
 
   return (
-    <section className="bg-slate-950 py-24">
+    <section className="py-24">
       <div className="mx-auto max-w-6xl px-5">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
@@ -725,113 +731,131 @@ function ExploreRecurringMock() {
 
 /* ====================== 5. BENTO TESTIMONIALS ============================ */
 
+type BentoCell =
+  | { kind: 'quote'; span?: 1 | 2; quote: string; who: string }
+  | { kind: 'logo'; span?: 1 | 2; label: string };
+
+const BENTO: BentoCell[] = [
+  {
+    kind: 'quote',
+    span: 2,
+    quote:
+      'Customers used to ask for receipts weeks later. Now I just send a WhatsApp link and the receipt is done.',
+    who: 'Tope A · Boutique owner, Lagos',
+  },
+  { kind: 'logo', label: 'AYO STORES' },
+  {
+    kind: 'quote',
+    quote:
+      'We sent the same monthly invoice to 14 clients by hand. Now it runs on its own.',
+    who: 'Ifeoma O · Cleaning service',
+  },
+  {
+    kind: 'quote',
+    quote:
+      'I see who paid in real time on the dashboard. The end of month stress is gone.',
+    who: 'Bashir M · Phone accessory shop, Kano',
+  },
+  { kind: 'logo', label: 'LAGOS THREADS' },
+  {
+    kind: 'quote',
+    span: 2,
+    quote:
+      "Bank alert verification means I don't have to refresh Paystack every five minutes. Paste the SMS, and the payment is logged.",
+    who: 'Chiamaka N · Skincare brand',
+  },
+  {
+    kind: 'quote',
+    quote:
+      'Setup took us one afternoon. By the next morning we had received our first online payment.',
+    who: 'Femi A · Tailor, Ibadan',
+  },
+  {
+    kind: 'quote',
+    quote:
+      'Switching from a paper book to CashTraka saved my accountant a full week.',
+    who: 'Kelechi U · Landlord, Abuja',
+  },
+  { kind: 'logo', label: 'NAIJA MART' },
+  {
+    kind: 'quote',
+    span: 2,
+    quote:
+      'Rent reminders go out on their own. Tenants pay through the link. I do not chase anyone in a group chat anymore.',
+    who: 'Mrs Adeniyi · Property manager, Lekki',
+  },
+];
+
+function BentoCard({ cell }: { cell: BentoCell }) {
+  const span = cell.span === 2 ? 'md:col-span-2' : '';
+  const base =
+    'group relative overflow-hidden rounded-2xl bg-white/[0.04] p-5 ring-1 ring-white/10 ' +
+    'backdrop-blur-sm transition-[transform,box-shadow,background-color] duration-300 ease-out ' +
+    'hover:-translate-y-1 hover:bg-white/[0.07] hover:ring-brand-400/40 ' +
+    'hover:shadow-[0_18px_40px_-12px_rgba(0,184,232,0.35)] md:p-6';
+  if (cell.kind === 'logo') {
+    return (
+      <div className={base + ' flex items-center justify-center ' + span}>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 ring-1 ring-inset ring-brand-400/30 transition-opacity duration-300 group-hover:opacity-100"
+        />
+        <span className="text-2xl font-black tracking-[0.2em] text-white/30 transition-colors duration-300 group-hover:text-white/55 md:text-3xl">
+          {cell.label}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className={base + ' ' + span}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-500/0 blur-2xl transition duration-500 group-hover:bg-brand-500/25"
+      />
+      <p
+        className={
+          (cell.span === 2 ? 'text-base md:text-lg ' : 'text-sm md:text-base ') +
+          'relative leading-relaxed text-white'
+        }
+      >
+        {cell.quote}
+      </p>
+      <p className="relative mt-4 text-xs text-slate-400 transition-colors duration-300 group-hover:text-slate-300">
+        {cell.who}
+      </p>
+    </div>
+  );
+}
+
 function BentoTestimonials() {
   return (
-    <section className="bg-slate-950 py-24">
-      <div className="mx-auto max-w-6xl px-5">
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
-            From real businesses
-          </p>
-          <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
-            Built for Nigerian businesses.
-          </h2>
-          <p className="mt-4 text-base text-slate-400 md:text-lg">
-            Tested by sellers, landlords, and service operators.
-          </p>
-        </div>
+    <section className="relative py-24">
+      {/* Soft brand glow drifting behind the grid */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[520px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/10 blur-3xl"
+      />
+      <div className="relative mx-auto max-w-6xl px-5">
+        <Reveal from="up">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
+              From real businesses
+            </p>
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+              Built for Nigerian businesses.
+            </h2>
+            <p className="mt-4 text-base text-slate-400 md:text-lg">
+              Tested by sellers, landlords, and service operators.
+            </p>
+          </div>
+        </Reveal>
 
         <div className="mt-14 grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          {/* Card 1 - wide quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
-            <p className="text-base leading-relaxed text-white md:text-lg">
-              Customers used to ask for receipts weeks later. Now I just send a WhatsApp link and the receipt is done.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Tope A · Boutique owner, Lagos
-            </p>
-          </div>
-
-          {/* Card 2 - logo */}
-          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
-              AYO STORES
-            </span>
-          </div>
-
-          {/* Card 3 - quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <p className="text-sm leading-relaxed text-white md:text-base">
-              We sent the same monthly invoice to 14 clients by hand. Now it runs on its own.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Ifeoma O · Cleaning service
-            </p>
-          </div>
-
-          {/* Card 4 - quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <p className="text-sm leading-relaxed text-white md:text-base">
-              I see who paid in real time on the dashboard. The end of month stress is gone.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Bashir M · Phone accessory shop, Kano
-            </p>
-          </div>
-
-          {/* Card 5 - logo */}
-          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
-              LAGOS THREADS
-            </span>
-          </div>
-
-          {/* Card 6 - wide quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
-            <p className="text-base leading-relaxed text-white md:text-lg">
-              Bank alert verification means I don&apos;t have to refresh Paystack every five minutes. Paste the SMS, and the payment is logged.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Chiamaka N · Skincare brand
-            </p>
-          </div>
-
-          {/* Card 7 - quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <p className="text-sm leading-relaxed text-white md:text-base">
-              Setup took us one afternoon. By the next morning we had received our first online payment.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Femi A · Tailor, Ibadan
-            </p>
-          </div>
-
-          {/* Card 8 - quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <p className="text-sm leading-relaxed text-white md:text-base">
-              Switching from a paper book to CashTraka saved my accountant a full week.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Kelechi U · Landlord, Abuja
-            </p>
-          </div>
-
-          {/* Card 9 - logo */}
-          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
-            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
-              NAIJA MART
-            </span>
-          </div>
-
-          {/* Card 10 - wide quote */}
-          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
-            <p className="text-base leading-relaxed text-white md:text-lg">
-              Rent reminders go out on their own. Tenants pay through the link. I do not chase anyone in a group chat anymore.
-            </p>
-            <p className="mt-4 text-xs text-slate-400">
-              Mrs Adeniyi · Property manager, Lekki
-            </p>
-          </div>
+          {BENTO.map((cell, i) => (
+            <Reveal key={i} from="up" delay={80 + i * 60} duration={650}>
+              <BentoCard cell={cell} />
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
@@ -842,7 +866,7 @@ function BentoTestimonials() {
 
 function PricingDark() {
   return (
-    <section id="pricing" className="bg-slate-950 py-24">
+    <section id="pricing" className="py-24">
       <div className="mx-auto max-w-6xl px-5">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
@@ -899,7 +923,7 @@ function FAQDark() {
 
 function FinalCTADark() {
   return (
-    <section className="relative overflow-hidden bg-slate-950 py-24">
+    <section className="relative overflow-hidden py-24">
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/20 blur-3xl"

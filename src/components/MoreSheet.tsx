@@ -31,6 +31,7 @@ import {
   Key,
   Users2,
   Heart,
+  Landmark,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -101,6 +102,7 @@ export function MoreSheet({
       { href: '/receipts', icon: Receipt, label: 'Receipts' },
       { href: '/invoices', icon: FileText, label: 'Invoices' },
       { href: '/service-check', icon: Heart, label: 'Service Check' },
+      { href: '/banks', icon: Landmark, label: 'Bank sync' },
       { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
       {
         href: '/recurring-invoices',

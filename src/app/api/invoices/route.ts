@@ -14,6 +14,45 @@ import {
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 
+/**
+ * GET /api/invoices?q=
+ *
+ * Lightweight owner-scoped search used by inline pickers (e.g. the
+ * bank-sync "Match to invoice" picker). Returns up to 10 invoices that
+ * match the query against invoiceNumber or customerName. No `q` returns
+ * the most recent 10 invoices.
+ */
+export async function GET(req: Request) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const url = new URL(req.url);
+  const q = (url.searchParams.get('q') || '').trim();
+
+  const where: Record<string, unknown> = { userId: user.id };
+  if (q) {
+    where.OR = [
+      { invoiceNumber: { contains: q, mode: 'insensitive' } },
+      { customerName: { contains: q, mode: 'insensitive' } },
+    ];
+  }
+
+  const rows = await prisma.invoice.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    take: 10,
+    select: {
+      id: true,
+      invoiceNumber: true,
+      customerName: true,
+      total: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+  return NextResponse.json({ data: rows });
+}
+
 const itemSchema = z.object({
   productId: z.string().optional().nullable(),
   description: z.string().trim().min(1),

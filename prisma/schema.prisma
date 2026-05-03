@@ -217,6 +217,8 @@ model User {
   documentAuditLogs    DocumentAuditLog[]
   feedbacks            Feedback[]
   vatReturns           VatReturn[]
+  linkedBankAccounts   LinkedBankAccount[]
+  virtualAccounts      VirtualAccount[]
   override             UserOverride?
 
   @@index([role])
@@ -626,6 +628,7 @@ model Invoice {
   creditNotes     CreditNote[]
   recurringRule   RecurringInvoiceRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
   feedbacks       Feedback[]
+  virtualAccount  VirtualAccount?
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -1930,4 +1933,89 @@ model VatReturn {
   @@unique([userId, periodStart, periodEnd])
   @@index([userId, status])
   @@index([userId, periodStart])
+}
+
+// ---------- TAX+ TIER: BANK SYNC (MONO) ----------
+
+/// A bank account linked via Mono Connect (Tax+ tier). One row per account
+/// the seller has authorised. Pulled transactions land in BankTransaction.
+/// The Mono integration ships behind a feature flag, the row shape exists
+/// now so partnership wiring can plug in without further schema work.
+model LinkedBankAccount {
+  id              String   @id @default(cuid())
+  userId          String
+  /// Provider key, currently always "MONO" but reserved for future
+  /// providers (Okra, Stitch, etc.).
+  provider        String   @default("MONO")
+  /// Provider-side account id. For Mono this is the account uuid.
+  externalId      String   @unique
+  bankName        String
+  accountName     String
+  accountNumber   String
+  /// Last successful sync. Null when never synced.
+  lastSyncAt      DateTime?
+  /// "ACTIVE" | "DISCONNECTED" | "ERROR"
+  status          String   @default("ACTIVE")
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions    BankTransaction[]
+
+  @@index([userId, status])
+}
+
+/// One bank transaction pulled from the linked account. Each row is unique
+/// per provider externalId. matchStatus tracks reconciliation against an
+/// Invoice or Payment row.
+model BankTransaction {
+  id             String   @id @default(cuid())
+  accountId      String
+  externalId     String   @unique
+  /// "CREDIT" or "DEBIT"
+  direction      String
+  amountKobo     Int
+  description    String?
+  reference      String?
+  occurredAt     DateTime
+  /// "UNMATCHED" | "MATCHED" | "IGNORED"
+  matchStatus    String   @default("UNMATCHED")
+  matchedInvoiceId String?
+  matchedPaymentId String?
+  createdAt      DateTime @default(now())
+
+  account        LinkedBankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, occurredAt])
+  @@index([accountId, matchStatus])
+  @@index([matchedInvoiceId])
+}
+
+// ---------- TAX+ TIER: VIRTUAL ACCOUNT PER INVOICE ----------
+
+/// A unique 10-digit NUBAN minted via a partner bank (Wema / Sterling /
+/// Providus) and tied to one invoice. Customers transfer to this account
+/// and the partner webhook (future work) reconciles automatically.
+model VirtualAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  invoiceId     String?  @unique
+  /// Provider: "WEMA" | "STERLING" | "PROVIDUS"
+  provider      String
+  /// Provider-side reference / account id
+  externalId    String   @unique
+  /// The 10-digit NUBAN to print on the invoice
+  accountNumber String
+  accountName   String
+  bankName      String
+  /// "ACTIVE" | "EXPIRED" | "RECONCILED"
+  status        String   @default("ACTIVE")
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice       Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
 }

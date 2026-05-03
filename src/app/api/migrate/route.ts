@@ -796,6 +796,148 @@ export async function GET(req: NextRequest) {
     results.push('FK FAIL: VatReturn - ' + e.message?.substring(0, 100));
   }
 
+  // ===== Tax+ tier: Bank sync + Virtual account stubs (2026-05-02) =====
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "LinkedBankAccount" (
+        "id"            TEXT         NOT NULL,
+        "userId"        TEXT         NOT NULL,
+        "provider"      TEXT         NOT NULL DEFAULT 'MONO',
+        "externalId"    TEXT         NOT NULL,
+        "bankName"      TEXT         NOT NULL,
+        "accountName"   TEXT         NOT NULL,
+        "accountNumber" TEXT         NOT NULL,
+        "lastSyncAt"    TIMESTAMP(3),
+        "status"        TEXT         NOT NULL DEFAULT 'ACTIVE',
+        "errorMessage"  TEXT,
+        "createdAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LinkedBankAccount_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: LinkedBankAccount table');
+  } catch (e: any) {
+    results.push('FAIL: LinkedBankAccount table - ' + e.message?.substring(0, 100));
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "BankTransaction" (
+        "id"               TEXT         NOT NULL,
+        "accountId"        TEXT         NOT NULL,
+        "externalId"       TEXT         NOT NULL,
+        "direction"        TEXT         NOT NULL,
+        "amountKobo"       INTEGER      NOT NULL,
+        "description"      TEXT,
+        "reference"        TEXT,
+        "occurredAt"       TIMESTAMP(3) NOT NULL,
+        "matchStatus"      TEXT         NOT NULL DEFAULT 'UNMATCHED',
+        "matchedInvoiceId" TEXT,
+        "matchedPaymentId" TEXT,
+        "createdAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "BankTransaction_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: BankTransaction table');
+  } catch (e: any) {
+    results.push('FAIL: BankTransaction table - ' + e.message?.substring(0, 100));
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "VirtualAccount" (
+        "id"            TEXT         NOT NULL,
+        "userId"        TEXT         NOT NULL,
+        "invoiceId"     TEXT,
+        "provider"      TEXT         NOT NULL,
+        "externalId"    TEXT         NOT NULL,
+        "accountNumber" TEXT         NOT NULL,
+        "accountName"   TEXT         NOT NULL,
+        "bankName"      TEXT         NOT NULL,
+        "status"        TEXT         NOT NULL DEFAULT 'ACTIVE',
+        "expiresAt"     TIMESTAMP(3),
+        "createdAt"     TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "VirtualAccount_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: VirtualAccount table');
+  } catch (e: any) {
+    results.push('FAIL: VirtualAccount table - ' + e.message?.substring(0, 100));
+  }
+
+  const bankSyncIndexes: Array<[string, string]> = [
+    [
+      'LinkedBankAccount_externalId_key',
+      `CREATE UNIQUE INDEX IF NOT EXISTS "LinkedBankAccount_externalId_key" ON "LinkedBankAccount"("externalId")`,
+    ],
+    [
+      'LinkedBankAccount_userId_status_idx',
+      `CREATE INDEX IF NOT EXISTS "LinkedBankAccount_userId_status_idx" ON "LinkedBankAccount"("userId", "status")`,
+    ],
+    [
+      'BankTransaction_externalId_key',
+      `CREATE UNIQUE INDEX IF NOT EXISTS "BankTransaction_externalId_key" ON "BankTransaction"("externalId")`,
+    ],
+    [
+      'BankTransaction_accountId_occurredAt_idx',
+      `CREATE INDEX IF NOT EXISTS "BankTransaction_accountId_occurredAt_idx" ON "BankTransaction"("accountId", "occurredAt")`,
+    ],
+    [
+      'BankTransaction_accountId_matchStatus_idx',
+      `CREATE INDEX IF NOT EXISTS "BankTransaction_accountId_matchStatus_idx" ON "BankTransaction"("accountId", "matchStatus")`,
+    ],
+    [
+      'BankTransaction_matchedInvoiceId_idx',
+      `CREATE INDEX IF NOT EXISTS "BankTransaction_matchedInvoiceId_idx" ON "BankTransaction"("matchedInvoiceId")`,
+    ],
+    [
+      'VirtualAccount_externalId_key',
+      `CREATE UNIQUE INDEX IF NOT EXISTS "VirtualAccount_externalId_key" ON "VirtualAccount"("externalId")`,
+    ],
+    [
+      'VirtualAccount_invoiceId_key',
+      `CREATE UNIQUE INDEX IF NOT EXISTS "VirtualAccount_invoiceId_key" ON "VirtualAccount"("invoiceId") WHERE "invoiceId" IS NOT NULL`,
+    ],
+    [
+      'VirtualAccount_userId_status_idx',
+      `CREATE INDEX IF NOT EXISTS "VirtualAccount_userId_status_idx" ON "VirtualAccount"("userId", "status")`,
+    ],
+  ];
+  for (const [name, sql] of bankSyncIndexes) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name);
+    } catch (e: any) {
+      results.push('INDEX FAIL: ' + name + ' - ' + e.message?.substring(0, 80));
+    }
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'LinkedBankAccount_userId_fkey') THEN
+          ALTER TABLE "LinkedBankAccount" ADD CONSTRAINT "LinkedBankAccount_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'BankTransaction_accountId_fkey') THEN
+          ALTER TABLE "BankTransaction" ADD CONSTRAINT "BankTransaction_accountId_fkey"
+            FOREIGN KEY ("accountId") REFERENCES "LinkedBankAccount"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'VirtualAccount_userId_fkey') THEN
+          ALTER TABLE "VirtualAccount" ADD CONSTRAINT "VirtualAccount_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'VirtualAccount_invoiceId_fkey') THEN
+          ALTER TABLE "VirtualAccount" ADD CONSTRAINT "VirtualAccount_invoiceId_fkey"
+            FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('OK: bank sync foreign keys');
+  } catch (e: any) {
+    results.push('FK FAIL: bank sync - ' + e.message?.substring(0, 100));
+  }
+
   // Final test: try creating and deleting a user
   let finalTest = 'NOT_RUN';
   try {

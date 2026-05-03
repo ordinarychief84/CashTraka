@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { Download, Lock, MessageCircle } from 'lucide-react';
+import { Download, Landmark, Lock, MessageCircle } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { prisma } from '@/lib/prisma';
 import { effectiveInvoiceStatus } from '@/lib/invoice-helpers';
@@ -7,6 +7,7 @@ import { documentAudit } from '@/lib/services/document-audit.service';
 import { displayPhone, waLink } from '@/lib/whatsapp';
 import { formatNaira, formatDate } from '@/lib/format';
 import { PublicInvoicePay } from '@/components/invoices/PublicInvoicePay';
+import { virtualAccountService } from '@/lib/services/virtual-account.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -102,6 +103,19 @@ export default async function PublicInvoicePage({
   const status = effectiveInvoiceStatus(invoice);
   const tone = STATUS_TONE[status] ?? STATUS_TONE.DRAFT;
   const outstanding = Math.max(0, invoice.total - invoice.amountPaid);
+
+  // Virtual account (Tax+ tier). Returns null when none has been minted
+  // for this invoice; the seller can mint one from their seller-side
+  // detail page later. Status is checked so an EXPIRED VA isn't shown.
+  const vaRow = await virtualAccountService.getForInvoice(invoice.id);
+  const virtualAccount =
+    vaRow && vaRow.status === 'ACTIVE'
+      ? {
+          bankName: vaRow.bankName,
+          accountNumber: vaRow.accountNumber,
+          accountName: vaRow.accountName,
+        }
+      : null;
   const business =
     invoice.user.businessName || invoice.user.name || 'Seller';
   const accent = invoice.user.invoiceAccentColor || '#00B8E8';
@@ -228,6 +242,24 @@ export default async function PublicInvoicePage({
               </span>
             </div>
           </div>
+
+          {/* Virtual account (Tax+ tier) */}
+          {virtualAccount ? (
+            <div className="border-t border-border bg-brand-50/40 px-5 py-4 text-sm sm:px-7">
+              <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-brand-700">
+                <Landmark size={13} />
+                Pay by transfer
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                <Field label="Bank" value={virtualAccount.bankName} />
+                <Field label="Account number" value={virtualAccount.accountNumber} mono />
+                <Field label="Account name" value={virtualAccount.accountName} />
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500">
+                Transfer to this account to settle this invoice. The amount is auto-reconciled.
+              </p>
+            </div>
+          ) : null}
 
           {/* Bank/Payment instructions */}
           {invoice.user.paymentInstructions ||

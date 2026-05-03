@@ -11,6 +11,7 @@ import {
   Archive,
   ArrowRight,
   ClipboardList,
+  Landmark,
 } from 'lucide-react';
 
 type Props = {
@@ -226,6 +227,7 @@ type LimitsResponse = {
   vatReturns?: boolean;
   yearEndPack?: boolean;
   multiUserAudit?: boolean;
+  bankSync?: boolean;
 };
 
 type LatestReturn = {
@@ -274,7 +276,8 @@ function TaxPlusSections() {
   const showVat = !!limits.vatReturns;
   const showPack = !!limits.yearEndPack;
   const showAudit = !!limits.multiUserAudit;
-  if (!showVat && !showPack && !showAudit) return null;
+  const showBankSync = !!limits.bankSync;
+  if (!showVat && !showPack && !showAudit && !showBankSync) return null;
 
   const today = new Date();
   // Default to last completed FY for the year-end download.
@@ -315,6 +318,33 @@ function TaxPlusSections() {
       {showPack ? <YearEndPackCard defaultYear={defaultYear} /> : null}
 
       {showAudit ? <AuditExportCard /> : null}
+
+      {showBankSync ? <BankSyncCard /> : null}
+    </div>
+  );
+}
+
+/**
+ * Tax+ bank sync shortcut. Renders only when the seller's plan
+ * includes `bankSync`.
+ */
+function BankSyncCard() {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-1 flex items-center gap-2 text-base font-semibold text-ink">
+        <Landmark size={16} className="text-brand-600" />
+        Bank sync
+      </div>
+      <p className="mb-3 text-sm text-slate-600">
+        Connect your bank to auto-match transactions to invoices. No more pasting bank SMS.
+      </p>
+      <Link
+        href="/banks"
+        className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+      >
+        Open bank sync
+        <ArrowRight size={14} />
+      </Link>
     </div>
   );
 }

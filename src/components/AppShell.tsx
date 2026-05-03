@@ -20,6 +20,7 @@ import {
   ShoppingBag,
   GalleryHorizontalEnd,
   Heart,
+  Landmark,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -109,6 +110,9 @@ export function AppShell({
           )}
           {show.payments && (
             <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />
+          )}
+          {show.payments && !isPropManager && (
+            <SideLink href="/banks" icon={<Landmark size={18} />} label="Bank sync" />
           )}
 
           {/* Collections */}

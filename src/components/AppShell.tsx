@@ -35,6 +35,8 @@ type Props = {
   accessRole?: AccessRole;
   principalName?: string;
   pendingTaskCount?: number;
+  /** Optional plan label rendered in the mobile drawer's account card. */
+  planLabel?: string | null;
 };
 
 export function AppShell({
@@ -45,6 +47,7 @@ export function AppShell({
   accessRole = 'OWNER',
   principalName,
   pendingTaskCount,
+  planLabel,
 }: Props) {
   const isPropManager = businessType === 'property_manager';
 
@@ -212,7 +215,12 @@ export function AppShell({
         <div className="container-app py-5 md:py-8">{children}</div>
       </main>
 
-      <BottomNav isPropManager={isPropManager} accessRole={accessRole} />
+      <BottomNav
+        isPropManager={isPropManager}
+        accessRole={accessRole}
+        businessName={businessName}
+        planLabel={planLabel}
+      />
     </div>
   );
 }

@@ -1,27 +1,35 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import {
   X,
   Search,
-  GalleryHorizontalEnd,
-  ShoppingBag,
-  Receipt,
-  Users2,
-  ListTodo,
-  ClipboardList,
-  BarChart3,
-  Settings,
-  Building2,
-  Key,
-  Users,
   MessageCircle,
-  Send,
-  Target,
+  Bell,
+  ClipboardList,
+  HelpCircle,
+  ShoppingBag,
+  UserCircle2,
+  Home,
+  Banknote,
+  Clock3,
+  Users,
+  GalleryHorizontalEnd,
+  Receipt,
   FileText,
   FileMinus,
   Repeat,
+  Send,
+  Target,
+  ListTodo,
+  CheckSquare,
+  BarChart3,
+  Settings as SettingsIcon,
+  Building2,
+  Key,
+  Users2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -30,28 +38,40 @@ type Props = {
   open: boolean;
   onClose: () => void;
   isPropManager?: boolean;
+  businessName?: string | null;
+  /// Human-readable plan, e.g. "Free", "Starter", "Business". When set,
+  /// the account card shows a "Plan · See Plans" pill that links to
+  /// /settings?tab=billing.
+  planLabel?: string | null;
 };
 
-type Tile = {
+type MenuItem = {
   href: string;
   icon: LucideIcon;
   label: string;
-  /// Tailwind classes for the small coloured tile background.
-  tone: string;
 };
 
 /**
- * Bottom sheet shown when the user taps "More" on the mobile nav.
+ * Full-screen mobile navigation drawer styled after modern point-of-sale
+ * apps (Square, Toast, Lightspeed).
  *
- * Modern app-tray feel:
- *   - Drag handle pill at the top
- *   - Search bar that filters tiles live
- *   - Sectioned grid of coloured icon tiles (3 cols on phone, 4 on
- *     tablet) — each tile is a tap target around 80px tall, easy to hit
- *   - Sheet bottom respects iOS home-indicator safe area
+ *   - Slides in from the right edge over the page.
+ *   - Top row: page title placeholder + X close.
+ *   - Utility icon strip (search, chat, alerts, tasks, help, store,
+ *     profile) gives one-tap access to common cross-cutting actions.
+ *   - Account card surfaces business name + current plan with an
+ *     upgrade link.
+ *   - Vertical menu list groups every reachable section, with the
+ *     current route highlighted.
  */
-export function MoreSheet({ open, onClose, isPropManager }: Props) {
-  const [query, setQuery] = useState('');
+export function MoreSheet({
+  open,
+  onClose,
+  isPropManager,
+  businessName,
+  planLabel,
+}: Props) {
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!open) return;
@@ -60,163 +80,88 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // Reset the search box every time the sheet closes so a stale filter
-  // doesn't surprise the user next time they open it.
+  // Lock body scroll while the drawer is open.
   useEffect(() => {
-    if (!open) setQuery('');
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
   }, [open]);
 
-  const sections = useMemo(() => {
-    const business: Tile[] = isPropManager
-      ? []
-      : [
-          {
-            href: '/showroom',
-            icon: GalleryHorizontalEnd,
-            label: 'Showroom',
-            tone: 'bg-fuchsia-50 text-fuchsia-700',
-          },
-          {
-            href: '/sales',
-            icon: ShoppingBag,
-            label: 'Sales',
-            tone: 'bg-emerald-50 text-emerald-700',
-          },
-          {
-            href: '/invoices',
-            icon: FileText,
-            label: 'Invoices',
-            tone: 'bg-brand-50 text-brand-700',
-          },
-          {
-            href: '/credit-notes',
-            icon: FileMinus,
-            label: 'Credit notes',
-            tone: 'bg-amber-50 text-amber-700',
-          },
-          {
-            href: '/recurring-invoices',
-            icon: Repeat,
-            label: 'Recurring',
-            tone: 'bg-indigo-50 text-indigo-700',
-          },
-        ];
-
-    const businessCommon: Tile[] = [
+  const menu: MenuItem[] = useMemo(() => {
+    const seller: MenuItem[] = [
+      { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/payments', icon: Banknote, label: 'Payments' },
+      { href: '/debts', icon: Clock3, label: 'Money owed' },
+      { href: '/customers', icon: Users, label: 'Customers' },
+      { href: '/receipts', icon: Receipt, label: 'Receipts' },
+      { href: '/invoices', icon: FileText, label: 'Invoices' },
+      { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
       {
-        href: '/expenses',
-        icon: Receipt,
-        label: 'Expenses',
-        tone: 'bg-rose-50 text-rose-700',
+        href: '/recurring-invoices',
+        icon: Repeat,
+        label: 'Recurring invoices',
       },
-      {
-        href: '/team',
-        icon: Users2,
-        label: 'Team',
-        tone: 'bg-violet-50 text-violet-700',
-      },
+      { href: '/showroom', icon: GalleryHorizontalEnd, label: 'Showroom' },
+      { href: '/sales', icon: ShoppingBag, label: 'Sales' },
+      { href: '/paylinks', icon: Send, label: 'PayLinks' },
+      { href: '/collections', icon: Target, label: 'Collections' },
+      { href: '/expenses', icon: Receipt, label: 'Expenses' },
+      { href: '/team', icon: Users2, label: 'Team' },
+      { href: '/tasks', icon: ListTodo, label: 'Tasks' },
+      { href: '/checklists', icon: CheckSquare, label: 'Checklists' },
+      { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
+      { href: '/reports', icon: BarChart3, label: 'Reports' },
+      { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
-    const collections: Tile[] = isPropManager
-      ? []
-      : [
-          {
-            href: '/paylinks',
-            icon: Send,
-            label: 'PayLinks',
-            tone: 'bg-sky-50 text-sky-700',
-          },
-          {
-            href: '/collections',
-            icon: Target,
-            label: 'Collections',
-            tone: 'bg-orange-50 text-orange-700',
-          },
-        ];
-
-    const operations: Tile[] = [
-      {
-        href: '/tasks',
-        icon: ListTodo,
-        label: 'Tasks',
-        tone: 'bg-teal-50 text-teal-700',
-      },
-      ...(isPropManager
-        ? []
-        : [
-            {
-              href: '/checklists',
-              icon: ClipboardList,
-              label: 'Checklists',
-              tone: 'bg-cyan-50 text-cyan-700',
-            },
-          ]),
-      {
-        href: '/follow-up',
-        icon: MessageCircle,
-        label: 'Follow-up',
-        tone: 'bg-lime-50 text-lime-700',
-      },
+    const landlord: MenuItem[] = [
+      { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/payments', icon: Banknote, label: 'Rent payments' },
+      { href: '/debts', icon: Clock3, label: 'Unpaid rent' },
+      { href: '/properties', icon: Building2, label: 'Properties' },
+      { href: '/rent', icon: Key, label: 'Rent tracker' },
+      { href: '/tenants', icon: Users, label: 'Tenants' },
+      { href: '/receipts', icon: Receipt, label: 'Receipts' },
+      { href: '/invoices', icon: FileText, label: 'Invoices' },
+      { href: '/expenses', icon: Receipt, label: 'Expenses' },
+      { href: '/team', icon: Users2, label: 'Team' },
+      { href: '/tasks', icon: ListTodo, label: 'Tasks' },
+      { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
+      { href: '/reports', icon: BarChart3, label: 'Reports' },
+      { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
-    const property: Tile[] = isPropManager
-      ? [
-          {
-            href: '/properties',
-            icon: Building2,
-            label: 'Properties',
-            tone: 'bg-blue-50 text-blue-700',
-          },
-          {
-            href: '/rent',
-            icon: Key,
-            label: 'Rent',
-            tone: 'bg-emerald-50 text-emerald-700',
-          },
-          {
-            href: '/tenants',
-            icon: Users,
-            label: 'Tenants',
-            tone: 'bg-violet-50 text-violet-700',
-          },
-        ]
-      : [];
-
-    const insights: Tile[] = [
-      {
-        href: '/reports',
-        icon: BarChart3,
-        label: 'Reports',
-        tone: 'bg-purple-50 text-purple-700',
-      },
-      {
-        href: '/settings',
-        icon: Settings,
-        label: 'Settings',
-        tone: 'bg-slate-100 text-slate-700',
-      },
-    ];
-
-    return [
-      { label: 'Business', items: [...business, ...businessCommon] },
-      ...(collections.length ? [{ label: 'Collections', items: collections }] : []),
-      { label: 'Operations', items: operations },
-      ...(property.length ? [{ label: 'Property', items: property }] : []),
-      { label: 'Account', items: insights },
-    ];
+    return isPropManager ? landlord : seller;
   }, [isPropManager]);
 
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? sections
-        .map((s) => ({
-          ...s,
-          items: s.items.filter((it) => it.label.toLowerCase().includes(q)),
-        }))
-        .filter((s) => s.items.length > 0)
-    : sections;
+  function isActive(href: string) {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    return pathname === href || pathname.startsWith(href + '/');
+  }
 
-  const hasResults = filtered.some((s) => s.items.length > 0);
+  // Utility shortcuts at the top, mirroring the icon strip seen in modern
+  // POS dashboards. Each is a one-tap deep link.
+  const utilities: { icon: LucideIcon; href: string; label: string }[] = [
+    { icon: Search, href: '/dashboard', label: 'Search' },
+    { icon: MessageCircle, href: '/follow-up', label: 'Messages' },
+    { icon: Bell, href: '/follow-up', label: 'Alerts' },
+    { icon: ClipboardList, href: '/tasks', label: 'Tasks' },
+    { icon: HelpCircle, href: '/contact', label: 'Help' },
+    { icon: ShoppingBag, href: '/showroom', label: 'Storefront' },
+    { icon: UserCircle2, href: '/settings', label: 'Profile' },
+  ];
+
+  const initials =
+    (businessName ?? '')
+      .split(/\s+/)
+      .map((w) => w[0])
+      .filter(Boolean)
+      .slice(0, 2)
+      .join('')
+      .toUpperCase() || 'CT';
 
   return (
     <>
@@ -227,96 +172,107 @@ export function MoreSheet({ open, onClose, isPropManager }: Props) {
         )}
         onClick={onClose}
       />
-      <div
+      <aside
         role="dialog"
         aria-modal="true"
-        aria-label="More navigation"
+        aria-label="Menu"
         className={cn(
-          'fixed inset-x-0 bottom-0 z-50 flex max-h-[88vh] flex-col rounded-t-3xl bg-white shadow-[0_-12px_40px_rgba(15,23,42,0.18)] transition-transform duration-300 ease-out md:hidden',
-          open ? 'translate-y-0' : 'translate-y-full',
+          'fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-white shadow-[0_0_40px_rgba(15,23,42,0.18)] transition-transform duration-300 ease-out md:hidden',
+          open ? 'translate-x-0' : 'translate-x-full',
         )}
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
       >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-2.5 pb-1">
-          <div className="h-1.5 w-12 rounded-full bg-slate-200" aria-hidden />
+        {/* Title row */}
+        <div className="flex items-center justify-between px-5 pt-3 pb-1">
+          <h2 className="text-2xl font-bold tracking-tight text-ink">Menu</h2>
         </div>
 
-        {/* Header row */}
-        <div className="flex items-center justify-between px-5 pt-1 pb-3">
-          <h2 className="text-lg font-bold text-ink">More</h2>
+        {/* Utility strip */}
+        <div className="flex items-center justify-between px-4 py-3">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 active:scale-95"
+            aria-label="Close menu"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 active:scale-95"
           >
-            <X size={16} />
+            <X size={20} strokeWidth={2.25} />
           </button>
+          {utilities.map((u) => {
+            const Icon = u.icon;
+            return (
+              <Link
+                key={u.label}
+                href={u.href}
+                onClick={onClose}
+                aria-label={u.label}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-slate-700 transition hover:bg-slate-100 active:scale-95"
+              >
+                <Icon size={19} strokeWidth={2} />
+              </Link>
+            );
+          })}
         </div>
 
-        {/* Search */}
-        <div className="px-5 pb-3">
-          <label className="relative block">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              aria-hidden
-            />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search"
-              className="w-full rounded-full border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-ink placeholder:text-slate-400 focus:border-brand-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
-            />
-          </label>
-        </div>
+        {/* Account card */}
+        <Link
+          href="/settings"
+          onClick={onClose}
+          className="mx-4 mt-2 flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:border-brand-300 hover:bg-brand-50/30 active:scale-[0.99]"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-base font-semibold text-ink">
+              {businessName?.trim() || 'Your business'}
+            </div>
+            {planLabel ? (
+              <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                <span>{planLabel}</span>
+                <span className="text-slate-300">·</span>
+                <span className="font-semibold text-brand-700 underline-offset-2 group-hover:underline">
+                  See plans
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </Link>
 
-        {/* Tiles */}
-        <div className="flex-1 overflow-y-auto px-4 pb-6">
-          {!hasResults ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center text-sm text-slate-500">
-              Nothing matches &quot;{query}&quot;.
-            </div>
-          ) : (
-            <div className="space-y-5">
-              {filtered.map((sec) => (
-                <section key={sec.label}>
-                  <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    {sec.label}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {sec.items.map((it) => {
-                      const Icon = it.icon;
-                      return (
-                        <Link
-                          key={it.href}
-                          href={it.href}
-                          onClick={onClose}
-                          className="group flex flex-col items-center gap-2 rounded-2xl bg-white p-3 ring-1 ring-slate-100 transition hover:ring-brand-200 active:scale-[0.97]"
-                        >
-                          <div
-                            className={cn(
-                              'flex h-11 w-11 items-center justify-center rounded-xl',
-                              it.tone,
-                            )}
-                          >
-                            <Icon size={20} strokeWidth={2.25} />
-                          </div>
-                          <span className="text-center text-[12px] font-medium leading-tight text-slate-700 group-hover:text-ink">
-                            {it.label}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+        {/* Menu list */}
+        <nav className="mt-4 flex-1 overflow-y-auto px-2 pb-4">
+          <ul className="space-y-0.5">
+            {menu.map((it) => {
+              const Icon = it.icon;
+              const active = isActive(it.href);
+              return (
+                <li key={it.href}>
+                  <Link
+                    href={it.href}
+                    onClick={onClose}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'flex items-center gap-4 rounded-xl px-3 py-3 transition active:scale-[0.99]',
+                      active
+                        ? 'bg-slate-100 font-semibold text-ink'
+                        : 'text-slate-700 hover:bg-slate-50',
+                    )}
+                  >
+                    <Icon
+                      size={20}
+                      strokeWidth={active ? 2.5 : 2}
+                      className={active ? 'text-brand-600' : 'text-slate-500'}
+                    />
+                    <span className="flex-1 text-[15px]">{it.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </aside>
     </>
   );
 }

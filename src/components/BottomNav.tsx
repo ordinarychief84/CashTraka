@@ -16,6 +16,10 @@ type Props = {
   /** Role of the logged-in principal. Used to hide the Quick-Add FAB when
    *  the principal can't actually create anything. */
   accessRole?: AccessRole;
+  /** Forwarded to MoreSheet so the account card can render. */
+  businessName?: string | null;
+  /** Forwarded to MoreSheet to render the plan badge. */
+  planLabel?: string | null;
 };
 
 /**
@@ -27,7 +31,12 @@ type Props = {
  * The bar sits inside a fixed wrapper with safe-area padding so it
  * clears iOS home-indicator and Android gesture areas.
  */
-export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
+export function BottomNav({
+  isPropManager,
+  accessRole = 'OWNER',
+  businessName,
+  planLabel,
+}: Props) {
   const canCreate =
     can(accessRole, 'payments.write') ||
     can(accessRole, 'debts.write') ||
@@ -108,6 +117,8 @@ export function BottomNav({ isPropManager, accessRole = 'OWNER' }: Props) {
         open={moreOpen}
         onClose={() => setMoreOpen(false)}
         isPropManager={isPropManager}
+        businessName={businessName}
+        planLabel={planLabel}
       />
     </>
   );

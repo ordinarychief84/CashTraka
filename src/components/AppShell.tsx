@@ -79,6 +79,7 @@ export function AppShell({
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
+          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
           {show.payments && (
             <SideLink
               href="/payments"
@@ -105,6 +106,9 @@ export function AppShell({
           )}
           {show.payments && !isPropManager && (
             <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
+          )}
+          {show.payments && (
+            <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />
           )}
 
           {/* Collections */}
@@ -145,8 +149,6 @@ export function AppShell({
           )}
 
           <div className="mt-auto" />
-          {show.payments && <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />}
-          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
           {show.settings && <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />}
         </nav>
 

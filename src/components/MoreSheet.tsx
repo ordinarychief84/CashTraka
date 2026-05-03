@@ -94,11 +94,13 @@ export function MoreSheet({
   const menu: MenuItem[] = useMemo(() => {
     const seller: MenuItem[] = [
       { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/payments', icon: Banknote, label: 'Payments' },
       { href: '/debts', icon: Clock3, label: 'Money owed' },
       { href: '/customers', icon: Users, label: 'Customers' },
       { href: '/receipts', icon: Receipt, label: 'Receipts' },
       { href: '/invoices', icon: FileText, label: 'Invoices' },
+      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
       {
         href: '/recurring-invoices',
@@ -114,13 +116,12 @@ export function MoreSheet({
       { href: '/tasks', icon: ListTodo, label: 'Tasks' },
       { href: '/checklists', icon: CheckSquare, label: 'Checklists' },
       { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
-      { href: '/service-check', icon: Heart, label: 'Service Check' },
-      { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
     const landlord: MenuItem[] = [
       { href: '/dashboard', icon: Home, label: 'Home' },
+      { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/payments', icon: Banknote, label: 'Rent payments' },
       { href: '/debts', icon: Clock3, label: 'Unpaid rent' },
       { href: '/properties', icon: Building2, label: 'Properties' },
@@ -128,12 +129,11 @@ export function MoreSheet({
       { href: '/tenants', icon: Users, label: 'Tenants' },
       { href: '/receipts', icon: Receipt, label: 'Receipts' },
       { href: '/invoices', icon: FileText, label: 'Invoices' },
+      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/expenses', icon: Receipt, label: 'Expenses' },
       { href: '/team', icon: Users2, label: 'Team' },
       { href: '/tasks', icon: ListTodo, label: 'Tasks' },
       { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
-      { href: '/service-check', icon: Heart, label: 'Service Check' },
-      { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 

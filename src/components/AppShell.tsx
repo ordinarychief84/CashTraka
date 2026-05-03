@@ -116,14 +116,11 @@ export function AppShell({
             <>
               <GroupLabel>Collections</GroupLabel>
               <SideLink href="/paylinks" icon={<Send size={18} />} label="PayLinks" />
-              <SideLink href="/promises" icon={<FileText size={18} />} label="Promises" />
               <SideLink href="/collections" icon={<Target size={18} />} label="Collections" />
             </>
           )}
 
-          {(show.products || show.sales || show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
-          {show.products && <SideLink href="/showroom" icon={<GalleryHorizontalEnd size={18} />} label="Showroom" />}
-          {show.sales && <SideLink href="/sales" icon={<ShoppingBag size={18} />} label="Sales" />}
+          {(show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
 
@@ -133,19 +130,6 @@ export function AppShell({
               <SideLink href="/properties" icon={<Building2 size={18} />} label="Properties" />
               <SideLink href="/rent" icon={<Key size={18} />} label="Rent Tracker" />
             </>
-          )}
-
-          {(show.tasks || show.checklists) && <GroupLabel>Operations</GroupLabel>}
-          {show.tasks && (
-            <SideLink
-              href="/tasks"
-              icon={<ListTodo size={18} />}
-              label="Task Management"
-              badge={pendingTaskCount}
-            />
-          )}
-          {show.checklists && (
-            <SideLink href="/checklists" icon={<ClipboardList size={18} />} label="Checklists" />
           )}
 
           <div className="mt-auto" />

@@ -38,6 +38,7 @@ const bodySchema = z.object({
   recurringAutoSendDefault: z.boolean().optional(),
   xmlGenerateOnFirs: z.boolean().optional(),
   documentRetentionMonths: z.coerce.number().int().min(1).max(240).optional(),
+  platformFeeOptIn: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -66,6 +67,7 @@ export async function GET() {
       recurringAutoSendDefault: user.recurringAutoSendDefault ?? false,
       xmlGenerateOnFirs: user.xmlGenerateOnFirs ?? true,
       documentRetentionMonths: user.documentRetentionMonths ?? 72,
+      platformFeeOptIn: user.platformFeeOptIn ?? false,
     },
   });
 }
@@ -117,6 +119,7 @@ export async function PATCH(req: Request) {
       recurringAutoSendDefault: parsed.data.recurringAutoSendDefault ?? undefined,
       xmlGenerateOnFirs: parsed.data.xmlGenerateOnFirs ?? undefined,
       documentRetentionMonths: parsed.data.documentRetentionMonths ?? undefined,
+      platformFeeOptIn: parsed.data.platformFeeOptIn ?? undefined,
     },
     select: {
       defaultCurrency: true,
@@ -137,6 +140,7 @@ export async function PATCH(req: Request) {
       recurringAutoSendDefault: true,
       xmlGenerateOnFirs: true,
       documentRetentionMonths: true,
+      platformFeeOptIn: true,
     },
   });
 

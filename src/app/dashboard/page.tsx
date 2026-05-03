@@ -30,6 +30,7 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
 import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
+import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { formatNaira } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
@@ -627,6 +628,9 @@ export default async function DashboardPage() {
             deltaPct={aovDelta}
             icon={<Banknote size={13} />}
           />
+          <div className="sm:col-span-2 lg:col-span-2">
+            <CashFlowForecastCard userId={user.id} />
+          </div>
         </div>
       </div>
 

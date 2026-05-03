@@ -107,15 +107,10 @@ export function MoreSheet({
         icon: Repeat,
         label: 'Recurring invoices',
       },
-      { href: '/showroom', icon: GalleryHorizontalEnd, label: 'Showroom' },
-      { href: '/sales', icon: ShoppingBag, label: 'Sales' },
       { href: '/paylinks', icon: Send, label: 'PayLinks' },
       { href: '/collections', icon: Target, label: 'Collections' },
       { href: '/expenses', icon: Receipt, label: 'Expenses' },
       { href: '/team', icon: Users2, label: 'Team' },
-      { href: '/tasks', icon: ListTodo, label: 'Tasks' },
-      { href: '/checklists', icon: CheckSquare, label: 'Checklists' },
-      { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 
@@ -132,8 +127,6 @@ export function MoreSheet({
       { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/expenses', icon: Receipt, label: 'Expenses' },
       { href: '/team', icon: Users2, label: 'Team' },
-      { href: '/tasks', icon: ListTodo, label: 'Tasks' },
-      { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
 

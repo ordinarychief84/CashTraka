@@ -635,6 +635,26 @@ export const paymentConfirmationService = {
       })
       .catch(() => null);
 
+    // Platform fee (informational, v1). Only computed when the seller
+    // opted in; recorded in audit metadata for monthly remittance tracking.
+    // We deliberately do NOT touch the Payment row's amount; the seller
+    // still receives the full sum and remits the fee separately.
+    let platformFeeKobo: number | null = null;
+    try {
+      const seller = await prisma.user.findUnique({
+        where: { id: invoice.userId },
+        select: { platformFeeOptIn: true },
+      });
+      if (seller?.platformFeeOptIn) {
+        const amountKobo = paidAmount * 100;
+        const FEE_CAP_KOBO = 5000 * 100; // ₦5,000 in kobo
+        platformFeeKobo = Math.min(FEE_CAP_KOBO, Math.round(amountKobo * 0.01));
+      }
+    } catch {
+      // Non-fatal: fall back to no fee annotation.
+      platformFeeKobo = null;
+    }
+
     // Audit log (awaited per FIX 5)
     await documentAudit.log({
       userId: invoice.userId,
@@ -645,6 +665,7 @@ export const paymentConfirmationService = {
         paymentId: payment.id,
         reference,
         amountKobo: paidAmount * 100,
+        ...(platformFeeKobo !== null ? { platformFeeKobo } : {}),
       },
     });
 

@@ -146,6 +146,14 @@ model User {
   /// Optional WhatsApp message template. Supports {name} and {url} placeholders.
   feedbackMessageTemplate  String?
 
+  /// ── Platform fee opt-in ───────────────────────────────────────
+  /// When true, every Paystack invoice payment confirmed for this seller is
+  /// annotated with a 1% platform fee (capped at ₦5,000) recorded as audit
+  /// metadata on the Payment row. v1 is informational only — no funds are
+  /// split, the seller remits manually. Future versions will plug into
+  /// Paystack subaccount split.
+  platformFeeOptIn         Boolean   @default(false)
+
   onboardingCompleted  Boolean   @default(false)
   /// Whether the user has verified their email via OTP.
   emailVerified        Boolean   @default(false)

@@ -29,6 +29,7 @@ type Settings = {
   recurringAutoSendDefault: boolean;
   xmlGenerateOnFirs: boolean;
   documentRetentionMonths: number;
+  platformFeeOptIn: boolean;
 };
 
 type LimitsSnapshot = {
@@ -203,6 +204,29 @@ export function InvoiceTab() {
           }
         />
       </Field>
+
+      {/* ── Platform fee ──────────────────────────────────────────── */}
+      <div className="space-y-2 border-t border-slate-200 pt-5">
+        <h3 className="text-sm font-semibold text-slate-900">Platform fee</h3>
+        <label className="flex items-start gap-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={state.platformFeeOptIn}
+            onChange={(e) =>
+              setState({ ...state, platformFeeOptIn: e.target.checked })
+            }
+          />
+          <span>
+            Add a 1% platform fee to Paystack invoice payments
+          </span>
+        </label>
+        <p className="pl-6 text-xs text-slate-500">
+          Capped at &#8358;5,000 per transaction. Tracked on each payment for
+          monthly remittance to CashTraka. v1 just records the fee for
+          transparency, your customer still pays you directly.
+        </p>
+      </div>
 
       {/* ── Workflow defaults ─────────────────────────────────────── */}
       <div className="space-y-4 border-t border-slate-200 pt-5">

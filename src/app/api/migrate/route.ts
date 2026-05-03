@@ -281,6 +281,9 @@ export async function GET(req: NextRequest) {
   await addCol('User', 'feedbackLinkExpiryDays', 'INTEGER', '14');
   await addCol('User', 'feedbackMessageTemplate', 'TEXT', 'NULL');
 
+  // Platform fee opt-in (1% take rate, capped at ₦5,000 per transaction).
+  await addCol('User', 'platformFeeOptIn', 'BOOLEAN NOT NULL', 'false');
+
   // Invoice: extra columns
   await addCol('Invoice', 'discount', 'INTEGER NOT NULL', '0');
   await addCol('Invoice', 'paymentTerms', 'TEXT', 'NULL');

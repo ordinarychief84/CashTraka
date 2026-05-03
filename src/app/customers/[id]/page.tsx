@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { FraudWarning } from '@/components/FraudWarning';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
+import { CreditScoreBadge } from '@/components/customers/CreditScoreBadge';
 import { formatNaira, formatDateTime, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -94,6 +95,10 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
           </Link>
         }
       />
+
+      <div className="mb-4">
+        <CreditScoreBadge customerId={customer.id} userId={user.id} />
+      </div>
 
       <div className="mb-4">
         <FraudWarning phone={customer.phone} customerName={customer.name} />

@@ -21,6 +21,7 @@ import {
   sanitizePublicText,
   CATALOG_LIMITS,
 } from '@/lib/catalog';
+import { rewriteImageUrl } from '@/lib/uploadcare/upload';
 
 export type PublicProduct = {
   id: string;
@@ -62,13 +63,18 @@ function shapeProduct(p: {
   lowStockAt: number;
   catalogStatus: string;
 }): PublicProduct {
+  // Rewrite legacy ucarecdn.com URLs to the project's configured CDN host.
+  // Filter out empty strings so the UI can rely on `images[0]` truthiness.
+  const images = (p.images || [])
+    .map((u) => rewriteImageUrl(u))
+    .filter((u): u is string => !!u);
   return {
     id: p.id,
     name: p.name,
     price: p.price,
     description: p.description,
     sku: p.sku,
-    images: p.images,
+    images,
     status: productCatalogStatus(p),
   };
 }
@@ -119,17 +125,18 @@ export const catalogService = {
       }),
     ]);
 
-    const albumCards: PublicAlbumCard[] = albums.map((a) => ({
-      slug: a.slug,
-      title: a.title,
-      description: a.description,
-      coverImageUrl:
-        a.coverImageUrl ||
-        a.products[0]?.product?.images?.[0] ||
-        null,
-      itemCount: a._count.products,
-      passcodeRequired: a.passcodeRequired,
-    }));
+    const albumCards: PublicAlbumCard[] = albums.map((a) => {
+      const cover =
+        a.coverImageUrl || a.products[0]?.product?.images?.[0] || null;
+      return {
+        slug: a.slug,
+        title: a.title,
+        description: a.description,
+        coverImageUrl: cover ? rewriteImageUrl(cover) || null : null,
+        itemCount: a._count.products,
+        passcodeRequired: a.passcodeRequired,
+      };
+    });
 
     return {
       business: user.businessName || user.name || 'Shop',
@@ -204,7 +211,9 @@ export const catalogService = {
         slug: album.slug,
         title: album.title,
         description: album.description,
-        coverImageUrl: album.coverImageUrl,
+        coverImageUrl: album.coverImageUrl
+          ? rewriteImageUrl(album.coverImageUrl) || null
+          : null,
         passcodeRequired: album.passcodeRequired,
       },
       products,

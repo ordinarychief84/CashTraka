@@ -6,6 +6,7 @@ import { catalogService, hashClientIp } from '@/lib/services/catalog.service';
 import { albumCookieName, verifyAlbumToken } from '@/lib/album-passcode';
 import { AlbumUnlockForm } from '@/components/store/AlbumUnlockForm';
 import { formatNaira } from '@/lib/format';
+import { SafeImage } from '@/components/SafeImage';
 
 export const dynamic = 'force-dynamic';
 
@@ -113,17 +114,17 @@ export default async function AlbumPage({
                 className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-border transition hover:shadow-md"
               >
                 <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                  {p.images[0] ? (
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      className="h-full w-full object-cover transition group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
-                      No image
-                    </div>
-                  )}
+                  <SafeImage
+                    src={p.images[0]}
+                    alt={p.name}
+                    className="absolute inset-0"
+                    imgClassName="h-full w-full object-cover transition group-hover:scale-105"
+                    fallback={
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                        No image
+                      </div>
+                    }
+                  />
                   {p.status === 'SOLD_OUT' ? (
                     <div className="absolute right-1.5 top-1.5 rounded-full bg-slate-900/80 px-1.5 py-0.5 text-[9px] font-bold uppercase text-white">
                       Sold out

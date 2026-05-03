@@ -52,6 +52,37 @@ function cdnBase(): string {
   return 'https://ucarecdn.com';
 }
 
+/**
+ * Rewrite a stored Uploadcare URL to the project's current CDN base.
+ *
+ * Why: when this app was first deployed, images were uploaded against
+ * the shared `https://ucarecdn.com` host. The project later got its own
+ * subdomain (configured via `UPLOADCARE_CDN_BASE`). Files only resolve
+ * via the project's assigned domain — the legacy ones in the database
+ * now 404. Rather than rewrite every row, we patch URLs at render time.
+ *
+ * Returns the input unchanged when:
+ *   - `UPLOADCARE_CDN_BASE` is not set
+ *   - the URL doesn't look like an Uploadcare URL
+ *   - the URL is already on the project's CDN host
+ */
+export function rewriteImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  const target = process.env.UPLOADCARE_CDN_BASE?.trim().replace(/\/$/, '');
+  if (!target) return url;
+  // Match the legacy host (or any other Uploadcare CDN host) and swap.
+  // Pattern: https://<anything>.ucarecdn.com/path or
+  //          https://ucarecdn.com/path
+  // Project domains use ucarecd.net (note: missing the n) so we also
+  // catch any legacy ucarecd.net subdomain that doesn't match `target`.
+  const m = url.match(/^https?:\/\/[^/]+\.ucarecd\.net\/(.+)$|^https?:\/\/(?:[^/]+\.)?ucarecdn\.com\/(.+)$/i);
+  if (!m) return url;
+  const path = m[1] ?? m[2];
+  const targetHost = target.replace(/\/$/, '');
+  if (url.startsWith(targetHost)) return url;
+  return `${targetHost}/${path}`;
+}
+
 type UploadResult = { url: string; publicId: string };
 
 function isConfigured(): boolean {

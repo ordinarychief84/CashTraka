@@ -24,22 +24,42 @@ import { URL as URLClass } from 'node:url';
 
 const URL = process.env.MIGRATE_URL || 'https://www.cashtraka.co/api/migrate';
 
-function loadSecret() {
-  if (process.env.CRON_SECRET) return process.env.CRON_SECRET;
+/**
+ * The migrate endpoint requires TWO secrets: CRON_SECRET (Bearer) and
+ * MIGRATE_SECRET (x-migrate-secret header). Defense in depth: a leaked
+ * cron log only exposes CRON_SECRET, not the schema-mutation key.
+ */
+function loadSecrets() {
+  let cron = process.env.CRON_SECRET;
+  let migrate = process.env.MIGRATE_SECRET;
+  if (cron && migrate) return { cron, migrate };
 
-  console.log('→ CRON_SECRET not in env — pulling from Vercel...');
+  console.log('→ Pulling secrets from Vercel...');
   const tmpFile = join(tmpdir(), `vercel-env-${Date.now()}-${process.pid}.tmp`);
   try {
     execSync(`vercel env pull --environment=production --yes "${tmpFile}"`, {
       stdio: ['ignore', 'ignore', 'inherit'],
     });
     const env = readFileSync(tmpFile, 'utf-8');
-    const match = env.match(/^CRON_SECRET="?([^"\n]+)"?/m);
-    if (!match) throw new Error('CRON_SECRET not present in production env');
-    return match[1];
+    if (!cron) {
+      const m = env.match(/^CRON_SECRET="?([^"\n]+)"?/m);
+      if (!m) throw new Error('CRON_SECRET not present in production env');
+      cron = m[1];
+    }
+    if (!migrate) {
+      const m = env.match(/^MIGRATE_SECRET="?([^"\n]+)"?/m);
+      if (!m) {
+        throw new Error(
+          'MIGRATE_SECRET not present in production env. Set it via:\n' +
+            '  vercel env add MIGRATE_SECRET production',
+        );
+      }
+      migrate = m[1];
+    }
+    return { cron, migrate };
   } catch (e) {
-    console.error('Could not load CRON_SECRET. Either:');
-    console.error('  • set it in your shell:  export CRON_SECRET=…');
+    console.error('Could not load secrets. Either:');
+    console.error('  • set them in your shell:  export CRON_SECRET=… MIGRATE_SECRET=…');
     console.error('  • or install Vercel CLI:  npm i -g vercel  &&  vercel login');
     console.error(`  (underlying error: ${e.message})`);
     process.exit(1);
@@ -52,7 +72,7 @@ function loadSecret() {
   }
 }
 
-const secret = loadSecret();
+const { cron: secret, migrate: migrateSecret } = loadSecrets();
 
 console.log(`→ GET ${URL}`);
 
@@ -83,7 +103,10 @@ function httpGet(url, headers) {
   });
 }
 
-const res = await httpGet(URL, { Authorization: `Bearer ${secret}` });
+const res = await httpGet(URL, {
+  Authorization: `Bearer ${secret}`,
+  'x-migrate-secret': migrateSecret,
+});
 
 if (res.status >= 300 && res.status < 400) {
   console.error(

@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   // Plan gate: attendance is a paid-plan feature.
-  const feature = requireFeature(user, 'attendance');
+  const feature = await requireFeature(user, 'attendance');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

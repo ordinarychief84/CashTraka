@@ -604,11 +604,43 @@ export async function GET(req: NextRequest) {
           ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_invoiceId_fkey"
             FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
         END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'UserOverride_userId_fkey') THEN
+          ALTER TABLE "UserOverride" ADD CONSTRAINT "UserOverride_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
       END $$;
     `);
     results.push('OK: invoicing FKs');
   } catch (e: any) {
     results.push('FK FAIL: invoicing - ' + e.message?.substring(0, 100));
+  }
+
+  // UserOverride table — per-user feature/quota overrides for ops control.
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "UserOverride" (
+        "id"           TEXT         NOT NULL,
+        "userId"       TEXT         NOT NULL,
+        "overrides"    TEXT         NOT NULL,
+        "discountKobo" INTEGER,
+        "reason"       TEXT,
+        "createdAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"    TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "UserOverride_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: UserOverride table');
+  } catch (e: any) {
+    results.push('FAIL: UserOverride table - ' + e.message?.substring(0, 100));
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(
+      `CREATE UNIQUE INDEX IF NOT EXISTS "UserOverride_userId_key" ON "UserOverride"("userId")`,
+    );
+    results.push('OK: UserOverride_userId_key');
+  } catch (e: any) {
+    results.push('INDEX FAIL: UserOverride_userId_key - ' + e.message?.substring(0, 80));
   }
 
   // CatalogEvent table — public storefront activity log

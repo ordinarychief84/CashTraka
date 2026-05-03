@@ -9,7 +9,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'collectionScore');
+    const blocked = await requireFeature(user, 'collectionScore');
     if (blocked) return blocked;
 
     let score = await collectionScoreService.getLatest(user.id);
@@ -34,7 +34,7 @@ export async function POST() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'collectionScore');
+    const blocked = await requireFeature(user, 'collectionScore');
     if (blocked) return blocked;
 
     // Force recompute

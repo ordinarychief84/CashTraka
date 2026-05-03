@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Plan feature gate — tasks are a Business+ feature.
-  const feature = requireFeature(user, 'tasks');
+  const feature = await requireFeature(user, 'tasks');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

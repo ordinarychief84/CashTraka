@@ -1,18 +1,19 @@
 import { NextResponse } from 'next/server';
 import { prisma } from './prisma';
 import {
-  limitsFor,
   PLAN_LABELS,
   suggestUpgrade,
   effectivePlan,
   isSubscriptionLapsed,
   type Limits,
 } from './plan-limits';
+import { getEffectiveLimits } from './services/user-override.service';
 
 /**
  * Feature/quota enforcement. All checks route through `effectivePlan()` so
  * subscription lifecycle (trial expiry, past-due, cancelled-grace) is
- * respected in one place.
+ * respected in one place. Limits are then merged with any per-user override
+ * stored on `UserOverride` so ops can comp specific features or quotas.
  *
  * Returns a NextResponse (402 for quota, 403 for feature) if the action is
  * blocked, or null if it's allowed.
@@ -51,10 +52,11 @@ function denyQuota(
   );
 }
 
-/** Effective limits + whether a previously-paid subscription has lapsed. */
-function resolveLimits(user: GateUser): { limits: Limits } {
+/** Effective limits + lifecycle awareness, merged with per-user overrides. */
+async function resolveLimits(user: GateUser): Promise<{ limits: Limits }> {
   const eff = effectivePlan(user);
-  return { limits: limitsFor(eff.plan) };
+  const limits = await getEffectiveLimits(user.id, eff.plan);
+  return { limits };
 }
 
 export async function enforceQuota(
@@ -68,7 +70,7 @@ export async function enforceQuota(
     | 'create_tenant'
     | 'create_staff',
 ): Promise<NextResponse | null> {
-  const { limits } = resolveLimits(user);
+  const { limits } = await resolveLimits(user);
 
   switch (action) {
     case 'create_payment': {
@@ -174,14 +176,14 @@ export async function enforceQuota(
  *
  * Returns:
  *   - 402 if the user *had* access but their subscription lapsed (so the UI
- *     can prompt them to retry payment — not a permanent block)
+ *     can prompt them to retry payment, not a permanent block)
  *   - 403 if the feature is simply not in their current plan (upgrade path)
  */
-export function requireFeature(
+export async function requireFeature(
   user: GateUser,
   feature: keyof Limits,
-): NextResponse | null {
-  const { limits } = resolveLimits(user);
+): Promise<NextResponse | null> {
+  const { limits } = await resolveLimits(user);
   const allowed = limits[feature];
   if (typeof allowed === 'boolean' && !allowed) {
     const status = isSubscriptionLapsed(user) ? 402 : 403;

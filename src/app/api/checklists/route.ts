@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       { status: 403 },
     );
   }
-  const feature = requireFeature(user, 'checklists');
+  const feature = await requireFeature(user, 'checklists');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

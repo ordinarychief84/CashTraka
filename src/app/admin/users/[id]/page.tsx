@@ -6,7 +6,14 @@ import { SuspendButton } from '@/components/admin/SuspendButton';
 import { DeleteUserButton } from '@/components/admin/DeleteUserButton';
 import { AddNoteForm } from '@/components/admin/AddNoteForm';
 import { PlanOverride } from '@/components/admin/PlanOverride';
+import { SubscriptionPanel } from '@/components/admin/SubscriptionPanel';
 import { adminService } from '@/lib/services/admin.service';
+import { prisma } from '@/lib/prisma';
+import { effectivePlan, limitsFor } from '@/lib/plan-limits';
+import {
+  getOverrideMap,
+  mergeLimits,
+} from '@/lib/services/user-override.service';
 import { formatNaira, formatDate, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +23,28 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
   const admin = await requireAdmin();
   const { user, totals, recentActivity, notes } = await adminService.userDetail(params.id);
   const subscriptionLabel = (user.subscriptionStatus ?? 'free').replace('_', ' ');
+
+  // Subscription panel data: effective limits = plan limits merged with overrides.
+  const overrideRow = await prisma.userOverride.findUnique({
+    where: { userId: user.id },
+    select: { discountKobo: true },
+  });
+  const overrideMap = await getOverrideMap(user.id);
+  const eff = effectivePlan({
+    plan: user.plan,
+    subscriptionStatus: user.subscriptionStatus,
+    trialEndsAt: user.trialEndsAt,
+    currentPeriodEnd: user.currentPeriodEnd,
+  });
+  const baseLimits = limitsFor(eff.plan);
+  const effectiveLimits = mergeLimits(baseLimits, overrideMap);
+
+  const auditEntries = await prisma.auditLog.findMany({
+    where: { targetId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    include: { admin: { select: { name: true } } },
+  });
 
   return (
     <AdminShell adminName={admin.name} activePath="/admin/users">
@@ -87,6 +116,24 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
 
       {user.role !== 'ADMIN' && (
         <div className="mb-6"><PlanOverride userId={user.id} currentPlan={user.plan} currentStatus={user.subscriptionStatus ?? 'free'} /></div>
+      )}
+
+      {user.role !== 'ADMIN' && (
+        <SubscriptionPanel
+          userId={user.id}
+          currentPlan={user.plan}
+          baseLimits={baseLimits}
+          effectiveLimits={effectiveLimits}
+          overrideMap={overrideMap as Record<string, boolean | number | null>}
+          discountKobo={overrideRow?.discountKobo ?? null}
+          auditEntries={auditEntries.map((e) => ({
+            id: e.id,
+            action: e.action,
+            createdAt: e.createdAt.toISOString(),
+            details: e.details,
+            admin: { name: e.admin?.name ?? null },
+          }))}
+        />
       )}
 
       <div className="grid gap-4 md:grid-cols-2">

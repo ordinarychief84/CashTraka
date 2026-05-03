@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'csvExport');
+  const feature = await requireFeature(user, 'csvExport');
   if (feature) return feature;
 
   const body = await req.json();

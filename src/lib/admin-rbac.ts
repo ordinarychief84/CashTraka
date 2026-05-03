@@ -19,6 +19,7 @@ export type AdminSection =
   | 'roles'
   | 'support'
   | 'refunds'
+  | 'subscriptions'
   | 'notifications'
   | 'analytics'
   | 'emails'
@@ -34,12 +35,12 @@ export type AdminSection =
 /** Which admin sections each role can access */
 const ADMIN_MATRIX: Record<AdminRole, AdminSection[]> = {
   SUPER_ADMIN: [
-    'dashboard', 'users', 'roles', 'support', 'refunds',
+    'dashboard', 'users', 'roles', 'support', 'refunds', 'subscriptions',
     'notifications', 'analytics', 'emails', 'blog', 'audit', 'settings',
     'invoices', 'recurring', 'firs', 'docAudit', 'feedback',
   ],
   BLOG_MANAGER: ['dashboard', 'blog'],
-  BILLING_MANAGER: ['dashboard', 'refunds', 'analytics', 'invoices', 'firs'],
+  BILLING_MANAGER: ['dashboard', 'refunds', 'subscriptions', 'analytics', 'invoices', 'firs'],
   SUPPORT_AGENT: ['dashboard', 'users', 'support', 'notifications', 'emails', 'invoices', 'docAudit'],
   PROPERTY_MANAGER: ['dashboard', 'users'],
   REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit', 'feedback'],
@@ -62,6 +63,7 @@ export const PATH_TO_SECTION: Record<string, AdminSection> = {
   '/admin/roles': 'roles',
   '/admin/support': 'support',
   '/admin/refunds': 'refunds',
+  '/admin/subscriptions': 'subscriptions',
   '/admin/notifications': 'notifications',
   '/admin/analytics': 'analytics',
   '/admin/emails': 'emails',

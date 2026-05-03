@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Feature gate
-    const blocked = requireFeature(user, 'autoReminders');
+    const blocked = await requireFeature(user, 'autoReminders');
     if (blocked) return blocked;
 
     // Quota check on number of rules

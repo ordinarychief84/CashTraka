@@ -9,7 +9,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'suggestions');
+    const blocked = await requireFeature(user, 'suggestions');
     if (blocked) return blocked;
 
     const suggestions = await suggestionService.generate(user.id);

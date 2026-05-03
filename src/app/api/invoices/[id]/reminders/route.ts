@@ -58,7 +58,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'paymentReminders');
+  const feature = await requireFeature(user, 'paymentReminders');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

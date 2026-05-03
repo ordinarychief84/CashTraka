@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 export const POST = (_req: Request, ctx: { params: { id: string } }) =>
   handled(async () => {
     const user = await requireUser();
-    const feature = requireFeature(user, 'firsCompliance');
+    const feature = await requireFeature(user, 'firsCompliance');
     if (feature) return feature;
     const result = await firsInvoiceService.retrySubmission(user.id, ctx.params.id);
     return ok(result);

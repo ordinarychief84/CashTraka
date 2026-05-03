@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'offers');
+  const feature = await requireFeature(user, 'offers');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

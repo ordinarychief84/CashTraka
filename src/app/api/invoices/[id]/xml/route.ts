@@ -21,7 +21,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'electronicXml');
+  const feature = await requireFeature(user, 'electronicXml');
   if (feature) return feature;
 
   const invoice = await prisma.invoice.findFirst({

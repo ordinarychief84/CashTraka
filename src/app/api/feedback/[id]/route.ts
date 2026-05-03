@@ -30,7 +30,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'serviceCheck');
+    const blocked = await requireFeature(user, 'serviceCheck');
     if (blocked) return blocked;
 
     const body = await req.json().catch(() => ({}));

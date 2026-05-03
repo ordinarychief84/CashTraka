@@ -9,7 +9,7 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'behaviorTracking');
+    const blocked = await requireFeature(user, 'behaviorTracking');
     if (blocked) return blocked;
 
     const breakdown = await behaviorService.breakdown(user.id);

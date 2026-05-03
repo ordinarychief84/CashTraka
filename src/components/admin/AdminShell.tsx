@@ -16,6 +16,7 @@ import {
   ClipboardList,
   FileText,
   Heart,
+  CircleDollarSign,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import type { AdminSection } from '@/lib/admin-rbac';
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/roles', icon: Shield, label: 'Roles', section: 'roles' },
   { href: '/admin/support', icon: Headphones, label: 'Support', section: 'support' },
   { href: '/admin/refunds', icon: RefreshCw, label: 'Refunds', section: 'refunds' },
+  { href: '/admin/subscriptions', icon: CircleDollarSign, label: 'Subscriptions', section: 'subscriptions' },
   { href: '/admin/invoices', icon: FileText, label: 'Invoices', section: 'invoices' },
   { href: '/admin/recurring-invoices', icon: RefreshCw, label: 'Recurring', section: 'recurring' },
   { href: '/admin/firs', icon: ShieldCheck, label: 'FIRS', section: 'firs' },

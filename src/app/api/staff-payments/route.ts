@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   // Plan gate: payroll (logging staff payments) is a paid-plan feature.
-  const feature = requireFeature(user, 'payroll');
+  const feature = await requireFeature(user, 'payroll');
   if (feature) return feature;
 
   const body = await req.json().catch(() => ({}));

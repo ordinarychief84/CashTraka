@@ -11,7 +11,7 @@ export async function GET(req: Request, ctx: Ctx) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'behaviorTracking');
+    const blocked = await requireFeature(user, 'behaviorTracking');
     if (blocked) return blocked;
 
     const { id } = await ctx.params;
@@ -36,7 +36,7 @@ export async function POST(req: Request, ctx: Ctx) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const blocked = requireFeature(user, 'behaviorTracking');
+    const blocked = await requireFeature(user, 'behaviorTracking');
     if (blocked) return blocked;
 
     const { id } = await ctx.params;

@@ -216,6 +216,7 @@ model User {
   documentArchives     DocumentArchive[]
   documentAuditLogs    DocumentAuditLog[]
   feedbacks            Feedback[]
+  override             UserOverride?
 
   @@index([role])
   @@index([businessType])
@@ -1239,6 +1240,29 @@ model AdminNote {
   target        User     @relation("AdminNoteTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
   @@index([targetUserId, createdAt])
+}
+
+/// Per-user manual overrides that supersede plan-derived feature limits and
+/// flags. Used by ops to comp specific features or quotas without touching
+/// the user's plan tier. The service layer parses `overrides` (JSON text
+/// shaped like Partial<Limits>) and merges it on top of `limitsFor(plan)`.
+model UserOverride {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  /// JSON blob shaped like Partial<Limits>. Each key, when present,
+  /// overrides the plan-derived value for that user. Stored as text for
+  /// schema simplicity; the service layer parses it.
+  overrides    String
+  /// Optional admin-set discount (kobo) applied at next renewal. Negative
+  /// values = credit, positive = surcharge. Capped to the next-renewal
+  /// amount in the billing flow.
+  discountKobo Int?
+  /// Optional reason for audit context.
+  reason       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SystemSetting {

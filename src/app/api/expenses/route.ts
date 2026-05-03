@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'expenses');
+  const feature = await requireFeature(user, 'expenses');
   if (feature) return feature;
 
   const url = new URL(req.url);
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const feature = requireFeature(user, 'expenses');
+  const feature = await requireFeature(user, 'expenses');
   if (feature) return feature;
 
   const body = await req.json();

@@ -19,7 +19,7 @@ export const POST = (req: Request) =>
   handled(async () => {
     const user = await requireUser();
     // Custom branding (logo on receipts/invoices) is a Plus-tier feature.
-    const feature = requireFeature(user, 'customBranding');
+    const feature = await requireFeature(user, 'customBranding');
     if (feature) return feature;
     const form = await req.formData();
     const file = form.get('file');

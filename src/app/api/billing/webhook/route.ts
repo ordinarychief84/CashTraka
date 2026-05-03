@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createHash } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { paystackService } from '@/lib/services/paystack.service';
@@ -13,6 +14,11 @@ export const runtime = 'nodejs';
  * dashboard (PAYSTACK_WEBHOOK_SECRET). We verify the signature on the RAW
  * body before touching the payload, then record the event id so replays are
  * no-ops.
+ *
+ * Hot path mirrors /api/webhooks/paystack: signature verify + BillingEvent
+ * insert before the 200, then dispatch the actual upgrade / past-due /
+ * cancel mutations in the background via `waitUntil` so Paystack gets its
+ * 200 well under the retry threshold even on Vercel cold start.
  *
  * Handled event types:
  *   - charge.success            → complete a pending upgrade
@@ -81,40 +87,63 @@ export async function POST(req: Request) {
     );
   }
 
-  try {
-    switch (payload.event) {
-      case 'charge.success': {
-        const ref = payload.data?.reference;
-        if (ref) await billingService.completeUpgrade(ref);
-        break;
-      }
-      case 'invoice.payment_failed': {
-        const userId = payload.data?.metadata?.userId;
-        if (userId) await billingService.markPastDue(userId);
-        break;
-      }
-      case 'subscription.disable': {
-        const userId = payload.data?.metadata?.userId;
-        if (userId) {
-          await billingService.cancel(userId).catch((e) => {
-            console.error(
-              `[billing.webhook] subscription.disable cancel failed for user ${userId}`,
-              e,
-            );
-            return null;
-          });
-        }
-        break;
-      }
-      default:
-        // Ignored event — still recorded above, so we can audit if needed.
-        break;
-    }
-  } catch (e) {
-    console.error('WEBHOOK_ERROR:', e?.message ?? e);
-    // Return 200 anyway so Paystack doesn't retry forever. The event is
-    // logged in BillingEvent; we can replay manually if needed.
-  }
+  // Acknowledge Paystack now. The actual subscription mutations
+  // (`completeUpgrade`, `markPastDue`, `cancel`) run in the background.
+  // BillingEvent is already persisted, so a nightly reconciliation cron
+  // can pick up any rows whose dispatch failed.
+  waitUntil(
+    dispatchBillingEvent(payload).catch((e: any) => {
+      console.error(
+        '[billing.webhook] background dispatch failed',
+        eventId,
+        e?.message ?? e,
+      );
+    }),
+  );
 
   return NextResponse.json({ success: true, data: { received: true } });
+}
+
+/**
+ * Background side-effects for a verified, deduped billing event.
+ * Pulled out of the request handler so the response can flush
+ * immediately. Errors here do not propagate to Paystack — the event
+ * is already in BillingEvent for replay.
+ */
+async function dispatchBillingEvent(payload: {
+  event: string;
+  data?: {
+    reference?: string;
+    customer?: { email?: string; customer_code?: string };
+    metadata?: { userId?: string };
+  };
+}): Promise<void> {
+  switch (payload.event) {
+    case 'charge.success': {
+      const ref = payload.data?.reference;
+      if (ref) await billingService.completeUpgrade(ref);
+      break;
+    }
+    case 'invoice.payment_failed': {
+      const userId = payload.data?.metadata?.userId;
+      if (userId) await billingService.markPastDue(userId);
+      break;
+    }
+    case 'subscription.disable': {
+      const userId = payload.data?.metadata?.userId;
+      if (userId) {
+        await billingService.cancel(userId).catch((e) => {
+          console.error(
+            `[billing.webhook] subscription.disable cancel failed for user ${userId}`,
+            e,
+          );
+          return null;
+        });
+      }
+      break;
+    }
+    default:
+      // Ignored event — already recorded above, audit trail preserved.
+      break;
+  }
 }

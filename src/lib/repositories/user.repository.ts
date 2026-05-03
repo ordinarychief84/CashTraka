@@ -3,6 +3,15 @@ import type { Prisma } from '@prisma/client';
 
 /** Thin data-access wrappers for the User model. */
 
+/**
+ * Filter clause that excludes soft-deleted users (deletedAt IS NOT NULL).
+ * Spread into a `where` to add to existing filters: `{ ...whereNotDeleted, ... }`.
+ * Soft-deleted users are kept around so their tax-relevant rows (invoices,
+ * receipts, payments, expenses, VAT returns, audit logs) survive the 6-year
+ * Nigerian FIRS retention window without being surfaced as live accounts.
+ */
+export const whereNotDeleted: Prisma.UserWhereInput = { deletedAt: null };
+
 export const userRepo = {
   byId: (id: string) => prisma.user.findUnique({ where: { id } }),
   byEmail: (email: string) => prisma.user.findUnique({ where: { email } }),

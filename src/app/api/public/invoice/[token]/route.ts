@@ -25,7 +25,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
 
   // Rate limit per-IP per-token to mitigate scrapers hammering this public endpoint.
   const ip = clientIp(req);
-  const rl = rateLimit(`public-invoice:${token}`, ip, { max: 60, windowMs: 60_000 });
+  const rl = await rateLimit(`public-invoice:${token}`, ip, { max: 60, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again shortly.' },

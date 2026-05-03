@@ -24,6 +24,10 @@ const filterSchema = z.object({
   businessType: emptyAsUndefined(z.enum(['seller', 'property_manager'])),
   isSuspended: emptyAsUndefined(z.enum(['yes', 'no'])),
   hasActivity: emptyAsUndefined(z.enum(['yes', 'no'])),
+  // "no" (default) hides deactivated users; "yes" shows them; "only" shows
+  // only deactivated users. Deactivated users are retained for the 6-year
+  // FIRS retention window.
+  showDeleted: emptyAsUndefined(z.enum(['no', 'yes', 'only'])),
   page: z.coerce.number().int().min(1).default(1),
   perPage: z.coerce.number().int().min(1).max(100).default(25),
 });
@@ -52,6 +56,13 @@ export const adminService = {
     } else if (filters.hasActivity === 'no') {
       where.payments = { none: {} };
       where.debts = { none: {} };
+    }
+    // Default: hide deactivated users. "yes" shows everyone; "only" shows
+    // exclusively deactivated users for retention review.
+    if (filters.showDeleted === 'only') {
+      where.deletedAt = { not: null };
+    } else if (filters.showDeleted !== 'yes') {
+      where.deletedAt = null;
     }
 
     const skip = (filters.page - 1) * filters.perPage;
@@ -178,42 +189,62 @@ export const adminService = {
     });
   },
 async deleteUser(adminId: string, targetId: string, reason?: string) {
-    if (adminId === targetId) throw Err.validation("You can't delete yourself");
+    if (adminId === targetId) throw Err.validation("You can't deactivate yourself");
     const target = await userRepo.byId(targetId);
     if (!target) throw Err.notFound('User not found');
-    if (target.role === 'ADMIN') throw Err.forbidden("Can't delete another admin");
+    if (target.role === 'ADMIN') throw Err.forbidden("Can't deactivate another admin");
+    if (target.deletedAt) {
+      return { ok: true, deactivated: target.email, alreadyDeleted: true };
+    }
 
-    // Log the deletion before removing the user
+    // Log the deactivation before mutating the user. Tax-relevant records
+    // (invoices, receipts, payments, expenses, VAT returns, audit logs) stay
+    // intact for the 6-year Nigerian FIRS retention window.
     await prisma.auditLog.create({
       data: {
         adminId,
-        action: 'DELETE_USER',
+        action: 'DEACTIVATE_USER',
         targetId,
-        details: `Deleted user ${target.name} (${target.email})${reason ? ` — ${reason}` : ''}`,
+        details: `Deactivated user ${target.name} (${target.email})${reason ? `, reason: ${reason}` : ''}. Records retained for 6 years per Nigerian tax rules.`,
       },
     });
 
-    // Prisma cascading deletes handle all related records
-    await prisma.user.delete({ where: { id: targetId } });
+    // Soft delete: free the email for re-signup, mark deletedAt, and force
+    // isSuspended so the existing suspension-aware code paths block access.
+    const archivedEmail = `${target.email}.deleted-${Date.now()}@cashtraka.deleted`;
+    await prisma.user.update({
+      where: { id: targetId },
+      data: {
+        deletedAt: new Date(),
+        isSuspended: true,
+        email: archivedEmail,
+      },
+    });
 
-    return { ok: true, deleted: target.email };
+    return { ok: true, deactivated: target.email };
   },
 
   async userStats() {
-    const [total, active, suspended, freePlan, paidPlan, newThisMonth] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { isSuspended: false } }),
-      prisma.user.count({ where: { isSuspended: true } }),
-      prisma.user.count({ where: { plan: 'free' } }),
-      prisma.user.count({ where: { plan: { not: 'free' } } }),
+    // Cross-tenant aggregates exclude soft-deleted accounts so deactivated
+    // users do not inflate the "live" headline numbers. The "deactivated"
+    // count is reported separately for retention review.
+    const live: Prisma.UserWhereInput = { deletedAt: null };
+    const [total, active, suspended, freePlan, paidPlan, newThisMonth, deactivated] = await Promise.all([
+      prisma.user.count({ where: live }),
+      prisma.user.count({ where: { ...live, isSuspended: false } }),
+      prisma.user.count({ where: { ...live, isSuspended: true } }),
+      prisma.user.count({ where: { ...live, plan: 'free' } }),
+      prisma.user.count({ where: { ...live, plan: { not: 'free' } } }),
       prisma.user.count({
         where: {
+          ...live,
           createdAt: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       }),
+      prisma.user.count({ where: { deletedAt: { not: null } } }),
     ]);
-    return { total, active, suspended, freePlan, paidPlan, newThisMonth };
+    return { total, active, suspended, freePlan, paidPlan, newThisMonth, deactivated };
   },
 };

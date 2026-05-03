@@ -26,7 +26,7 @@ const schema = z.object({
 export const POST = (req: Request) =>
   handled(async () => {
     const ip = clientIp(req);
-    const limited = rateLimit('trial', ip, { max: 3, windowMs: 60 * 60_000 });
+    const limited = await rateLimit('trial', ip, { max: 3, windowMs: 60 * 60_000 });
     if (!limited.allowed) {
       return fail('Too many trial attempts. Try again later.', 429);
     }

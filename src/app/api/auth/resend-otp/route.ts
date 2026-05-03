@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     // Rate limit: 3 resends per user per 10 min
     const ip = clientIp(req);
-    const limited = rateLimit('resend-otp', `${user.id}-${ip}`, {
+    const limited = await rateLimit('resend-otp', `${user.id}-${ip}`, {
       max: 3,
       windowMs: 10 * 60_000,
     });

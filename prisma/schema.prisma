@@ -33,6 +33,10 @@ model User {
   role                 String    @default("USER")
   /// Suspended users cannot log in.
   isSuspended          Boolean   @default(false)
+  /// Soft-delete marker. Tax-relevant FKs are Restrict, so a hard
+  /// delete on this user would fail. Set this instead. Nigerian FIRS
+  /// requires 6-year retention on receipts/invoices/payments.
+  deletedAt            DateTime?
   /// Timestamp of last successful login (for audit + analytics).
   lastLoginAt          DateTime?
 
@@ -333,7 +337,7 @@ model Payment {
   confirmedAutomatically   Boolean   @default(false)
   confirmedAt              DateTime?
 
-  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   items                PaymentItem[]
   invoice              Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
@@ -450,7 +454,7 @@ model Sale {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
-  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Restrict)
   items           SaleItem[]
 
   @@index([userId, soldAt])
@@ -497,7 +501,7 @@ model Expense {
   incurredOn     DateTime @default(now())
   createdAt      DateTime @default(now())
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, incurredOn])
   @@index([userId, kind, incurredOn])
@@ -624,7 +628,7 @@ model Invoice {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Restrict)
   customer        Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
   items           InvoiceItem[]
   payments        Payment[]
@@ -709,8 +713,8 @@ model CreditNote {
   approvedById     String?
   createdAt        DateTime @default(now())
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
   @@index([userId, createdAt])
   @@index([invoiceId])
@@ -885,7 +889,7 @@ model DocumentArchive {
   retentionUntil DateTime?
   createdAt      DateTime @default(now())
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([documentType, documentId])
   @@index([userId, documentType, createdAt])
@@ -912,7 +916,7 @@ model DocumentAuditLog {
   metadata   String?
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, entityType, entityId, createdAt])
   @@index([userId, action, createdAt])
@@ -1006,7 +1010,7 @@ model RentPayment {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, period])
@@ -1119,7 +1123,7 @@ model StaffPayment {
   paidAt       DateTime  @default(now())
   createdAt    DateTime  @default(now())
 
-  user  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   staff StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@index([userId, paidAt])
@@ -1235,7 +1239,7 @@ model Receipt {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   feedbacks      Feedback[]
 
   @@index([userId, createdAt])
@@ -1477,7 +1481,7 @@ model Refund {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user              User     @relation("UserRefunds", fields: [userId], references: [id], onDelete: Cascade)
+  user              User     @relation("UserRefunds", fields: [userId], references: [id], onDelete: Restrict)
   processor         User?    @relation("ProcessedRefunds", fields: [processedBy], references: [id], onDelete: SetNull)
   paymentAttempt    PaymentAttempt? @relation(fields: [paymentAttemptId], references: [id], onDelete: SetNull)
 
@@ -1496,7 +1500,7 @@ model AuditLog {
   ipAddress String?
   createdAt DateTime @default(now())
 
-  admin     User     @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: Cascade)
+  admin     User     @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: Restrict)
 
   @@index([adminId, createdAt])
   @@index([action])
@@ -1932,7 +1936,7 @@ model VatReturn {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([userId, periodStart, periodEnd])
   @@index([userId, status])

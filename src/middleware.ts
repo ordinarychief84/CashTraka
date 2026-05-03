@@ -1,15 +1,35 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 const SESSION_COOKIE = 'cashtraka_session';
 
-/* ── Global API rate limiter (in-memory, per-IP) ─────────────────── */
+/* Global API rate limiter. Uses Upstash when configured, in-memory otherwise. */
 const API_RATE_WINDOW_MS = 60_000; // 1 minute
 const API_RATE_MAX = 120;          // 120 requests per minute per IP
 const apiHits = new Map<string, number[]>();
 
-function globalRateOk(ip: string): { ok: boolean; retryAfter: number } {
+let globalLimiter: Ratelimit | null = null;
+let globalLimiterChecked = false;
+function getGlobalLimiter(): Ratelimit | null {
+  if (globalLimiterChecked) return globalLimiter;
+  globalLimiterChecked = true;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
+  const redis = new Redis({ url, token });
+  globalLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(API_RATE_MAX, `${API_RATE_WINDOW_MS / 1000} s`),
+    prefix: 'ct:rl:global-api',
+    analytics: false,
+  });
+  return globalLimiter;
+}
+
+function inMemoryGlobalRate(ip: string): { ok: boolean; retryAfter: number } {
   const now = Date.now();
   const cutoff = now - API_RATE_WINDOW_MS;
   const hits = (apiHits.get(ip) ?? []).filter((t) => t > cutoff);
@@ -28,6 +48,23 @@ function globalRateOk(ip: string): { ok: boolean; retryAfter: number } {
     }
   }
   return { ok: true, retryAfter: 0 };
+}
+
+async function globalRateOk(ip: string): Promise<{ ok: boolean; retryAfter: number }> {
+  const limiter = getGlobalLimiter();
+  if (limiter) {
+    try {
+      const result = await limiter.limit(ip);
+      if (result.success) return { ok: true, retryAfter: 0 };
+      const now = Date.now();
+      const retryAfter = Math.max(1, Math.ceil((result.reset - now) / 1000));
+      return { ok: false, retryAfter };
+    } catch {
+      // Upstash unreachable, fall back to in-memory rather than failing open.
+      return inMemoryGlobalRate(ip);
+    }
+  }
+  return inMemoryGlobalRate(ip);
 }
 
 function extractIp(req: NextRequest): string {
@@ -169,7 +206,7 @@ export async function middleware(req: NextRequest) {
   // ── Global API rate limit — 120 req/min per IP ──
   if (isApi) {
     const ip = extractIp(req);
-    const rl = globalRateOk(ip);
+    const rl = await globalRateOk(ip);
     if (!rl.ok) {
       return NextResponse.json(
         { success: false, error: 'Rate limit exceeded. Slow down.' },

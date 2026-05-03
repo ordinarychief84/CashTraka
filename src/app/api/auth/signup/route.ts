@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   try {
     // Rate limit — 5 new accounts per IP per hour
     const ip = clientIp(req);
-    const limited = rateLimit('signup', ip, { max: 5, windowMs: 60 * 60_000 });
+    const limited = await rateLimit('signup', ip, { max: 5, windowMs: 60 * 60_000 });
     if (!limited.allowed) {
       return fail(
         `Too many sign-ups from this network. Try again in ${Math.ceil(limited.retryAfter / 60)} min.`,

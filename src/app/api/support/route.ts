@@ -58,7 +58,7 @@ export async function POST(req: Request) {
 
     // Rate limit: 5 tickets per user per hour
     const ip = clientIp(req);
-    const limited = rateLimit('support-ticket', user.id, { max: 5, windowMs: 60 * 60_000 });
+    const limited = await rateLimit('support-ticket', user.id, { max: 5, windowMs: 60 * 60_000 });
     if (!limited.allowed) {
       return NextResponse.json(
         { success: false, error: 'Too many tickets. Try again later.' },

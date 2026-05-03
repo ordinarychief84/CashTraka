@@ -13,6 +13,7 @@ type SP = {
   role?: 'USER' | 'ADMIN';
   businessType?: 'seller' | 'property_manager';
   isSuspended?: 'yes' | 'no';
+  showDeleted?: 'no' | 'yes' | 'only';
   plan?: string;
   page?: string;
 };
@@ -62,6 +63,16 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             <option value="">Any status</option>
             <option value="no">Active</option>
             <option value="yes">Suspended</option>
+          </select>
+          <select
+            name="showDeleted"
+            defaultValue={searchParams.showDeleted ?? 'no'}
+            className="input md:w-40"
+            title="Deactivated users are retained for 6 years per Nigerian tax rules"
+          >
+            <option value="no">Hide deactivated</option>
+            <option value="yes">Show deactivated</option>
+            <option value="only">Only deactivated</option>
           </select>
           <button type="submit" className="btn-primary whitespace-nowrap"><Search size={14} /> Search</button>
         </div>

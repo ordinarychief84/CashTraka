@@ -8,11 +8,12 @@ export const runtime = 'nodejs';
 /**
  * DELETE /api/user/account
  *
- * Permanently deletes the authenticated user and all associated data.
- * Requires { confirm: "DELETE" } in the request body as a safety check.
+ * Deactivates the authenticated user. Tax-relevant records (invoices,
+ * receipts, payments, expenses, VAT returns, audit logs) are retained for
+ * the 6-year Nigerian FIRS retention window. The email is archived so the
+ * owner can re-sign up with the same address.
  *
- * Prisma's onDelete: Cascade handles removing all child records
- * (customers, payments, debts, sales, products, expenses, etc.).
+ * Requires { confirm: "DELETE" } in the request body as a safety check.
  */
 export async function DELETE(req: Request) {
   const user = await getCurrentUser();
@@ -30,14 +31,23 @@ export async function DELETE(req: Request) {
 
   if (body.confirm !== 'DELETE') {
     return NextResponse.json(
-      { error: 'You must send { "confirm": "DELETE" } to delete your account.' },
+      { error: 'You must send { "confirm": "DELETE" } to close your account.' },
       { status: 400 },
     );
   }
 
   try {
-    // Delete the user — Prisma cascades take care of all related records
-    await prisma.user.delete({ where: { id: user.id } });
+    // Soft delete: keep tax-relevant rows around, free the email, and force
+    // isSuspended so the user cannot log back in.
+    const archivedEmail = `${user.email}.deleted-${Date.now()}@cashtraka.deleted`;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        deletedAt: new Date(),
+        isSuspended: true,
+        email: archivedEmail,
+      },
+    });
 
     // Clear the session cookie so the browser is logged out
     const SESSION_COOKIE = 'cashtraka_session';
@@ -51,11 +61,14 @@ export async function DELETE(req: Request) {
       maxAge: 0,
     });
 
-    return NextResponse.json({ ok: true, message: 'Account deleted successfully.' });
+    return NextResponse.json({
+      ok: true,
+      message: 'Account deactivated. Records retained for 6 years per Nigerian tax rules.',
+    });
   } catch (err) {
-    console.error('[DELETE /api/user/account] Failed to delete user:', err);
+    console.error('[DELETE /api/user/account] Failed to deactivate user:', err);
     return NextResponse.json(
-      { error: 'Failed to delete account. Please try again or contact support.' },
+      { error: 'Could not close account. Please try again or contact support.' },
       { status: 500 },
     );
   }

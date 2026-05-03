@@ -20,7 +20,7 @@ export async function GET(req: Request, { params }: { params: { token: string } 
 
   // Rate limit per-IP per-token to mitigate scrapers.
   const ip = clientIp(req);
-  const rl = rateLimit(`public-feedback:${token}`, ip, { max: 60, windowMs: 60_000 });
+  const rl = await rateLimit(`public-feedback:${token}`, ip, { max: 60, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again shortly.' },
@@ -48,7 +48,7 @@ export async function POST(req: Request, { params }: { params: { token: string }
   }
 
   const ip = clientIp(req);
-  const rl = rateLimit(`public-feedback-submit:${token}`, ip, {
+  const rl = await rateLimit(`public-feedback-submit:${token}`, ip, {
     max: 30,
     windowMs: 60_000,
   });

@@ -30,7 +30,7 @@ export async function POST(
   { params }: { params: { slug: string; albumSlug: string } },
 ) {
   const ip = clientIp(req);
-  const rl = rateLimit(`album-unlock:${params.slug}:${params.albumSlug}`, ip, {
+  const rl = await rateLimit(`album-unlock:${params.slug}:${params.albumSlug}`, ip, {
     max: 10,
     windowMs: 60_000,
   });

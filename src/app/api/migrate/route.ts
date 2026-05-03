@@ -63,6 +63,7 @@ export async function GET(req: NextRequest) {
   // ===== User table missing columns =====
   await addCol('User', 'role', 'TEXT NOT NULL', "'USER'");
   await addCol('User', 'isSuspended', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'deletedAt', 'TIMESTAMP(3)', 'NULL');
   await addCol('User', 'plan', 'TEXT NOT NULL', "'free'");
   await addCol('User', 'businessName', 'TEXT', 'NULL');
   await addCol('User', 'whatsappNumber', 'TEXT', 'NULL');

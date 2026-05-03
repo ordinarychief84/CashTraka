@@ -20,6 +20,8 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.5.1",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.0",
     "jose": "^5.4.0",

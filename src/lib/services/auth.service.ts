@@ -44,6 +44,12 @@ export const authService = {
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       throw Err.unauthorized('Invalid email or password');
     }
+    // Soft-deleted accounts are kept for the 6-year FIRS retention window
+    // but must not be able to log in. Surfaced as a generic auth error so we
+    // don't leak which addresses have been deactivated.
+    if (user.deletedAt) {
+      throw Err.unauthorized('Invalid email or password');
+    }
     if (user.isSuspended) {
       throw Err.forbidden('Your account is suspended. Contact support.');
     }

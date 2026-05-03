@@ -22,7 +22,7 @@ const bodySchema = z.object({
  */
 export async function POST(req: Request, { params }: { params: { slug: string } }) {
   const ip = clientIp(req);
-  const rl = rateLimit(`store-order:${params.slug}`, ip, {
+  const rl = await rateLimit(`store-order:${params.slug}`, ip, {
     max: CATALOG_LIMITS.ORDER_RATE_PER_MIN,
     windowMs: 60_000,
   });

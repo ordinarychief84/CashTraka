@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     // Rate limit — 10 attempts per IP per 10 minutes blocks online credential
     // stuffing without hurting legit users who mistyped their password.
     const ip = clientIp(req);
-    const limited = rateLimit('login', ip, { max: 10, windowMs: 10 * 60_000 });
+    const limited = await rateLimit('login', ip, { max: 10, windowMs: 10 * 60_000 });
     if (!limited.allowed) {
       return fail(
         `Too many attempts. Try again in ${limited.retryAfter}s.`,
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     // Account lockout — 5 attempts per email per 30 minutes. This is the
     // primary defence against targeted credential attacks even when the
     // attacker rotates IPs. Tighter than the per-IP limit.
-    const byEmail = rateLimit('login-email', email.toLowerCase(), {
+    const byEmail = await rateLimit('login-email', email.toLowerCase(), {
       max: 5,
       windowMs: 30 * 60_000,
     });

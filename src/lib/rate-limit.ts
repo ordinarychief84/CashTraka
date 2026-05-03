@@ -1,31 +1,63 @@
 /**
- * Simple in-memory rate limiter.
+ * Shared rate limiter.
  *
- * Uses a sliding-window counter keyed by `<bucket>:<identifier>`. For a
- * production deployment on multi-instance hosting (Vercel), this should be
- * swapped for Upstash or a shared Redis — this implementation is a
- * pragmatic single-instance defence that makes credential stuffing
- * measurably harder and blocks trivial trial-abuse scripts.
- *
- * Not perfect (no distributed state), but it's a lot better than the zero
- * rate limiting we had before, and the API makes a future swap trivial.
+ * When UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set,
+ * uses Upstash sliding-window. Counters survive across Vercel isolates.
+ * When unset (local dev), falls back to an in-memory Map. Local dev
+ * works without Upstash; production must have it configured.
  */
+
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
 
 type Bucket = {
   /** Timestamps (ms) of hits inside the current window, oldest first. */
   hits: number[];
 };
 
-const store = new Map<string, Bucket>();
+const memStore = new Map<string, Bucket>();
 
-/**
- * Check-and-record. Returns `{ allowed, remaining, resetIn }`.
- * Intended usage:
- *
- *   const { allowed, retryAfter } = rateLimit('login', ip, { max: 5, window: 60_000 });
- *   if (!allowed) return tooMany(retryAfter);
- */
-export function rateLimit(
+/** Cache of `Ratelimit` instances keyed by `<bucket>:<max>:<windowMs>`. */
+const upstashCache = new Map<string, Ratelimit>();
+
+/** Lazy singleton for the Upstash Redis client. */
+let redisClient: Redis | null = null;
+function getRedis(): Redis | null {
+  if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+    return null;
+  }
+  if (!redisClient) {
+    redisClient = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+  }
+  return redisClient;
+}
+
+function getOrCreateLimiter(
+  bucket: string,
+  opts: { max: number; windowMs: number },
+): Ratelimit | null {
+  const redis = getRedis();
+  if (!redis) return null;
+
+  const cacheKey = `${bucket}:${opts.max}:${opts.windowMs}`;
+  const cached = upstashCache.get(cacheKey);
+  if (cached) return cached;
+
+  const windowSeconds = Math.max(1, Math.ceil(opts.windowMs / 1000));
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(opts.max, `${windowSeconds} s`),
+    prefix: `ct:rl:${bucket}`,
+    analytics: false,
+  });
+  upstashCache.set(cacheKey, limiter);
+  return limiter;
+}
+
+function inMemoryRateLimit(
   bucket: string,
   identifier: string,
   opts: { max: number; windowMs: number },
@@ -34,7 +66,7 @@ export function rateLimit(
   const now = Date.now();
   const windowStart = now - opts.windowMs;
 
-  const entry = store.get(key) ?? { hits: [] };
+  const entry = memStore.get(key) ?? { hits: [] };
   // Drop expired entries.
   entry.hits = entry.hits.filter((t) => t > windowStart);
 
@@ -42,17 +74,56 @@ export function rateLimit(
     // Compute retry-after in seconds from the oldest (earliest-to-expire) hit.
     const oldest = entry.hits[0] ?? now;
     const retryAfter = Math.max(1, Math.ceil((oldest + opts.windowMs - now) / 1000));
-    store.set(key, entry);
+    memStore.set(key, entry);
     return { allowed: false, remaining: 0, retryAfter };
   }
 
   entry.hits.push(now);
-  store.set(key, entry);
+  memStore.set(key, entry);
   return {
     allowed: true,
     remaining: Math.max(0, opts.max - entry.hits.length),
     retryAfter: 0,
   };
+}
+
+/**
+ * Check-and-record. Returns `{ allowed, remaining, retryAfter }`.
+ * Intended usage:
+ *
+ *   const { allowed, retryAfter } = rateLimit('login', ip, { max: 5, windowMs: 60_000 });
+ *   if (!allowed) return tooMany(retryAfter);
+ *
+ * Picks Upstash when configured, otherwise the in-memory implementation.
+ * Async because Upstash is network-bound; the in-memory branch resolves
+ * synchronously inside the returned promise.
+ */
+export async function rateLimit(
+  bucket: string,
+  identifier: string,
+  opts: { max: number; windowMs: number },
+): Promise<{ allowed: boolean; remaining: number; retryAfter: number }> {
+  const limiter = getOrCreateLimiter(bucket, opts);
+  if (limiter) {
+    try {
+      const result = await limiter.limit(identifier);
+      const now = Date.now();
+      const retryAfter = result.success
+        ? 0
+        : Math.max(1, Math.ceil((result.reset - now) / 1000));
+      return {
+        allowed: result.success,
+        remaining: Math.max(0, result.remaining),
+        retryAfter,
+      };
+    } catch {
+      // If Upstash is unreachable, fall through to in-memory so we don't
+      // hard-fail the request path. Better to let traffic through with a
+      // weaker per-isolate counter than to 500 every endpoint.
+      return inMemoryRateLimit(bucket, identifier, opts);
+    }
+  }
+  return inMemoryRateLimit(bucket, identifier, opts);
 }
 
 /**

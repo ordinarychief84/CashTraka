@@ -35,7 +35,7 @@ export function DeleteUserButton({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data?.error || 'Could not delete user');
+        setError(data?.error || 'Could not deactivate user');
         return;
       }
       router.push('/admin/users');
@@ -53,7 +53,7 @@ export function DeleteUserButton({
         className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50"
       >
         <Trash2 size={14} />
-        Delete user
+        Deactivate user
       </button>
 
       {showModal && (
@@ -64,14 +64,16 @@ export function DeleteUserButton({
                 <AlertTriangle size={20} className="text-red-600" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-ink">Delete user account</h3>
-                <p className="text-xs text-slate-500">This action cannot be undone</p>
+                <h3 className="text-lg font-bold text-ink">Deactivate user account</h3>
+                <p className="text-xs text-slate-500">Records retained for 6 years per Nigerian tax rules</p>
               </div>
             </div>
 
             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-              You are about to permanently delete <strong>{userName}</strong> ({userEmail}).
-              All their data, customers, payments, debts, invoices, receipts, and settings, will be removed.
+              You are about to deactivate <strong>{userName}</strong> ({userEmail}).
+              The user will be locked out and the email freed for re-signup. Invoices,
+              receipts, payments, expenses, VAT returns, and audit logs are retained for
+              6 years per Nigerian tax rules.
             </div>
 
             <label className="mb-3 block">
@@ -109,7 +111,7 @@ export function DeleteUserButton({
                 disabled={busy || confirm !== 'DELETE'}
                 className="flex-1 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
               >
-                {busy ? 'Deleting...' : 'Permanently delete'}
+                {busy ? 'Deactivating...' : 'Deactivate user'}
               </button>
               <button
                 type="button"

@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     // Rate limit: 5 attempts per user per 15 min (tightened from 10)
     const ip = clientIp(req);
-    const limited = rateLimit('verify-otp', `${user.id}-${ip}`, {
+    const limited = await rateLimit('verify-otp', `${user.id}-${ip}`, {
       max: 5,
       windowMs: 15 * 60_000,
     });

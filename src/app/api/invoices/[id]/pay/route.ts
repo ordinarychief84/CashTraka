@@ -35,7 +35,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   // door open for a real customer retrying a failed Paystack init while
   // shutting down a script enumerating tokens.
   const ip = clientIp(req);
-  const rl = rateLimit(`invoice-pay:${params.id}`, ip, { max: 10, windowMs: 60_000 });
+  const rl = await rateLimit(`invoice-pay:${params.id}`, ip, { max: 10, windowMs: 60_000 });
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many attempts. Please try again in a moment.' },

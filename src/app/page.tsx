@@ -42,24 +42,34 @@ import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0a1730] text-white">
-      {/* Page-wide ambient gradient. A cyan-tinted base with two soft
-          glows that drift behind every section, giving the whole page a
-          luminous "studio backdrop" feel rather than a flat black. */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_15%_-10%,rgba(0,184,232,0.18),transparent_55%),radial-gradient(circle_at_85%_110%,rgba(99,102,241,0.18),transparent_55%),linear-gradient(180deg,#0a1730_0%,#0c1e3c_50%,#0a1730_100%)]"
-      />
+    <div className="min-h-screen bg-white text-ink">
       <ScrollProgress />
       <Navbar />
       <main>
-        <HeroDark />
-        <FeatureCardsBig />
-        <ExploreFeatures />
-        <BentoTestimonials />
-        <PricingDark />
-        <FAQDark />
-        <FinalCTADark />
+        {/* Trust + storytelling base, the register that fits Nigerian SMB
+            buyers. Light, bright, scannable. */}
+        <HeroSolutions />
+        <SolutionsPath />
+        <AudienceMarquee />
+        <Problem />
+        <Solution />
+
+        {/* Single dark "feature spotlight" interlude. Stripe / Apple
+            alternation pattern — one strong dark moment makes the rest
+            of the page feel deliberate. */}
+        <FeatureSpotlightDark />
+
+        <HowItWorks />
+
+        {/* Replaces the old flat testimonial row with the animated bento
+            grid, ported to the light theme. */}
+        <BentoTestimonialsLight />
+
+        <ValueSection />
+        <Objections />
+        <Pricing />
+        <FAQSection />
+        <FinalCTA />
       </main>
       <Footer />
     </div>
@@ -955,6 +965,192 @@ function FinalCTADark() {
         </p>
       </div>
     </section>
+  );
+}
+
+/* ============== HYBRID ADDITIONS: dark interlude + light bento =========== */
+
+/**
+ * Dark feature spotlight. Sits between Solution and HowItWorks on the
+ * light page as a single high-contrast moment. Self-contained: brings
+ * its own slate background and brand glows so the surrounding light
+ * sections are unaffected.
+ */
+function FeatureSpotlightDark() {
+  return (
+    <section className="relative overflow-hidden bg-[#0a1730] py-20 md:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-brand-500/25 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-32 bottom-0 h-[420px] w-[420px] rounded-full bg-indigo-500/15 blur-3xl"
+      />
+
+      <div className="relative mx-auto max-w-6xl px-5">
+        <Reveal from="up">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-300">
+              Built for the way you actually work
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+              Less admin, more time on the shop floor.
+            </h2>
+            <p className="mt-4 text-base text-slate-300 md:text-lg">
+              Two things you do every week, taken off your hands.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="mt-12 grid gap-4 md:grid-cols-2 md:gap-6">
+          <Reveal from="up" delay={80}>
+            <article className="group relative h-full overflow-hidden rounded-3xl bg-white/[0.04] p-7 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/[0.07] hover:ring-brand-400/40 md:p-9">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-brand-500/0 blur-3xl transition duration-500 group-hover:bg-brand-500/30"
+              />
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
+                Invoices &amp; payments
+              </span>
+              <h3 className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
+                One link your customer pays in seconds.
+              </h3>
+              <p className="mt-3 text-sm text-slate-300 md:text-base">
+                Make the invoice, send it on WhatsApp, the customer pays via
+                Paystack. The receipt sends itself. The dashboard shows the
+                payment in real time.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-slate-200">
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  Public pay link, no login for the customer
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  Bank alert verification when they pay by transfer
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  Automatic receipt with your business header
+                </li>
+              </ul>
+            </article>
+          </Reveal>
+
+          <Reveal from="up" delay={160}>
+            <article className="group relative h-full overflow-hidden rounded-3xl bg-white/[0.04] p-7 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/[0.07] hover:ring-brand-400/40 md:p-9">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-indigo-500/0 blur-3xl transition duration-500 group-hover:bg-indigo-500/30"
+              />
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
+                Tax &amp; compliance
+              </span>
+              <h3 className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
+                Tax invoices that match FIRS rules.
+              </h3>
+              <p className="mt-3 text-sm text-slate-300 md:text-base">
+                TIN, buyer details, VAT line, and HS codes already in the
+                template. When FIRS e-invoicing turns on, the data is in the
+                right shape and the IRN prints on the PDF.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-slate-200">
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  TIN and buyer fields built in
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  VAT 7.5% applied or exempt per line
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
+                  Six-year archive that meets retention rules
+                </li>
+              </ul>
+            </article>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Light-theme version of the bento testimonials. Keeps the staggered
+ * scroll-reveal + hover lift + brand-cyan glow from the dark version,
+ * but on a white surface so it sits naturally between Solution-style
+ * sections on the light page.
+ */
+function BentoTestimonialsLight() {
+  return (
+    <section className="relative overflow-hidden bg-white py-20 md:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-100/60 blur-3xl"
+      />
+      <div className="relative mx-auto max-w-6xl px-5">
+        <Reveal from="up">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-600">
+              From real businesses
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl lg:text-5xl">
+              Built for Nigerian businesses.
+            </h2>
+            <p className="mt-4 text-base text-slate-600 md:text-lg">
+              Tested by sellers, landlords, and service operators.
+            </p>
+          </div>
+        </Reveal>
+
+        <div className="mt-12 grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {BENTO.map((cell, i) => (
+            <Reveal key={i} from="up" delay={80 + i * 60} duration={650}>
+              <BentoCardLight cell={cell} />
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BentoCardLight({ cell }: { cell: BentoCell }) {
+  const span = cell.span === 2 ? 'md:col-span-2' : '';
+  const base =
+    'group relative overflow-hidden rounded-2xl bg-white p-5 ring-1 ring-slate-200 ' +
+    'transition-[transform,box-shadow,border-color] duration-300 ease-out ' +
+    'hover:-translate-y-1 hover:ring-brand-300 ' +
+    'hover:shadow-[0_18px_38px_-12px_rgba(0,184,232,0.35)] md:p-6';
+  if (cell.kind === 'logo') {
+    return (
+      <div className={base + ' flex items-center justify-center ' + span}>
+        <span className="text-2xl font-black tracking-[0.2em] text-slate-300 transition-colors duration-300 group-hover:text-brand-500/70 md:text-3xl">
+          {cell.label}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className={base + ' ' + span}>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-100/0 blur-2xl transition duration-500 group-hover:bg-brand-200/70"
+      />
+      <p
+        className={
+          (cell.span === 2 ? 'text-base md:text-lg ' : 'text-sm md:text-base ') +
+          'relative leading-relaxed text-ink'
+        }
+      >
+        {cell.quote}
+      </p>
+      <p className="relative mt-4 text-xs text-slate-500 transition-colors duration-300 group-hover:text-slate-700">
+        {cell.who}
+      </p>
+    </div>
   );
 }
 

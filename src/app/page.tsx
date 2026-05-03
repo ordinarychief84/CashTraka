@@ -18,6 +18,10 @@ import {
   ListChecks,
   Receipt,
   BarChart3,
+  ArrowRight,
+  Star,
+  BadgeCheck,
+  Smartphone,
 } from 'lucide-react';
 import { Navbar } from '@/components/marketing/Navbar';
 import { Footer } from '@/components/marketing/Footer';
@@ -38,35 +42,903 @@ import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-ink">
+    <div className="min-h-screen bg-slate-950 text-white">
       <ScrollProgress />
       <Navbar />
       <main>
-        <HeroSolutions />
-        <SolutionsPath />
-        <AudienceMarquee />
-        <SocialProof />
-        <Problem />
-        <Solution />
-        <DeepDives />
-        <HowItWorks />
-        <ValueSection />
-        <Objections />
-        <Pricing />
-        <FAQSection />
-        <FinalCTA />
+        <HeroDark />
+        <AudienceMarqueeDark />
+        <FeatureCardsBig />
+        <ExploreFeatures />
+        <BentoTestimonials />
+        <PricingDark />
+        <FAQDark />
+        <FinalCTADark />
       </main>
       <Footer />
     </div>
   );
 }
 
-/* ------------------------------- 1. HERO ------------------------------- */
+/* =============================== 1. HERO ================================ */
+
+function HeroDark() {
+  return (
+    <section className="relative overflow-hidden bg-slate-950">
+      {/* Soft brand glows */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-32 top-10 h-[520px] w-[520px] rounded-full bg-brand-500/20 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-40 -top-20 h-[600px] w-[600px] rounded-full bg-indigo-500/15 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-slate-950"
+      />
+
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 py-24 md:grid-cols-2 md:py-32 lg:gap-16 lg:py-40">
+        {/* Left: copy */}
+        <div className="relative z-10">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-brand-500/10 px-3 py-1 text-xs font-semibold text-brand-300">
+            <Sparkles size={12} />
+            Built for Nigerian businesses
+          </span>
+          <h1 className="mt-5 text-4xl font-black leading-[1.05] tracking-tight text-white md:text-6xl lg:text-7xl">
+            Send invoices, take payments, chase debts in one place.
+          </h1>
+          <p className="mt-6 max-w-xl text-lg text-slate-300 md:text-xl">
+            Send a proper invoice on WhatsApp, take payment via Paystack, and let CashTraka handle the receipt, the follow-up, and the FIRS paperwork.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/signup"
+              className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-400"
+            >
+              Start free
+              <ArrowRight size={16} />
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-white/90 transition hover:border-white/30 hover:text-white"
+            >
+              See pricing
+            </Link>
+          </div>
+          <p className="mt-5 text-sm text-slate-400">
+            Set up in under 5 minutes. No card required.
+          </p>
+        </div>
+
+        {/* Right: floating cards */}
+        <div className="relative z-10 mx-auto h-[460px] w-full max-w-md md:h-[520px]">
+          {/* Background brand glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 -z-10 rounded-[3rem] bg-brand-500/30 blur-3xl"
+          />
+
+          {/* Rating pill */}
+          <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur">
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white text-slate-900">
+                <BadgeCheck size={16} />
+              </span>
+              <span className="flex items-center gap-1 text-xs font-semibold text-white">
+                <Star size={12} className="fill-owed-300 text-owed-300" />
+                4.9
+              </span>
+              <span className="text-xs text-white/70">·</span>
+              <span className="text-xs font-medium text-white/80">
+                Trusted by Nigerian businesses
+              </span>
+            </div>
+          </div>
+
+          {/* Card B (back, receipt) */}
+          <div
+            className="absolute right-2 top-24 z-10 w-[78%] rounded-2xl bg-gradient-to-br from-amber-200 to-amber-500 p-5 shadow-2xl shadow-amber-900/30 ring-1 ring-amber-100/40 transition-transform"
+            style={{ transform: 'rotate(6deg)', aspectRatio: '1.6 / 1' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-900/80">
+                Receipt
+              </span>
+              <span className="text-[10px] font-semibold text-amber-900/70">
+                15 Apr 2026
+              </span>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex justify-between text-[11px] font-medium text-amber-950">
+                <span>Hair extension · 14&quot;</span>
+                <span>₦ 18,000</span>
+              </div>
+              <div className="flex justify-between text-[11px] font-medium text-amber-950">
+                <span>Frontal lace</span>
+                <span>₦ 22,500</span>
+              </div>
+              <div className="flex justify-between text-[11px] font-medium text-amber-950">
+                <span>Styling fee</span>
+                <span>₦ 5,000</span>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-amber-900/20 pt-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900/80">
+                Total
+              </span>
+              <span className="text-base font-black text-amber-950">
+                ₦ 45,500
+              </span>
+            </div>
+          </div>
+
+          {/* Card A (front, invoice) */}
+          <div
+            className="absolute left-2 top-44 z-20 w-[80%] rounded-2xl bg-gradient-to-br from-brand-400 to-brand-700 p-6 shadow-2xl shadow-brand-900/40 ring-1 ring-brand-300/40 transition-transform"
+            style={{ transform: 'rotate(-8deg)', aspectRatio: '1.6 / 1' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
+                Invoice · INV-0142
+              </span>
+              <span className="rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold text-white">
+                CashTraka
+              </span>
+            </div>
+            <div className="mt-4 text-[11px] font-medium text-white/70">
+              Billed to
+            </div>
+            <div className="mt-0.5 text-sm font-semibold text-white">
+              Amaka Nwosu
+            </div>
+            <div className="mt-4 flex items-end justify-between">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-white/70">
+                  Total due
+                </div>
+                <div className="mt-0.5 text-2xl font-black tracking-tight text-white md:text-3xl">
+                  ₦ 248,500
+                </div>
+              </div>
+              <span className="rounded-full bg-brand-50 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-brand-700">
+                Paid
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* =========================== 2. AUDIENCE MARQUEE ========================= */
+
+function AudienceMarqueeDark() {
+  const chips = [
+    'Beauty sellers',
+    'Fashion brands',
+    'Phone accessory shops',
+    'Skincare brands',
+    'Food vendors',
+    'Thrift stores',
+    'Perfume sellers',
+    'Landlords',
+    'Property managers',
+    'Hair & wig sellers',
+    'Tailors & designers',
+    'Electronics resellers',
+  ];
+  const items = chips.map((c, i) => (
+    <span
+      key={`${c}-${i}`}
+      className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 transition hover:border-brand-400/40 hover:text-white"
+    >
+      {c}
+    </span>
+  ));
+  return (
+    <section className="border-y border-white/5 bg-slate-950 py-10">
+      <div className="mx-auto mb-5 max-w-6xl px-5">
+        <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          Used by Nigerian businesses every day
+        </p>
+      </div>
+      <Marquee items={items} speed={35} />
+    </section>
+  );
+}
+
+/* ====================== 3. TWO BIG FEATURE CARDS ========================= */
+
+function FeatureCardsBig() {
+  return (
+    <section className="bg-slate-950 py-16 md:py-24">
+      <div className="mx-auto max-w-6xl space-y-4 px-5">
+        {/* Card 1: phone left, copy right */}
+        <article className="grid overflow-hidden rounded-3xl bg-slate-900 ring-1 ring-white/10 md:grid-cols-2">
+          <div className="relative flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-900 to-brand-900/40 p-8 md:p-12">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(0,184,232,0.15),transparent_60%)]"
+            />
+            <PhoneInvoiceMock />
+          </div>
+          <div className="flex flex-col justify-center p-8 md:p-12">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-400">
+              Invoices &amp; payments
+            </span>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+              One link your customer pays in seconds.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-300 md:text-lg">
+              Build an invoice with line items, tax, and your logo. Share it on WhatsApp. The customer opens the public pay link, pays via Paystack, and the invoice marks itself as paid. The receipt sends itself.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                <Check size={12} className="text-brand-400" />
+                Public pay link, no signup for your customer
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                <Check size={12} className="text-brand-400" />
+                Auto receipt by email and WhatsApp
+              </span>
+            </div>
+            <div className="mt-7">
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                Send your first invoice
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+        </article>
+
+        {/* Card 2: copy left, dashboard right */}
+        <article className="grid overflow-hidden rounded-3xl bg-slate-900 ring-1 ring-white/10 md:grid-cols-2">
+          <div className="order-2 flex flex-col justify-center p-8 md:order-1 md:p-12">
+            <span className="text-xs font-bold uppercase tracking-[0.18em] text-brand-400">
+              Tax &amp; compliance
+            </span>
+            <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+              Tax invoices that meet FIRS rules.
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-300 md:text-lg">
+              TIN, buyer details, item codes, and the right tax breakdown. CashTraka prints the IRN and a QR code on the receipt and gives you the XML to download when FIRS asks. Six years of document archive included.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                <Check size={12} className="text-brand-400" />
+                IRN and QR on every receipt
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-300">
+                <Check size={12} className="text-brand-400" />
+                XML download for FIRS submission
+              </span>
+            </div>
+            <div className="mt-7">
+              <Link
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                Set up tax invoices
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+          <div className="relative order-1 flex items-center justify-center bg-gradient-to-bl from-slate-900 via-slate-900 to-brand-900/40 p-8 md:order-2 md:p-12">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgba(0,184,232,0.15),transparent_60%)]"
+            />
+            <FirsDashboardMock />
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function PhoneInvoiceMock() {
+  return (
+    <div
+      className="relative aspect-[9/19] w-full max-w-[260px] overflow-hidden rounded-[2.5rem] bg-slate-800 p-4 ring-8 ring-slate-900"
+      style={{ transform: 'rotate(-3deg)' }}
+    >
+      <div className="flex h-full flex-col rounded-[1.75rem] bg-slate-950 p-4">
+        <div className="flex items-center justify-between text-[9px] font-medium text-slate-500">
+          <span>9:41</span>
+          <span>CashTraka</span>
+        </div>
+        <div className="mt-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+          This month
+        </div>
+        <div className="mt-1 text-2xl font-black tracking-tight text-white">
+          ₦ 12,975
+        </div>
+        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="h-full w-[68%] rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
+        </div>
+        <div className="mt-1 flex justify-between text-[9px] text-slate-500">
+          <span>Collected</span>
+          <span className="text-brand-400">68%</span>
+        </div>
+
+        <div className="mt-5 space-y-2">
+          <div className="rounded-lg border border-white/5 bg-slate-900/80 p-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-white">
+                Amaka N.
+              </span>
+              <span className="rounded-full bg-success-500/20 px-1.5 py-0.5 text-[8px] font-bold text-success-400">
+                PAID
+              </span>
+            </div>
+            <div className="mt-0.5 text-[9px] text-slate-500">
+              INV-0142 · ₦ 8,500
+            </div>
+          </div>
+          <div className="rounded-lg border border-white/5 bg-slate-900/80 p-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-white">
+                Chidi O.
+              </span>
+              <span className="rounded-full bg-success-500/20 px-1.5 py-0.5 text-[8px] font-bold text-success-400">
+                PAID
+              </span>
+            </div>
+            <div className="mt-0.5 text-[9px] text-slate-500">
+              INV-0141 · ₦ 12,000
+            </div>
+          </div>
+          <div className="rounded-lg border border-white/5 bg-slate-900/80 p-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-semibold text-white">
+                Tolu B.
+              </span>
+              <span className="rounded-full bg-owed-500/20 px-1.5 py-0.5 text-[8px] font-bold text-owed-400">
+                DUE
+              </span>
+            </div>
+            <div className="mt-0.5 text-[9px] text-slate-500">
+              INV-0140 · ₦ 3,000
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-auto flex items-center justify-center gap-1.5 rounded-lg bg-brand-500/10 py-2 text-[9px] font-bold text-brand-300">
+          <MessageCircle size={10} />
+          Send reminder via WhatsApp
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FirsDashboardMock() {
+  return (
+    <div className="relative w-full max-w-[320px]">
+      {/* Back card */}
+      <div
+        className="absolute right-2 top-2 w-[85%] rounded-2xl bg-slate-800/80 p-4 ring-1 ring-white/10"
+        style={{ transform: 'rotate(4deg)' }}
+      >
+        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+          FIRS · Last submission
+        </div>
+        <div className="mt-2 text-base font-black text-white">
+          ₦ 1.4M
+        </div>
+        <div className="mt-2 flex items-center gap-1 text-[9px] font-semibold text-success-400">
+          <Check size={10} />
+          Accepted · 02 Apr 2026
+        </div>
+      </div>
+      {/* Front card */}
+      <div
+        className="relative w-full rounded-2xl bg-slate-900 p-5 shadow-xl ring-1 ring-white/10"
+        style={{ transform: 'rotate(-2deg) translateY(36px)' }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
+              Tax invoice
+            </div>
+            <div className="mt-1 text-sm font-semibold text-white">
+              TIN · 21945601-0001
+            </div>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/5 ring-1 ring-white/10">
+            <div className="grid h-7 w-7 grid-cols-3 grid-rows-3 gap-px">
+              {Array.from({ length: 9 }).map((_, i) => (
+                <span
+                  key={i}
+                  className={
+                    'rounded-[1px] ' +
+                    ([0, 2, 3, 5, 6, 8].includes(i) ? 'bg-white' : 'bg-white/30')
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-1.5">
+          <div className="flex justify-between text-[10px] text-slate-300">
+            <span>Sub-total</span>
+            <span>₦ 230,000</span>
+          </div>
+          <div className="flex justify-between text-[10px] text-slate-300">
+            <span>VAT 7.5%</span>
+            <span>₦ 17,250</span>
+          </div>
+          <div className="flex justify-between border-t border-white/10 pt-1.5 text-[11px] font-bold text-white">
+            <span>Total</span>
+            <span>₦ 247,250</span>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between rounded-lg bg-brand-500/10 px-2.5 py-2 text-[10px] font-semibold text-brand-300">
+          <span className="flex items-center gap-1">
+            <Shield size={10} />
+            IRN attached
+          </span>
+          <span>XML ready</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ====================== 4. EXPLORE FEATURES =============================== */
+
+function ExploreFeatures() {
+  const cards = [
+    {
+      label: 'Invoice engine',
+      headline: 'Invoices.',
+      body: 'Build a proper invoice with line items, tax, and your logo. Share on WhatsApp. The customer pays via Paystack and the invoice marks itself as paid.',
+      mock: <ExploreInvoiceMock />,
+    },
+    {
+      label: 'Receipts',
+      headline: 'Receipts.',
+      body: 'The receipt sends itself the moment money lands. PDF, email, and WhatsApp. With FIRS IRN and QR code printed where they need to be.',
+      mock: <ExploreReceiptMock />,
+    },
+    {
+      label: 'Recurring billing',
+      headline: 'Recurring billing.',
+      body: 'Set the schedule once. CashTraka issues the invoice every month, sends it on WhatsApp, and tracks each cycle. You confirm the money came in.',
+      mock: <ExploreRecurringMock />,
+    },
+  ];
+
+  return (
+    <section className="bg-slate-950 py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
+            Explore all features
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+            Everything you need to get paid.
+          </h2>
+          <p className="mt-4 text-base text-slate-400 md:text-lg">
+            Make an invoice. Take the payment. Send the receipt. Chase the debt. Set up the next one to run on autopilot.
+          </p>
+        </div>
+
+        <div className="mt-14 grid gap-6 md:grid-cols-3">
+          {cards.map((c) => (
+            <div
+              key={c.label}
+              className="flex flex-col rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 p-6 ring-1 ring-white/10 transition hover:ring-white/20 md:p-8"
+            >
+              <div className="relative flex h-[260px] items-center justify-center overflow-hidden rounded-2xl bg-slate-900/60 ring-1 ring-white/5">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,184,232,0.18),transparent_70%)]"
+                />
+                {c.mock}
+              </div>
+              <div className="mt-6 flex-1">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand-400">
+                  {c.label}
+                </span>
+                <h3 className="mt-2 text-2xl font-black tracking-tight text-white md:text-3xl">
+                  {c.headline}
+                </h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-400">
+                  {c.body}
+                </p>
+              </div>
+              <div className="mt-6">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  Try it free
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ExploreInvoiceMock() {
+  return (
+    <div className="relative h-full w-full">
+      <div
+        className="absolute left-6 top-6 w-44 rounded-xl bg-gradient-to-br from-brand-400 to-brand-700 p-3 shadow-2xl"
+        style={{ transform: 'rotate(-6deg)' }}
+      >
+        <div className="text-[8px] font-bold uppercase tracking-wider text-white/80">
+          Invoice
+        </div>
+        <div className="mt-2 text-xs font-semibold text-white">Amaka N.</div>
+        <div className="mt-3 text-base font-black text-white">₦ 248,500</div>
+        <div className="mt-2 inline-flex rounded-full bg-brand-50 px-1.5 py-0.5 text-[8px] font-bold text-brand-700">
+          PAID
+        </div>
+      </div>
+      <div
+        className="absolute bottom-6 right-6 w-40 rounded-xl bg-slate-800 p-3 shadow-2xl ring-1 ring-white/10"
+        style={{ transform: 'rotate(8deg)' }}
+      >
+        <div className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
+          Pay link
+        </div>
+        <div className="mt-2 truncate text-[10px] font-medium text-brand-300">
+          paystack.cashtraka.com/i/0142
+        </div>
+        <div className="mt-3 h-2 w-full rounded-full bg-slate-700">
+          <div className="h-full w-3/4 rounded-full bg-brand-500" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExploreReceiptMock() {
+  return (
+    <div className="relative h-full w-full">
+      <div
+        className="absolute left-1/2 top-4 w-40 -translate-x-1/2 rounded-xl bg-white p-3 shadow-2xl"
+        style={{ transform: 'translateX(-50%) rotate(-4deg)' }}
+      >
+        <div className="text-[8px] font-bold uppercase tracking-wider text-slate-500">
+          Receipt
+        </div>
+        <div className="mt-1.5 space-y-0.5">
+          <div className="flex justify-between text-[8px] text-slate-700">
+            <span>Item</span>
+            <span>₦ 8,500</span>
+          </div>
+          <div className="flex justify-between text-[8px] text-slate-700">
+            <span>VAT</span>
+            <span>₦ 638</span>
+          </div>
+          <div className="flex justify-between border-t border-slate-200 pt-0.5 text-[9px] font-bold text-slate-900">
+            <span>Total</span>
+            <span>₦ 9,138</span>
+          </div>
+        </div>
+        <div className="mt-2 grid h-8 w-8 grid-cols-3 grid-rows-3 gap-px">
+          {Array.from({ length: 9 }).map((_, i) => (
+            <span
+              key={i}
+              className={
+                'rounded-[1px] ' +
+                ([0, 2, 3, 5, 6, 8].includes(i) ? 'bg-slate-900' : 'bg-slate-300')
+              }
+            />
+          ))}
+        </div>
+      </div>
+      <div
+        className="absolute bottom-6 left-6 right-6 rounded-xl bg-success-500/15 p-2.5 ring-1 ring-success-500/30"
+        style={{ transform: 'rotate(2deg)' }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-500 text-white">
+            <Check size={12} strokeWidth={3} />
+          </span>
+          <div>
+            <div className="text-[10px] font-bold text-success-300">
+              Sent on WhatsApp
+            </div>
+            <div className="text-[8px] text-slate-400">
+              Just now · Amaka Nwosu
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExploreRecurringMock() {
+  return (
+    <div className="relative h-full w-full">
+      <div className="absolute inset-x-6 top-6 rounded-xl bg-slate-800 p-3 shadow-xl ring-1 ring-white/10">
+        <div className="flex items-center justify-between">
+          <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+            Monthly retainer
+          </span>
+          <span className="rounded-full bg-brand-500/15 px-1.5 py-0.5 text-[8px] font-bold text-brand-300">
+            ACTIVE
+          </span>
+        </div>
+        <div className="mt-2 text-sm font-black text-white">₦ 75,000 / mo</div>
+        <div className="mt-2 grid grid-cols-6 gap-1">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div
+              key={i}
+              className={
+                'h-1.5 rounded-full ' +
+                (i <= 4 ? 'bg-brand-500' : 'bg-slate-700')
+              }
+            />
+          ))}
+        </div>
+        <div className="mt-1 text-[8px] text-slate-500">
+          4 of 12 cycles billed
+        </div>
+      </div>
+      <div
+        className="absolute bottom-6 left-6 flex w-32 items-center gap-2 rounded-xl bg-slate-900 p-2.5 ring-1 ring-white/10"
+        style={{ transform: 'rotate(-4deg)' }}
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-500/20 text-brand-300">
+          <Repeat size={14} />
+        </span>
+        <div>
+          <div className="text-[9px] font-semibold text-white">
+            Next: 1 May
+          </div>
+          <div className="text-[7px] text-slate-500">Auto-send</div>
+        </div>
+      </div>
+      <div
+        className="absolute bottom-10 right-6 flex w-32 items-center gap-2 rounded-xl bg-success-500/10 p-2.5 ring-1 ring-success-500/30"
+        style={{ transform: 'rotate(5deg)' }}
+      >
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-success-500/20 text-success-300">
+          <Check size={14} strokeWidth={3} />
+        </span>
+        <div>
+          <div className="text-[9px] font-semibold text-white">Apr · Paid</div>
+          <div className="text-[7px] text-slate-400">2h ago</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ====================== 5. BENTO TESTIMONIALS ============================ */
+
+function BentoTestimonials() {
+  return (
+    <section className="bg-slate-950 py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
+            From real businesses
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+            Built for Nigerian businesses.
+          </h2>
+          <p className="mt-4 text-base text-slate-400 md:text-lg">
+            Tested by sellers, landlords, and service operators.
+          </p>
+        </div>
+
+        <div className="mt-14 grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {/* Card 1 - wide quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
+            <p className="text-base leading-relaxed text-white md:text-lg">
+              Customers used to ask for receipts weeks later. Now I just send a WhatsApp link and the receipt is done.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Tope A · Boutique owner, Lagos
+            </p>
+          </div>
+
+          {/* Card 2 - logo */}
+          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
+              AYO STORES
+            </span>
+          </div>
+
+          {/* Card 3 - quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <p className="text-sm leading-relaxed text-white md:text-base">
+              We sent the same monthly invoice to 14 clients by hand. Now it runs on its own.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Ifeoma O · Cleaning service
+            </p>
+          </div>
+
+          {/* Card 4 - quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <p className="text-sm leading-relaxed text-white md:text-base">
+              I see who paid in real time on the dashboard. The end of month stress is gone.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Bashir M · Phone accessory shop, Kano
+            </p>
+          </div>
+
+          {/* Card 5 - logo */}
+          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
+              LAGOS THREADS
+            </span>
+          </div>
+
+          {/* Card 6 - wide quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
+            <p className="text-base leading-relaxed text-white md:text-lg">
+              Bank alert verification means I don&apos;t have to refresh Paystack every five minutes. Paste the SMS, and the payment is logged.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Chiamaka N · Skincare brand
+            </p>
+          </div>
+
+          {/* Card 7 - quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <p className="text-sm leading-relaxed text-white md:text-base">
+              Setup took us one afternoon. By the next morning we had received our first online payment.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Femi A · Tailor, Ibadan
+            </p>
+          </div>
+
+          {/* Card 8 - quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <p className="text-sm leading-relaxed text-white md:text-base">
+              Switching from a paper book to CashTraka saved my accountant a full week.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Kelechi U · Landlord, Abuja
+            </p>
+          </div>
+
+          {/* Card 9 - logo */}
+          <div className="flex items-center justify-center rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:p-6">
+            <span className="text-2xl font-black tracking-[0.2em] text-white/30 md:text-3xl">
+              NAIJA MART
+            </span>
+          </div>
+
+          {/* Card 10 - wide quote */}
+          <div className="rounded-2xl bg-slate-900 p-5 ring-1 ring-white/10 md:col-span-2 md:p-6">
+            <p className="text-base leading-relaxed text-white md:text-lg">
+              Rent reminders go out on their own. Tenants pay through the link. I do not chase anyone in a group chat anymore.
+            </p>
+            <p className="mt-4 text-xs text-slate-400">
+              Mrs Adeniyi · Property manager, Lekki
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ====================== 6. PRICING (DARK WRAPPER) ======================== */
+
+function PricingDark() {
+  return (
+    <section id="pricing" className="bg-slate-950 py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-400">
+            Pricing
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
+            Free to start. Upgrade when you need it.
+          </h2>
+          <p className="mt-4 text-base text-slate-400 md:text-lg">
+            The free plan covers the basics. Switch to Starter for invoices, FIRS, recurring billing, and the rest.
+          </p>
+        </div>
+        <div className="mt-12 rounded-3xl bg-white/95 p-6 ring-1 ring-white/10 md:p-10">
+          <PricingCards />
+        </div>
+        <p className="mt-8 text-center text-sm text-slate-400">
+          See the full breakdown on the{' '}
+          <Link
+            href="/pricing"
+            className="font-semibold text-brand-400 underline underline-offset-2 hover:text-brand-300"
+          >
+            pricing page
+          </Link>
+          .
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ====================== 7. FAQ (LIGHT WRAPPER) =========================== */
+
+function FAQDark() {
+  return (
+    <section id="faq" className="bg-white py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-600">
+            FAQ
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight text-ink md:text-4xl lg:text-5xl">
+            Questions people ask before they sign up
+          </h2>
+        </div>
+        <div className="mt-12">
+          <FAQ />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ====================== 8. FINAL CTA ===================================== */
+
+function FinalCTADark() {
+  return (
+    <section className="relative overflow-hidden bg-slate-950 py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-500/20 blur-3xl"
+      />
+      <div className="relative mx-auto max-w-3xl px-5 text-center">
+        <h2 className="text-4xl font-black tracking-tight text-white md:text-5xl lg:text-6xl">
+          Ready to get paid faster?
+        </h2>
+        <p className="mx-auto mt-5 max-w-xl text-base text-slate-300 md:text-lg">
+          Free to start. Five minutes to set up. Your first invoice goes out today.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-400"
+          >
+            Start free
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/pricing"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-white/90 transition hover:border-white/30 hover:text-white"
+          >
+            See pricing
+          </Link>
+        </div>
+        <p className="mt-5 text-sm text-slate-500">
+          No card. No trial expiry on the free plan.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ===== Legacy section helpers (kept defined, no longer rendered) ========= */
 
 function Hero() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-brand-50 via-white to-white py-14 md:py-20">
-      {/* Soft blur glow */}
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 left-1/2 -z-0 h-80 w-[45rem] -translate-x-1/2 rounded-full bg-brand-200/40 blur-3xl"
@@ -99,8 +971,6 @@ function Hero() {
     </section>
   );
 }
-
-/* ---------------------- 2. AUDIENCE MARQUEE (like fyle) ---------------------- */
 
 function AudienceMarquee() {
   const chips = [
@@ -138,8 +1008,6 @@ function AudienceMarquee() {
     </section>
   );
 }
-
-/* ---------------------- 2b. SOCIAL PROOF (trust stats) --------------------- */
 
 function SocialProof() {
   const cards = [
@@ -223,8 +1091,6 @@ function SocialProof() {
   );
 }
 
-/* ------------------------------ 3. PROBLEM ------------------------------ */
-
 function Problem() {
   const pains = [
     {
@@ -278,8 +1144,6 @@ function Problem() {
     </Section>
   );
 }
-
-/* ----------------- 4. SOLUTIONS (feature carousel, fyle-style) ---------------- */
 
 function Solution() {
   const features = [
@@ -359,8 +1223,6 @@ function Solution() {
   );
 }
 
-/* -------------------- 5. DEEP DIVES (alternating sections) -------------------- */
-
 function DeepDives() {
   const items = [
     {
@@ -415,8 +1277,6 @@ function DeepDives() {
   );
 }
 
-/* ----------------------------- 6. HOW IT WORKS -------------------------- */
-
 function HowItWorks() {
   const steps = [
     {
@@ -443,7 +1303,6 @@ function HowItWorks() {
       title="Set up today. See money in your account this week."
     >
       <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
-        {/* Desktop connector line, animated gradient sweep */}
         <div
           aria-hidden
           className="absolute left-0 right-0 top-6 hidden h-0.5 overflow-hidden bg-brand-100 md:block"
@@ -468,8 +1327,6 @@ function HowItWorks() {
     </Section>
   );
 }
-
-/* ------------------------------ 7. VALUE -------------------------------- */
 
 function ValueSection() {
   const wins = [
@@ -501,8 +1358,6 @@ function ValueSection() {
     </Section>
   );
 }
-
-/* ---------------------------- 8. OBJECTIONS ----------------------------- */
 
 function Objections() {
   const items = [
@@ -555,8 +1410,6 @@ function Objections() {
   );
 }
 
-/* ------------------------------ 9. PRICING ------------------------------ */
-
 function Pricing() {
   return (
     <Section
@@ -583,8 +1436,6 @@ function Pricing() {
   );
 }
 
-/* ------------------------------- 10. FAQ -------------------------------- */
-
 function FAQSection() {
   return (
     <Section
@@ -600,15 +1451,12 @@ function FAQSection() {
   );
 }
 
-/* ----------------------------- 11. FINAL CTA ---------------------------- */
-
 function FinalCTA() {
   return (
     <section className="py-16 md:py-24">
       <div className="container-app">
         <Reveal from="zoom" distance={20} blur>
           <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-success-500 px-6 py-12 text-center text-white md:px-12 md:py-16">
-            {/* Ambient glows, slow-spin gives the background faint motion */}
             <div
               aria-hidden
               className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-slow-spin"
@@ -628,7 +1476,6 @@ function FinalCTA() {
                   href="/signup"
                   className="btn group/cta relative inline-flex overflow-hidden bg-white text-brand-700 shadow-lg hover:bg-brand-50"
                 >
-                  {/* Shimmer sweep on hover */}
                   <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-brand-200/60 to-transparent transition-transform duration-700 group-hover/cta:translate-x-full" />
                   <span className="relative font-bold">Start free</span>
                 </Link>
@@ -649,8 +1496,6 @@ function FinalCTA() {
     </section>
   );
 }
-
-/* --------------------------- Deep-dive visuals --------------------------- */
 
 function PaymentsCard() {
   return (
@@ -822,8 +1667,6 @@ function FollowUpCard() {
     </div>
   );
 }
-
-/* ─────────────────────  Property Manager Spotlight  ───────────────────── */
 
 function PropertyManagerSpotlight() {
   const features = [

@@ -7,6 +7,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { ReceiptActions } from '@/components/ReceiptActions';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
+import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
 import { formatNaira, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -44,6 +45,13 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
   const taxInvoice = payment
     ? await prisma.invoice.findUnique({ where: { paymentId: payment.id } })
     : null;
+
+  // Existing Service Check link, if one was already minted for this receipt.
+  const existingFeedback = await prisma.feedback.findFirst({
+    where: { userId: user.id, receiptId: receipt.id, source: 'RECEIPT' },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, publicToken: true },
+  });
 
   const customerName =
     payment?.customerNameSnapshot ?? debt?.customerNameSnapshot ?? 'Customer';
@@ -186,6 +194,21 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
               amount={amount}
               businessName={businessName}
             />
+            <div className="mt-3 border-t border-border pt-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Service Check
+              </div>
+              <SendServiceCheckButton
+                source="RECEIPT"
+                receiptId={receipt.id}
+                paymentId={payment?.id}
+                customerId={receipt.customerId ?? undefined}
+                customerName={customerName}
+                phone={phone || undefined}
+                feedbackId={existingFeedback?.id}
+                publicToken={existingFeedback?.publicToken}
+              />
+            </div>
           </div>
 
           {/* FIRS e-Invoice — shown only when this receipt has a linked tax

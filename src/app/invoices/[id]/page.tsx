@@ -7,6 +7,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { InvoiceDetailActions } from '@/components/invoices/InvoiceDetailActions';
+import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
 import { formatNaira, formatDate } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -44,6 +45,12 @@ export default async function InvoiceDetailPage({
   });
   const creditedTotal = creditAgg._sum.total ?? 0;
   const outstanding = Math.max(0, invoice.total - invoice.amountPaid - creditedTotal);
+
+  const existingFeedback = await prisma.feedback.findFirst({
+    where: { userId: user.id, invoiceId: invoice.id, source: 'INVOICE' },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, publicToken: true },
+  });
 
   return (
     <AppShell
@@ -209,6 +216,24 @@ export default async function InvoiceDetailPage({
               vatRate: invoice.vatRate,
             }}
           />
+
+          <div className="rounded-xl border border-border bg-white p-5">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Service Check
+            </div>
+            <p className="mb-3 text-xs text-slate-600">
+              Ask the customer how they felt about this order.
+            </p>
+            <SendServiceCheckButton
+              source="INVOICE"
+              invoiceId={invoice.id}
+              customerId={invoice.customerId ?? undefined}
+              customerName={invoice.customerName}
+              phone={invoice.customerPhone || undefined}
+              feedbackId={existingFeedback?.id}
+              publicToken={existingFeedback?.publicToken}
+            />
+          </div>
         </div>
       </div>
     </AppShell>

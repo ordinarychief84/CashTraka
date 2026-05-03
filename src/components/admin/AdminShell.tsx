@@ -15,6 +15,7 @@ import {
   Bell,
   ClipboardList,
   FileText,
+  Heart,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import type { AdminSection } from '@/lib/admin-rbac';
@@ -45,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/recurring-invoices', icon: RefreshCw, label: 'Recurring', section: 'recurring' },
   { href: '/admin/firs', icon: ShieldCheck, label: 'FIRS', section: 'firs' },
   { href: '/admin/document-audit', icon: ClipboardList, label: 'Doc Audit', section: 'docAudit' },
+  { href: '/admin/feedback', icon: Heart, label: 'Feedback', section: 'feedback' },
   { href: '/admin/notifications', icon: Bell, label: 'Notifications', section: 'notifications' },
   { href: '/admin/analytics', icon: BarChart3, label: 'Analytics', section: 'analytics' },
   { href: '/admin/emails', icon: Mail, label: 'Email Logs', section: 'emails' },

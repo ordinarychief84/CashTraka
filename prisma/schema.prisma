@@ -132,6 +132,20 @@ model User {
   personalBudgetWeekly     Int?
   personalBudgetMonthly    Int?
 
+  /// ── Service Check (customer feedback) preferences ─────────────
+  /// Master switch. When false, no automatic feedback links are minted.
+  autoSendFeedback         Boolean   @default(false)
+  /// Auto-create a feedback link after a receipt is generated.
+  feedbackAfterReceipt     Boolean   @default(true)
+  /// Auto-create a feedback link after a payment is confirmed.
+  feedbackAfterPayment     Boolean   @default(true)
+  /// Auto-create a feedback link after an invoice is fully paid.
+  feedbackAfterInvoicePaid Boolean   @default(true)
+  /// Days the public feedback link stays valid. null = never expire.
+  feedbackLinkExpiryDays   Int?      @default(14)
+  /// Optional WhatsApp message template. Supports {name} and {url} placeholders.
+  feedbackMessageTemplate  String?
+
   onboardingCompleted  Boolean   @default(false)
   /// Whether the user has verified their email via OTP.
   emailVerified        Boolean   @default(false)
@@ -193,6 +207,7 @@ model User {
   orderConfirmations   OrderConfirmation[]
   documentArchives     DocumentArchive[]
   documentAuditLogs    DocumentAuditLog[]
+  feedbacks            Feedback[]
 
   @@index([role])
   @@index([businessType])
@@ -252,6 +267,7 @@ model Customer {
   deliveryNotes    DeliveryNote[]
   offers           Offer[]
   orderConfirmations OrderConfirmation[]
+  feedbacks        Feedback[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -309,6 +325,7 @@ model Payment {
   customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   items                PaymentItem[]
   invoice              Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  feedbacks            Feedback[]
 
   @@index([userId, createdAt])
   @@index([userId, verified])
@@ -595,6 +612,7 @@ model Invoice {
   reminders       InvoiceReminder[]
   creditNotes     CreditNote[]
   recurringRule   RecurringInvoiceRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  feedbacks       Feedback[]
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -1193,6 +1211,7 @@ model Receipt {
   updatedAt      DateTime  @updatedAt
 
   user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedbacks      Feedback[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1777,4 +1796,56 @@ model WebhookEventLog {
   @@index([provider, transactionId])
   @@index([verificationStatus])
   @@index([createdAt])
+}
+
+// ---------- SERVICE CHECK (customer feedback) ----------
+
+/// Customer feedback collected after a receipt, payment, or invoice. Public
+/// at /feedback/[publicToken]. Idempotent per source-document so a single
+/// transaction never gets two feedback links.
+model Feedback {
+  id             String    @id @default(cuid())
+  userId         String
+  customerId     String?
+  /// The PRD calls this "transactionId"; in CashTraka the closest concept is
+  /// a Payment row, so the field is named paymentId and references Payment.
+  paymentId      String?
+  receiptId      String?
+  invoiceId      String?
+  /// 'VERY_HAPPY' | 'HAPPY' | 'UNHAPPY' | 'VERY_UNHAPPY'. Stored as String to
+  /// match the codebase convention (see Invoice.status).
+  rating         String
+  /// 'DELAY' | 'WRONG_ITEM' | 'POOR_SERVICE' | 'PAYMENT_ISSUE' | 'OTHER'.
+  /// Required when rating is negative; the API enforces this.
+  reason         String?
+  comment        String?
+  /// 'RECEIPT' | 'INVOICE' | 'PAYMENT' | 'TRANSACTION' | 'MANUAL'.
+  source         String
+  publicToken    String    @unique
+  /// Set when the customer submits the rating. null while pending.
+  submittedAt    DateTime?
+  /// Computed at creation time from User.feedbackLinkExpiryDays. null = never.
+  expiresAt      DateTime?
+  /// Snapshot helper: true when rating is UNHAPPY or VERY_UNHAPPY.
+  isNegative     Boolean   @default(false)
+  isResolved     Boolean   @default(false)
+  resolvedAt     DateTime?
+  /// Free-text note about how the seller followed up.
+  responseAction String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  payment  Payment?  @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  receipt  Receipt?  @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  invoice  Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([customerId])
+  @@index([receiptId])
+  @@index([paymentId])
+  @@index([rating])
+  @@index([userId, isNegative])
+  @@index([userId, isResolved])
 }

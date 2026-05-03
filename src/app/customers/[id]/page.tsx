@@ -1,12 +1,13 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { MessageCircle, Banknote, Clock3 } from 'lucide-react';
+import { MessageCircle, Banknote, Clock3, Heart, AlertTriangle } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
 import { FraudWarning } from '@/components/FraudWarning';
+import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
 import { formatNaira, formatDateTime, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -24,7 +25,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   });
   if (!customer) notFound();
 
-  const [payments, debts] = await Promise.all([
+  const [payments, debts, feedbackRows, unresolvedNegativeCount] = await Promise.all([
     prisma.payment.findMany({
       where: { customerId: customer.id },
       orderBy: { createdAt: 'desc' },
@@ -33,7 +34,28 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
       where: { customerId: customer.id },
       orderBy: { createdAt: 'desc' },
     }),
+    prisma.feedback.findMany({
+      where: { userId: user.id, customerId: customer.id, submittedAt: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    }),
+    prisma.feedback.count({
+      where: {
+        userId: user.id,
+        customerId: customer.id,
+        isNegative: true,
+        isResolved: false,
+        submittedAt: { not: null },
+      },
+    }),
   ]);
+
+  const RATING_LABEL: Record<string, { label: string; cls: string }> = {
+    VERY_HAPPY: { label: 'Very happy', cls: 'bg-success-100 text-success-800' },
+    HAPPY: { label: 'Happy', cls: 'bg-brand-50 text-brand-700' },
+    UNHAPPY: { label: 'Unhappy', cls: 'bg-amber-50 text-amber-700' },
+    VERY_UNHAPPY: { label: 'Very unhappy', cls: 'bg-red-50 text-red-700' },
+  };
 
   const items: Item[] = [
     ...payments.map(
@@ -76,6 +98,69 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
       <div className="mb-4">
         <FraudWarning phone={customer.phone} customerName={customer.name} />
       </div>
+
+      {unresolvedNegativeCount > 0 ? (
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-amber-600" />
+          <div className="text-sm text-amber-800">
+            <div className="font-semibold">Customer may need attention</div>
+            <div className="mt-0.5 text-xs">
+              {unresolvedNegativeCount} unresolved negative {unresolvedNegativeCount === 1 ? 'rating' : 'ratings'}.
+              Reach out and follow up to keep this relationship.
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <section className="mb-5">
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <Heart size={14} className="text-brand-600" />
+            Feedback history
+          </h2>
+          <SendServiceCheckButton
+            source="MANUAL"
+            customerId={customer.id}
+            customerName={customer.name}
+            phone={customer.phone}
+            size="sm"
+          />
+        </div>
+        {feedbackRows.length === 0 ? (
+          <div className="rounded-xl border border-border bg-white p-4 text-xs text-slate-600">
+            No feedback collected yet for this customer.
+          </div>
+        ) : (
+          <ul className="divide-y divide-border rounded-xl border border-border bg-white">
+            {feedbackRows.map((f) => {
+              const pill =
+                RATING_LABEL[f.rating] ?? {
+                  label: f.rating,
+                  cls: 'bg-slate-100 text-slate-700',
+                };
+              return (
+                <li key={f.id} className="px-4 py-2.5 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={
+                        'rounded-full px-2 py-0.5 text-[11px] font-semibold ' + pill.cls
+                      }
+                    >
+                      {pill.label}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {f.submittedAt ? formatDateTime(f.submittedAt) : ''}
+                    </span>
+                  </div>
+                  {f.comment ? (
+                    <div className="mt-1 text-xs text-slate-600">&ldquo;{f.comment}&rdquo;</div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <StatCard label="Total paid" value={formatNaira(customer.totalPaid)} tone="brand" />

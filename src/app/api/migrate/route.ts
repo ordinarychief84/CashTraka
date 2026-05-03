@@ -273,6 +273,14 @@ export async function GET(req: NextRequest) {
   await addCol('User', 'xmlGenerateOnFirs', 'BOOLEAN NOT NULL', 'true');
   await addCol('User', 'documentRetentionMonths', 'INTEGER NOT NULL', '72');
 
+  // Service Check (customer feedback) — per-user toggles + template.
+  await addCol('User', 'autoSendFeedback', 'BOOLEAN NOT NULL', 'false');
+  await addCol('User', 'feedbackAfterReceipt', 'BOOLEAN NOT NULL', 'true');
+  await addCol('User', 'feedbackAfterPayment', 'BOOLEAN NOT NULL', 'true');
+  await addCol('User', 'feedbackAfterInvoicePaid', 'BOOLEAN NOT NULL', 'true');
+  await addCol('User', 'feedbackLinkExpiryDays', 'INTEGER', '14');
+  await addCol('User', 'feedbackMessageTemplate', 'TEXT', 'NULL');
+
   // Invoice: extra columns
   await addCol('Invoice', 'discount', 'INTEGER NOT NULL', '0');
   await addCol('Invoice', 'paymentTerms', 'TEXT', 'NULL');
@@ -407,6 +415,30 @@ export async function GET(req: NextRequest) {
          "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
          CONSTRAINT "DocumentAuditLog_pkey" PRIMARY KEY ("id"))`,
     ],
+    [
+      'Feedback',
+      `CREATE TABLE IF NOT EXISTS "Feedback" (
+         "id" TEXT NOT NULL,
+         "userId" TEXT NOT NULL,
+         "customerId" TEXT,
+         "paymentId" TEXT,
+         "receiptId" TEXT,
+         "invoiceId" TEXT,
+         "rating" TEXT NOT NULL,
+         "reason" TEXT,
+         "comment" TEXT,
+         "source" TEXT NOT NULL,
+         "publicToken" TEXT NOT NULL,
+         "submittedAt" TIMESTAMP(3),
+         "expiresAt" TIMESTAMP(3),
+         "isNegative" BOOLEAN NOT NULL DEFAULT false,
+         "isResolved" BOOLEAN NOT NULL DEFAULT false,
+         "resolvedAt" TIMESTAMP(3),
+         "responseAction" TEXT,
+         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+         "updatedAt" TIMESTAMP(3) NOT NULL,
+         CONSTRAINT "Feedback_pkey" PRIMARY KEY ("id"))`,
+    ],
   ];
 
   for (const [name, sql] of newTables) {
@@ -451,6 +483,14 @@ export async function GET(req: NextRequest) {
     ['DocumentArchive_userId_documentNumber_idx', `CREATE INDEX IF NOT EXISTS "DocumentArchive_userId_documentNumber_idx" ON "DocumentArchive"("userId", "documentNumber")`],
     ['DocumentAuditLog_entity_idx', `CREATE INDEX IF NOT EXISTS "DocumentAuditLog_entity_idx" ON "DocumentAuditLog"("userId", "entityType", "entityId", "createdAt")`],
     ['DocumentAuditLog_action_idx', `CREATE INDEX IF NOT EXISTS "DocumentAuditLog_action_idx" ON "DocumentAuditLog"("userId", "action", "createdAt")`],
+    ['Feedback_publicToken_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Feedback_publicToken_key" ON "Feedback"("publicToken")`],
+    ['Feedback_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "Feedback_userId_createdAt_idx" ON "Feedback"("userId", "createdAt")`],
+    ['Feedback_customerId_idx', `CREATE INDEX IF NOT EXISTS "Feedback_customerId_idx" ON "Feedback"("customerId")`],
+    ['Feedback_receiptId_idx', `CREATE INDEX IF NOT EXISTS "Feedback_receiptId_idx" ON "Feedback"("receiptId")`],
+    ['Feedback_paymentId_idx', `CREATE INDEX IF NOT EXISTS "Feedback_paymentId_idx" ON "Feedback"("paymentId")`],
+    ['Feedback_rating_idx', `CREATE INDEX IF NOT EXISTS "Feedback_rating_idx" ON "Feedback"("rating")`],
+    ['Feedback_userId_isNegative_idx', `CREATE INDEX IF NOT EXISTS "Feedback_userId_isNegative_idx" ON "Feedback"("userId", "isNegative")`],
+    ['Feedback_userId_isResolved_idx', `CREATE INDEX IF NOT EXISTS "Feedback_userId_isResolved_idx" ON "Feedback"("userId", "isResolved")`],
   ];
   for (const [name, sql] of newInvoicingIndexes) {
     try {
@@ -540,6 +580,26 @@ export async function GET(req: NextRequest) {
         IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'DocumentAuditLog_userId_fkey') THEN
           ALTER TABLE "DocumentAuditLog" ADD CONSTRAINT "DocumentAuditLog_userId_fkey"
             FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Feedback_userId_fkey') THEN
+          ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Feedback_customerId_fkey') THEN
+          ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_customerId_fkey"
+            FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Feedback_paymentId_fkey') THEN
+          ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_paymentId_fkey"
+            FOREIGN KEY ("paymentId") REFERENCES "Payment"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Feedback_receiptId_fkey') THEN
+          ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_receiptId_fkey"
+            FOREIGN KEY ("receiptId") REFERENCES "Receipt"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'Feedback_invoiceId_fkey') THEN
+          ALTER TABLE "Feedback" ADD CONSTRAINT "Feedback_invoiceId_fkey"
+            FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE SET NULL ON UPDATE CASCADE;
         END IF;
       END $$;
     `);

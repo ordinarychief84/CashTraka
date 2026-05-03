@@ -78,6 +78,7 @@ const PROTECTED_PREFIXES = [
   '/collections',
   '/promises',
   '/billing',
+  '/service-check',
   // Admin — role check is enforced inside each page/route via requireAdmin().
   '/admin',
 ];
@@ -128,6 +129,10 @@ const CSRF_EXEMPT_PREFIXES = [
   // One-shot maintenance endpoints called server-to-server with CRON_SECRET.
   '/api/cleanup-broken-uploads',
   '/api/migrate',
+  // Public Service Check submission — customer's browser POSTs from a link
+  // they opened in WhatsApp, often cross-origin. Per-IP rate limit lives
+  // inside the route handler.
+  '/api/public/feedback',
 ];
 
 function sameOriginOk(req: NextRequest): boolean {

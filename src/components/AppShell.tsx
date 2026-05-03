@@ -19,6 +19,7 @@ import {
   FileText,
   ShoppingBag,
   GalleryHorizontalEnd,
+  Heart,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -144,6 +145,7 @@ export function AppShell({
           )}
 
           <div className="mt-auto" />
+          {show.payments && <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />}
           {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
           {show.settings && <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />}
         </nav>

@@ -30,6 +30,7 @@ import {
   Building2,
   Key,
   Users2,
+  Heart,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -113,6 +114,7 @@ export function MoreSheet({
       { href: '/tasks', icon: ListTodo, label: 'Tasks' },
       { href: '/checklists', icon: CheckSquare, label: 'Checklists' },
       { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
+      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];
@@ -130,6 +132,7 @@ export function MoreSheet({
       { href: '/team', icon: Users2, label: 'Team' },
       { href: '/tasks', icon: ListTodo, label: 'Tasks' },
       { href: '/follow-up', icon: MessageCircle, label: 'Follow-up' },
+      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/reports', icon: BarChart3, label: 'Reports' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },
     ];

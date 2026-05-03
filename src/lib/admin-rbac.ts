@@ -28,20 +28,21 @@ export type AdminSection =
   | 'invoices'
   | 'recurring'
   | 'firs'
-  | 'docAudit';
+  | 'docAudit'
+  | 'feedback';
 
 /** Which admin sections each role can access */
 const ADMIN_MATRIX: Record<AdminRole, AdminSection[]> = {
   SUPER_ADMIN: [
     'dashboard', 'users', 'roles', 'support', 'refunds',
     'notifications', 'analytics', 'emails', 'blog', 'audit', 'settings',
-    'invoices', 'recurring', 'firs', 'docAudit',
+    'invoices', 'recurring', 'firs', 'docAudit', 'feedback',
   ],
   BLOG_MANAGER: ['dashboard', 'blog'],
   BILLING_MANAGER: ['dashboard', 'refunds', 'analytics', 'invoices', 'firs'],
   SUPPORT_AGENT: ['dashboard', 'users', 'support', 'notifications', 'emails', 'invoices', 'docAudit'],
   PROPERTY_MANAGER: ['dashboard', 'users'],
-  REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit'],
+  REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit', 'feedback'],
 };
 
 /** Check if a role can access a section */
@@ -71,6 +72,7 @@ export const PATH_TO_SECTION: Record<string, AdminSection> = {
   '/admin/recurring-invoices': 'recurring',
   '/admin/firs': 'firs',
   '/admin/document-audit': 'docAudit',
+  '/admin/feedback': 'feedback',
 };
 
 /** Human-readable labels */

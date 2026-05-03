@@ -20,6 +20,7 @@ import { receiptService } from './receipt.service';
 import { emailService } from './email.service';
 import { installmentService } from './installment.service';
 import { documentAudit } from './document-audit.service';
+import { feedbackService } from './feedback.service';
 
 export type ConfirmPaymentInput = {
   provider: PaymentProvider;
@@ -216,6 +217,11 @@ export const paymentConfirmationService = {
     } catch {
       // Receipt generation is non-fatal — don't fail the confirmation
     }
+
+    // Best-effort: mint a Service Check feedback link.
+    feedbackService
+      .maybeCreateAfterPayment(payment.id, promise.userId)
+      .catch(() => null);
   },
 
   async confirmPaymentRequest(
@@ -321,6 +327,10 @@ export const paymentConfirmationService = {
             receiptUrl: `/receipts/${receipt.id}`,
           }).catch(() => null); // Non-fatal
         }
+        // Best-effort: mint a Service Check feedback link.
+        feedbackService
+          .maybeCreateAfterPayment(paymentRecord.id, paymentRequest.userId)
+          .catch(() => null);
       }
     } catch {
       // Receipt generation is non-fatal — don't fail the confirmation
@@ -490,6 +500,11 @@ export const paymentConfirmationService = {
       // Non-fatal
     }
 
+    // Best-effort: mint a Service Check feedback link.
+    feedbackService
+      .maybeCreateAfterPayment(payment.id, plan.userId)
+      .catch(() => null);
+
     console.log(
       `INSTALLMENT_CONFIRMED: Charge ${charge.id} plan=${plan.id} ` +
       `amount=${confirmedAmount} completed=${completed} ref=${reference}`
@@ -632,6 +647,18 @@ export const paymentConfirmationService = {
         amountKobo: paidAmount * 100,
       },
     });
+
+    // Best-effort: mint a Service Check feedback link. We mint one for the
+    // payment itself, plus a separate one tied to the invoice when it just
+    // flipped to PAID.
+    feedbackService
+      .maybeCreateAfterPayment(payment.id, invoice.userId)
+      .catch(() => null);
+    if (finalStatus === 'PAID') {
+      feedbackService
+        .maybeCreateAfterInvoicePaid(invoice.id, invoice.userId)
+        .catch(() => null);
+    }
 
     console.log(
       `INVOICE_CONFIRMED: invoice=${invoice.id} ref=${reference} ` +

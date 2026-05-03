@@ -88,6 +88,8 @@ export type Limits = {
   paystackPay: boolean;
   /** Manual + automated invoice reminders (FRIENDLY/OVERDUE/FINAL). */
   paymentReminders: boolean;
+  /** Service Check — collect customer feedback after receipts/payments/invoices. */
+  serviceCheck: boolean;
 };
 
 const FREE: Limits = {
@@ -124,6 +126,7 @@ const FREE: Limits = {
   documentAudit: false,
   paystackPay: false,
   paymentReminders: false,
+  serviceCheck: false,
 };
 
 const BUSINESS: Limits = {
@@ -160,6 +163,7 @@ const BUSINESS: Limits = {
   documentAudit: true,
   paystackPay: true,
   paymentReminders: true,
+  serviceCheck: true,
 };
 
 const BUSINESS_PLUS: Limits = {

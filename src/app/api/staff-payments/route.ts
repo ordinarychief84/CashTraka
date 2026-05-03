@@ -79,9 +79,12 @@ export async function POST(req: Request) {
   });
 
   // Mirror real-pay kinds into Expense so P&L reports stay honest.
+  // The payroll record itself is already saved; if the expense mirror
+  // fails we log loudly and notify the seller so they can add the
+  // expense by hand and keep their P&L accurate.
   if (EXPENSE_KINDS.has(d.kind)) {
-    await prisma.expense
-      .create({
+    try {
+      await prisma.expense.create({
         data: {
           userId: user.id,
           amount: d.amount,
@@ -89,8 +92,24 @@ export async function POST(req: Request) {
           note: `${d.kind === 'salary' ? 'Salary' : d.kind[0].toUpperCase() + d.kind.slice(1)}, ${staff.name}${d.note ? ' · ' + d.note : ''}`,
           incurredOn: paidAt,
         },
-      })
-      .catch(() => null); // never block payroll on expense mirror failure
+      });
+    } catch (err) {
+      console.error(
+        `[staff-payments.POST] expense mirror failed for staffPayment ${payment.id} user ${user.id}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: user.id,
+            type: 'warning',
+            title: 'Payroll expense was not recorded',
+            message: `Payment to ${staff.name} was logged but did not mirror into your expenses. Add it manually so your P&L stays accurate.`,
+            link: '/expenses',
+          },
+        })
+        .catch(() => null);
+    }
   }
 
   return NextResponse.json({ id: payment.id });

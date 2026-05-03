@@ -102,7 +102,7 @@ export function InvoiceTab() {
           <input
             type="text"
             maxLength={3}
-            className="ct-input"
+            className="input"
             value={state.defaultCurrency}
             onChange={(e) =>
               setState({ ...state, defaultCurrency: e.target.value.toUpperCase() })
@@ -118,7 +118,7 @@ export function InvoiceTab() {
         <Field label="Invoice prefix">
           <input
             type="text"
-            className="ct-input"
+            className="input"
             value={state.invoicePrefix}
             onChange={(e) =>
               setState({ ...state, invoicePrefix: e.target.value.toUpperCase() })
@@ -128,7 +128,7 @@ export function InvoiceTab() {
         <Field label="Credit note prefix">
           <input
             type="text"
-            className="ct-input"
+            className="input"
             value={state.creditNotePrefix}
             onChange={(e) =>
               setState({ ...state, creditNotePrefix: e.target.value.toUpperCase() })
@@ -138,7 +138,7 @@ export function InvoiceTab() {
         <Field label="Offer prefix">
           <input
             type="text"
-            className="ct-input"
+            className="input"
             value={state.offerPrefix}
             onChange={(e) =>
               setState({ ...state, offerPrefix: e.target.value.toUpperCase() })
@@ -148,7 +148,7 @@ export function InvoiceTab() {
         <Field label="Delivery note prefix">
           <input
             type="text"
-            className="ct-input"
+            className="input"
             value={state.deliveryNotePrefix}
             onChange={(e) =>
               setState({
@@ -161,7 +161,7 @@ export function InvoiceTab() {
         <Field label="Order prefix">
           <input
             type="text"
-            className="ct-input"
+            className="input"
             value={state.orderPrefix}
             onChange={(e) =>
               setState({ ...state, orderPrefix: e.target.value.toUpperCase() })
@@ -170,7 +170,7 @@ export function InvoiceTab() {
         </Field>
         <Field label="Template">
           <select
-            className="ct-input"
+            className="input"
             value={state.invoiceTemplate}
             onChange={(e) =>
               setState({
@@ -197,7 +197,7 @@ export function InvoiceTab() {
 
       <Field label="Payment instructions (shown on public invoice page)">
         <textarea
-          className="ct-input min-h-[100px]"
+          className="input min-h-[100px]"
           value={state.paymentInstructions}
           onChange={(e) =>
             setState({ ...state, paymentInstructions: e.target.value })
@@ -239,7 +239,7 @@ export function InvoiceTab() {
               inputMode="numeric"
               min={0}
               max={365}
-              className="ct-input"
+              className="input"
               value={state.defaultInvoiceDueDays ?? ''}
               onChange={(e) =>
                 setState({
@@ -254,7 +254,7 @@ export function InvoiceTab() {
           <Field label="Default payment terms">
             <input
               type="text"
-              className="ct-input"
+              className="input"
               maxLength={120}
               placeholder="Net 30"
               value={state.defaultPaymentTerms}
@@ -266,7 +266,7 @@ export function InvoiceTab() {
 
           <Field label="Reminder cadence">
             <select
-              className="ct-input"
+              className="input"
               value={state.invoiceReminderCadence}
               onChange={(e) =>
                 setState({
@@ -291,7 +291,7 @@ export function InvoiceTab() {
               inputMode="numeric"
               min={1}
               max={3650}
-              className="ct-input"
+              className="input"
               value={state.autoArchiveDays ?? ''}
               onChange={(e) =>
                 setState({
@@ -312,7 +312,7 @@ export function InvoiceTab() {
               inputMode="numeric"
               min={1}
               max={240}
-              className="ct-input"
+              className="input"
               value={state.documentRetentionMonths}
               onChange={(e) =>
                 setState({
@@ -454,7 +454,7 @@ function AccentColorPicker({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="#00B8E8"
-        className="ct-input mt-2 font-mono text-xs"
+        className="input mt-2 font-mono text-xs"
         maxLength={7}
       />
     </div>

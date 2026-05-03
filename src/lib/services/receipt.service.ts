@@ -69,7 +69,10 @@ async function buildReceiptData(
     const promisePayment = await prisma.promisePayment.findFirst({
       where: { providerTransactionId: payment.providerTransactionId ?? '__never__' },
       include: { promiseToPay: { select: { remainingAmount: true } } },
-    }).catch(() => null);
+    }).catch((e) => {
+      console.warn(`[receipt.buildReceiptData] promisePayment lookup failed for payment ${payment.id}`, e);
+      return null;
+    });
     if (promisePayment?.promiseToPay && promisePayment.promiseToPay.remainingAmount > 0) {
       balanceRemaining = promisePayment.promiseToPay.remainingAmount;
     }
@@ -82,7 +85,10 @@ async function buildReceiptData(
         where: { paymentId: payment.id },
         select: { vatApplied: true, vatRate: true, tax: true, subtotal: true },
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(`[receipt.buildReceiptData] linked invoice lookup failed for payment ${payment.id}`, e);
+        return null;
+      });
 
     const vat =
       linkedInvoice && linkedInvoice.vatApplied && linkedInvoice.tax > 0
@@ -210,10 +216,15 @@ export const receiptService = {
     });
 
     // Mark the source record as receipt-sent (for payments — existing field).
+    // Receipt itself is already persisted; this is just a UI flag, so we
+    // log on failure but do not raise.
     if ('paymentId' in src && src.paymentId) {
       await prisma.payment
         .update({ where: { id: src.paymentId }, data: { receiptSentAt: new Date() } })
-        .catch(() => null);
+        .catch((e) => {
+          console.warn(`[receipt.generate] receiptSentAt flag update failed for payment ${src.paymentId}`, e);
+          return null;
+        });
     }
 
     // Best-effort: mint a Service Check feedback link if the seller has

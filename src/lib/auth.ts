@@ -261,13 +261,18 @@ export async function requireAdmin() {
 /**
  * Enforce per-business record ownership. Call with the record you just loaded
  * (which must expose a `userId` field) and the current user.
+ *
+ * Tenancy is the only check. Platform admins do NOT bypass tenancy here:
+ * cross-tenant support reads must go through `/api/admin/*` routes which have
+ * their own `requireAdmin` / `requireAdminOrStaff` gates and audit logging.
+ * The previous admin short-circuit was effective god-mode on every record-by-id
+ * route and has been removed.
  */
 export function requireBusinessAccess(
   resource: { userId: string } | null | undefined,
   user: { id: string; role: string },
 ): void {
   if (!resource) throw Err.notFound();
-  if (user.role === ROLES.ADMIN) return;
   if (resource.userId !== user.id) throw Err.forbidden();
 }
 

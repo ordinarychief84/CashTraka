@@ -20,7 +20,7 @@ const schema = z.object({
 });
 
 /**
- * POST /api/billing/trial - start a 14-day trial on the target plan.
+ * POST /api/billing/trial - start a free trial on the target plan.
  * Only works if the user has never trialled before.
  */
 export const POST = (req: Request) =>

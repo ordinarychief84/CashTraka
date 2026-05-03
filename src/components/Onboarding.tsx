@@ -13,6 +13,7 @@ import {
   Building2,
   Users,
   Key,
+  FileText,
 } from 'lucide-react';
 import { PaymentForm } from './PaymentForm';
 import { DebtForm } from './DebtForm';
@@ -53,7 +54,7 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
   const [reminderSent, setReminderSent] = useState(false);
   const [latestDebt, setLatestDebt] = useState<Debt | null>(initial.latestDebt);
   const [finishing, setFinishing] = useState(false);
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   async function fetchState() {
     const res = await fetch('/api/onboarding/state', { cache: 'no-store' });
@@ -100,6 +101,27 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
 
       {step === 3 && (
         <StepCard
+          icon={<FileText className="text-brand-600" />}
+          title="Send your first invoice"
+          description="Make a real or test invoice now. Pick a customer (or use yourself), add a line item, send. The link goes to WhatsApp."
+        >
+          <Link
+            href="/invoices/new"
+            className="btn-primary w-full"
+          >
+            Open invoice form
+          </Link>
+          <button
+            onClick={() => setStep(4)}
+            className="btn-secondary mt-3 w-full"
+          >
+            Skip for now
+          </button>
+        </StepCard>
+      )}
+
+      {step === 4 && (
+        <StepCard
           icon={<Clock3 className="text-owed-600" />}
           title="Add your first debt"
           description="Who owes you? Log them here so you can follow up later."
@@ -108,13 +130,13 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
             redirectTo="/onboarding"
             onSuccess={async () => {
               await fetchState();
-              setStep(4);
+              setStep(5);
             }}
           />
         </StepCard>
       )}
 
-      {step === 4 && (
+      {step === 5 && (
         <StepCard
           icon={<MessageCircle className="text-[#128C7E]" />}
           title="Send your first reminder"
@@ -138,7 +160,7 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
                 <MessageCircle size={18} />
                 Open in WhatsApp
               </a>
-              <button onClick={() => setStep(5)} disabled={!reminderSent} className="btn-secondary mt-3 w-full">
+              <button onClick={() => setStep(6)} disabled={!reminderSent} className="btn-secondary mt-3 w-full">
                 I've sent it, continue
               </button>
               {!reminderSent && (
@@ -148,14 +170,14 @@ function SellerOnboarding({ initial, firstName }: Omit<Props, 'businessType'>) {
               )}
             </>
           ) : (
-            <button onClick={() => setStep(3)} className="btn-secondary w-full">
+            <button onClick={() => setStep(4)} className="btn-secondary w-full">
               Go back and add a debt first
             </button>
           )}
         </StepCard>
       )}
 
-      {step === 5 && (
+      {step === 6 && (
         <DoneCard
           title="You're all set!"
           items={[

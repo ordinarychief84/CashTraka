@@ -95,7 +95,15 @@ export async function POST(req: Request) {
       }
       case 'subscription.disable': {
         const userId = payload.data?.metadata?.userId;
-        if (userId) await billingService.cancel(userId).catch(() => null);
+        if (userId) {
+          await billingService.cancel(userId).catch((e) => {
+            console.error(
+              `[billing.webhook] subscription.disable cancel failed for user ${userId}`,
+              e,
+            );
+            return null;
+          });
+        }
         break;
       }
       default:

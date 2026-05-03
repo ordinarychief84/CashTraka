@@ -255,10 +255,33 @@ export async function GET(req: Request) {
       results.push({ ruleId: rule.id, invoiceId: invoice.id, invoiceNumber });
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
+      console.error(
+        `[cron.run-recurring-invoices] rule ${rule.id} (user ${rule.userId}) failed: ${msg}`,
+        err,
+      );
       await prisma.recurringInvoiceRule
         .update({
           where: { id: rule.id },
           data: { lastRunError: msg, lastRunAt: now },
+        })
+        .catch((e) => {
+          console.error(
+            `[cron.run-recurring-invoices] could not record lastRunError on rule ${rule.id}`,
+            e,
+          );
+          return null;
+        });
+      // Surface the failure to the seller so they know recurring billing
+      // did not run for this rule.
+      await prisma.notification
+        .create({
+          data: {
+            userId: rule.userId,
+            type: 'warning',
+            title: 'Recurring invoice did not run',
+            message: `A scheduled invoice could not be created. Open the rule to review the error and retry.`,
+            link: `/invoices/recurring`,
+          },
         })
         .catch(() => null);
       results.push({ ruleId: rule.id, error: msg });

@@ -212,7 +212,9 @@ export async function POST(req: Request) {
     documentNumber: invoiceNumber,
   });
 
-  // Optional courtesy email when the buyer has an address. Non-fatal.
+  // Optional courtesy email when the buyer has an address. Non-fatal —
+  // the invoice itself is already persisted. Logged so a delivery
+  // problem still leaves a trace in Vercel logs.
   if (customerEmail) {
     emailService
       .sendInvoice({
@@ -224,7 +226,10 @@ export async function POST(req: Request) {
         dueDate: dueDate ? new Date(dueDate) : null,
         invoiceUrl: `/invoice/${publicToken}`,
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(`[invoices.POST] courtesy invoice email failed for invoice ${invoice.id} user ${user.id}`, e);
+        return null;
+      });
   }
 
   return NextResponse.json({ id: invoice.id, invoiceNumber, publicToken });

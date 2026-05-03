@@ -1,17 +1,48 @@
 import { prisma } from '@/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthorizedCronRequest } from '@/lib/cron-auth';
+import { timingSafeEqual } from 'node:crypto';
 
 /**
  * One-time migration endpoint to fix missing columns.
  * Adds any columns that exist in the Prisma schema but are missing from the actual DB.
  * Uses "ADD COLUMN IF NOT EXISTS" so it's safe to run multiple times.
  *
- * PROTECTED: requires CRON_SECRET as Bearer token. Query string fallback was
- * removed — secrets in URLs leak via referrers and access logs.
+ * PROTECTED: defence-in-depth. Requires BOTH:
+ *   1. `Authorization: Bearer <CRON_SECRET>` header (shared with cron jobs).
+ *   2. `x-migrate-secret: <MIGRATE_SECRET>` header (this endpoint only).
+ *
+ * Why two secrets? CRON_SECRET appears in many places (Vercel cron config,
+ * other route allowlists) and may be exposed in logs. MIGRATE_SECRET is a
+ * dedicated second factor for production schema mutations: leak one and the
+ * blast radius is bounded. Both compared with `crypto.timingSafeEqual`.
+ *
+ * Env vars required (production):
+ *   - CRON_SECRET     shared cron-trigger secret
+ *   - MIGRATE_SECRET  dedicated secret for runtime DDL via this endpoint
  */
+function isAuthorizedMigrateRequest(req: NextRequest): boolean {
+  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) return false;
+  const provided = req.headers.get('x-migrate-secret');
+  const expected = process.env.MIGRATE_SECRET;
+  if (!provided || !expected) return false;
+  if (provided.length !== expected.length) return false;
+  try {
+    return timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: NextRequest) {
-  if (!isAuthorizedCronRequest(req.headers.get('authorization'))) {
+  // Audit signal: every hit to this endpoint is worth surfacing in Vercel logs
+  // because it can mutate production schema. Logged regardless of auth outcome.
+  const host = req.headers.get('host') || 'unknown';
+  console.warn(
+    `MIGRATE endpoint hit: production schema mutation in progress. ts=${new Date().toISOString()} host=${host}`,
+  );
+
+  if (!isAuthorizedMigrateRequest(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const results: string[] = [];
@@ -695,6 +726,10 @@ export async function GET(req: NextRequest) {
     ['CatalogEvent_userId_createdAt_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_userId_createdAt_idx" ON "CatalogEvent"("userId", "createdAt")`],
     ['CatalogEvent_productId_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_productId_idx" ON "CatalogEvent"("productId")`],
     ['CatalogEvent_userId_type_idx', `CREATE INDEX IF NOT EXISTS "CatalogEvent_userId_type_idx" ON "CatalogEvent"("userId", "type")`],
+    // Webhook idempotency: stop two concurrent Paystack retries from double-booking
+    // a customer. Partial because manual-entry Payment rows legitimately have NULL
+    // externalRef. Mirrors @@unique([userId, externalRef]) on Payment in schema.prisma.
+    ['Payment_userId_externalRef_key', `CREATE UNIQUE INDEX IF NOT EXISTS "Payment_userId_externalRef_key" ON "Payment"("userId","externalRef") WHERE "externalRef" IS NOT NULL`],
   ];
   for (const [name, sql] of newIndexes) {
     try {

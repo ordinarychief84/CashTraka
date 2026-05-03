@@ -19,8 +19,17 @@ import { PLAN_LABELS } from '@/lib/plan-limits';
  * layer needed for billing — these are simple atomic updates).
  */
 
-const TRIAL_DAYS = 14;
+const DEFAULT_TRIAL_DAYS = 7;
 const DEFAULT_CYCLE_DAYS = 30;
+
+/** Read trial length for a plan, defaulting to 7 if the plan key is unknown
+ *  (e.g. FREE). Single source of truth lives in `PLAN_PRICING`. */
+function trialDaysFor(plan: string): number {
+  if (plan in PLAN_PRICING) {
+    return PLAN_PRICING[plan as PaidPlanKey].trialDays;
+  }
+  return DEFAULT_TRIAL_DAYS;
+}
 
 function daysFromNow(days: number): Date {
   const d = new Date();
@@ -49,8 +58,9 @@ function pricingFor(plan: string) {
 
 export const billingService = {
   /**
-   * Start a 14-day trial on a paid plan. Only allowed if the user has never
-   * trialled before (`trialEndsAt === null`) AND is currently Free.
+   * Start a free trial on a paid plan. Only allowed if the user has never
+   * trialled before (`trialEndsAt === null`) AND is currently Free. Trial
+   * length is read from `PLAN_PRICING[plan].trialDays`.
    */
   async startTrial(userId: string, targetPlan: string) {
     ensurePaidPlan(targetPlan);
@@ -63,7 +73,7 @@ export const billingService = {
       throw Err.conflict('Cannot start a trial with an existing subscription.');
     }
 
-    const trialEndsAt = daysFromNow(TRIAL_DAYS);
+    const trialEndsAt = daysFromNow(trialDaysFor(targetPlan));
     const updated = await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -80,7 +90,10 @@ export const billingService = {
         plan: PLAN_LABELS[targetPlan as keyof typeof PLAN_LABELS] ?? targetPlan,
         trialEndsAt,
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(`[billing.startTrial] trial-started email failed for user ${updated.id}`, e);
+        return null;
+      });
 
     return {
       plan: updated.plan,
@@ -223,8 +236,8 @@ export const billingService = {
       data: { status: 'success' },
     });
 
-    emailService
-      .sendSubscriptionReceipt?.({
+    try {
+      await emailService.sendSubscriptionReceipt?.({
         to: user.email,
         name: user.name,
         plan: pricing.label,
@@ -232,8 +245,26 @@ export const billingService = {
         reference,
         currentPeriodEnd,
         businessName: user.businessName || undefined,
-      })
-      .catch(() => null);
+      });
+    } catch (err) {
+      console.error(
+        `[billing.completeUpgrade] subscription-receipt email failed for user ${user.id} ref=${reference}`,
+        err,
+      );
+      // Plan is active; tell the seller in-app so they have a record even
+      // if email never arrived.
+      await prisma.notification
+        .create({
+          data: {
+            userId: user.id,
+            type: 'warning',
+            title: 'Receipt email failed',
+            message: `Your ${pricing.label} subscription is active, but we could not email your payment receipt (ref ${reference}). View it in Settings.`,
+            link: '/settings/billing',
+          },
+        })
+        .catch(() => null); // notify is best-effort
+    }
 
     return { status: 'success', userId: user.id, plan: attempt.targetPlan };
   },
@@ -252,6 +283,22 @@ export const billingService = {
         name: user.name,
         plan:
           PLAN_LABELS[user.plan as keyof typeof PLAN_LABELS] ?? user.plan,
+      })
+      .catch((e) => {
+        console.warn(`[billing.markPastDue] payment-failed email failed for user ${user.id}`, e);
+        return null;
+      });
+    // In-app surface so the seller still sees their card needs attention
+    // even if email did not arrive.
+    await prisma.notification
+      .create({
+        data: {
+          userId,
+          type: 'warning',
+          title: 'Subscription payment failed',
+          message: 'We could not charge your card. Update your payment method to keep your plan active.',
+          link: '/settings/billing',
+        },
       })
       .catch(() => null);
   },
@@ -291,7 +338,10 @@ export const billingService = {
           PLAN_LABELS[updated.plan as keyof typeof PLAN_LABELS] ?? updated.plan,
         accessUntil: updated.currentPeriodEnd ?? null,
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(`[billing.cancel] cancellation email failed for user ${updated.id}`, e);
+        return null;
+      });
     return {
       subscriptionStatus: updated.subscriptionStatus,
       currentPeriodEnd: updated.currentPeriodEnd,
@@ -329,7 +379,10 @@ export const billingService = {
     if (user.email && user.name) {
       emailService
         .sendTrialExpired({ to: user.email, name: user.name, plan: planLabel })
-        .catch(() => null);
+        .catch((e) => {
+          console.warn(`[billing.expireTrialIfNeeded] trial-expired email failed for user ${user.id}`, e);
+          return null;
+        });
     }
   },
 
@@ -385,8 +438,8 @@ export const billingService = {
       data.currentPeriodEnd = daysFromNow(pricing?.cycleDays ?? DEFAULT_CYCLE_DAYS);
       data.pendingPlan = null;
     } else if (status === 'trialing' && args.plan !== 'free') {
-      // Admin-granted trial — default window = TRIAL_DAYS (14).
-      data.trialEndsAt = daysFromNow(TRIAL_DAYS);
+      // Admin-granted trial. Window is the plan's trialDays (default 7).
+      data.trialEndsAt = daysFromNow(trialDaysFor(args.plan));
       data.pendingPlan = null;
     } else if (args.plan === 'free') {
       data.currentPeriodEnd = null;
@@ -410,7 +463,10 @@ export const billingService = {
           note,
         },
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(`[billing.adminSetPlan] admin-note write failed for adminId=${args.adminId} target=${args.userId}`, e);
+        return null;
+      });
 
     return {
       plan: updated.plan,

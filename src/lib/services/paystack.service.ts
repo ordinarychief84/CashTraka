@@ -107,6 +107,8 @@ export const paystackService = {
    * Verify a Paystack webhook signature. Paystack signs the raw request body
    * with HMAC-SHA512 using the webhook secret and puts the hex digest in the
    * `x-paystack-signature` header.
+   *
+   * Paystack signs with the per-webhook secret from the dashboard, configured as PAYSTACK_WEBHOOK_SECRET.
    */
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
     const sec = process.env.PAYSTACK_WEBHOOK_SECRET;

@@ -341,6 +341,10 @@ model Payment {
 
   @@index([userId, createdAt])
   @@index([userId, verified])
+  // Webhook idempotency: two simultaneous Paystack retries must not double-book.
+  // Enforced as a partial unique index at the DB level (some manual-entry Payment
+  // rows have NULL externalRef) via runtime DDL in src/app/api/migrate/route.ts.
+  @@unique([userId, externalRef])
 }
 
 model PaymentItem {

@@ -40,8 +40,12 @@ export async function GET(req: Request) {
         daysLeft,
       });
       stats.endingSoonSent++;
-    } catch {
-      // non-critical
+    } catch (err) {
+      // non-critical — the user can still see their trial countdown in-app
+      console.warn(
+        `[cron.trial-check] trial-ending-soon email failed for user ${user.id}`,
+        err,
+      );
     }
   }
 
@@ -55,22 +59,52 @@ export async function GET(req: Request) {
   });
 
   for (const user of expired) {
+    // Split the downgrade and email into two separate try blocks. The
+    // downgrade is the load-bearing write — if it fails the user stays
+    // on `trialing` past expiry and effectively gets free access to a
+    // paid plan. Log loudly and notify them so the next page load
+    // surfaces the issue.
+    let downgraded = false;
     try {
-      // Downgrade to free
       await prisma.user.update({
         where: { id: user.id },
         data: { plan: 'free', subscriptionStatus: 'free' },
       });
       stats.downgraded++;
+      downgraded = true;
+    } catch (err) {
+      console.error(
+        `[cron.trial-check] trial downgrade failed for user ${user.id}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: user.id,
+            type: 'warning',
+            title: 'Your trial has ended',
+            message:
+              'Your trial period has ended. Pick a plan to keep using paid features without interruption.',
+            link: '/settings/billing',
+          },
+        })
+        .catch(() => null);
+    }
 
-      await emailService.sendTrialExpired({
-        to: user.email,
-        name: user.name,
-        plan: user.plan,
-      });
-      stats.expiredSent++;
-    } catch {
-      // non-critical
+    if (downgraded) {
+      try {
+        await emailService.sendTrialExpired({
+          to: user.email,
+          name: user.name,
+          plan: user.plan,
+        });
+        stats.expiredSent++;
+      } catch (err) {
+        console.warn(
+          `[cron.trial-check] trial-expired email failed for user ${user.id}`,
+          err,
+        );
+      }
     }
   }
 

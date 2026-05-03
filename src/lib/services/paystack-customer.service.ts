@@ -138,20 +138,20 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
     };
   },
 
+  // Paystack signs with the per-webhook secret from the dashboard, configured as PAYSTACK_WEBHOOK_SECRET.
   verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean {
-    const key = secretKey();
-    if (!key) return false;
+    const sec = process.env.PAYSTACK_WEBHOOK_SECRET;
     const sig = headers['x-paystack-signature'] || headers['X-Paystack-Signature'];
-    if (!sig) return false;
-    const hash = crypto
-      .createHmac('sha512', key)
+    if (!sec || !sig) return false;
+    const expected = crypto
+      .createHmac('sha512', sec)
       .update(rawBody)
       .digest('hex');
     // Constant-time compare. timingSafeEqual throws on length mismatch,
-    // so wrap defensively — different lengths just mean "no match".
+    // so wrap defensively: different lengths just mean "no match".
     try {
       return crypto.timingSafeEqual(
-        Buffer.from(hash, 'hex'),
+        Buffer.from(expected, 'hex'),
         Buffer.from(sig, 'hex'),
       );
     } catch {

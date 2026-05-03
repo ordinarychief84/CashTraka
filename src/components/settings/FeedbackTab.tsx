@@ -130,7 +130,7 @@ export function FeedbackTab() {
             inputMode="numeric"
             min={1}
             max={365}
-            className="ct-input"
+            className="input"
             value={state.feedbackLinkExpiryDays ?? ''}
             onChange={(e) =>
               setState({
@@ -148,7 +148,7 @@ export function FeedbackTab() {
         help="Use {name} and {url} placeholders. Leave empty for the default."
       >
         <textarea
-          className="ct-input min-h-[100px]"
+          className="input min-h-[100px]"
           maxLength={500}
           placeholder="Hi {name}, thank you for your business. Please rate your experience: {url}"
           value={state.feedbackMessageTemplate}

@@ -193,6 +193,8 @@ export const paymentConfirmationService = {
 
     // Auto-generate receipt (non-blocking). Pass through the remaining balance
     // so partial payments render correctly on the public receipt + PDF.
+    // Receipts are tax records — log loudly and notify the seller if the
+    // generation fails so they can retry from the payment row.
     try {
       const receipt = await receiptService.ensureForPayment(promise.userId, payment.id, {
         source: 'PROMISE',
@@ -212,10 +214,30 @@ export const paymentConfirmationService = {
           receiptNumber: receipt.receiptNumber,
           amount: promisePayment.amount,
           receiptUrl: `/receipts/${receipt.id}`,
-        }).catch(() => null); // Non-fatal
+        }).catch((e) => {
+          console.warn(
+            `[payment-confirmation.confirmPromisePayment] receipt email failed for payment ${payment.id}`,
+            e,
+          );
+          return null;
+        });
       }
-    } catch {
-      // Receipt generation is non-fatal — don't fail the confirmation
+    } catch (err) {
+      console.error(
+        `[payment-confirmation.confirmPromisePayment] receipt generation failed for payment ${payment.id} user ${promise.userId}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: promise.userId,
+            type: 'warning',
+            title: 'Receipt was not generated',
+            message: `Payment from ${promise.customerNameSnapshot} was confirmed but its receipt could not be generated. Open the payment to retry.`,
+            link: `/payments/${payment.id}`,
+          },
+        })
+        .catch(() => null);
     }
 
     // Best-effort: mint a Service Check feedback link.
@@ -303,7 +325,9 @@ export const paymentConfirmationService = {
       },
     });
 
-    // Auto-generate receipt (non-blocking)
+    // Auto-generate receipt (non-blocking). Receipts are tax records —
+    // log loudly and notify the seller if the generation fails so they
+    // can retry from the payment row.
     try {
       const paymentRecord = await prisma.payment.findFirst({
         where: { externalRef: reference, userId: paymentRequest.userId },
@@ -325,15 +349,35 @@ export const paymentConfirmationService = {
             receiptNumber: receipt.receiptNumber,
             amount: paymentRequest.amount,
             receiptUrl: `/receipts/${receipt.id}`,
-          }).catch(() => null); // Non-fatal
+          }).catch((e) => {
+            console.warn(
+              `[payment-confirmation.confirmPaymentRequest] receipt email failed for paymentRequest ${paymentRequest.id}`,
+              e,
+            );
+            return null;
+          });
         }
         // Best-effort: mint a Service Check feedback link.
         feedbackService
           .maybeCreateAfterPayment(paymentRecord.id, paymentRequest.userId)
           .catch(() => null);
       }
-    } catch {
-      // Receipt generation is non-fatal — don't fail the confirmation
+    } catch (err) {
+      console.error(
+        `[payment-confirmation.confirmPaymentRequest] receipt generation failed for paymentRequest ${paymentRequest.id} user ${paymentRequest.userId}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: paymentRequest.userId,
+            type: 'warning',
+            title: 'Receipt was not generated',
+            message: `PayLink payment from ${paymentRequest.customerName} was confirmed but its receipt could not be generated. Open the payment to retry.`,
+            link: `/paylinks`,
+          },
+        })
+        .catch(() => null);
     }
   },
 
@@ -467,6 +511,8 @@ export const paymentConfirmationService = {
     });
 
     // ── Receipt generation (non-blocking) ────────────────────
+    // Receipts are tax records — log loudly and notify the seller if
+    // the generation fails so they can retry from the payment row.
     try {
       const receipt = await receiptService.ensureForPayment(plan.userId, payment.id, {
         source: 'INSTALLMENT',
@@ -478,7 +524,13 @@ export const paymentConfirmationService = {
         await prisma.installmentCharge.update({
           where: { id: charge.id },
           data: { receiptId: receipt.id },
-        }).catch(() => null);
+        }).catch((e) => {
+          console.warn(
+            `[payment-confirmation.confirmInstallmentCharge] receiptId link failed for charge ${charge.id}`,
+            e,
+          );
+          return null;
+        });
       }
 
       if (input.customerEmail && receipt) {
@@ -494,10 +546,30 @@ export const paymentConfirmationService = {
           receiptNumber: receipt.receiptNumber,
           amount: confirmedAmount,
           receiptUrl: `/receipts/${receipt.id}`,
-        }).catch(() => null);
+        }).catch((e) => {
+          console.warn(
+            `[payment-confirmation.confirmInstallmentCharge] receipt email failed for charge ${charge.id}`,
+            e,
+          );
+          return null;
+        });
       }
-    } catch {
-      // Non-fatal
+    } catch (err) {
+      console.error(
+        `[payment-confirmation.confirmInstallmentCharge] receipt generation failed for charge ${charge.id} payment ${payment.id} user ${plan.userId}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: plan.userId,
+            type: 'warning',
+            title: 'Receipt was not generated',
+            message: `Installment payment from ${plan.customerNameSnapshot} was confirmed but its receipt could not be generated. Open the payment to retry.`,
+            link: `/installments/${plan.id}`,
+          },
+        })
+        .catch(() => null);
     }
 
     // Best-effort: mint a Service Check feedback link.
@@ -536,7 +608,9 @@ export const paymentConfirmationService = {
     // paystack-customer.service.ts:116). Use directly.
     const paidAmount = amount;
 
-    const { payment, finalStatus } = await prisma.$transaction(async (tx) => {
+    let txResult: { payment: any; finalStatus: string };
+    try {
+      txResult = await prisma.$transaction(async (tx) => {
       // Re-read invoice in tx for fresh amountPaid / total
       const fresh = await tx.invoice.findUnique({ where: { id: invoice.id } });
       if (!fresh) throw new Error('Invoice not found in tx');
@@ -594,9 +668,23 @@ export const paymentConfirmationService = {
       }
 
       return { payment: paymentRecord, finalStatus: nextStatus };
-    });
+      });
+    } catch (e: any) {
+      // P2002 = unique violation on Payment(userId, externalRef). The findFirst
+      // dedupe check above can race with a concurrent webhook retry; the DB-level
+      // partial unique index is the authoritative gate. Treat this exactly like
+      // the "already processed" branch above.
+      if (e?.code === 'P2002') {
+        console.log(`INVOICE_CONFIRM: Reference ${reference} concurrent retry collided on unique index. skipping`);
+        return;
+      }
+      throw e;
+    }
+    const { payment, finalStatus } = txResult;
 
-    // Receipt generation (non-blocking)
+    // Receipt generation (non-blocking). Receipts are tax records — log
+    // loudly and notify the seller if generation fails so they can
+    // retry from the payment row.
     try {
       const receipt = await receiptService.ensureForPayment(invoice.userId, payment.id, {
         source: 'PAYSTACK',
@@ -616,10 +704,30 @@ export const paymentConfirmationService = {
             amount: paidAmount,
             receiptUrl: `/receipts/${receipt.id}`,
           })
-          .catch(() => null);
+          .catch((e) => {
+            console.warn(
+              `[payment-confirmation.confirmInvoicePayment] receipt email failed for invoice ${invoice.id} payment ${payment.id}`,
+              e,
+            );
+            return null;
+          });
       }
-    } catch {
-      // Non-fatal
+    } catch (err) {
+      console.error(
+        `[payment-confirmation.confirmInvoicePayment] receipt generation failed for invoice ${invoice.id} payment ${payment.id} user ${invoice.userId}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: invoice.userId,
+            type: 'warning',
+            title: 'Receipt was not generated',
+            message: `Invoice ${invoice.invoiceNumber} was paid but its receipt could not be generated. Open the invoice to retry.`,
+            link: `/invoices/${invoice.id}`,
+          },
+        })
+        .catch(() => null);
     }
 
     // Notification for the seller
@@ -633,7 +741,13 @@ export const paymentConfirmationService = {
           link: `/invoices/${invoice.id}`,
         },
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(
+          `[payment-confirmation.confirmInvoicePayment] seller notification write failed for invoice ${invoice.id}`,
+          e,
+        );
+        return null;
+      });
 
     // Platform fee (informational, v1). Only computed when the seller
     // opted in; recorded in audit metadata for monthly remittance tracking.

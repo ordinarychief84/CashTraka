@@ -489,7 +489,7 @@ export default async function DashboardPage() {
           </p>
         </div>
         {canWrite && !isStaffPrincipal && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link
               href="/payments/new"
               className="btn-primary text-sm"
@@ -497,6 +497,15 @@ export default async function DashboardPage() {
               <Banknote size={15} />
               Add payment
             </Link>
+            {planLimits.invoices && (
+              <Link
+                href="/invoices/new"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500 bg-white px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+              >
+                <ReceiptText size={15} />
+                Create invoice
+              </Link>
+            )}
             {showExpenses && (
               <Link
                 href="/expenses/new"

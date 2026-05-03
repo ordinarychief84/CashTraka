@@ -43,10 +43,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         status: payment.status === 'PENDING' ? 'PAID' : payment.status,
       },
     });
-    // Auto-create a persistent Receipt row (idempotent).
-    const receipt = await receiptService
-      .ensureForPayment(user.id, payment.id, { source: 'MANUAL' })
-      .catch(() => null);
+    // Auto-create a persistent Receipt row (idempotent). Receipts are tax
+    // records — a failure here means the seller's books are missing one,
+    // so we surface it loudly even though the payment itself is already
+    // verified.
+    let receipt: { id: string; receiptNumber: string } | null = null;
+    try {
+      receipt = await receiptService.ensureForPayment(user.id, payment.id, { source: 'MANUAL' });
+    } catch (err) {
+      console.error(`[payments.verify MANUAL] receipt generation failed for payment ${payment.id} user ${user.id}`, err);
+      await prisma.notification
+        .create({
+          data: {
+            userId: user.id,
+            type: 'warning',
+            title: 'Receipt was not generated',
+            message: `Payment ${payment.id.slice(-8).toUpperCase()} is verified but its receipt could not be generated. Open the payment to retry.`,
+            link: `/payments/${payment.id}`,
+          },
+        })
+        .catch(() => null);
+    }
     return NextResponse.json({
       ok: true,
       method: 'MANUAL',
@@ -119,10 +136,25 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   });
 
   // Auto-generate a persistent Receipt row (idempotent; if one already
-  // exists for this payment, the existing record is returned).
-  const receipt = await receiptService
-    .ensureForPayment(user.id, payment.id, { source: 'MANUAL' })
-    .catch(() => null);
+  // exists for this payment, the existing record is returned). Receipts
+  // are tax records — surface failures so the seller can retry.
+  let receipt: { id: string; receiptNumber: string } | null = null;
+  try {
+    receipt = await receiptService.ensureForPayment(user.id, payment.id, { source: 'MANUAL' });
+  } catch (err) {
+    console.error(`[payments.verify ALERT] receipt generation failed for payment ${payment.id} user ${user.id}`, err);
+    await prisma.notification
+      .create({
+        data: {
+          userId: user.id,
+          type: 'warning',
+          title: 'Receipt was not generated',
+          message: `Payment ${payment.id.slice(-8).toUpperCase()} is verified but its receipt could not be generated. Open the payment to retry.`,
+          link: `/payments/${payment.id}`,
+        },
+      })
+      .catch(() => null);
+  }
 
   // Return the receipt URL so the client can offer one-tap WhatsApp send.
   return NextResponse.json({

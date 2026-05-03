@@ -194,10 +194,18 @@ export default function PricingPage() {
                         <Feature>Auto VAT returns, monthly and quarterly</Feature>
                         <Feature>Year-end accountant export pack</Feature>
                         <Feature>Multi-user with audit trail</Feature>
-                        <Feature>Bank statement sync (coming with Mono)</Feature>
-                        <Feature>Virtual account per invoice (coming)</Feature>
                         <Feature>Priority WhatsApp support, response under 4 hours</Feature>
                       </ul>
+
+                      <div className="mt-5 rounded-xl border border-dashed border-brand-300 bg-white/60 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">
+                          Roadmap
+                        </p>
+                        <ul className="mt-2 space-y-1.5 text-xs text-slate-600">
+                          <li>Coming in Q3: Bank statement sync via Mono</li>
+                          <li>Coming in Q3: Virtual account per invoice</li>
+                        </ul>
+                      </div>
                     </div>
                   </div>
                 </Reveal>

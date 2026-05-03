@@ -592,7 +592,7 @@ export const emailService = {
       <div style="text-align:center;margin-bottom:24px;">
         <div style="display:inline-block;background:#FEF3C7;border-radius:50%;width:56px;height:56px;line-height:56px;text-align:center;font-size:28px;">🎉</div>
         <h1 style="margin:12px 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">Your ${esc(args.plan)} trial is live!</h1>
-        <p style="margin:0;font-size:14px;color:#475569;">14 days of full access, no payment required.</p>
+        <p style="margin:0;font-size:14px;color:#475569;">7 days of full access, no payment required.</p>
       </div>
 
       ${DIVIDER}
@@ -603,7 +603,7 @@ export const emailService = {
 
       <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:12px;overflow:hidden;">
         ${infoRow('Plan', args.plan)}
-        ${infoRow('Trial period', '14 days')}
+        ${infoRow('Trial period', '7 days')}
         ${infoRow('Expires on', endsOn)}
         ${infoRow('Cost', 'Free during trial')}
       </table>
@@ -617,7 +617,7 @@ export const emailService = {
     return send({
       to: args.to,
       subject: `Your ${args.plan} trial is active — ${endsOn}`,
-      html: layout(body, { preheader: `14-day free trial of ${args.plan}. Expires ${endsOn}.` }),
+      html: layout(body, { preheader: `7-day free trial of ${args.plan}. Expires ${endsOn}.` }),
     });
   },
 

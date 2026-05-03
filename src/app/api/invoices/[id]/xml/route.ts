@@ -50,12 +50,32 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   });
 
   if (!invoice.xmlGeneratedAt) {
-    await prisma.invoice
-      .update({
+    // The xmlGeneratedAt stamp is the compliance breadcrumb for this
+    // invoice. If the write fails we still return the XML to the seller
+    // (they have the document) but we log loudly and surface a
+    // notification so the seller knows the audit trail did not record.
+    try {
+      await prisma.invoice.update({
         where: { id: invoice.id },
         data: { xmlGeneratedAt: new Date() },
-      })
-      .catch(() => null);
+      });
+    } catch (err) {
+      console.error(
+        `[invoices.xml] xmlGeneratedAt stamp failed for invoice ${invoice.id} user ${user.id}`,
+        err,
+      );
+      await prisma.notification
+        .create({
+          data: {
+            userId: user.id,
+            type: 'warning',
+            title: 'Invoice XML download was not logged',
+            message: `We generated the XML for invoice ${invoice.invoiceNumber} but could not record the FIRS audit timestamp. Try generating it again.`,
+            link: `/invoices/${invoice.id}`,
+          },
+        })
+        .catch(() => null);
+    }
     await documentAudit.log({
       userId: user.id,
       actorId: user.id,

@@ -141,7 +141,7 @@ export default async function AdminEmailsPage() {
           {[
             { name: 'Welcome', trigger: 'On signup', status: 'active', desc: 'Personalized onboarding for sellers & landlords' },
             { name: 'Subscription Receipt', trigger: 'On payment', status: 'active', desc: 'Branded receipt with plan details & reference' },
-            { name: 'Trial Started', trigger: 'On trial activation', status: 'active', desc: '14-day trial confirmation with expiry date' },
+            { name: 'Trial Started', trigger: 'On trial activation', status: 'active', desc: '7-day trial confirmation with expiry date' },
             { name: 'Trial Ending Soon', trigger: '3 days before expiry', status: 'active', desc: 'Upgrade nudge before trial expires' },
             { name: 'Trial Expired', trigger: 'On trial expiry', status: 'active', desc: 'Notification with upgrade CTA' },
             { name: 'Payment Failed', trigger: 'On charge failure', status: 'active', desc: 'Retry payment prompt' },

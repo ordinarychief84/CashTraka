@@ -195,7 +195,7 @@ export function PublicFeedbackForm({ token, customerFirstName }: Props) {
               Anything else? (optional)
             </span>
             <textarea
-              className="ct-input min-h-[80px] w-full"
+              className="input min-h-[80px] w-full"
               maxLength={500}
               value={comment}
               onChange={(e) => setComment(e.target.value)}

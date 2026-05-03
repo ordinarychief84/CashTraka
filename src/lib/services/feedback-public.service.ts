@@ -125,7 +125,18 @@ export const feedbackPublicService = {
         rating: negRating,
         reason: body.reason ?? null,
         comment: trimmedComment.length > 0 ? trimmedComment : null,
-      }).catch(() => null);
+      }).catch((e) => {
+        // We have already persisted the feedback; the alerting fan-out
+        // failed wholesale. Log loudly so the seller's dashboard team
+        // can investigate why an unhappy customer's signal did not fan
+        // out. We deliberately do not re-throw — the public submit
+        // endpoint must still 200 for the customer.
+        console.error(
+          `[feedback-public.notifyNegativeFeedback] alert pipeline failed for feedback ${fb.id} user ${fb.userId}`,
+          e,
+        );
+        return null;
+      });
     }
 
     return { ok: true };
@@ -183,7 +194,10 @@ async function notifyNegativeFeedback(args: {
     `so I can make it right?`;
   const replyWaLink = customerPhone ? waLink(customerPhone, followUpMsg) : null;
 
-  // 1. In-app Notification row.
+  // 1. In-app Notification row. This is the seller's primary surface
+  // for unhappy-customer signals — log loudly if it fails. We swallow
+  // the error so the public submit can still 200, but the failure shows
+  // up in Vercel logs and can be replayed by hand if needed.
   await prisma.notification
     .create({
       data: {
@@ -200,7 +214,13 @@ async function notifyNegativeFeedback(args: {
         link: '/service-check',
       },
     })
-    .catch(() => null);
+    .catch((e) => {
+      console.error(
+        `[feedback-public.notifyNegativeFeedback] notification write failed for feedback ${args.feedbackId} seller ${seller.id}`,
+        e,
+      );
+      return null;
+    });
 
   // 2. Email alert (only if we have an address).
   if (seller.email) {
@@ -216,6 +236,12 @@ async function notifyNegativeFeedback(args: {
         waLink: replyWaLink,
         serviceCheckUrl,
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(
+          `[feedback-public.notifyNegativeFeedback] email alert failed for feedback ${args.feedbackId} seller ${seller.id}`,
+          e,
+        );
+        return null;
+      });
   }
 }

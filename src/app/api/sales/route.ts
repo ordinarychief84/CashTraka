@@ -160,7 +160,13 @@ export async function POST(req: Request) {
 
     emailService
       .raw({ to: customerEmail, subject: 'Receipt from ' + businessName + ' - ' + sale.saleNumber, html })
-      .catch(() => null);
+      .catch((e) => {
+        console.warn(
+          `[sales.POST] sale-receipt email failed for sale ${sale.id} user ${user.id}`,
+          e,
+        );
+        return null;
+      });
   }
 
   return NextResponse.json({ id: sale.id, saleNumber: sale.saleNumber, total: sale.total });

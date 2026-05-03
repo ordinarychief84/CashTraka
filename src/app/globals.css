@@ -155,11 +155,20 @@ button.card:hover {
 }
 
 /*
- * Primary action button = GREEN (from logo bottom half).
- * ink text on green gives better contrast than white at our exact shade,
- * matching the spec "text: dark or white (whichever has better contrast)".
+ * Primary action button = brand cyan. The marketing site already speaks in
+ * brand-500, so the dashboard now matches. Confirm-received actions ("payment
+ * received", "feedback collected") use the green .btn-success below.
  */
 .btn-primary {
+  @apply btn bg-brand-500 text-white hover:bg-brand-400;
+}
+
+/*
+ * Confirm-received action = green. Use sparingly: only for explicit "money
+ * is in" or "request was answered" moments where green carries semantic
+ * weight. Most CTAs should be .btn-primary.
+ */
+.btn-success {
   @apply btn bg-success-500 text-ink hover:bg-success-600 hover:text-white;
 }
 

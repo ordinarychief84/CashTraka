@@ -23,7 +23,7 @@ export default async function AdminSettingsPage() {
   // Ensure all expected settings have values
   const defaultSettings = {
     maintenance_mode: settingsMap.maintenance_mode ?? 'false',
-    default_trial_days: settingsMap.default_trial_days ?? '14',
+    default_trial_days: settingsMap.default_trial_days ?? '7',
     max_free_customers: settingsMap.max_free_customers ?? '20',
     support_email: settingsMap.support_email ?? '',
     platform_announcement: settingsMap.platform_announcement ?? '',

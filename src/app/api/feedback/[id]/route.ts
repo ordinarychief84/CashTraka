@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthContext, getCurrentUser } from '@/lib/auth';
 import { handled, ok, fail, validationFail } from '@/lib/api-response';
 import { requireFeature } from '@/lib/gate';
 import { feedbackService } from '@/lib/services/feedback.service';
 import { feedbackResolveSchema } from '@/lib/feedback-validators';
+import { accessAuditService } from '@/lib/services/access-audit.service';
 
 export const runtime = 'nodejs';
 
@@ -12,11 +13,27 @@ export const runtime = 'nodejs';
  */
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   return handled(async () => {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await getAuthContext();
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = auth.owner;
 
     const fb = await feedbackService.getFeedback(params.id, user.id);
     if (!fb) return fail('Feedback not found', 404);
+
+    // Tax+ access audit: log non-owner reads of customer feedback (PII).
+    if (!auth.isOwner) {
+      try {
+        await accessAuditService.recordRead({
+          actorId: auth.principalId,
+          userId: user.id,
+          entityType: 'FEEDBACK',
+          entityId: params.id,
+          action: 'READ_FEEDBACK',
+          metadata: { role: auth.accessRole },
+        });
+      } catch {}
+    }
+
     return ok(fb);
   });
 }

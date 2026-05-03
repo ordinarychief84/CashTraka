@@ -1,14 +1,24 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthContext } from '@/lib/auth';
 import { requireFeature } from '@/lib/gate';
+import { effectivePlan, limitsFor } from '@/lib/plan-limits';
 import {
   nextDocumentNumber,
   makePublicToken,
   withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+
+/**
+ * Tax+ two-person rule threshold for credit notes. Notes with a total
+ * above this value need a second team member's confirmation, unless
+ * the actor is the owner. Stored in the credit note's `total` units:
+ * the model uses naira-as-int (the migrate route's column is INTEGER
+ * with no kobo scaling), so the threshold is plain naira.
+ */
+const TWO_PERSON_THRESHOLD = 100_000;
 
 export const runtime = 'nodejs';
 
@@ -18,6 +28,11 @@ const bodySchema = z.object({
   /// Always clamped to [0, invoice.total - alreadyCredited] in the service.
   amount: z.coerce.number().int().nonnegative().optional(),
   reason: z.string().trim().max(500).optional(),
+  /// Tax+ two-person rule: id of the second team member confirming a
+  /// high-value credit note. Required when the resolved total is above
+  /// `TWO_PERSON_THRESHOLD` and the actor is not the owner. Must be a
+  /// different staff id than the actor.
+  confirmedBy: z.string().trim().min(1).optional(),
 });
 
 /**
@@ -30,8 +45,9 @@ const bodySchema = z.object({
  * `total` intact and infer "credited" via summing CreditNote.total).
  */
 export async function GET(_req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await getAuthContext();
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = auth.owner;
 
   const rows = await prisma.creditNote.findMany({
     where: { userId: user.id },
@@ -47,8 +63,9 @@ export async function GET(_req: Request) {
 }
 
 export async function POST(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const auth = await getAuthContext();
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const user = auth.owner;
 
   const feature = await requireFeature(user, 'creditNotes');
   if (feature) return feature;
@@ -100,6 +117,49 @@ export async function POST(req: Request) {
     );
   }
 
+  // Tax+ two-person rule: a second team member must confirm credit notes
+  // above ₦100,000. Owners bypass. Only enforced when the seller's plan
+  // grants `multiUserAudit` (Tax+).
+  const eff = effectivePlan(user);
+  const limits = limitsFor(eff.plan);
+  let approvedById: string | null = null;
+  if (
+    limits.multiUserAudit &&
+    !auth.isOwner &&
+    total > TWO_PERSON_THRESHOLD
+  ) {
+    const confirmedBy = parsed.data.confirmedBy?.trim();
+    if (!confirmedBy || confirmedBy === auth.principalId) {
+      return NextResponse.json(
+        {
+          error: 'A second team member must confirm credit notes over ₦100,000.',
+          code: 'NEEDS_SECOND_APPROVAL',
+        },
+        { status: 409 },
+      );
+    }
+    // Verify the confirmer is an active staff member on the same tenant
+    // and is not the actor themselves.
+    const confirmer = await prisma.staffMember.findFirst({
+      where: {
+        id: confirmedBy,
+        userId: user.id,
+        status: 'active',
+      },
+      select: { id: true, accessRole: true },
+    });
+    if (!confirmer || confirmer.id === auth.principalId) {
+      return NextResponse.json(
+        {
+          error: 'A second team member must confirm credit notes over ₦100,000.',
+          code: 'NEEDS_SECOND_APPROVAL',
+        },
+        { status: 409 },
+      );
+    }
+    approvedById = confirmer.id;
+  }
+
   // Pro-rate VAT vs subtotal so the credit note's tax line is honest.
   const ratio = invoice.total > 0 ? total / invoice.total : 0;
   const taxAmount = invoice.vatApplied ? Math.round(invoice.tax * ratio) : 0;
@@ -128,6 +188,7 @@ export async function POST(req: Request) {
           taxAmount,
           total,
           publicToken: makePublicToken(),
+          approvedById,
         },
       });
 
@@ -143,16 +204,21 @@ export async function POST(req: Request) {
 
   await documentAudit.log({
     userId: user.id,
-    actorId: user.id,
+    actorId: auth.principalId,
     entityType: 'CREDIT_NOTE',
     entityId: created.id,
     action: 'CREATED',
-    metadata: { invoiceId: invoice.id, total, fullyCredited },
+    metadata: {
+      invoiceId: invoice.id,
+      total,
+      fullyCredited,
+      approvedById: approvedById ?? undefined,
+    },
   });
   if (fullyCredited) {
     await documentAudit.log({
       userId: user.id,
-      actorId: user.id,
+      actorId: auth.principalId,
       entityType: 'INVOICE',
       entityId: invoice.id,
       action: 'CREDITED',

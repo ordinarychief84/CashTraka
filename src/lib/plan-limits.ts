@@ -99,6 +99,13 @@ export type Limits = {
   yearEndPack: boolean;
   /** Mono bank sync (Phase 2 of Tax+, flag exists now, feature comes later). */
   bankSync: boolean;
+  /**
+   * Tax+ tier: invite a read-only ACCOUNTANT staff role and capture an
+   * audit trail of their reads + every staff write. Powers the
+   * "Audit trail export" card in Settings → Tax and the
+   * "Invite accountant" CTA on the Team page.
+   */
+  multiUserAudit: boolean;
 };
 
 const FREE: Limits = {
@@ -139,6 +146,7 @@ const FREE: Limits = {
   vatReturns: false,
   yearEndPack: false,
   bankSync: false,
+  multiUserAudit: false,
 };
 
 const BUSINESS: Limits = {
@@ -179,6 +187,7 @@ const BUSINESS: Limits = {
   vatReturns: false,
   yearEndPack: false,
   bankSync: false,
+  multiUserAudit: false,
 };
 
 const BUSINESS_PLUS: Limits = {
@@ -225,6 +234,7 @@ const TAX_PLUS: Limits = {
   vatReturns: true,
   yearEndPack: true,
   bankSync: true,
+  multiUserAudit: true,
 };
 
 const PLAN_LIMITS: Record<PlanName, Limits> = {

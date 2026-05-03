@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthContext } from '@/lib/auth';
 import { handled } from '@/lib/api-response';
 import { requireFeature } from '@/lib/gate';
 import { accountantPackService } from '@/lib/services/accountant-pack.service';
 import { buildZip } from '@/lib/zip';
+import { accessAuditService } from '@/lib/services/access-audit.service';
 
 export const runtime = 'nodejs';
 
@@ -22,8 +23,9 @@ export async function GET(
   ctx: { params: { year: string } },
 ) {
   return handled(async () => {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await getAuthContext();
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const user = auth.owner;
 
     const feature = await requireFeature(user, 'yearEndPack');
     if (feature) return feature;
@@ -38,6 +40,19 @@ export async function GET(
     }
 
     const pack = await accountantPackService.generateYearEndPack(user.id, year);
+
+    // Tax+ access audit: capture every download of the year-end pack.
+    // High-value export, so always log, even for owners.
+    try {
+      await accessAuditService.recordRead({
+        actorId: auth.principalId,
+        userId: user.id,
+        entityType: 'ACCOUNTANT_PACK',
+        entityId: String(year),
+        action: 'READ_ACCOUNTANT_PACK',
+        metadata: { role: auth.accessRole, year },
+      });
+    } catch {}
 
     const entries = [
       { name: `cashtraka-year-end-${year}/manifest.csv`, data: pack.manifest },

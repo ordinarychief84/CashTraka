@@ -36,13 +36,21 @@ type Props = {
     accessRole: AccessRole;
     hasLoggedIn: boolean;
   };
+  /**
+   * Optional default role for first-time invites. Used by the Tax+ team
+   * page when the owner clicks "Invite accountant", so the dialog opens
+   * already pointing at ACCOUNTANT instead of CASHIER.
+   */
+  defaultRole?: AccessRole;
 };
 
-export function InviteStaffDialog({ open, onClose, staff }: Props) {
+export function InviteStaffDialog({ open, onClose, staff, defaultRole }: Props) {
   const router = useRouter();
   const [email, setEmail] = useState(staff.email ?? '');
   const [role, setRole] = useState<AccessRole>(
-    staff.accessRole === 'NONE' ? 'CASHIER' : staff.accessRole,
+    staff.accessRole === 'NONE'
+      ? (defaultRole ?? 'CASHIER')
+      : staff.accessRole,
   );
   const [customRoleId, setCustomRoleId] = useState<string | null>(null);
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);

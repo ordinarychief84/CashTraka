@@ -286,6 +286,9 @@ export async function GET(req: NextRequest) {
   // Platform fee opt-in (1% take rate, capped at ₦5,000 per transaction).
   await addCol('User', 'platformFeeOptIn', 'BOOLEAN NOT NULL', 'false');
 
+  // Tax+ two-person rule: optional second-approver staff id on a credit note.
+  await addCol('CreditNote', 'approvedById', 'TEXT', 'NULL');
+
   // Invoice: extra columns
   await addCol('Invoice', 'discount', 'INTEGER NOT NULL', '0');
   await addCol('Invoice', 'paymentTerms', 'TEXT', 'NULL');

@@ -31,9 +31,16 @@ type StaffProp = {
 export function StaffRowActions({
   staff,
   canInvite,
+  inviteDefaultRole,
 }: {
   staff: StaffProp;
   canInvite: boolean;
+  /**
+   * Optional default role passed straight to InviteStaffDialog, used when
+   * the owner clicked "Invite accountant" on the team page so the dialog
+   * opens already pointing at ACCOUNTANT.
+   */
+  inviteDefaultRole?: AccessRole;
 }) {
   const router = useRouter();
   const [payOpen, setPayOpen] = useState(false);
@@ -85,6 +92,7 @@ export function StaffRowActions({
       <InviteStaffDialog
         open={inviteOpen}
         onClose={() => setInviteOpen(false)}
+        defaultRole={inviteDefaultRole}
         staff={{
           id: staff.id,
           name: staff.name,

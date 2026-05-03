@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus, Users2, Banknote, CalendarCheck2 } from 'lucide-react';
+import { Plus, Users2, Banknote, CalendarCheck2, ClipboardList } from 'lucide-react';
 import { guardWithPermission } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -11,6 +11,7 @@ import { StaffRowActions } from '@/components/StaffRowActions';
 import { TeamPageClient } from '@/components/team/TeamPageClient';
 import { formatNaira } from '@/lib/format';
 import { can, ROLE_LABELS, type AccessRole } from '@/lib/rbac';
+import { effectivePlan, limitsFor } from '@/lib/plan-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +83,12 @@ export default async function TeamPage() {
     .filter((p) => p.kind !== 'advance' && p.kind !== 'reimbursement')
     .reduce((s, p) => s + p.amount, 0);
 
+  // Tax+ tier: surface an "Invite accountant" CTA that pre-selects the
+  // ACCOUNTANT role on the staff form. We only render it when the seller's
+  // plan includes the multi-user audit feature.
+  const eff = effectivePlan(user);
+  const showInviteAccountant = limitsFor(eff.plan).multiUserAudit;
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -102,6 +109,26 @@ export default async function TeamPage() {
       <TeamPageClient
         membersContent={
           <>
+            {showInviteAccountant && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-brand-200 bg-brand-50/60 p-4">
+                <ClipboardList size={18} className="mt-0.5 shrink-0 text-brand-600" />
+                <div className="flex-1">
+                  <div className="text-sm font-bold text-ink">Invite your accountant</div>
+                  <div className="mt-0.5 text-xs text-slate-600">
+                    Read-only access to payments, expenses, reports and tax
+                    settings. Every read is logged so you can audit later.
+                  </div>
+                </div>
+                <Link
+                  href="/team/new?role=ACCOUNTANT"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-xs font-bold text-white hover:bg-brand-600"
+                >
+                  <Plus size={14} />
+                  Invite accountant
+                </Link>
+              </div>
+            )}
+
             <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
               <StatCard label="Team size" value={String(staff.length)} />
               <StatCard

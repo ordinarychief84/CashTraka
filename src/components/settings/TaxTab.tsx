@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   Archive,
   ArrowRight,
+  ClipboardList,
 } from 'lucide-react';
 
 type Props = {
@@ -224,6 +225,7 @@ export function TaxTab({ initial }: Props) {
 type LimitsResponse = {
   vatReturns?: boolean;
   yearEndPack?: boolean;
+  multiUserAudit?: boolean;
 };
 
 type LatestReturn = {
@@ -271,7 +273,8 @@ function TaxPlusSections() {
 
   const showVat = !!limits.vatReturns;
   const showPack = !!limits.yearEndPack;
-  if (!showVat && !showPack) return null;
+  const showAudit = !!limits.multiUserAudit;
+  if (!showVat && !showPack && !showAudit) return null;
 
   const today = new Date();
   // Default to last completed FY for the year-end download.
@@ -310,6 +313,44 @@ function TaxPlusSections() {
       ) : null}
 
       {showPack ? <YearEndPackCard defaultYear={defaultYear} /> : null}
+
+      {showAudit ? <AuditExportCard /> : null}
+    </div>
+  );
+}
+
+/**
+ * Tax+ audit-trail export. Downloads every admin and staff action over
+ * the last year as a CSV the seller can hand to their accountant.
+ */
+function AuditExportCard() {
+  const today = new Date();
+  const yearAgo = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+  const from = yearAgo.toISOString().slice(0, 10);
+  const to = today.toISOString().slice(0, 10);
+  const href = `/api/audit-export?from=${from}&to=${to}&format=csv`;
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-1 flex items-center gap-2 text-base font-semibold text-ink">
+        <ClipboardList size={16} className="text-brand-600" />
+        Audit trail export
+      </div>
+      <p className="mb-3 text-sm text-slate-600">
+        All admin and staff actions over the last year. Hand to your accountant
+        or auditor.
+      </p>
+      <a
+        href={href}
+        className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+      >
+        Download full audit trail
+        <ArrowRight size={14} />
+      </a>
+      <p className="mt-2 text-xs text-slate-500">
+        Includes every read by accountant-role staff and every state change on
+        invoices, receipts, credit notes and VAT returns.
+      </p>
     </div>
   );
 }

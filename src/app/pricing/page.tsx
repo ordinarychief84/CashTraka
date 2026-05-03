@@ -2,274 +2,277 @@ import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { Navbar } from '@/components/marketing/Navbar';
 import { Footer } from '@/components/marketing/Footer';
+import { Reveal } from '@/components/marketing/Reveal';
 import { formatPriceNaira, PLAN_PRICING } from '@/lib/billing/pricing';
 
 export const metadata = { title: 'Pricing | CashTraka' };
 
 export default function PricingPage() {
-  const quarterly = PLAN_PRICING.starter_quarterly;
-  const biannual = PLAN_PRICING.starter_biannually;
-  const yearly = PLAN_PRICING.starter_yearly;
+  const proQ = PLAN_PRICING.starter_quarterly;
+  const proB = PLAN_PRICING.starter_biannually;
+  const proY = PLAN_PRICING.starter_yearly;
+
+  const taxQ = PLAN_PRICING.tax_plus_quarterly;
+  const taxB = PLAN_PRICING.tax_plus_biannually;
+  const taxY = PLAN_PRICING.tax_plus_yearly;
 
   return (
     <div className="min-h-screen bg-white text-slate-900">
       <Navbar />
       <main>
-        {/* Hero Section */}
-        <section className="py-14 md:py-20">
+        {/* Hero */}
+        <section className="relative overflow-hidden py-14 md:py-20">
+          {/* Ambient washes */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-brand-50/70 via-brand-50/20 to-transparent" />
+          <div className="pointer-events-none absolute -left-24 top-24 -z-10 h-72 w-72 rounded-full bg-brand-100/40 blur-3xl" />
           <div className="container-app">
-            <div className="mx-auto max-w-2xl text-center">
-              <h1 className="text-3xl font-black tracking-tight md:text-4xl">
-                One paid plan. Pick how often you pay.
-              </h1>
-              <p className="mt-4 text-lg text-slate-600">
-                Quarterly, every six months, or once a year. Same features on every cycle.
-                The longer you commit, the less you pay per month. Start with a 7-day free trial,
-                no card required.
-              </p>
-            </div>
+            <Reveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <h1 className="text-3xl font-black tracking-tight md:text-4xl">
+                  Three plans. Pick the one that fits.
+                </h1>
+                <p className="mt-4 text-lg text-slate-600">
+                  Free for tiny businesses, Pro for growing ones, Tax+ for VAT-registered
+                  businesses that want filing on autopilot. Pay monthly or yearly. Cancel anytime.
+                </p>
+              </div>
+            </Reveal>
           </div>
         </section>
 
-        {/* Pricing Plans */}
-        <section className="py-12 md:py-16">
+        {/* Three-tier cards */}
+        <section className="pb-12 md:pb-16">
           <div className="container-app">
-            <div className="mx-auto max-w-4xl">
+            <div className="mx-auto max-w-5xl">
               <div className="grid gap-6 md:grid-cols-3">
-                {/* Quarterly */}
-                <div className="relative flex flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:shadow-md">
-                  <h3 className="text-lg font-bold text-ink">Quarterly</h3>
-                  <p className="mt-2 text-sm text-slate-600">Pay every 3 months</p>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-ink">
-                      {formatPriceNaira(quarterly.perMonthKobo)}
-                    </span>
-                    <span className="text-sm text-slate-600">/month</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {formatPriceNaira(quarterly.amountKobo)} every 3 months
-                  </p>
-                  <Link
-                    href="/signup?plan=starter_quarterly"
-                    className="btn-secondary mt-6 w-full justify-center"
-                  >
-                    Start 7-day free trial
-                  </Link>
-                  <p className="mt-2 text-center text-xs text-slate-500">
-                    No card required
-                  </p>
-                </div>
+                {/* Free */}
+                <Reveal>
+                  <div className="relative flex h-full flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:shadow-md">
+                    <h3 className="text-lg font-bold text-ink">Free</h3>
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-ink">₦0</span>
+                      <span className="text-sm text-slate-600">/month</span>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Forever free. No card required.
+                    </p>
 
-                {/* Biannual, Recommended */}
-                <div className="relative flex flex-col rounded-2xl border-2 border-brand-500 bg-gradient-to-br from-brand-50 to-white p-6 shadow-md transition hover:shadow-lg">
-                  <div className="absolute -top-3 left-6 rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white">
-                    Best value
-                  </div>
-                  <h3 className="mt-2 text-lg font-bold text-ink">Biannually</h3>
-                  <p className="mt-2 text-sm text-slate-600">Pay every 6 months</p>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-ink">
-                      {formatPriceNaira(biannual.perMonthKobo)}
-                    </span>
-                    <span className="text-sm text-slate-600">/month</span>
-                  </div>
-                  <p className="mt-1 text-xs text-brand-600 font-semibold">
-                    Save {biannual.savingsPercent}% · {formatPriceNaira(biannual.amountKobo)} every 6 months
-                  </p>
-                  <Link
-                    href="/signup?plan=starter_biannually"
-                    className="btn-primary mt-6 w-full justify-center"
-                  >
-                    Start 7-day free trial
-                  </Link>
-                  <p className="mt-2 text-center text-xs text-slate-500">
-                    No card required
-                  </p>
-                </div>
+                    <Link
+                      href="/signup?plan=free"
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-lg border border-brand-500 bg-white px-4 py-2.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+                    >
+                      Sign up free
+                    </Link>
 
-                {/* Yearly */}
-                <div className="relative flex flex-col rounded-2xl border border-border bg-white p-6 shadow-sm transition hover:shadow-md">
-                  <h3 className="text-lg font-bold text-ink">Yearly</h3>
-                  <p className="mt-2 text-sm text-slate-600">Pay once a year</p>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-black text-ink">
-                      {formatPriceNaira(yearly.perMonthKobo)}
-                    </span>
-                    <span className="text-sm text-slate-600">/month</span>
+                    <div className="mt-6 border-t border-border pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        What you get
+                      </p>
+                      <ul className="mt-3 space-y-2.5">
+                        <Feature>50 payments per month</Feature>
+                        <Feature>Up to 50 customers</Feature>
+                        <Feature>Up to 20 active debts</Feature>
+                        <Feature>Receipts via WhatsApp</Feature>
+                        <Feature>Bank alert verification</Feature>
+                        <Feature>Basic reports</Feature>
+                      </ul>
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-brand-600 font-semibold">
-                    Save {yearly.savingsPercent}% · {formatPriceNaira(yearly.amountKobo)}/year
-                  </p>
-                  <Link
-                    href="/signup?plan=starter_yearly"
-                    className="btn-primary mt-6 w-full justify-center"
-                  >
-                    Start 7-day free trial
-                  </Link>
-                  <p className="mt-2 text-center text-xs text-slate-500">
-                    No card required
-                  </p>
-                </div>
+                </Reveal>
+
+                {/* Pro, recommended */}
+                <Reveal delay={80}>
+                  <div className="relative flex h-full flex-col rounded-2xl border-2 border-brand-500 bg-white p-6 shadow-md transition hover:shadow-lg">
+                    <div className="absolute -top-3 left-6 rounded-full bg-brand-500 px-3 py-1 text-xs font-semibold text-white">
+                      Most popular
+                    </div>
+                    <h3 className="mt-2 text-lg font-bold text-ink">Pro</h3>
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-ink">
+                        {formatPriceNaira(proQ.perMonthKobo)}
+                      </span>
+                      <span className="text-sm text-slate-600">/month</span>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">
+                      Quarterly billing. Save more on yearly.
+                    </p>
+
+                    {/* Price chips */}
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <PriceChip
+                        label="Quarterly"
+                        amount={`${formatPriceNaira(proQ.perMonthKobo)}/mo`}
+                      />
+                      <PriceChip
+                        label="Biannual"
+                        amount={`${formatPriceNaira(proB.perMonthKobo)}/mo`}
+                      />
+                      <PriceChip
+                        label="Yearly"
+                        amount={`${formatPriceNaira(proY.perMonthKobo)}/mo`}
+                        highlight
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-brand-700 font-semibold">
+                      Yearly saves {proY.savingsPercent}%
+                    </p>
+
+                    <Link
+                      href="/signup?plan=starter_quarterly"
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                    >
+                      Start 7-day free trial
+                    </Link>
+
+                    <div className="mt-6 border-t border-border pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Everything in Free, plus
+                      </p>
+                      <ul className="mt-3 space-y-2.5">
+                        <Feature>Unlimited customers, payments, debts</Feature>
+                        <Feature>Invoices, recurring, and credit notes</Feature>
+                        <Feature>FIRS-ready tax invoices</Feature>
+                        <Feature>Cash flow forecast</Feature>
+                        <Feature>Customer credit score on every profile</Feature>
+                        <Feature>Service Check feedback</Feature>
+                        <Feature>Public pay link via Paystack</Feature>
+                        <Feature>Custom branding on receipts</Feature>
+                        <Feature>Priority email support</Feature>
+                      </ul>
+                    </div>
+                  </div>
+                </Reveal>
+
+                {/* Tax+ */}
+                <Reveal delay={160}>
+                  <div className="relative flex h-full flex-col rounded-2xl border border-brand-200 bg-brand-50/50 p-6 shadow-sm transition hover:shadow-md">
+                    <div className="absolute -top-3 left-6 rounded-full bg-white px-3 py-1 text-xs font-semibold text-brand-700 ring-1 ring-brand-200">
+                      For VAT-registered businesses
+                    </div>
+                    <h3 className="mt-2 text-lg font-bold text-ink">Tax+</h3>
+                    <div className="mt-4 flex items-baseline gap-1">
+                      <span className="text-3xl font-black text-ink">
+                        {formatPriceNaira(taxQ.perMonthKobo)}
+                      </span>
+                      <span className="text-sm text-slate-600">/month</span>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-600">
+                      For businesses that file VAT and want it on autopilot.
+                    </p>
+
+                    {/* Price chips */}
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <PriceChip
+                        label="Quarterly"
+                        amount={`${formatPriceNaira(taxQ.perMonthKobo)}/mo`}
+                      />
+                      <PriceChip
+                        label="Biannual"
+                        amount={`${formatPriceNaira(taxB.perMonthKobo)}/mo`}
+                        note={`${taxB.savingsPercent}% off`}
+                      />
+                      <PriceChip
+                        label="Yearly"
+                        amount={`${formatPriceNaira(taxY.perMonthKobo)}/mo`}
+                        note={`${taxY.savingsPercent}% off`}
+                        highlight
+                      />
+                    </div>
+
+                    <Link
+                      href="/signup?plan=tax_plus_quarterly"
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                    >
+                      Start 7-day free trial
+                    </Link>
+
+                    <div className="mt-6 border-t border-brand-200 pt-5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        Everything in Pro, plus
+                      </p>
+                      <ul className="mt-3 space-y-2.5">
+                        <Feature>Auto VAT returns, monthly and quarterly</Feature>
+                        <Feature>Year-end accountant export pack</Feature>
+                        <Feature>Multi-user with audit trail</Feature>
+                        <Feature>Bank statement sync (coming with Mono)</Feature>
+                        <Feature>Virtual account per invoice (coming)</Feature>
+                        <Feature>Priority WhatsApp support, response under 4 hours</Feature>
+                      </ul>
+                    </div>
+                  </div>
+                </Reveal>
               </div>
 
-              {/* Starter features */}
-              <div className="mt-10 rounded-2xl border border-border bg-slate-50 p-8">
-                <h3 className="text-lg font-bold text-ink text-center">
-                  What you get on Starter
-                </h3>
-                <p className="mt-2 text-center text-sm text-slate-600">
-                  Same features on every billing cycle. Pick the one that fits your cash flow.
-                </p>
-
-                <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-                  {/* Get paid */}
-                  <div>
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-brand-700">
-                      Get paid
-                    </h4>
-                    <ul className="mt-4 space-y-3">
-                      <Feature>Unlimited invoices, line items and tax</Feature>
-                      <Feature>Public pay link via Paystack</Feature>
-                      <Feature>Auto receipts on every paid invoice</Feature>
-                      <Feature>Payment reminders on WhatsApp</Feature>
-                      <Feature>Bank alert verification for transfers</Feature>
-                      <Feature>Card and transfer through Paystack</Feature>
-                    </ul>
-                  </div>
-
-                  {/* Stay tax compliant */}
-                  <div>
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-brand-700">
-                      Stay tax compliant
-                    </h4>
-                    <ul className="mt-4 space-y-3">
-                      <Feature>Tax invoices with TIN and buyer details</Feature>
-                      <Feature>FIRS submission with XML download</Feature>
-                      <Feature>IRN and QR code on every receipt</Feature>
-                      <Feature>Item codes and line-level tax breakdown</Feature>
-                      <Feature>6-year document archive built in</Feature>
-                      <Feature>Document audit log for accountants</Feature>
-                    </ul>
-                  </div>
-
-                  {/* Run on autopilot */}
-                  <div>
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-brand-700">
-                      Run on autopilot
-                    </h4>
-                    <ul className="mt-4 space-y-3">
-                      <Feature>Recurring invoices for retainer clients</Feature>
-                      <Feature>Credit notes for cancelled sales</Feature>
-                      <Feature>Delivery notes for goods shipped</Feature>
-                      <Feature>Quotes and offers that convert to invoices</Feature>
-                      <Feature>Auto-debit installment plans on stored cards</Feature>
-                      <Feature>Daily business pulse email</Feature>
-                    </ul>
-                  </div>
-
-                  {/* Sell and track */}
-                  <div>
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-brand-700">
-                      Sell and track
-                    </h4>
-                    <ul className="mt-4 space-y-3">
-                      <Feature>Customers, debts, and Promise to Pay</Feature>
-                      <Feature>Smart Collection Queue with priority actions</Feature>
-                      <Feature>Expense tracking with profit and loss</Feature>
-                      <Feature>Team, attendance, and payroll</Feature>
-                      <Feature>Property and tenant management</Feature>
-                      <Feature>Custom branding on invoices and receipts</Feature>
-                    </ul>
-                  </div>
+              {/* All plans include strip */}
+              <Reveal delay={120}>
+                <div className="mt-10 rounded-2xl border border-border bg-slate-50 px-6 py-5">
+                  <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    All plans include
+                  </p>
+                  <ul className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-700">
+                    <IncludeItem>WhatsApp first</IncludeItem>
+                    <IncludeItem>Mobile first</IncludeItem>
+                    <IncludeItem>Nigerian voice</IncludeItem>
+                    <IncludeItem>No contract</IncludeItem>
+                    <IncludeItem>Cancel anytime</IncludeItem>
+                  </ul>
                 </div>
-              </div>
+              </Reveal>
 
-              {/* Tax+ pill */}
-              <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50/60 p-5 text-center">
-                <p className="text-sm text-slate-700">
-                  Need automatic VAT returns and a year-end accountant pack? See the{' '}
-                  <strong className="text-brand-700">Tax+</strong> tier from{' '}
-                  <strong>
-                    {formatPriceNaira(PLAN_PRICING.tax_plus_yearly.perMonthKobo)}
-                  </strong>
-                  /month.
-                </p>
-                <p className="mt-2 text-xs text-slate-500">
-                  Quarterly{' '}
-                  {formatPriceNaira(PLAN_PRICING.tax_plus_quarterly.amountKobo)}
-                  {' · '}Biannual{' '}
-                  {formatPriceNaira(PLAN_PRICING.tax_plus_biannually.amountKobo)}
-                  {' · '}Yearly{' '}
-                  {formatPriceNaira(PLAN_PRICING.tax_plus_yearly.amountKobo)}
-                </p>
-              </div>
-
-              {/* Free tier comparison */}
-              <div className="mt-6 rounded-2xl border border-border bg-white p-8">
-                <h3 className="text-lg font-bold text-ink text-center">
-                  Free plan
-                </h3>
-                <p className="mt-2 text-center text-sm text-slate-600">
-                  For tiny operations. No card, no expiry. Use it as long as you like.
-                </p>
-                <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <Feature>Up to 50 payments per month</Feature>
-                  <Feature>Up to 20 active debts</Feature>
-                  <Feature>Up to 50 customers</Feature>
-                  <Feature>1 property and 5 tenants</Feature>
-                  <Feature>1 team member only</Feature>
-                  <Feature>Bank alert verification</Feature>
-                  <Feature>Expense tracking and CSV export</Feature>
-                  <Feature>Basic reports</Feature>
-                  <Feature>WhatsApp reminders</Feature>
+              {/* Volume fee disclosure */}
+              <Reveal>
+                <div className="mt-6 rounded-2xl border border-border bg-white p-5">
+                  <h3 className="text-sm font-bold text-ink">A note on the volume fee</h3>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Optional 1% platform fee on Paystack invoice payments, capped at ₦5,000
+                    per transaction. Off by default. Turn it on in Settings if you want to
+                    support CashTraka.
+                  </p>
                 </div>
-                <p className="mt-6 text-center text-xs text-slate-500">
-                  Free does not include invoices, recurring billing, credit notes, offers, or FIRS features.
-                  Switch to Starter when you need them.
-                </p>
-                <div className="mt-6 text-center">
-                  <Link href="/signup?plan=free" className="btn-secondary inline-flex">
-                    Sign up free
-                  </Link>
-                </div>
-              </div>
+              </Reveal>
             </div>
           </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* FAQ */}
         <section className="border-t border-border py-12 md:py-16">
           <div className="container-app">
             <div className="mx-auto max-w-3xl">
-              <h2 className="text-2xl font-bold text-ink">Pricing questions, answered</h2>
-              <div className="mt-8 space-y-6">
+              <Reveal>
+                <h2 className="text-2xl font-bold text-ink">Pricing questions, answered</h2>
+              </Reveal>
+              <div className="mt-8 space-y-4">
                 <FAQItem
-                  question="How does the 7-day free trial work?"
-                  answer="Pick any paid cycle and you get 7 days of full Starter access with no card. On day 8, you decide whether to keep going. If you do, that is when Paystack charges your card. If you do not, your account drops to the free plan and your data stays put."
+                  question="Can I try CashTraka for free?"
+                  answer="Yes. The Free plan is forever free, no card needed. If you want to try Pro or Tax+, you get 7 days of full access first. Your card is only charged on day 8 if you decide to keep going."
                 />
                 <FAQItem
-                  question="Can I switch between quarterly, biannual, and yearly?"
-                  answer="Yes. Change your billing cycle from settings any time. The new cycle starts when your current one ends, no double billing."
+                  question="What is the difference between Pro and Tax+?"
+                  answer="Pro gives you the full invoice engine, FIRS-ready tax invoices, recurring billing, credit notes, and customer credit scores. Tax+ adds the things VAT-registered businesses need: automatic VAT returns, a year-end accountant pack, multi-user with audit trail, bank sync, and a virtual account on every invoice."
+                />
+                <FAQItem
+                  question="Do I need to be VAT-registered to use Tax+?"
+                  answer="No, but Tax+ is built for businesses that already file VAT or are about to start. If you do not file VAT yet, Pro is the right plan. You can switch up to Tax+ later when you cross the FIRS threshold."
+                />
+                <FAQItem
+                  question="Can I switch tiers anytime?"
+                  answer="Yes. Move between Free, Pro, and Tax+ from your settings. When you upgrade, the change kicks in right away. When you downgrade, the new plan starts at the end of your current cycle so you do not lose what you already paid for."
                 />
                 <FAQItem
                   question="What payment methods do you accept?"
-                  answer="Paystack handles all payments, so you can pay with any Nigerian debit card, by bank transfer, or by USSD."
+                  answer="Paystack handles all payments. You can pay with any Nigerian debit card, by bank transfer, or by USSD."
                 />
                 <FAQItem
-                  question="What happens if I cancel?"
-                  answer="Your Starter access runs to the end of the cycle you already paid for. After that, your account drops to the free plan. Nothing gets deleted."
+                  question="What happens to my data if I downgrade?"
+                  answer="Nothing gets deleted. Your invoices, customers, payments, and receipts all stay readable. You only lose the ability to create new items that need a paid feature, like recurring invoices or VAT returns. Upgrade again and everything works."
                 />
                 <FAQItem
-                  question="Do you give refunds?"
+                  question="Do you offer refunds?"
                   answer="If something goes wrong in the first 7 days of a paid plan, email Support@cashtraka.co and we will refund you in full. After that, refunds are case by case."
                 />
                 <FAQItem
-                  question="What happens to my data if I downgrade to free?"
-                  answer="Your invoices, customers, payments, and receipts all stay readable. You just cannot create new invoices, recurring schedules, or credit notes until you go back to Starter. Nothing is deleted."
-                />
-                <FAQItem
-                  question="Is FIRS compliance really included?"
-                  answer="Yes, on Starter. You get tax invoices with TIN and buyer details, IRN and QR on every receipt, an XML download for FIRS submission, and a 6-year document archive when they come asking."
+                  question="How does the volume fee work?"
+                  answer="If you turn it on in Settings, CashTraka takes 1% of every invoice payment that comes through Paystack, capped at ₦5,000 per transaction. It is off by default. Most sellers leave it off. We added it for the ones who asked how to support us beyond the subscription."
                 />
               </div>
             </div>
@@ -277,24 +280,33 @@ export default function PricingPage() {
         </section>
 
         {/* Final CTA */}
-        <section className="border-t border-border py-12 md:py-16">
+        <section className="relative overflow-hidden border-t border-border py-12 md:py-16">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-72 bg-gradient-to-t from-brand-50/60 to-transparent" />
           <div className="container-app">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-2xl font-bold text-ink">
-                Free to start. ₦3,000 a month when you are ready.
-              </h2>
-              <p className="mt-3 text-slate-600">
-                Send your first invoice today. Take your first Paystack payment this week.
-              </p>
-              <div className="mt-6 flex flex-wrap justify-center gap-3">
-                <Link href="/signup" className="btn-primary">
-                  Start free
-                </Link>
-                <Link href="/" className="btn-secondary">
-                  Back to home
-                </Link>
+            <Reveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <h2 className="text-2xl font-bold text-ink md:text-3xl">
+                  Start with what fits, upgrade when you grow.
+                </h2>
+                <p className="mt-3 text-slate-600">
+                  Sign up in two minutes. Send your first invoice today.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Link
+                    href="/signup?plan=free"
+                    className="inline-flex items-center justify-center rounded-lg border border-brand-500 bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+                  >
+                    Sign up free
+                  </Link>
+                  <Link
+                    href="/signup?plan=starter_quarterly"
+                    className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-600"
+                  >
+                    Start Pro trial
+                  </Link>
+                </div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>
@@ -305,13 +317,53 @@ export default function PricingPage() {
 
 function Feature({ children }: { children: React.ReactNode }) {
   return (
-    <li className="flex items-start gap-3">
+    <li className="flex items-start gap-2.5">
       <Check
-        size={18}
+        size={16}
         className="mt-0.5 shrink-0 text-brand-600"
         strokeWidth={3}
       />
       <span className="text-sm text-slate-700">{children}</span>
+    </li>
+  );
+}
+
+function PriceChip({
+  label,
+  amount,
+  note,
+  highlight = false,
+}: {
+  label: string;
+  amount: string;
+  note?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <span
+      className={
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium ring-1 ' +
+        (highlight
+          ? 'bg-brand-500 text-white ring-brand-500'
+          : 'bg-white text-slate-700 ring-border')
+      }
+    >
+      <span className={highlight ? 'text-white/80' : 'text-slate-500'}>{label}</span>
+      <span className="font-semibold">{amount}</span>
+      {note ? (
+        <span className={highlight ? 'text-white/80' : 'text-brand-700'}>
+          ({note})
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+function IncludeItem({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-center gap-2">
+      <Check size={14} className="text-brand-600" strokeWidth={3} />
+      <span>{children}</span>
     </li>
   );
 }

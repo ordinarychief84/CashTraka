@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { renderToBuffer } from '@react-pdf/renderer';
 import QRCode from 'qrcode';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getAuthContext } from '@/lib/auth';
 import { InvoiceDoc, type InvoiceData } from '@/lib/pdf-docs';
 import { displayPhone } from '@/lib/whatsapp';
+import { accessAuditService } from '@/lib/services/access-audit.service';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +23,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
   const publicToken = url.searchParams.get('token');
 
   let invoice;
+  let auth: Awaited<ReturnType<typeof getAuthContext>> = null;
   if (publicToken && publicToken.length >= 16) {
     invoice = await prisma.invoice.findFirst({
       where: { id: params.id, publicToken },
@@ -42,10 +44,10 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
       },
     });
   } else {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    auth = await getAuthContext();
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     invoice = await prisma.invoice.findFirst({
-      where: { id: params.id, userId: user.id },
+      where: { id: params.id, userId: auth.owner.id },
       include: {
         user: {
           select: {
@@ -64,6 +66,20 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     });
   }
   if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+  // Tax+ access audit: log non-owner reads of an invoice PDF.
+  if (auth && !auth.isOwner) {
+    try {
+      await accessAuditService.recordRead({
+        actorId: auth.principalId,
+        userId: auth.owner.id,
+        entityType: 'INVOICE',
+        entityId: invoice.id,
+        action: 'READ_INVOICE',
+        metadata: { role: auth.accessRole, invoiceNumber: invoice.invoiceNumber },
+      });
+    } catch {}
+  }
 
   // Render the FIRS QR code (if we have an IRN payload from a successful
   // submission). Fall back to undefined if QR generation fails — the rest of

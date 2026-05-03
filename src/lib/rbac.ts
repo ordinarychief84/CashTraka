@@ -1,19 +1,29 @@
 /**
  * Role-based access control.
  *
- * Four principal roles:
- *   - OWNER   — the account owner. Can do anything, including billing + settings.
- *   - MANAGER — full operational access. Cannot manage billing, settings, or team.
- *   - CASHIER — records payments, issues receipts, manages customers/debts.
- *               Read-only for the rest.
- *   - VIEWER  — read-only everywhere. Useful for accountants / partners.
- *   - NONE    — no login at all (staff is just a payroll record).
+ * Principal roles:
+ *   - OWNER      , the account owner. Can do anything, including billing + settings.
+ *   - MANAGER    , full operational access. Cannot manage billing, settings, or team.
+ *   - CASHIER    , records payments, issues receipts, manages customers/debts.
+ *                  Read-only for the rest.
+ *   - ACCOUNTANT , read-only on the financial surface (payments, debts, customers,
+ *                  products, expenses, reports, settings). Tax+ tier only. Every
+ *                  read by an ACCOUNTANT is recorded by access-audit.service so
+ *                  the seller has a verifiable trail.
+ *   - VIEWER     , read-only on the operational surface. No tax / settings access.
+ *   - NONE       , no login at all (staff is just a payroll record).
  *
- * Permissions are resolved by (role, action) lookup — no inheritance logic, so
+ * Permissions are resolved by (role, action) lookup, no inheritance logic, so
  * it's easy to read off the truth table.
  */
 
-export type AccessRole = 'OWNER' | 'MANAGER' | 'CASHIER' | 'VIEWER' | 'NONE';
+export type AccessRole =
+  | 'OWNER'
+  | 'MANAGER'
+  | 'CASHIER'
+  | 'ACCOUNTANT'
+  | 'VIEWER'
+  | 'NONE';
 
 export type Permission =
   | 'payments.read'
@@ -116,6 +126,20 @@ const MATRIX: Matrix = {
     'customers.write',
     'tasks.write', // cashier can tick off their own tasks
   ],
+  // Accountant: Tax+ tier read-only role. Sees the financial surface
+  // (payments, debts, customers, products, expenses, reports) plus
+  // settings.read so they can verify tax / VAT configuration. No writes,
+  // no team management, no billing, no invoice/task/checklist access.
+  // Every read is logged via access-audit.service.
+  ACCOUNTANT: [
+    'payments.read',
+    'debts.read',
+    'customers.read',
+    'products.read',
+    'expenses.read',
+    'reports.read',
+    'settings.read',
+  ],
   // Viewer: read-only everywhere operational. No writes.
   VIEWER: [...OPERATIONAL_READS],
   NONE: [],
@@ -134,17 +158,25 @@ export const ROLE_LABELS: Record<AccessRole, string> = {
   OWNER: 'Owner',
   MANAGER: 'Manager',
   CASHIER: 'Cashier',
+  ACCOUNTANT: 'Accountant',
   VIEWER: 'Viewer',
   NONE: 'No app access',
 };
 
 export const ROLE_DESCRIPTIONS: Record<AccessRole, string> = {
-  OWNER: 'Full access — only you.',
+  OWNER: 'Full access, only you.',
   MANAGER: 'Runs operations. No access to settings, billing, or team management.',
   CASHIER: 'Records payments, issues receipts, handles customers and debts.',
+  ACCOUNTANT:
+    'Read-only on payments, expenses, reports and tax settings. Every read is logged for audit. Tax+ tier.',
   VIEWER: 'Read-only across the business. No edits.',
   NONE: 'Tracked for payroll only. No app login.',
 };
 
 /** Roles the owner can assign via invite (OWNER is implicit, NONE is the default). */
-export const ASSIGNABLE_ROLES: AccessRole[] = ['MANAGER', 'CASHIER', 'VIEWER'];
+export const ASSIGNABLE_ROLES: AccessRole[] = [
+  'MANAGER',
+  'CASHIER',
+  'ACCOUNTANT',
+  'VIEWER',
+];

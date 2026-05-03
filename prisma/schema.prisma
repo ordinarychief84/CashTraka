@@ -695,6 +695,11 @@ model CreditNote {
   pdfUrl           String?
   /// Non-guessable token if we ever expose a public credit-note page.
   publicToken      String?  @unique
+  /// Tax+ two-person rule: id of the staff member who confirmed a credit
+  /// note above the high-value threshold. Null when the actor was the
+  /// owner or the note was below the threshold. Stored as a free-form
+  /// string id (no relation) so the migration stays trivial.
+  approvedById     String?
   createdAt        DateTime @default(now())
 
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)

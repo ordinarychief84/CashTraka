@@ -1,7 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, Loader2, AlertTriangle, Info } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import {
+  Check,
+  Loader2,
+  AlertTriangle,
+  Info,
+  FileSpreadsheet,
+  Archive,
+  ArrowRight,
+} from 'lucide-react';
 
 type Props = {
   initial: {
@@ -69,6 +78,8 @@ export function TaxTab({ initial }: Props) {
 
   return (
     <div className="space-y-6">
+      <TaxPlusSections />
+
       {!hasAddress ? (
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
           <AlertTriangle size={16} className="mt-0.5 shrink-0" />
@@ -202,6 +213,146 @@ export function TaxTab({ initial }: Props) {
           submitted to FIRS, returning an IRN + QR code that prints on the invoice PDF.
         </p>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Tax+ tier shortcuts. Each section renders only when the seller's plan
+ * actually includes the matching feature, loaded via /api/me/limits.
+ */
+type LimitsResponse = {
+  vatReturns?: boolean;
+  yearEndPack?: boolean;
+};
+
+type LatestReturn = {
+  id: string;
+  status: string;
+  periodStart: string;
+  periodEnd: string;
+};
+
+function TaxPlusSections() {
+  const [limits, setLimits] = useState<LimitsResponse | null>(null);
+  const [latest, setLatest] = useState<LatestReturn | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch('/api/me/limits');
+        const json = (await res.json().catch(() => ({}))) as {
+          data?: { limits?: LimitsResponse };
+        };
+        if (cancelled) return;
+        setLimits(json.data?.limits ?? null);
+
+        if (json.data?.limits?.vatReturns) {
+          const r = await fetch('/api/vat-returns');
+          const j = (await r.json().catch(() => ({}))) as {
+            data?: LatestReturn[];
+          };
+          if (!cancelled) {
+            setLatest(j.data && j.data.length > 0 ? j.data[0] : null);
+          }
+        }
+      } catch {
+        // soft-fail, render nothing
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!limits) return null;
+
+  const showVat = !!limits.vatReturns;
+  const showPack = !!limits.yearEndPack;
+  if (!showVat && !showPack) return null;
+
+  const today = new Date();
+  // Default to last completed FY for the year-end download.
+  const defaultYear = today.getFullYear() - 1;
+
+  return (
+    <div className="space-y-4">
+      {showVat ? (
+        <div className="rounded-xl border border-brand-200 bg-brand-50/50 p-5 shadow-sm">
+          <div className="mb-1 flex items-center gap-2 text-base font-semibold text-ink">
+            <FileSpreadsheet size={16} className="text-brand-600" />
+            VAT returns
+          </div>
+          <p className="mb-3 text-sm text-slate-600">
+            Auto-build your monthly or quarterly VAT return from CashTraka data.
+            Download the PDF and CSV, then file with FIRS.
+          </p>
+          {latest ? (
+            <p className="mb-3 text-xs text-slate-500">
+              Most recent return:{' '}
+              <span className="font-semibold text-slate-700">
+                {new Date(latest.periodStart).toLocaleDateString('en-NG')} →{' '}
+                {new Date(latest.periodEnd).toLocaleDateString('en-NG')}
+              </span>{' '}
+              · {latest.status === 'FILED' ? 'Filed' : 'Draft'}
+            </p>
+          ) : null}
+          <Link
+            href="/vat-returns"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+          >
+            Generate this period&apos;s VAT return
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+      ) : null}
+
+      {showPack ? <YearEndPackCard defaultYear={defaultYear} /> : null}
+    </div>
+  );
+}
+
+function YearEndPackCard({ defaultYear }: { defaultYear: number }) {
+  const [year, setYear] = useState<number>(defaultYear);
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-1 flex items-center gap-2 text-base font-semibold text-ink">
+        <Archive size={16} className="text-brand-600" />
+        Year-end accountant pack
+      </div>
+      <p className="mb-3 text-sm text-slate-600">
+        Download every receipt, invoice, credit note, payment, expense and VAT
+        return for a single financial year as one zip file. Hand it straight to
+        your accountant.
+      </p>
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Financial year
+          </label>
+          <input
+            type="number"
+            min={2020}
+            max={defaultYear + 1}
+            value={year}
+            onChange={(e) => setYear(parseInt(e.target.value, 10) || defaultYear)}
+            className="w-32 rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none"
+          />
+        </div>
+        <a
+          href={`/api/accountant-pack/${year}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+        >
+          Download accountant pack
+        </a>
+      </div>
+      <p className="mt-2 text-xs text-slate-500">
+        We default to the last completed FY. Pick any past year you have data for.
+      </p>
     </div>
   );
 }

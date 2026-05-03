@@ -24,7 +24,10 @@ export type PlanName =
   | 'starter_quarterly'
   | 'starter_biannually'
   | 'starter_yearly'
-  // Legacy keys — kept for existing DB rows
+  | 'tax_plus_quarterly'
+  | 'tax_plus_biannually'
+  | 'tax_plus_yearly'
+  // Legacy keys, kept for existing DB rows
   | 'business'
   | 'business_plus'
   | 'landlord'
@@ -88,8 +91,14 @@ export type Limits = {
   paystackPay: boolean;
   /** Manual + automated invoice reminders (FRIENDLY/OVERDUE/FINAL). */
   paymentReminders: boolean;
-  /** Service Check — collect customer feedback after receipts/payments/invoices. */
+  /** Service Check, collect customer feedback after receipts/payments/invoices. */
   serviceCheck: boolean;
+  /** Tax+ tier, auto-generated FIRS-format VAT returns from invoices and expenses. */
+  vatReturns: boolean;
+  /** Tax+ tier, year-end accountant pack zip download. */
+  yearEndPack: boolean;
+  /** Mono bank sync (Phase 2 of Tax+, flag exists now, feature comes later). */
+  bankSync: boolean;
 };
 
 const FREE: Limits = {
@@ -127,6 +136,9 @@ const FREE: Limits = {
   paystackPay: false,
   paymentReminders: false,
   serviceCheck: false,
+  vatReturns: false,
+  yearEndPack: false,
+  bankSync: false,
 };
 
 const BUSINESS: Limits = {
@@ -164,6 +176,9 @@ const BUSINESS: Limits = {
   paystackPay: true,
   paymentReminders: true,
   serviceCheck: true,
+  vatReturns: false,
+  yearEndPack: false,
+  bankSync: false,
 };
 
 const BUSINESS_PLUS: Limits = {
@@ -192,11 +207,24 @@ const ESTATE_MANAGER: Limits = {
   prioritySupport: true,
 };
 
-/** Starter plan — full access to everything */
+/** Starter plan, full access to the core product. */
 const STARTER: Limits = {
   ...BUSINESS_PLUS,
   properties: null,
   tenants: null,
+};
+
+/**
+ * Tax+ plan, Starter plus the new tax-compliance features:
+ *   - Auto VAT returns (Phase 1 of Tax+)
+ *   - Year-end accountant pack (Phase 1 of Tax+)
+ *   - Mono bank sync (Phase 2, flag exists now, feature ships later)
+ */
+const TAX_PLUS: Limits = {
+  ...STARTER,
+  vatReturns: true,
+  yearEndPack: true,
+  bankSync: true,
 };
 
 const PLAN_LIMITS: Record<PlanName, Limits> = {
@@ -204,7 +232,10 @@ const PLAN_LIMITS: Record<PlanName, Limits> = {
   starter_quarterly: STARTER,
   starter_biannually: STARTER,
   starter_yearly: STARTER,
-  // Legacy plans — kept for existing DB rows
+  tax_plus_quarterly: TAX_PLUS,
+  tax_plus_biannually: TAX_PLUS,
+  tax_plus_yearly: TAX_PLUS,
+  // Legacy plans, kept for existing DB rows
   business: BUSINESS,
   business_plus: BUSINESS_PLUS,
   landlord: LANDLORD,
@@ -220,6 +251,9 @@ export const PLAN_LABELS: Record<PlanName, string> = {
   starter_quarterly: 'Starter (Quarterly)',
   starter_biannually: 'Starter (Biannual)',
   starter_yearly: 'Starter (Yearly)',
+  tax_plus_quarterly: 'Tax+ (Quarterly)',
+  tax_plus_biannually: 'Tax+ (Biannual)',
+  tax_plus_yearly: 'Tax+ (Yearly)',
   // Legacy
   business: 'Business',
   business_plus: 'Business Plus',
@@ -230,10 +264,15 @@ export const PLAN_LABELS: Record<PlanName, string> = {
 export function suggestUpgrade(plan: string, _businessType: string): PlanName {
   // All free users are suggested the quarterly starter plan.
   // Already-paid users on a shorter cycle get suggested yearly for savings.
+  // Sellers maxed on Starter Yearly are routed to Tax+ for the new
+  // tax-compliance features.
   if (plan === 'free') return 'starter_quarterly';
   if (plan === 'starter_quarterly') return 'starter_yearly';
   if (plan === 'starter_biannually') return 'starter_yearly';
-  // Legacy plans → suggest starter quarterly (they'll migrate on next payment)
+  if (plan === 'starter_yearly') return 'tax_plus_quarterly';
+  if (plan === 'tax_plus_quarterly') return 'tax_plus_yearly';
+  if (plan === 'tax_plus_biannually') return 'tax_plus_yearly';
+  // Legacy plans, suggest starter quarterly (they'll migrate on next payment)
   return 'starter_quarterly';
 }
 

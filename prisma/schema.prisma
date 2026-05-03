@@ -216,6 +216,7 @@ model User {
   documentArchives     DocumentArchive[]
   documentAuditLogs    DocumentAuditLog[]
   feedbacks            Feedback[]
+  vatReturns           VatReturn[]
   override             UserOverride?
 
   @@index([role])
@@ -484,6 +485,9 @@ model Expense {
   receiptRef     String?
   /// Whether this expense is tax-deductible (business only)
   taxDeductible  Boolean  @default(false)
+  /// Input VAT in kobo, the seller-paid VAT they can claim back on this expense.
+  /// Used by the VAT-return generator (Tax+ tier) to compute net VAT due.
+  vatPaid        Int      @default(0)
   incurredOn     DateTime @default(now())
   createdAt      DateTime @default(now())
 
@@ -1880,4 +1884,45 @@ model Feedback {
   @@index([rating])
   @@index([userId, isNegative])
   @@index([userId, isResolved])
+}
+
+/// VAT return aggregate, produced by the Tax+ tier's auto VAT return
+/// generator. Each row covers one period (monthly or quarterly) and stores
+/// the pre-computed totals so the seller can hand the PDF + CSV to their
+/// accountant or the FIRS portal directly.
+model VatReturn {
+  id              String   @id @default(cuid())
+  userId          String
+  /// "MONTHLY" or "QUARTERLY"
+  period          String   @default("QUARTERLY")
+  /// First day of the period (UTC), e.g. 2025-04-01 for Q2 2025.
+  periodStart     DateTime
+  /// Last day of the period (UTC), inclusive, e.g. 2025-06-30.
+  periodEnd       DateTime
+  /// Sum of vatApplied invoice tax in kobo, output VAT.
+  outputVatKobo   Int      @default(0)
+  /// Sum of expense vatPaid in kobo, input VAT.
+  inputVatKobo    Int      @default(0)
+  /// outputVat - inputVat. Can be negative (refund position).
+  netVatKobo      Int      @default(0)
+  /// Counts that produced the totals, useful for the accountant.
+  invoiceCount    Int      @default(0)
+  expenseCount    Int      @default(0)
+  /// Locked when the seller has filed it. Locked rows are read-only.
+  status          String   @default("DRAFT")
+  /// "DRAFT" | "FILED" | "PAID"
+  filedAt         DateTime?
+  filedBy         String?
+  /// FIRS reference if the seller pasted one after filing manually.
+  firsReference   String?
+  pdfUrl          String?
+  csvUrl          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, periodStart, periodEnd])
+  @@index([userId, status])
+  @@index([userId, periodStart])
 }

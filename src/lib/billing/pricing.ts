@@ -18,7 +18,10 @@ export type BillingFrequency = 'quarterly' | 'biannually' | 'yearly';
 export type PaidPlanKey =
   | 'starter_quarterly'
   | 'starter_biannually'
-  | 'starter_yearly';
+  | 'starter_yearly'
+  | 'tax_plus_quarterly'
+  | 'tax_plus_biannually'
+  | 'tax_plus_yearly';
 
 export type PlanPricing = {
   key: PaidPlanKey;
@@ -64,6 +67,36 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     perMonthKobo: 3_000 * 100, // ₦3,000/mo
     savingsPercent: 25,
   },
+  tax_plus_quarterly: {
+    key: 'tax_plus_quarterly',
+    label: 'Tax+',
+    frequency: 'quarterly',
+    amountKobo: 75_000 * 100, // ₦75,000 every 3 months
+    cycleDays: 90,
+    trialDays: 7,
+    perMonthKobo: 25_000 * 100, // ₦25,000/mo
+    savingsPercent: 0,
+  },
+  tax_plus_biannually: {
+    key: 'tax_plus_biannually',
+    label: 'Tax+',
+    frequency: 'biannually',
+    amountKobo: 135_000 * 100, // ₦135,000 every 6 months
+    cycleDays: 180,
+    trialDays: 7,
+    perMonthKobo: 22_500 * 100, // ₦22,500/mo
+    savingsPercent: 10,
+  },
+  tax_plus_yearly: {
+    key: 'tax_plus_yearly',
+    label: 'Tax+',
+    frequency: 'yearly',
+    amountKobo: 240_000 * 100, // ₦240,000/year
+    cycleDays: 365,
+    trialDays: 7,
+    perMonthKobo: 20_000 * 100, // ₦20,000/mo
+    savingsPercent: 20,
+  },
 };
 
 /** All available frequencies in order */
@@ -87,7 +120,10 @@ export function isPaidPlan(key: string | null | undefined): key is PaidPlanKey {
     key === 'starter_quarterly' ||
     key === 'starter_biannually' ||
     key === 'starter_yearly' ||
-    // Legacy keys — treat as equivalent to starter_quarterly for existing users
+    key === 'tax_plus_quarterly' ||
+    key === 'tax_plus_biannually' ||
+    key === 'tax_plus_yearly' ||
+    // Legacy keys, treat as equivalent to starter_quarterly for existing users
     key === 'business' ||
     key === 'business_plus' ||
     key === 'landlord' ||

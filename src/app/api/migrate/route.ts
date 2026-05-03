@@ -78,6 +78,8 @@ export async function GET(req: NextRequest) {
 
   // ===== Expense table =====
   await addCol('Expense', 'isPersonal', 'BOOLEAN NOT NULL', 'false');
+  // Tax+ tier: input VAT (kobo) the seller paid on this expense.
+  await addCol('Expense', 'vatPaid', 'INTEGER NOT NULL', '0');
 
   // ===== Invoice table =====
   await addCol('Invoice', 'paidAt', 'TIMESTAMP(3)', 'NULL');
@@ -722,6 +724,73 @@ export async function GET(req: NextRequest) {
     results.push('OK: CatalogEvent foreign keys');
   } catch (e: any) {
     results.push('FK FAIL: CatalogEvent - ' + e.message?.substring(0, 100));
+  }
+
+  // ===== Tax+ tier: VatReturn table (2026-05-02) =====
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "VatReturn" (
+        "id"             TEXT         NOT NULL,
+        "userId"         TEXT         NOT NULL,
+        "period"         TEXT         NOT NULL DEFAULT 'QUARTERLY',
+        "periodStart"    TIMESTAMP(3) NOT NULL,
+        "periodEnd"      TIMESTAMP(3) NOT NULL,
+        "outputVatKobo"  INTEGER      NOT NULL DEFAULT 0,
+        "inputVatKobo"   INTEGER      NOT NULL DEFAULT 0,
+        "netVatKobo"     INTEGER      NOT NULL DEFAULT 0,
+        "invoiceCount"   INTEGER      NOT NULL DEFAULT 0,
+        "expenseCount"   INTEGER      NOT NULL DEFAULT 0,
+        "status"         TEXT         NOT NULL DEFAULT 'DRAFT',
+        "filedAt"        TIMESTAMP(3),
+        "filedBy"        TEXT,
+        "firsReference"  TEXT,
+        "pdfUrl"         TEXT,
+        "csvUrl"         TEXT,
+        "createdAt"      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "VatReturn_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    results.push('OK: VatReturn table');
+  } catch (e: any) {
+    results.push('FAIL: VatReturn table - ' + e.message?.substring(0, 100));
+  }
+
+  const vatReturnIndexes: Array<[string, string]> = [
+    [
+      'VatReturn_userId_periodStart_periodEnd_key',
+      `CREATE UNIQUE INDEX IF NOT EXISTS "VatReturn_userId_periodStart_periodEnd_key" ON "VatReturn"("userId", "periodStart", "periodEnd")`,
+    ],
+    [
+      'VatReturn_userId_status_idx',
+      `CREATE INDEX IF NOT EXISTS "VatReturn_userId_status_idx" ON "VatReturn"("userId", "status")`,
+    ],
+    [
+      'VatReturn_userId_periodStart_idx',
+      `CREATE INDEX IF NOT EXISTS "VatReturn_userId_periodStart_idx" ON "VatReturn"("userId", "periodStart")`,
+    ],
+  ];
+  for (const [name, sql] of vatReturnIndexes) {
+    try {
+      await prisma.$executeRawUnsafe(sql);
+      results.push('OK: ' + name);
+    } catch (e: any) {
+      results.push('INDEX FAIL: ' + name + ' - ' + e.message?.substring(0, 80));
+    }
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'VatReturn_userId_fkey') THEN
+          ALTER TABLE "VatReturn" ADD CONSTRAINT "VatReturn_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('OK: VatReturn foreign key');
+  } catch (e: any) {
+    results.push('FK FAIL: VatReturn - ' + e.message?.substring(0, 100));
   }
 
   // Final test: try creating and deleting a user

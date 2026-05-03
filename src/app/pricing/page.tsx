@@ -184,6 +184,26 @@ export default function PricingPage() {
                 </div>
               </div>
 
+              {/* Tax+ pill */}
+              <div className="mt-6 rounded-2xl border border-brand-200 bg-brand-50/60 p-5 text-center">
+                <p className="text-sm text-slate-700">
+                  Need automatic VAT returns and a year-end accountant pack? See the{' '}
+                  <strong className="text-brand-700">Tax+</strong> tier from{' '}
+                  <strong>
+                    {formatPriceNaira(PLAN_PRICING.tax_plus_yearly.perMonthKobo)}
+                  </strong>
+                  /month.
+                </p>
+                <p className="mt-2 text-xs text-slate-500">
+                  Quarterly{' '}
+                  {formatPriceNaira(PLAN_PRICING.tax_plus_quarterly.amountKobo)}
+                  {' · '}Biannual{' '}
+                  {formatPriceNaira(PLAN_PRICING.tax_plus_biannually.amountKobo)}
+                  {' · '}Yearly{' '}
+                  {formatPriceNaira(PLAN_PRICING.tax_plus_yearly.amountKobo)}
+                </p>
+              </div>
+
               {/* Free tier comparison */}
               <div className="mt-6 rounded-2xl border border-border bg-white p-8">
                 <h3 className="text-lg font-bold text-ink text-center">

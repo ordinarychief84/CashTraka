@@ -545,3 +545,227 @@ export function InvoiceDoc({ data }: { data: InvoiceData }) {
     </Document>
   );
 }
+
+/* ────────────────── VAT RETURN ────────────────── */
+
+export type VatReturnPdfData = {
+  business: string;
+  businessAddress?: string | null;
+  tin?: string | null;
+  periodLabel: string;
+  periodStartLabel: string;
+  periodEndLabel: string;
+  outputVatKobo: number;
+  inputVatKobo: number;
+  netVatKobo: number;
+  invoiceCount: number;
+  expenseCount: number;
+  status: string;
+  firsReference?: string | null;
+  generatedOnLabel: string;
+  invoices: {
+    invoiceNumber: string;
+    issuedAt: Date;
+    customerName: string;
+    total: number;
+    tax: number;
+  }[];
+  expenses: {
+    incurredOn: Date;
+    description: string;
+    amount: number;
+    vatPaid: number;
+  }[];
+};
+
+function koboToNaira(kobo: number): number {
+  return Math.round(kobo / 100);
+}
+
+export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
+  const isFiled = data.status === 'FILED';
+  const isRefund = data.netVatKobo < 0;
+  const netNaira = koboToNaira(Math.abs(data.netVatKobo));
+  const outputNaira = koboToNaira(data.outputVatKobo);
+  const inputNaira = koboToNaira(data.inputVatKobo);
+
+  // Show at most 100 of each table to keep the PDF readable.
+  const invoiceRows = data.invoices.slice(0, 100);
+  const expenseRows = data.expenses.slice(0, 100);
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.eyebrow, { color: palette.brand }]}>VAT Return</Text>
+            <Text style={[styles.docNumber, { marginTop: 2 }]}>{data.periodLabel}</Text>
+            <Text style={[styles.business, { marginTop: 4 }]}>{data.business}</Text>
+            {data.businessAddress ? (
+              <Text style={styles.businessSub}>{data.businessAddress}</Text>
+            ) : null}
+            {data.tin ? (
+              <Text
+                style={[
+                  styles.businessSub,
+                  { fontFamily: 'Helvetica-Bold', color: palette.ink },
+                ]}
+              >
+                TIN: {data.tin}
+              </Text>
+            ) : null}
+          </View>
+          <View
+            style={[
+              styles.badge,
+              {
+                backgroundColor: isFiled ? palette.success50 : palette.slate100,
+                color: isFiled ? palette.success700 : palette.slate600,
+              },
+            ]}
+          >
+            <Text>{isFiled ? 'Filed' : 'Draft'}</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionBox}>
+          <Text style={styles.sectionTitle}>Period</Text>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Start</Text>
+            <Text style={styles.kvValue}>{data.periodStartLabel}</Text>
+          </View>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>End</Text>
+            <Text style={styles.kvValue}>{data.periodEndLabel}</Text>
+          </View>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Invoices counted</Text>
+            <Text style={styles.kvValue}>{data.invoiceCount}</Text>
+          </View>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Expenses counted</Text>
+            <Text style={styles.kvValue}>{data.expenseCount}</Text>
+          </View>
+          {data.firsReference ? (
+            <View style={styles.kvRow}>
+              <Text style={styles.kvLabel}>FIRS reference</Text>
+              <Text style={[styles.kvValue, { fontFamily: 'Helvetica' }]}>
+                {data.firsReference}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View
+          style={[
+            styles.sectionBox,
+            {
+              backgroundColor: isRefund ? palette.success50 : palette.brandLight,
+              borderColor: isRefund ? palette.success50 : palette.brandLight,
+            },
+          ]}
+        >
+          <Text style={styles.sectionTitle}>Summary</Text>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Output VAT (charged on sales)</Text>
+            <Text style={styles.kvValue}>{formatNaira(outputNaira)}</Text>
+          </View>
+          <View style={styles.kvRow}>
+            <Text style={styles.kvLabel}>Input VAT (claimable on expenses)</Text>
+            <Text style={styles.kvValue}>{formatNaira(inputNaira)}</Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>
+              {isRefund ? 'Net VAT refundable' : 'Net VAT due'}
+            </Text>
+            <Text
+              style={[
+                styles.totalAmount,
+                { color: isRefund ? palette.success700 : palette.ink },
+              ]}
+            >
+              {formatNaira(netNaira)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionBox}>
+          <Text style={styles.sectionTitle}>Invoices contributing output VAT</Text>
+          <View style={styles.tableHead}>
+            <Text style={[styles.tableCol, { flex: 2 }]}>Invoice #</Text>
+            <Text style={[styles.tableCol, { flex: 2 }]}>Date</Text>
+            <Text style={[styles.tableCol, { flex: 3 }]}>Customer</Text>
+            <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>
+              Gross
+            </Text>
+            <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>
+              VAT
+            </Text>
+          </View>
+          {invoiceRows.length === 0 ? (
+            <Text style={{ fontSize: 10, color: palette.slate500, paddingTop: 6 }}>
+              No invoices counted toward output VAT this period.
+            </Text>
+          ) : (
+            invoiceRows.map((it, i) => (
+              <View key={i} style={styles.tableRow}>
+                <Text style={[styles.itemLabel, { flex: 2 }]}>{it.invoiceNumber}</Text>
+                <Text style={[styles.itemQty, { flex: 2, textAlign: 'left' }]}>
+                  {formatDate(it.issuedAt)}
+                </Text>
+                <Text style={[styles.itemLabel, { flex: 3 }]}>{it.customerName}</Text>
+                <Text style={[styles.itemPrice, { flex: 2 }]}>
+                  {formatNaira(koboToNaira(it.total))}
+                </Text>
+                <Text style={[styles.itemTotal, { flex: 2 }]}>
+                  {formatNaira(koboToNaira(it.tax))}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.sectionBox}>
+          <Text style={styles.sectionTitle}>Expenses contributing input VAT</Text>
+          <View style={styles.tableHead}>
+            <Text style={[styles.tableCol, { flex: 2 }]}>Date</Text>
+            <Text style={[styles.tableCol, { flex: 5 }]}>Description</Text>
+            <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>
+              Gross
+            </Text>
+            <Text style={[styles.tableCol, { flex: 2, textAlign: 'right' }]}>
+              VAT paid
+            </Text>
+          </View>
+          {expenseRows.length === 0 ? (
+            <Text style={{ fontSize: 10, color: palette.slate500, paddingTop: 6 }}>
+              No expenses counted toward input VAT this period.
+            </Text>
+          ) : (
+            expenseRows.map((ex, i) => (
+              <View key={i} style={styles.tableRow}>
+                <Text style={[styles.itemLabel, { flex: 2 }]}>
+                  {formatDate(ex.incurredOn)}
+                </Text>
+                <Text style={[styles.itemLabel, { flex: 5 }]}>{ex.description}</Text>
+                <Text style={[styles.itemPrice, { flex: 2 }]}>
+                  {formatNaira(koboToNaira(ex.amount))}
+                </Text>
+                <Text style={[styles.itemTotal, { flex: 2 }]}>
+                  {formatNaira(koboToNaira(ex.vatPaid))}
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.footer}>
+          <Text>
+            Generated by CashTraka on {data.generatedOnLabel}. Submit to FIRS via
+            TaxPro Max or your filing agent.
+          </Text>
+        </View>
+      </Page>
+    </Document>
+  );
+}

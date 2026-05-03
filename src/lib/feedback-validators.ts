@@ -69,8 +69,13 @@ export const feedbackFiltersSchema = z.object({
     .optional()
     .transform((v) => (typeof v === 'string' ? v === 'true' : v)),
   customerId: z.string().trim().min(1).optional(),
+  /// ISO date strings. Inclusive lower bound, exclusive upper bound.
+  from: z.string().trim().min(1).optional(),
+  to: z.string().trim().min(1).optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
+  /// When set to "csv" the list endpoint streams a CSV instead of JSON.
+  format: z.enum(['csv']).optional(),
 });
 
 /** PATCH body when the seller marks a piece of negative feedback as resolved. */

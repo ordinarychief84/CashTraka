@@ -11,6 +11,9 @@ export const runtime = 'nodejs';
  *
  * Owner-scoped paginated list. Stays accessible on the free plan so users
  * who downgrade can still see their existing feedback history.
+ *
+ * Supports `?format=csv` to stream a CSV download (same filters apply,
+ * pagination is ignored, capped at 5000 rows).
  */
 export async function GET(req: Request) {
   return handled(async () => {
@@ -21,6 +24,25 @@ export async function GET(req: Request) {
     const raw = Object.fromEntries(url.searchParams.entries());
     const parsed = feedbackFiltersSchema.safeParse(raw);
     if (!parsed.success) return validationFail(parsed.error);
+
+    if (parsed.data.format === 'csv') {
+      const csv = await feedbackService.exportCsv(user.id, {
+        rating: parsed.data.rating,
+        isNegative: parsed.data.isNegative,
+        isResolved: parsed.data.isResolved,
+        customerId: parsed.data.customerId,
+        from: parsed.data.from,
+        to: parsed.data.to,
+      });
+      const stamp = new Date().toISOString().slice(0, 10);
+      return new NextResponse(csv, {
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="service-check-${stamp}.csv"`,
+          'Cache-Control': 'private, no-store',
+        },
+      });
+    }
 
     const result = await feedbackService.listFeedback(user.id, parsed.data);
     return ok(result);

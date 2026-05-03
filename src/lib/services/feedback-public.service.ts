@@ -12,6 +12,8 @@ import {
   type FeedbackRating,
   type FeedbackReason,
 } from '@/lib/feedback-validators';
+import { emailService } from '@/lib/services/email.service';
+import { displayPhone, waLink } from '@/lib/whatsapp';
 
 export type PublicFeedbackView = {
   business: string;
@@ -108,6 +110,112 @@ export const feedbackPublicService = {
         isNegative: negative,
       },
     });
+
+    // Negative feedback is the whole point of the feature: catch the
+    // unhappy customer before they go quiet. Fire an in-app
+    // Notification + email to the seller, both best-effort so the
+    // public submit still returns 200 if either fails.
+    if (negative) {
+      // Type narrowed by isNegativeRating: rating is UNHAPPY | VERY_UNHAPPY here.
+      const negRating = body.rating as 'UNHAPPY' | 'VERY_UNHAPPY';
+      void notifyNegativeFeedback({
+        feedbackId: fb.id,
+        userId: fb.userId,
+        customerId: fb.customerId,
+        rating: negRating,
+        reason: body.reason ?? null,
+        comment: trimmedComment.length > 0 ? trimmedComment : null,
+      }).catch(() => null);
+    }
+
     return { ok: true };
   },
 };
+
+/**
+ * Best-effort negative-feedback alerting. Writes a Notification row,
+ * sends an email if the seller has one on file, and includes a
+ * pre-built WhatsApp deep-link reply when the customer's phone is
+ * known.
+ */
+async function notifyNegativeFeedback(args: {
+  feedbackId: string;
+  userId: string;
+  customerId: string | null;
+  rating: 'UNHAPPY' | 'VERY_UNHAPPY';
+  reason: string | null;
+  comment: string | null;
+}): Promise<void> {
+  const seller = await prisma.user.findUnique({
+    where: { id: args.userId },
+    select: { id: true, name: true, businessName: true, email: true },
+  });
+  if (!seller) return;
+
+  // Resolve customer name + phone (cheapest path: from the linked
+  // Customer row; fall back to the Feedback's denormalised data only
+  // if Customer is missing).
+  let customerName = 'A customer';
+  let customerPhone: string | null = null;
+  if (args.customerId) {
+    const c = await prisma.customer.findUnique({
+      where: { id: args.customerId },
+      select: { name: true, phone: true },
+    });
+    if (c) {
+      customerName = c.name || customerName;
+      customerPhone = c.phone || null;
+    }
+  }
+
+  const baseUrl = process.env.APP_URL || 'https://cashtraka.co';
+  const serviceCheckUrl = `${baseUrl}/service-check`;
+  const ratingLabel =
+    args.rating === 'VERY_UNHAPPY' ? 'Very Unhappy' : 'Unhappy';
+  const business = seller.businessName?.trim() || seller.name?.trim() || 'us';
+
+  // Compose a follow-up message for WhatsApp the seller can send in
+  // one tap. Apologetic but not grovelling, ends with an open invite.
+  const followUpMsg =
+    `Hi ${customerName}, this is ${business}. ` +
+    `I just saw your Service Check rating and I am sorry the experience ` +
+    `was not what it should have been. Could you share what went wrong ` +
+    `so I can make it right?`;
+  const replyWaLink = customerPhone ? waLink(customerPhone, followUpMsg) : null;
+
+  // 1. In-app Notification row.
+  await prisma.notification
+    .create({
+      data: {
+        userId: seller.id,
+        type: 'warning',
+        title: `${customerName} is ${ratingLabel}`,
+        message: args.reason
+          ? `Reason: ${args.reason
+              .toLowerCase()
+              .split('_')
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ')}. Follow up today.`
+          : 'Follow up today before they go quiet.',
+        link: '/service-check',
+      },
+    })
+    .catch(() => null);
+
+  // 2. Email alert (only if we have an address).
+  if (seller.email) {
+    await emailService
+      .sendNegativeFeedbackAlert({
+        to: seller.email,
+        sellerName: seller.name || business,
+        customerName,
+        rating: args.rating,
+        reason: args.reason,
+        comment: args.comment,
+        customerPhoneDisplay: customerPhone ? displayPhone(customerPhone) : null,
+        waLink: replyWaLink,
+        serviceCheckUrl,
+      })
+      .catch(() => null);
+  }
+}

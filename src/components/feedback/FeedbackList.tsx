@@ -1,10 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Loader2, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Loader2, MessageCircle, CheckCircle2, Download } from 'lucide-react';
 
 type Filter = 'all' | 'positive' | 'negative' | 'unresolved';
+type Range = 'all' | '7d' | '30d' | '90d';
+
+/** Translate a Range chip into a `from` ISO date string (or null). */
+function rangeToFrom(range: Range): string | null {
+  if (range === 'all') return null;
+  const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - days);
+  return d.toISOString();
+}
 
 type FeedbackRow = {
   id: string;
@@ -68,23 +79,29 @@ function relTime(iso: string | null): string {
 
 export function FeedbackList() {
   const [filter, setFilter] = useState<Filter>('all');
+  const [range, setRange] = useState<Range>('all');
   const [rows, setRows] = useState<FeedbackRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function load(f: Filter) {
+  // Build the query params shared between the list fetch and the CSV
+  // export so they always stay in sync.
+  const params = useMemo(() => {
+    const p = new URLSearchParams({ pageSize: '50' });
+    if (filter === 'positive') p.set('isNegative', 'false');
+    else if (filter === 'negative') p.set('isNegative', 'true');
+    else if (filter === 'unresolved') {
+      p.set('isNegative', 'true');
+      p.set('isResolved', 'false');
+    }
+    const from = rangeToFrom(range);
+    if (from) p.set('from', from);
+    return p;
+  }, [filter, range]);
+
+  async function load() {
     setBusy(true);
     setError(null);
-    const params = new URLSearchParams({ pageSize: '50' });
-    if (f === 'positive') {
-      // No direct rating-set filter. Use isNegative=false to get positives.
-      params.set('isNegative', 'false');
-    } else if (f === 'negative') {
-      params.set('isNegative', 'true');
-    } else if (f === 'unresolved') {
-      params.set('isNegative', 'true');
-      params.set('isResolved', 'false');
-    }
     try {
       const res = await fetch(`/api/feedback?${params.toString()}`);
       const data = await res.json();
@@ -101,8 +118,17 @@ export function FeedbackList() {
   }
 
   useEffect(() => {
-    load(filter);
-  }, [filter]);
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
+  function exportCsv() {
+    // Same filters but with format=csv. Triggers a browser download.
+    const csvParams = new URLSearchParams(params);
+    csvParams.delete('pageSize');
+    csvParams.set('format', 'csv');
+    window.location.href = `/api/feedback?${csvParams.toString()}`;
+  }
 
   async function resolve(id: string) {
     const res = await fetch(`/api/feedback/${id}`, {
@@ -111,13 +137,13 @@ export function FeedbackList() {
       body: JSON.stringify({}),
     });
     if (res.ok) {
-      load(filter);
+      load();
     }
   }
 
   return (
     <section>
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         {(
           [
             { id: 'all', label: 'All' },
@@ -143,6 +169,45 @@ export function FeedbackList() {
             </button>
           );
         })}
+
+        <span className="mx-1 hidden h-5 w-px bg-slate-200 sm:inline-block" />
+
+        {(
+          [
+            { id: 'all', label: 'All time' },
+            { id: '7d', label: 'Last 7 days' },
+            { id: '30d', label: 'Last 30 days' },
+            { id: '90d', label: 'Last 90 days' },
+          ] as Array<{ id: Range; label: string }>
+        ).map((c) => {
+          const active = range === c.id;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setRange(c.id)}
+              className={
+                'rounded-full border px-3 py-1.5 text-xs font-medium transition ' +
+                (active
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-slate-400')
+              }
+            >
+              {c.label}
+            </button>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={busy || rows.length === 0}
+          className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-brand-400 disabled:cursor-not-allowed disabled:opacity-50"
+          title="Download a CSV of the current filtered list"
+        >
+          <Download size={12} />
+          Export CSV
+        </button>
       </div>
 
       {busy ? (

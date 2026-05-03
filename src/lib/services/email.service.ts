@@ -881,6 +881,84 @@ export const emailService = {
   },
 
   /* ══════════════════════════════════════════════════════════════════════
+   *  11b. NEGATIVE FEEDBACK ALERT
+   *  Sent to the seller the moment a customer submits an Unhappy /
+   *  Very Unhappy Service Check rating. Best-effort: never blocks the
+   *  public submit response.
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendNegativeFeedbackAlert(args: {
+    to: string;
+    sellerName: string;
+    customerName: string;
+    rating: 'UNHAPPY' | 'VERY_UNHAPPY';
+    reason?: string | null;
+    comment?: string | null;
+    customerPhoneDisplay?: string | null;
+    waLink?: string | null;
+    serviceCheckUrl: string;
+  }): Promise<SendResult> {
+    const ratingLabel =
+      args.rating === 'VERY_UNHAPPY' ? 'Very Unhappy' : 'Unhappy';
+    const reasonLabel = args.reason
+      ? args.reason
+          .toLowerCase()
+          .split('_')
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ')
+      : null;
+    const firstName = (args.sellerName || 'there').split(' ')[0];
+
+    const body = `
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#DC2626;">Service Check alert</div>
+        <h1 style="margin:4px 0 0;font-size:22px;font-weight:800;color:#1A1A1A;">A customer is not happy.</h1>
+      </div>
+
+      <p style="margin:0 0 20px;font-size:14px;color:#475569;line-height:1.6;">
+        Hi ${esc(firstName)}, ${esc(args.customerName)} just submitted a
+        <strong>${esc(ratingLabel)}</strong> rating. Reach out today before they
+        go quiet.
+      </p>
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;overflow:hidden;">
+        ${infoRow('Customer', args.customerName)}
+        ${infoRow('Rating', ratingLabel)}
+        ${reasonLabel ? infoRow('Reason', reasonLabel) : ''}
+        ${args.customerPhoneDisplay ? infoRow('Phone', args.customerPhoneDisplay) : ''}
+      </table>
+
+      ${
+        args.comment
+          ? `<div style="margin-top:16px;padding:14px 16px;background:#F8FAFC;border-left:3px solid #00B8E8;border-radius:6px;">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:6px;">Their words</div>
+              <div style="font-size:14px;color:#1A1A1A;line-height:1.6;font-style:italic;">"${esc(args.comment)}"</div>
+            </div>`
+          : ''
+      }
+
+      <div style="margin-top:24px;text-align:center;">
+        ${
+          args.waLink
+            ? `<a href="${esc(args.waLink)}" style="display:inline-block;background:#25D366;color:#FFFFFF;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px;font-size:14px;margin-right:8px;">Reply on WhatsApp</a>`
+            : ''
+        }
+        ${ctaButton('See feedback', args.serviceCheckUrl)}
+      </div>
+
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;text-align:center;">
+        Customers who feel heard come back. The first 24 hours matter most.
+      </p>`;
+
+    return send({
+      to: args.to,
+      subject: `Service Check: ${args.customerName} is ${ratingLabel}`,
+      html: layout(body, {
+        preheader: `${args.customerName} just rated their experience as ${ratingLabel}. Follow up today.`,
+      }),
+    });
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════
    *  12. PASSWORD RESET
    * ══════════════════════════════════════════════════════════════════════ */
   async sendPasswordReset(args: {

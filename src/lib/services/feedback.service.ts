@@ -111,6 +111,8 @@ export const feedbackService = {
       isNegative?: boolean;
       isResolved?: boolean;
       customerId?: string;
+      from?: string;
+      to?: string;
       page?: number;
       pageSize?: number;
     },
@@ -123,10 +125,26 @@ export const feedbackService = {
     if (typeof filters.isResolved === 'boolean') where.isResolved = filters.isResolved;
     if (filters.customerId) where.customerId = filters.customerId;
 
+    // Date range. Filters on submittedAt because that is the moment the
+    // customer actually rated; createdAt is when the link was minted.
+    const submittedRange: { gte?: Date; lt?: Date } = {};
+    if (filters.from) {
+      const d = new Date(filters.from);
+      if (!Number.isNaN(d.getTime())) submittedRange.gte = d;
+    }
+    if (filters.to) {
+      const d = new Date(filters.to);
+      if (!Number.isNaN(d.getTime())) submittedRange.lt = d;
+    }
+
     // Hide pending (not-yet-submitted) feedback from the main list. They
     // are not user-facing rows yet, just placeholders for outbound links.
     if (filters.rating === undefined && filters.isNegative === undefined) {
       where.submittedAt = { not: null };
+    }
+    if (submittedRange.gte || submittedRange.lt) {
+      // Combine with the not-null filter when applicable.
+      where.submittedAt = { ...(where.submittedAt ?? {}), ...submittedRange };
     }
 
     const [total, rows] = await Promise.all([
@@ -151,6 +169,94 @@ export const feedbackService = {
       rows,
       totalPages: Math.max(1, Math.ceil(total / pageSize)),
     };
+  },
+
+  /**
+   * Stream all matching rows (capped at 5000 for safety) as CSV. Same
+   * filter shape as listFeedback but ignores pagination. Caller is
+   * responsible for the auth check.
+   */
+  async exportCsv(
+    userId: string,
+    filters: {
+      rating?: FeedbackRating;
+      isNegative?: boolean;
+      isResolved?: boolean;
+      customerId?: string;
+      from?: string;
+      to?: string;
+    },
+  ): Promise<string> {
+    const where: any = { userId, submittedAt: { not: null } };
+    if (filters.rating) where.rating = filters.rating;
+    if (typeof filters.isNegative === 'boolean') where.isNegative = filters.isNegative;
+    if (typeof filters.isResolved === 'boolean') where.isResolved = filters.isResolved;
+    if (filters.customerId) where.customerId = filters.customerId;
+    const range: { gte?: Date; lt?: Date; not?: null } = { not: null };
+    if (filters.from) {
+      const d = new Date(filters.from);
+      if (!Number.isNaN(d.getTime())) range.gte = d;
+    }
+    if (filters.to) {
+      const d = new Date(filters.to);
+      if (!Number.isNaN(d.getTime())) range.lt = d;
+    }
+    where.submittedAt = range;
+
+    const rows = await prisma.feedback.findMany({
+      where,
+      orderBy: { submittedAt: 'desc' },
+      take: 5000,
+      include: {
+        customer: { select: { name: true, phone: true } },
+        receipt: { select: { receiptNumber: true } },
+        invoice: { select: { invoiceNumber: true } },
+      },
+    });
+
+    const header = [
+      'Submitted at',
+      'Rating',
+      'Reason',
+      'Customer',
+      'Phone',
+      'Receipt',
+      'Invoice',
+      'Source',
+      'Negative',
+      'Resolved',
+      'Comment',
+      'Response action',
+    ];
+    const escape = (raw: unknown): string => {
+      if (raw === null || raw === undefined) return '';
+      const s = String(raw);
+      // Quote if it contains comma, quote, or newline; double-up internal quotes.
+      if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+      return s;
+    };
+    const lines = [header.map(escape).join(',')];
+    for (const r of rows) {
+      lines.push(
+        [
+          r.submittedAt ? r.submittedAt.toISOString() : '',
+          r.rating,
+          r.reason ?? '',
+          r.customer?.name ?? '',
+          r.customer?.phone ?? '',
+          r.receipt?.receiptNumber ?? '',
+          r.invoice?.invoiceNumber ?? '',
+          r.source,
+          r.isNegative ? 'yes' : 'no',
+          r.isResolved ? 'yes' : 'no',
+          r.comment ?? '',
+          r.responseAction ?? '',
+        ]
+          .map(escape)
+          .join(','),
+      );
+    }
+    return lines.join('\n');
   },
 
   /** Owner-scoped single read. Returns null if not found or not owned. */

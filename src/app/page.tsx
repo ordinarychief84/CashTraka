@@ -50,23 +50,20 @@ export default function LandingPage() {
             buyers. Light, bright, scannable. */}
         <HeroSolutions />
         <SolutionsPath />
-        <AudienceMarquee />
         <Problem />
         <Solution />
 
-        {/* Single dark "feature spotlight" interlude. Stripe / Apple
-            alternation pattern. One strong dark moment makes the rest
-            of the page feel deliberate. */}
+        {/* Single dark feature spotlight. Stripe / Apple alternation
+            pattern: one strong dark moment makes the rest of the page
+            feel deliberate. */}
         <FeatureSpotlightDark />
 
         <HowItWorks />
 
-        {/* Replaces the old flat testimonial row with the animated bento
-            grid, ported to the light theme. */}
+        {/* Animated bento grid replaces the old flat testimonial row. */}
         <BentoTestimonialsLight />
 
         <ValueSection />
-        <Objections />
         <Pricing />
         <FAQSection />
         <FinalCTA />
@@ -1338,7 +1335,7 @@ function Problem() {
     <Section
       id="problem"
       eyebrow="You know this story"
-      title="The boring stuff is the part that loses you money"
+      title="The boring stuff is what loses you money."
       subtitle="Faded receipts. Customers asking for invoices you do not have. Debts that go quiet. FIRS rules you have not had time to read. None of it is the work you signed up for."
     >
       <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
@@ -1433,7 +1430,7 @@ function Solution() {
       id="solutions"
       tone="muted"
       eyebrow="What you do in CashTraka"
-      title="The whole back office, on your phone"
+      title="The whole back office, on your phone."
       subtitle="Make an invoice. Take the payment. Send the receipt. Chase the debt. Set up the next one to run on autopilot. Everything happens in one app."
     >
       <Reveal>
@@ -1549,13 +1546,29 @@ function HowItWorks() {
 }
 
 function ValueSection() {
+  // Four wins that are genuinely different from anything in the
+  // bookkeeping apps a buyer might compare us to. Six was too much.
   const wins = [
-    { icon: MessageCircle, label: 'WhatsApp first. Send invoices, receipts, and reminders the way your customers actually read messages.' },
-    { icon: PhoneCall, label: 'Phone-only customers welcome. No email? No problem. Save them by phone and send via WhatsApp.' },
-    { icon: Shield, label: 'Took payment by bank transfer? Paste the SMS alert. We verify it, no Paystack confirmation needed.' },
-    { icon: Sparkles, label: 'Mobile first. Built for the phone in your hand, not a laptop in an office.' },
-    { icon: Users, label: 'Multiple staff, one business. Add your team with the right access.' },
-    { icon: Receipt, label: 'Your branding on every invoice and receipt. Looks professional from day one.' },
+    {
+      icon: MessageCircle,
+      label:
+        'WhatsApp first. Invoices, receipts and reminders go where your customers already read.',
+    },
+    {
+      icon: PhoneCall,
+      label:
+        'Phone-only customers welcome. No email needed. Save them by phone, send via WhatsApp.',
+    },
+    {
+      icon: Shield,
+      label:
+        'Bank alert verification. Paste the SMS, the payment is logged. No need to refresh Paystack.',
+    },
+    {
+      icon: Sparkles,
+      label:
+        'Mobile first. Built for the phone in your hand, not a laptop in an office.',
+    },
   ];
   return (
     <Section
@@ -1662,7 +1675,7 @@ function FAQSection() {
       id="faq"
       tone="muted"
       eyebrow="FAQ"
-      title="Questions people ask before they sign up"
+      title="Questions people ask before they sign up."
     >
       <Reveal>
         <FAQ />

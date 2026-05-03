@@ -55,7 +55,7 @@ export default function LandingPage() {
         <Solution />
 
         {/* Single dark "feature spotlight" interlude. Stripe / Apple
-            alternation pattern — one strong dark moment makes the rest
+            alternation pattern. One strong dark moment makes the rest
             of the page feel deliberate. */}
         <FeatureSpotlightDark />
 

@@ -42,19 +42,19 @@ function loadSecrets() {
     });
     const env = readFileSync(tmpFile, 'utf-8');
     if (!cron) {
-      const m = env.match(/^CRON_SECRET="?([^"\n]+)"?/m);
+      const m = env.match(/^CRON_SECRET="?([^"\n\r]+)"?/m);
       if (!m) throw new Error('CRON_SECRET not present in production env');
-      cron = m[1];
+      cron = m[1].trim();
     }
     if (!migrate) {
-      const m = env.match(/^MIGRATE_SECRET="?([^"\n]+)"?/m);
+      const m = env.match(/^MIGRATE_SECRET="?([^"\n\r]+)"?/m);
       if (!m) {
         throw new Error(
           'MIGRATE_SECRET not present in production env. Set it via:\n' +
             '  vercel env add MIGRATE_SECRET production',
         );
       }
-      migrate = m[1];
+      migrate = m[1].trim();
     }
     return { cron, migrate };
   } catch (e) {

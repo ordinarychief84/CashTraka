@@ -970,19 +970,43 @@ function FinalCTADark() {
 /**
  * Dark feature spotlight. Sits between Solution and HowItWorks on the
  * light page as a single high-contrast moment. Self-contained: brings
- * its own slate background and brand glows so the surrounding light
- * sections are unaffected.
+ * its own background and brand glows so the surrounding light sections
+ * are unaffected. The base is built from the brand cyan palette
+ * (brand-900 -> brand-700) so the section reads as CashTraka, not
+ * generic fintech navy.
  */
 function FeatureSpotlightDark() {
   return (
-    <section className="relative overflow-hidden bg-[#0a1730] py-20 md:py-24">
+    <section
+      className="relative overflow-hidden py-20 md:py-24"
+      style={{
+        // Diagonal blend through the brand's deep-cyan family with a
+        // brand-500 hot spot top-left and a brand-300 cool spot
+        // bottom-right. Reads luminous and unmistakably CashTraka.
+        backgroundImage:
+          'radial-gradient(circle at 18% 0%, rgba(31,193,238,0.55), transparent 55%),' +
+          'radial-gradient(circle at 88% 100%, rgba(69,203,242,0.30), transparent 55%),' +
+          'linear-gradient(135deg, #003A52 0%, #00577A 45%, #0076A0 100%)',
+      }}
+    >
+      {/* Soft cyan haze layered on top for depth */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-brand-500/25 blur-3xl"
+        className="pointer-events-none absolute -left-24 -top-24 h-[480px] w-[480px] rounded-full bg-brand-400/30 blur-3xl"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 bottom-0 h-[420px] w-[420px] rounded-full bg-indigo-500/15 blur-3xl"
+        className="pointer-events-none absolute -right-24 -bottom-24 h-[440px] w-[440px] rounded-full bg-brand-200/25 blur-3xl"
+      />
+      {/* Subtle dotted texture so the gradient does not look flat */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-soft-light"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)',
+          backgroundSize: '22px 22px',
+        }}
       />
 
       <div className="relative mx-auto max-w-6xl px-5">

@@ -1099,37 +1099,111 @@ function FeatureSpotlightDark() {
 }
 
 /**
- * Light-theme version of the bento testimonials. Keeps the staggered
- * scroll-reveal + hover lift + brand-cyan glow from the dark version,
- * but on a white surface so it sits naturally between Solution-style
- * sections on the light page.
+ * Testimonials, redesigned with one job: prove other Nigerian
+ * businesses already use this and got their time back.
+ *
+ * Why the rewrite
+ *   - Cards are now uniform (3-col x 2-row on desktop). The mixed
+ *     spans + decorative logo cells were visual noise; a clean grid
+ *     reads as "these are six real receipts of value."
+ *   - Each card breathes on idle (subtle Y float, custom delay per
+ *     card) so the section feels alive even before the cursor lands.
+ *   - On hover the float pauses, the card lifts harder, brand glow
+ *     ring kicks in, accent strip on the left edge brightens.
+ *   - Avatar circle in brand-100 / brand-700 gives the quote a face,
+ *     and replaces the abstract corner glow with something concrete.
  */
+const TESTIMONIALS: { quote: string; name: string; role: string }[] = [
+  {
+    quote:
+      'Customers used to come back asking for receipts weeks later. Now I just send a WhatsApp link and the receipt is done.',
+    name: 'Tope A',
+    role: 'Boutique owner, Lagos',
+  },
+  {
+    quote:
+      "Bank alert verification means I don't have to refresh Paystack every five minutes. Paste the SMS, the payment is logged.",
+    name: 'Chiamaka N',
+    role: 'Skincare brand, Port Harcourt',
+  },
+  {
+    quote:
+      'We used to send the same monthly invoice to 14 clients by hand. Now it runs on its own.',
+    name: 'Ifeoma O',
+    role: 'Cleaning service, Abuja',
+  },
+  {
+    quote:
+      'I see who paid in real time on the dashboard. The end of month stress is gone.',
+    name: 'Bashir M',
+    role: 'Phone accessory shop, Kano',
+  },
+  {
+    quote:
+      'Switching from a paper book to CashTraka saved my accountant a full week of work.',
+    name: 'Kelechi U',
+    role: 'Landlord, Abuja',
+  },
+  {
+    quote:
+      'Rent reminders go out on their own. Tenants pay through the link. I do not chase anyone in a group chat anymore.',
+    name: 'Mrs Adeniyi',
+    role: 'Property manager, Lekki',
+  },
+];
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+}
+
 function BentoTestimonialsLight() {
   return (
     <section className="relative overflow-hidden bg-white py-20 md:py-24">
+      {/* Soft brand wash centred behind the grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[420px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-100/60 blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[440px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-100/60 blur-3xl"
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-brand-200/30 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-success-200/25 blur-3xl"
+      />
+
       <div className="relative mx-auto max-w-6xl px-5">
         <Reveal from="up">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-600">
-              From real businesses
+              The proof
             </p>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl lg:text-5xl">
-              Built for Nigerian businesses.
+              Six businesses, one fewer headache each.
             </h2>
             <p className="mt-4 text-base text-slate-600 md:text-lg">
-              Tested by sellers, landlords, and service operators.
+              Real Nigerian operators who used to do this work twice. Then they
+              stopped.
             </p>
           </div>
         </Reveal>
 
-        <div className="mt-12 grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-          {BENTO.map((cell, i) => (
-            <Reveal key={i} from="up" delay={80 + i * 60} duration={650}>
-              <BentoCardLight cell={cell} />
+        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((t, i) => (
+            <Reveal key={t.name} from="up" delay={120 + i * 80} duration={650}>
+              <TestimonialCard
+                quote={t.quote}
+                name={t.name}
+                role={t.role}
+                index={i}
+              />
             </Reveal>
           ))}
         </div>
@@ -1138,39 +1212,67 @@ function BentoTestimonialsLight() {
   );
 }
 
-function BentoCardLight({ cell }: { cell: BentoCell }) {
-  const span = cell.span === 2 ? 'md:col-span-2' : '';
-  const base =
-    'group relative overflow-hidden rounded-2xl bg-white p-5 ring-1 ring-slate-200 ' +
-    'transition-[transform,box-shadow,border-color] duration-300 ease-out ' +
-    'hover:-translate-y-1 hover:ring-brand-300 ' +
-    'hover:shadow-[0_18px_38px_-12px_rgba(0,184,232,0.35)] md:p-6';
-  if (cell.kind === 'logo') {
-    return (
-      <div className={base + ' flex items-center justify-center ' + span}>
-        <span className="text-2xl font-black tracking-[0.2em] text-slate-300 transition-colors duration-300 group-hover:text-brand-500/70 md:text-3xl">
-          {cell.label}
-        </span>
-      </div>
-    );
-  }
+/**
+ * Single testimonial card. Uniform size, brand-cyan accent strip on
+ * the left edge, avatar circle, idle float driven by the existing
+ * `animate-float` keyframes with a per-card phase offset so the row
+ * breathes in a wave. Hovering pauses the float (Tailwind:
+ * hover:[animation-play-state:paused]) and pushes the lift further.
+ */
+function TestimonialCard({
+  quote,
+  name,
+  role,
+  index,
+}: {
+  quote: string;
+  name: string;
+  role: string;
+  index: number;
+}) {
   return (
-    <div className={base + ' ' + span}>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-100/0 blur-2xl transition duration-500 group-hover:bg-brand-200/70"
-      />
-      <p
-        className={
-          (cell.span === 2 ? 'text-base md:text-lg ' : 'text-sm md:text-base ') +
-          'relative leading-relaxed text-ink'
-        }
-      >
-        {cell.quote}
-      </p>
-      <p className="relative mt-4 text-xs text-slate-500 transition-colors duration-300 group-hover:text-slate-700">
-        {cell.who}
-      </p>
+    <div
+      className="group relative h-full animate-float [animation-play-state:running] hover:[animation-play-state:paused]"
+      style={
+        {
+          // Phase + speed tuned per card so the grid breathes in a wave
+          // rather than sync. Speed varies slightly to break uniformity.
+          animationDelay: `${(index * 0.55).toFixed(2)}s`,
+          animationDuration: `${5.5 + (index % 3) * 0.6}s`,
+          ['--float-distance' as never]: '6px',
+        } as React.CSSProperties
+      }
+    >
+      <article className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white p-6 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:ring-brand-300 hover:shadow-[0_22px_42px_-14px_rgba(0,184,232,0.4)]">
+        {/* Brand-cyan accent strip, brightens on hover */}
+        <span
+          aria-hidden
+          className="absolute inset-y-4 left-0 w-[3px] rounded-r-full bg-gradient-to-b from-brand-200 via-brand-500 to-brand-300 opacity-70 transition group-hover:opacity-100"
+        />
+        {/* Soft brand glow that fades in on hover */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-100/0 blur-2xl transition duration-500 group-hover:bg-brand-200/80"
+        />
+
+        <p className="relative z-10 flex-1 pl-3 text-base leading-relaxed text-ink">
+          {`"${quote}"`}
+        </p>
+
+        <div className="relative z-10 mt-6 flex items-center gap-3 pl-3 pt-4 ring-1 ring-transparent">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
+          />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-brand-100 transition group-hover:bg-brand-100 group-hover:text-brand-800">
+            {initials(name)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-ink">{name}</div>
+            <div className="truncate text-xs text-slate-500">{role}</div>
+          </div>
+        </div>
+      </article>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 /**
@@ -66,7 +66,7 @@ export function HeroRevenue({ label, total, deltaPct, daily, transactions }: Pro
         {/* Number */}
         <div className="mt-4 flex items-baseline gap-2">
           <span className="num text-4xl font-black leading-none tracking-tight text-ink md:text-5xl">
-            {formatNaira(total)}
+            {formatKobo(total)}
           </span>
         </div>
         <div className="mt-1.5 text-xs text-slate-500">
@@ -104,7 +104,7 @@ export function HeroRevenue({ label, total, deltaPct, daily, transactions }: Pro
                   <div
                     key={i}
                     className="group flex flex-1 flex-col items-center justify-end"
-                    title={`${dayLabels[i]}: ${formatNaira(v)}`}
+                    title={`${dayLabels[i]}: ${formatKobo(v)}`}
                   >
                     <div
                       className={cn(

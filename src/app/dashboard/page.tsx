@@ -31,7 +31,7 @@ import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
 import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
 import { limitsFor, effectivePlan } from '@/lib/plan-limits';
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
         status: 'PAID',
         createdAt: { gte: weekStart },
       },
-      select: { amount: true, createdAt: true },
+      select: { amountKobo: true, createdAt: true },
     }),
     // Previous week's PAID total (for WoW delta)
     prisma.payment.aggregate({
@@ -159,7 +159,7 @@ export default async function DashboardPage() {
         status: 'PAID',
         createdAt: { gte: prevWeekStart, lte: prevWeekEnd },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     // This month's PAID payments (for AOV + monthly revenue)
@@ -169,7 +169,7 @@ export default async function DashboardPage() {
         status: 'PAID',
         createdAt: { gte: monthStart },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     prisma.payment.aggregate({
@@ -178,13 +178,13 @@ export default async function DashboardPage() {
         status: 'PAID',
         createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     // Outstanding debt (open)
     prisma.debt.aggregate({
       where: { userId: user.id, status: 'OPEN' },
-      _sum: { amountOwed: true, amountPaid: true },
+      _sum: { amountOwedKobo: true, amountPaidKobo: true },
     }),
     // Outstanding at end of last month — to compute trend on "owed"
     prisma.debt.aggregate({
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
         createdAt: { lte: prevMonthEnd },
         OR: [{ status: 'OPEN' }, { updatedAt: { gt: prevMonthEnd } }],
       },
-      _sum: { amountOwed: true, amountPaid: true },
+      _sum: { amountOwedKobo: true, amountPaidKobo: true },
     }),
     prisma.debt.aggregate({
       where: {
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
         status: 'OPEN',
         dueDate: { lt: now, not: null },
       },
-      _sum: { amountOwed: true, amountPaid: true },
+      _sum: { amountOwedKobo: true, amountPaidKobo: true },
       _count: true,
     }),
     showExpenses
@@ -211,17 +211,17 @@ export default async function DashboardPage() {
             kind: 'business',
             incurredOn: { gte: monthStart },
           },
-          _sum: { amount: true },
+          _sum: { amountKobo: true },
         })
-      : Promise.resolve({ _sum: { amount: 0 } } as const),
+      : Promise.resolve({ _sum: { amountKobo: 0 } } as const),
     prisma.payment.aggregate({
       where: { userId: user.id, status: 'PAID', verified: false },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     prisma.customer.findMany({
-      where: { userId: user.id, totalOwed: { gt: 0 } },
-      orderBy: { totalOwed: 'desc' },
+      where: { userId: user.id, totalOwedKobo: { gt: 0 } },
+      orderBy: { totalOwedKobo: 'desc' },
       take: 3,
     }),
     prisma.customer.findMany({
@@ -235,7 +235,7 @@ export default async function DashboardPage() {
       take: 3,
     }),
     prisma.debt.findMany({
-      where: { userId: user.id, status: 'OPEN', amountPaid: { gt: 0 } },
+      where: { userId: user.id, status: 'OPEN', amountPaidKobo: { gt: 0 } },
       orderBy: { updatedAt: 'desc' },
       take: 4,
     }),
@@ -264,9 +264,9 @@ export default async function DashboardPage() {
         status: 'PAID',
         createdAt: { gte: monthStart },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
-      orderBy: { _sum: { amount: 'desc' } },
+      orderBy: { _sum: { amountKobo: 'desc' } },
       take: 5,
     }),
     // PayLinks: claimed (need confirmation)
@@ -288,9 +288,9 @@ export default async function DashboardPage() {
     // Auto-confirmed payments today
     prisma.payment.aggregate({
       where: { userId: user.id, confirmedAutomatically: true, confirmedAt: { gte: today } },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
-    }).catch(() => ({ _sum: { amount: null }, _count: 0 })),
+    }).catch(() => ({ _sum: { amountKobo: null }, _count: 0 })),
   ]);
 
   // ── Derived metrics ────────────────────────────────────────────────────
@@ -302,16 +302,16 @@ export default async function DashboardPage() {
       (today.getTime() - new Date(p.createdAt).getTime()) / (24 * 60 * 60 * 1000),
     );
     if (diff < 0 || diff >= 7) continue;
-    weekBuckets[6 - diff] += p.amount;
+    weekBuckets[6 - diff] += p.amountKobo;
   }
   const weekTotal = weekBuckets.reduce((s, v) => s + v, 0);
-  const prevWeekTotal = paymentsPrevWeek._sum.amount ?? 0;
+  const prevWeekTotal = paymentsPrevWeek._sum.amountKobo ?? 0;
   const weekDelta =
     prevWeekTotal > 0 ? Math.round(((weekTotal - prevWeekTotal) / prevWeekTotal) * 100) : null;
 
-  const monthRevenue = paymentsThisMonth._sum.amount ?? 0;
+  const monthRevenue = paymentsThisMonth._sum.amountKobo ?? 0;
   const monthCount = paymentsThisMonth._count;
-  const prevMonthRevenue = paymentsPrevMonth._sum.amount ?? 0;
+  const prevMonthRevenue = paymentsPrevMonth._sum.amountKobo ?? 0;
   const monthDelta =
     prevMonthRevenue > 0
       ? Math.round(((monthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
@@ -319,16 +319,16 @@ export default async function DashboardPage() {
   const aov = monthCount > 0 ? Math.round(monthRevenue / monthCount) : 0;
   const prevAov =
     paymentsPrevMonth._count > 0
-      ? Math.round((paymentsPrevMonth._sum.amount ?? 0) / paymentsPrevMonth._count)
+      ? Math.round((paymentsPrevMonth._sum.amountKobo ?? 0) / paymentsPrevMonth._count)
       : 0;
   const aovDelta = prevAov > 0 ? Math.round(((aov - prevAov) / prevAov) * 100) : null;
 
   const totalOwed = Math.max(
-    (openDebtAgg._sum.amountOwed ?? 0) - (openDebtAgg._sum.amountPaid ?? 0),
+    (openDebtAgg._sum.amountOwedKobo ?? 0) - (openDebtAgg._sum.amountPaidKobo ?? 0),
     0,
   );
   const prevOwed = Math.max(
-    (openDebtPrevMonth._sum.amountOwed ?? 0) - (openDebtPrevMonth._sum.amountPaid ?? 0),
+    (openDebtPrevMonth._sum.amountOwedKobo ?? 0) - (openDebtPrevMonth._sum.amountPaidKobo ?? 0),
     0,
   );
   const owedDelta =
@@ -336,12 +336,12 @@ export default async function DashboardPage() {
 
   const overdueCount = overdueAgg._count;
   const overdueTotal = Math.max(
-    (overdueAgg._sum.amountOwed ?? 0) - (overdueAgg._sum.amountPaid ?? 0),
+    (overdueAgg._sum.amountOwedKobo ?? 0) - (overdueAgg._sum.amountPaidKobo ?? 0),
     0,
   );
   const unverifiedCount = unverifiedAgg._count;
-  const unverifiedTotal = unverifiedAgg._sum.amount ?? 0;
-  const monthExpenses = showExpenses ? expensesThisMonth._sum.amount ?? 0 : 0;
+  const unverifiedTotal = unverifiedAgg._sum.amountKobo ?? 0;
+  const monthExpenses = showExpenses ? expensesThisMonth._sum.amountKobo ?? 0 : 0;
   const netProfit = monthRevenue - monthExpenses;
   const profitMargin =
     monthRevenue > 0 && monthExpenses > 0
@@ -360,7 +360,7 @@ export default async function DashboardPage() {
       severity: 'critical',
       icon: TriageIcons.unverified,
       title: `${unverifiedCount} ${unverifiedCount === 1 ? 'payment needs' : 'payments need'} verification`,
-      subtitle: `${formatNaira(unverifiedTotal)} waiting for a bank-alert match`,
+      subtitle: `${formatKobo(unverifiedTotal)} waiting for a bank-alert match`,
       href: '/payments?verification=unverified',
       moneyImpact: unverifiedTotal,
     });
@@ -371,7 +371,7 @@ export default async function DashboardPage() {
       severity: 'critical',
       icon: TriageIcons.overdue,
       title: `${overdueCount} overdue ${isPm ? 'rent' : 'debt'}${overdueCount === 1 ? '' : 's'}`,
-      subtitle: `${formatNaira(overdueTotal)} past due`,
+      subtitle: `${formatKobo(overdueTotal)} past due`,
       href: '/debts?filter=overdue',
       moneyImpact: overdueTotal,
     });
@@ -382,9 +382,9 @@ export default async function DashboardPage() {
       severity: 'warning',
       icon: TriageIcons.followUp,
       title: `Follow up with ${d.name}`,
-      subtitle: `${formatNaira(d.totalOwed)} outstanding`,
+      subtitle: `${formatKobo(d.totalOwedKobo)} outstanding`,
       href: `/follow-up?customerId=${d.id}`,
-      moneyImpact: d.totalOwed,
+      moneyImpact: d.totalOwedKobo,
     });
   }
   if (!isPm && lowStockCount > 0) {
@@ -460,7 +460,7 @@ export default async function DashboardPage() {
     .map((r) => ({
       id: r.customerId!,
       name: r.customerNameSnapshot,
-      total: r._sum.amount ?? 0,
+      total: r._sum.amountKobo ?? 0,
       transactions: r._count,
     }));
 
@@ -587,7 +587,7 @@ export default async function DashboardPage() {
         <div className="grid gap-3 lg:col-span-5 lg:grid-cols-2">
           <KpiCard
             label={isPm ? 'Unpaid rent' : 'Money owed'}
-            value={formatNaira(totalOwed)}
+            value={formatKobo(totalOwed)}
             sub={overdueCount > 0 ? `${overdueCount} overdue` : 'Open balances'}
             tone={totalOwed > 0 ? 'danger' : 'neutral'}
             deltaPct={owedDelta}
@@ -618,7 +618,7 @@ export default async function DashboardPage() {
           {showExpenses && (
             <KpiCard
               label={`Net profit · ${monthLabel}`}
-              value={formatNaira(netProfit)}
+              value={formatKobo(netProfit)}
               sub={
                 profitMargin !== null
                   ? `${profitMargin}% margin · ${monthLabel}`
@@ -632,7 +632,7 @@ export default async function DashboardPage() {
           )}
           <KpiCard
             label="Avg transaction"
-            value={aov > 0 ? formatNaira(aov) : '—'}
+            value={aov > 0 ? formatKobo(aov) : '—'}
             sub={monthCount > 0 ? `${monthCount} paid · ${monthLabel}` : 'No payments yet'}
             deltaPct={aovDelta}
             icon={<Banknote size={13} />}
@@ -658,7 +658,7 @@ export default async function DashboardPage() {
               <div className="flex items-center justify-between py-2">
                 <dt className="text-slate-600">{heroLabel}</dt>
                 <dd className="num font-bold text-ink">
-                  {formatNaira(monthRevenue)}
+                  {formatKobo(monthRevenue)}
                   {monthDelta !== null && (
                     <span
                       className={
@@ -678,14 +678,14 @@ export default async function DashboardPage() {
               {showExpenses && (
                 <div className="flex items-center justify-between py-2">
                   <dt className="text-slate-600">Expenses</dt>
-                  <dd className="num font-bold text-ink">{formatNaira(monthExpenses)}</dd>
+                  <dd className="num font-bold text-ink">{formatKobo(monthExpenses)}</dd>
                 </div>
               )}
               {(autoConfirmedTodayAgg as any)?._count > 0 && (
                 <div className="flex items-center justify-between py-2">
                   <dt className="text-slate-600">Auto-confirmed today</dt>
                   <dd className="num font-bold text-success-700">
-                    {formatNaira((autoConfirmedTodayAgg as any)._sum?.amount ?? 0)}
+                    {formatKobo((autoConfirmedTodayAgg as any)._sum?.amountKobo ?? 0)}
                     <span className="ml-1 text-[11px] font-normal text-slate-500">
                       ({(autoConfirmedTodayAgg as any)._count})
                     </span>
@@ -711,7 +711,7 @@ export default async function DashboardPage() {
         <div className="space-y-3 lg:col-span-5">
           <RemindersPanel
             reminders={remindersDue.map((s) => {
-              const remaining = Math.max(s.debt.amountOwed - s.debt.amountPaid, 0);
+              const remaining = Math.max(s.debt.amountOwedKobo - s.debt.amountPaidKobo, 0);
               const paid = s.debt.status === 'PAID';
               const now2 = now.getTime();
               let status: 'due' | 'overdue' | 'upcoming' | 'cleared';

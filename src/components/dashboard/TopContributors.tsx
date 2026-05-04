@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Users, Crown } from 'lucide-react';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 
 /**
  * Top customers this month, by revenue contribution.
@@ -77,7 +77,7 @@ export function TopContributors({
                       {row.name}
                     </span>
                     <span className="num text-sm font-bold text-brand-700">
-                      {formatNaira(row.total)}
+                      {formatKobo(row.total)}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center gap-2">

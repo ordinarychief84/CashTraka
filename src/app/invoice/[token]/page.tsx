@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { effectiveInvoiceStatus } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 import { displayPhone, waLink } from '@/lib/whatsapp';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatDate } from '@/lib/format';
 import { PublicInvoicePay } from '@/components/invoices/PublicInvoicePay';
 import { virtualAccountService } from '@/lib/services/virtual-account.service';
 
@@ -102,7 +102,7 @@ export default async function PublicInvoicePage({
 
   const status = effectiveInvoiceStatus(invoice);
   const tone = STATUS_TONE[status] ?? STATUS_TONE.DRAFT;
-  const outstanding = Math.max(0, invoice.total - invoice.amountPaid);
+  const outstanding = Math.max(0, invoice.totalKobo - invoice.amountPaidKobo);
 
   // Virtual account (Tax+ tier). Returns null when none has been minted
   // for this invoice; the seller can mint one from their seller-side
@@ -124,7 +124,7 @@ export default async function PublicInvoicePage({
   // Pay-on-WhatsApp prefilled message back to the seller (asks for help).
   const helpMessage =
     `Hi ${business}, I'm looking at invoice ${invoice.invoiceNumber} ` +
-    `for ${formatNaira(invoice.total)}. ` +
+    `for ${formatKobo(invoice.totalKobo)}. ` +
     `Could you confirm payment details?`;
 
   return (
@@ -209,10 +209,10 @@ export default async function PublicInvoicePage({
                       <td className="py-1.5 pr-2 text-ink">{it.description}</td>
                       <td className="py-1.5 text-center text-slate-600">×{it.quantity}</td>
                       <td className="num py-1.5 text-right text-slate-700">
-                        {formatNaira(it.unitPrice)}
+                        {formatKobo(it.unitPriceKobo)}
                       </td>
                       <td className="num py-1.5 text-right font-semibold text-ink">
-                        {formatNaira(it.unitPrice * it.quantity)}
+                        {formatKobo(it.unitPriceKobo * it.quantity)}
                       </td>
                     </tr>
                   ))}
@@ -223,22 +223,22 @@ export default async function PublicInvoicePage({
 
           {/* Totals */}
           <div className="border-t border-border px-5 py-4 text-sm sm:px-7">
-            <Row label="Subtotal" value={formatNaira(invoice.subtotal)} />
-            {invoice.discount > 0 ? (
-              <Row label="Discount" value={`- ${formatNaira(invoice.discount)}`} />
+            <Row label="Subtotal" value={formatKobo(invoice.subtotalKobo)} />
+            {invoice.discountKobo > 0 ? (
+              <Row label="Discount" value={`- ${formatKobo(invoice.discountKobo)}`} />
             ) : null}
-            {invoice.vatApplied || invoice.tax > 0 ? (
-              <Row label={`VAT (${invoice.vatRate}%)`} value={formatNaira(invoice.tax)} />
+            {invoice.vatApplied || invoice.taxKobo > 0 ? (
+              <Row label={`VAT (${invoice.vatRate}%)`} value={formatKobo(invoice.taxKobo)} />
             ) : null}
-            {invoice.amountPaid > 0 ? (
-              <Row label="Paid so far" value={formatNaira(invoice.amountPaid)} />
+            {invoice.amountPaidKobo > 0 ? (
+              <Row label="Paid so far" value={formatKobo(invoice.amountPaidKobo)} />
             ) : null}
             <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
               <span className="font-semibold uppercase tracking-wide text-slate-500">
                 {outstanding > 0 ? 'Amount due' : 'Total'}
               </span>
               <span className="num text-2xl font-bold text-ink">
-                {formatNaira(outstanding > 0 ? outstanding : invoice.total)}
+                {formatKobo(outstanding > 0 ? outstanding : invoice.totalKobo)}
               </span>
             </div>
           </div>

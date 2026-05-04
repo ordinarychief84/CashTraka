@@ -6,10 +6,36 @@
 > - Phase 3 (additive `*Kobo` columns) — **shipped on `main`**, columns live on prod DB.
 > - Phase 4 (dual-write) — **live on prod**. Every monetary write populates both columns. Integration test (`scripts/test-dual-write.mjs`) verified 23/23 pairs against prod DB.
 > - Phase 5 (backfill) — **complete on prod**. 104 historical rows updated. Every legacy ↔ kobo pair is consistent across all 47 columns.
-> - Phase 6 (read-flip) — **partial**. The two real 100× bugs (`vat-return.service.ts`, `accountant-pack.service.ts`) are fixed and live. Other read sites still read legacy naira columns; this is correct-but-not-yet-tidy and can be migrated incrementally without urgency since the data is consistent.
-> - Phase 7 (drop legacy columns) — **not started**. Wait until Phase 6 is fully done and stable for at least 48h.
+> - Phase 6 (read-flip) — **majority shipped**. Both real 100× bugs (`vat-return.service.ts`, `accountant-pack.service.ts`) are fixed. Top-traffic readers flipped: dashboard, reports + P&L, expenses, every list page (debts, customers, payments, invoices, sales, receipts), every detail page that's seen by customers (invoice public, receipt public, receipt detail, invoice detail, vat-return detail), every PDF (receipt, invoice, VAT return), and the high-volume services (cashflow, daily-pulse, analytics, admin). Remaining readers still on naira are listed in the Phase 6 tail section below — they are visually correct (dual-write keeps both columns consistent) and can be flipped file-by-file as people touch them.
+> - Phase 7 (drop legacy columns) — **not started**. Phase 6 must reach 100% across the tail list below before this can begin.
 >
 > Branch `feature/kobo-money-migration` was fast-forward merged into `main` on 2026-05-04.
+
+## Phase 6 tail list — readers still on legacy naira columns
+
+These produce correct numbers today (Phase 4 dual-write keeps both columns in sync) but reference the legacy field names. They should be flipped before Phase 7 drops the legacy columns.
+
+- `src/app/admin/invoices/page.tsx`, `src/app/admin/invoices/[id]/page.tsx`
+- `src/app/api/cron/run-recurring-invoices/route.ts` (email body block)
+- `src/app/api/invoices/[id]/reminders/route.ts`, `src/app/api/invoices/[id]/send/route.ts` (email body blocks)
+- `src/app/collections/page.tsx`
+- `src/app/credit-notes/page.tsx`
+- `src/app/customers/[id]/page.tsx`
+- `src/app/debts/[id]/edit/page.tsx`
+- `src/app/paylinks/page.tsx`
+- `src/app/products/page.tsx` (catalog admin)
+- `src/app/promise/[token]/PromisePageClient.tsx`
+- `src/app/promises/page.tsx`, `src/app/promises/[id]/page.tsx`
+- `src/app/properties/page.tsx`, `src/app/properties/[id]/page.tsx`
+- `src/app/reminders/page.tsx`
+- `src/app/rent/page.tsx`
+- `src/app/search/page.tsx`
+- `src/app/showroom/products/page.tsx`
+- `src/app/store/[slug]/album/[albumSlug]/page.tsx`, `src/app/store/[slug]/all/page.tsx`
+- `src/components/dashboard/NewActivityCards.tsx`, `DebtProgressCards.tsx`, `WeeklyBarChart.tsx`
+- `src/lib/services/email.service.ts` — every `send*` whose body uses `naira(args.amount)`. Contract intentionally stays naira; callers convert kobo → naira at the boundary (already done for `sendDailyPulse` in `/api/cron/daily-pulse/route.ts`). Other senders need the same treatment.
+- `src/lib/whatsapp.ts` `reminderMessage` — naira contract; consumers (DebtActions, PaymentRowActions, ReceiptActions) already pass naira from the legacy column.
+- Cron `weekly-summary` — uses `_sum: { amount: true }` (still naira). Email body needs the matching boundary conversion.
 
 ## Why this exists
 

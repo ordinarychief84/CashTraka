@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { InvoiceDetailActions } from '@/components/invoices/InvoiceDetailActions';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatDate } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
@@ -41,10 +41,10 @@ export default async function InvoiceDetailPage({
   // Outstanding so the seller sees the full ledger.
   const creditAgg = await prisma.creditNote.aggregate({
     where: { invoiceId: invoice.id, userId: user.id },
-    _sum: { total: true },
+    _sum: { totalKobo: true },
   });
-  const creditedTotal = creditAgg._sum.total ?? 0;
-  const outstanding = Math.max(0, invoice.total - invoice.amountPaid - creditedTotal);
+  const creditedTotal = creditAgg._sum.totalKobo ?? 0;
+  const outstanding = Math.max(0, invoice.totalKobo - invoice.amountPaidKobo - creditedTotal);
 
   const existingFeedback = await prisma.feedback.findFirst({
     where: { userId: user.id, invoiceId: invoice.id, source: 'INVOICE' },
@@ -136,10 +136,10 @@ export default async function InvoiceDetailPage({
                       </td>
                       <td className="py-1.5 text-center text-slate-600">{it.quantity}</td>
                       <td className="num py-1.5 text-right text-slate-600">
-                        {formatNaira(it.unitPrice)}
+                        {formatKobo(it.unitPriceKobo)}
                       </td>
                       <td className="num py-1.5 text-right font-semibold text-ink">
-                        {formatNaira(it.unitPrice * it.quantity)}
+                        {formatKobo(it.unitPriceKobo * it.quantity)}
                       </td>
                     </tr>
                   ))}
@@ -150,14 +150,14 @@ export default async function InvoiceDetailPage({
             <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-600">Subtotal</span>
-                <span className="num">{formatNaira(invoice.subtotal)}</span>
+                <span className="num">{formatKobo(invoice.subtotalKobo)}</span>
               </div>
-              {invoice.vatApplied || invoice.tax > 0 ? (
+              {invoice.vatApplied || invoice.taxKobo > 0 ? (
                 <div className="flex justify-between">
                   <span className="text-slate-600">
                     VAT{invoice.vatRate ? ` (${invoice.vatRate}%)` : ''}
                   </span>
-                  <span className="num">{formatNaira(invoice.tax)}</span>
+                  <span className="num">{formatKobo(invoice.taxKobo)}</span>
                 </div>
               ) : null}
               <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
@@ -165,25 +165,25 @@ export default async function InvoiceDetailPage({
                   Total
                 </span>
                 <span className="num text-2xl font-bold text-ink">
-                  {formatNaira(invoice.total)}
+                  {formatKobo(invoice.totalKobo)}
                 </span>
               </div>
-              {invoice.amountPaid > 0 ? (
+              {invoice.amountPaidKobo > 0 ? (
                 <div className="flex justify-between text-xs text-slate-600">
                   <span>Paid</span>
-                  <span className="num">{formatNaira(invoice.amountPaid)}</span>
+                  <span className="num">{formatKobo(invoice.amountPaidKobo)}</span>
                 </div>
               ) : null}
               {creditedTotal > 0 ? (
                 <div className="flex justify-between text-xs text-slate-600">
                   <span>Credited</span>
-                  <span className="num">{formatNaira(creditedTotal)}</span>
+                  <span className="num">{formatKobo(creditedTotal)}</span>
                 </div>
               ) : null}
               {outstanding > 0 ? (
                 <div className="flex justify-between text-xs font-semibold text-red-700">
                   <span>Outstanding</span>
-                  <span className="num">{formatNaira(outstanding)}</span>
+                  <span className="num">{formatKobo(outstanding)}</span>
                 </div>
               ) : null}
             </div>

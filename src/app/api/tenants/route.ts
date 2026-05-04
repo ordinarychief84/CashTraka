@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { enforceQuota } from '@/lib/gate';
+import { nairaToKobo } from '@/lib/money';
 
 const createSchema = z.object({
   propertyId: z.string().min(1, 'Property is required'),
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
       phone,
       unitLabel: unitLabel || null,
       rentAmount,
+      rentAmountKobo: nairaToKobo(rentAmount),
       rentDueDay,
       rentFrequency,
       leaseStart: leaseStart ? new Date(leaseStart) : null,

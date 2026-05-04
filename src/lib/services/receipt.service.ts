@@ -8,6 +8,7 @@ import { RECEIPT_STATUS } from '@/lib/constants/receipt-status';
 import { uploadPdf } from '@/lib/uploadcare/upload';
 import { emailService } from './email.service';
 import { feedbackService } from './feedback.service';
+import { nairaToKobo } from '@/lib/money';
 
 /**
  * Receipt lifecycle:
@@ -212,6 +213,8 @@ export const receiptService = {
       pdfUrl,
       status: RECEIPT_STATUS.GENERATED,
       balanceRemaining: effectiveBalance && effectiveBalance > 0 ? effectiveBalance : null,
+      balanceRemainingKobo:
+        effectiveBalance && effectiveBalance > 0 ? nairaToKobo(effectiveBalance) : null,
       source: opts?.source ?? 'MANUAL',
     });
 

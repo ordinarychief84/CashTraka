@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { requirePermission } from '@/lib/auth';
 import { authFail } from '@/lib/api-response';
+import { nairaToKobo } from '@/lib/money';
 
 
 const patchSchema = z.object({
@@ -59,6 +60,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       role: orNull(d.role, member.role),
       payType: d.payType ?? member.payType,
       payAmount: d.payAmount ?? member.payAmount,
+      payAmountKobo: nairaToKobo(d.payAmount ?? member.payAmount),
       startDate:
         d.startDate !== undefined
           ? d.startDate

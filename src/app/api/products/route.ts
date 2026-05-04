@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { productSchema } from '@/lib/validators';
 import { requireFeature } from '@/lib/gate';
+import { nairaToKobo } from '@/lib/money';
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -36,7 +37,9 @@ export async function POST(req: Request) {
       userId: user.id,
       name: name.trim(),
       price,
+      priceKobo: nairaToKobo(price),
       cost: cost ?? null,
+      costKobo: cost == null ? null : nairaToKobo(cost),
       stock,
       trackStock,
       lowStockAt,

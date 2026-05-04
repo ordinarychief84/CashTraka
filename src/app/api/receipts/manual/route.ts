@@ -7,6 +7,7 @@ import { upsertCustomer } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { receiptService } from '@/lib/services/receipt.service';
 import { nextInvoiceNumber } from '@/lib/invoice-number';
+import { nairaToKobo } from '@/lib/money';
 
 export const runtime = 'nodejs';
 
@@ -101,6 +102,7 @@ export const POST = (req: Request) =>
         customerNameSnapshot: parsed.data.customerName.trim(),
         phoneSnapshot: normalizedPhone,
         amount: total,
+        amountKobo: nairaToKobo(total),
         status: 'PAID',
         verified: true,
         verifiedAt: new Date(),
@@ -109,6 +111,7 @@ export const POST = (req: Request) =>
           create: parsed.data.items.map((it) => ({
             description: it.description,
             unitPrice: it.unitPrice,
+            unitPriceKobo: nairaToKobo(it.unitPrice),
             quantity: it.quantity,
           })),
         },
@@ -139,6 +142,9 @@ export const POST = (req: Request) =>
           subtotal,
           tax: vatAmount,
           total,
+          subtotalKobo: nairaToKobo(subtotal),
+          taxKobo: nairaToKobo(vatAmount),
+          totalKobo: nairaToKobo(total),
           vatApplied: true,
           vatRate,
           currency: 'NGN',
@@ -149,6 +155,7 @@ export const POST = (req: Request) =>
             create: parsed.data.items.map((it) => ({
               description: it.description,
               unitPrice: it.unitPrice,
+              unitPriceKobo: nairaToKobo(it.unitPrice),
               quantity: it.quantity,
               itemType: 'GOODS',
             })),

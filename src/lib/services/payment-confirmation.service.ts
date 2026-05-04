@@ -21,6 +21,7 @@ import { emailService } from './email.service';
 import { installmentService } from './installment.service';
 import { documentAudit } from './document-audit.service';
 import { feedbackService } from './feedback.service';
+import { nairaToKobo } from '@/lib/money';
 
 export type ConfirmPaymentInput = {
   provider: PaymentProvider;
@@ -130,6 +131,7 @@ export const paymentConfirmationService = {
       where: { id: promise.id },
       data: {
         remainingAmount: newRemaining,
+        remainingAmountKobo: nairaToKobo(newRemaining),
         status: newStatus,
         lastActionAt: now,
       },
@@ -143,7 +145,11 @@ export const paymentConfirmationService = {
         const debtStatus = newAmountPaid >= debt.amountOwed ? 'CLOSED' : 'OPEN';
         await prisma.debt.update({
           where: { id: debt.id },
-          data: { amountPaid: newAmountPaid, status: debtStatus },
+          data: {
+            amountPaid: newAmountPaid,
+            amountPaidKobo: nairaToKobo(newAmountPaid),
+            status: debtStatus,
+          },
         });
       }
     }
@@ -156,6 +162,7 @@ export const paymentConfirmationService = {
         customerNameSnapshot: promise.customerNameSnapshot,
         phoneSnapshot: promise.phoneSnapshot,
         amount: promisePayment.amount,
+        amountKobo: nairaToKobo(promisePayment.amount),
         status: 'PAID',
         verified: true,
         verifiedAt: now,
@@ -174,6 +181,7 @@ export const paymentConfirmationService = {
         where: { id: promise.customerId },
         data: {
           totalPaid: { increment: promisePayment.amount },
+          totalPaidKobo: { increment: nairaToKobo(promisePayment.amount) },
           transactionCount: { increment: 1 },
           lastActivityAt: now,
         },
@@ -277,6 +285,7 @@ export const paymentConfirmationService = {
         customerNameSnapshot: paymentRequest.customerName,
         phoneSnapshot: paymentRequest.customerPhone,
         amount: paymentRequest.amount,
+        amountKobo: nairaToKobo(paymentRequest.amount),
         status: 'PAID',
         verified: true,
         verifiedAt: now,
@@ -295,6 +304,7 @@ export const paymentConfirmationService = {
         where: { id: paymentRequest.customerId },
         data: {
           totalPaid: { increment: paymentRequest.amount },
+          totalPaidKobo: { increment: nairaToKobo(paymentRequest.amount) },
           transactionCount: { increment: 1 },
           lastActivityAt: now,
         },
@@ -309,7 +319,11 @@ export const paymentConfirmationService = {
         const debtStatus = newAmountPaid >= debt.amountOwed ? 'CLOSED' : 'OPEN';
         await prisma.debt.update({
           where: { id: debt.id },
-          data: { amountPaid: newAmountPaid, status: debtStatus },
+          data: {
+            amountPaid: newAmountPaid,
+            amountPaidKobo: nairaToKobo(newAmountPaid),
+            status: debtStatus,
+          },
         });
       }
     }
@@ -431,6 +445,7 @@ export const paymentConfirmationService = {
           customerNameSnapshot: plan.customerNameSnapshot,
           phoneSnapshot: plan.phoneSnapshot,
           amount: confirmedAmount,
+          amountKobo: nairaToKobo(confirmedAmount),
           status: 'PAID',
           verified: true,
           verifiedAt: now,
@@ -459,6 +474,7 @@ export const paymentConfirmationService = {
             where: { id: promise.id },
             data: {
               remainingAmount: newRemaining,
+              remainingAmountKobo: nairaToKobo(newRemaining),
               status: newStatus,
               lastActionAt: now,
             },
@@ -474,7 +490,11 @@ export const paymentConfirmationService = {
           const debtStatus = newAmountPaid >= debt.amountOwed ? 'CLOSED' : 'OPEN';
           await tx.debt.update({
             where: { id: debt.id },
-            data: { amountPaid: newAmountPaid, status: debtStatus },
+            data: {
+              amountPaid: newAmountPaid,
+              amountPaidKobo: nairaToKobo(newAmountPaid),
+              status: debtStatus,
+            },
           });
         }
       }
@@ -485,6 +505,7 @@ export const paymentConfirmationService = {
           where: { id: plan.customerId },
           data: {
             totalPaid: { increment: confirmedAmount },
+            totalPaidKobo: { increment: nairaToKobo(confirmedAmount) },
             transactionCount: { increment: 1 },
             lastActivityAt: now,
           },
@@ -629,6 +650,7 @@ export const paymentConfirmationService = {
         where: { id: fresh.id },
         data: {
           amountPaid: newAmountPaid,
+          amountPaidKobo: nairaToKobo(newAmountPaid),
           status: nextStatus,
           paidAt,
         },
@@ -641,6 +663,7 @@ export const paymentConfirmationService = {
           customerNameSnapshot: fresh.customerName,
           phoneSnapshot: fresh.customerPhone,
           amount: paidAmount,
+          amountKobo: nairaToKobo(paidAmount),
           status: 'PAID',
           verified: true,
           verifiedAt: now,
@@ -661,6 +684,7 @@ export const paymentConfirmationService = {
           where: { id: fresh.customerId },
           data: {
             totalPaid: { increment: paidAmount },
+            totalPaidKobo: { increment: nairaToKobo(paidAmount) },
             transactionCount: { increment: 1 },
             lastActivityAt: now,
           },

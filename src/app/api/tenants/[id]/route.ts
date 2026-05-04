@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { nairaToKobo } from '@/lib/money';
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).optional(),
@@ -41,7 +42,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       ...(d.name !== undefined && { name: d.name }),
       ...(d.phone !== undefined && { phone: d.phone }),
       ...(d.unitLabel !== undefined && { unitLabel: d.unitLabel || null }),
-      ...(d.rentAmount !== undefined && { rentAmount: d.rentAmount }),
+      ...(d.rentAmount !== undefined && {
+        rentAmount: d.rentAmount,
+        rentAmountKobo: nairaToKobo(d.rentAmount),
+      }),
       ...(d.rentDueDay !== undefined && { rentDueDay: d.rentDueDay }),
       ...(d.rentFrequency !== undefined && { rentFrequency: d.rentFrequency }),
       ...(d.leaseStart !== undefined && { leaseStart: d.leaseStart ? new Date(d.leaseStart) : null }),

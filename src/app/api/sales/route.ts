@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { recordSaleSchema } from '@/lib/validators';
 import { emailService } from '@/lib/services/email.service';
+import { nairaToKobo } from '@/lib/money';
 
 /** Generate next sale number like SLE-00042 */
 async function nextSaleNumber(userId: string): Promise<string> {
@@ -101,6 +102,10 @@ export async function POST(req: Request) {
         tax: 0,
         discount: discount || 0,
         total,
+        subtotalKobo: nairaToKobo(subtotal),
+        taxKobo: 0,
+        discountKobo: nairaToKobo(discount || 0),
+        totalKobo: nairaToKobo(total),
         paymentMethod,
         note: note || null,
         soldAt: new Date(),
@@ -111,6 +116,8 @@ export async function POST(req: Request) {
             unitPrice: li.unitPrice,
             quantity: li.quantity,
             total: li.total,
+            unitPriceKobo: nairaToKobo(li.unitPrice),
+            totalKobo: nairaToKobo(li.total),
           })),
         },
       },

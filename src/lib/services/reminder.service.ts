@@ -11,6 +11,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { nairaToKobo } from '@/lib/money';
 import {
   paymentReminderLink,
   type ReminderTone,
@@ -213,6 +214,7 @@ export const reminderService = {
           customerName: debt.customerNameSnapshot,
           customerPhone: debt.phoneSnapshot,
           amount: remaining,
+          amountKobo: nairaToKobo(remaining),
           channel: rule.channel,
           tone,
           deliveryRef: waLink,

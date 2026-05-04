@@ -4,6 +4,7 @@ import { requireAdmin, requireAdminOrStaff } from '@/lib/auth';
 import { adminCan } from '@/lib/admin-rbac';
 import type { AdminRole } from '@/lib/admin-rbac';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { nairaToKobo } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,6 +94,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
       data.status = 'PAID';
       data.paidAt = new Date();
       data.amountPaid = invoice.total;
+      data.amountPaidKobo = nairaToKobo(invoice.total);
       docAction = 'PAID';
     } else if (action === 'force-cancelled') {
       data.status = 'CANCELLED';

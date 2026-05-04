@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { nairaToKobo } from '@/lib/money';
 
 const createSchema = z.object({
   tenantId: z.string().min(1, 'Tenant is required'),
@@ -44,6 +45,7 @@ export async function POST(req: Request) {
       where: { id: existing.id },
       data: {
         amount,
+        amountKobo: nairaToKobo(amount),
         status,
         note: note || null,
         paidAt: status === 'PAID' ? new Date() : existing.paidAt,
@@ -57,6 +59,7 @@ export async function POST(req: Request) {
       userId: user.id,
       tenantId,
       amount,
+      amountKobo: nairaToKobo(amount),
       period,
       status,
       note: note || null,

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { nairaToKobo } from '@/lib/money';
 
 const patchSchema = z.object({
   amount: z.coerce.number().int().positive().optional(),
@@ -32,7 +33,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   await prisma.rentPayment.update({
     where: { id: payment.id },
     data: {
-      ...(d.amount !== undefined && { amount: d.amount }),
+      ...(d.amount !== undefined && {
+        amount: d.amount,
+        amountKobo: nairaToKobo(d.amount),
+      }),
       ...(d.status !== undefined && { status: d.status }),
       ...(d.note !== undefined && { note: d.note || null }),
       ...(d.status === 'PAID' && !payment.paidAt && { paidAt: new Date() }),

@@ -12,6 +12,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { nairaToKobo } from '@/lib/money';
 
 export type ScoreBreakdown = {
   score: number;
@@ -154,6 +155,8 @@ export const collectionScoreService = {
         avgCollectionDays,
         collectedAmount,
         outstandingAmount,
+        collectedAmountKobo: nairaToKobo(collectedAmount),
+        outstandingAmountKobo: nairaToKobo(outstandingAmount),
         activeReminders,
         periodStart: windowStart,
         periodEnd: now,
@@ -164,6 +167,8 @@ export const collectionScoreService = {
         avgCollectionDays,
         collectedAmount,
         outstandingAmount,
+        collectedAmountKobo: nairaToKobo(collectedAmount),
+        outstandingAmountKobo: nairaToKobo(outstandingAmount),
         activeReminders,
         periodEnd: now,
       },

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { recomputeCustomerTotals } from '@/lib/customers';
+import { nairaToKobo } from '@/lib/money';
 
 const schema = z.object({
   amount: z.coerce.number().int().positive('Amount must be greater than 0'),
@@ -56,12 +57,17 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         customerNameSnapshot: debt.customerNameSnapshot,
         phoneSnapshot: debt.phoneSnapshot,
         amount,
+        amountKobo: nairaToKobo(amount),
         status: 'PAID',
       },
     }),
     prisma.debt.update({
       where: { id: debt.id },
-      data: { amountPaid: newAmountPaid, status: nextStatus },
+      data: {
+        amountPaid: newAmountPaid,
+        amountPaidKobo: nairaToKobo(newAmountPaid),
+        status: nextStatus,
+      },
     }),
   ]);
 

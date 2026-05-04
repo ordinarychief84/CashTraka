@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import type { Expense } from '@prisma/client';
+import { nairaToKobo } from '@/lib/money';
 
 export type ExpenseSummary = {
   todayTotal: number;
@@ -89,6 +90,7 @@ export const expenseService = {
       data: {
         userId,
         amount: data.amount,
+        amountKobo: nairaToKobo(data.amount),
         category: data.category,
         note: data.note || null,
         incurredOn: data.incurredOn ? new Date(data.incurredOn) : new Date(),
@@ -129,7 +131,10 @@ export const expenseService = {
     return prisma.expense.update({
       where: { id },
       data: {
-        ...(data.amount !== undefined && { amount: data.amount }),
+        ...(data.amount !== undefined && {
+          amount: data.amount,
+          amountKobo: nairaToKobo(data.amount),
+        }),
         ...(data.category !== undefined && { category: data.category }),
         ...(data.note !== undefined && { note: data.note || null }),
         ...(data.incurredOn !== undefined && {

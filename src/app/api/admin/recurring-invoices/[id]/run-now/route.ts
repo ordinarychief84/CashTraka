@@ -9,6 +9,7 @@ import {
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
+import { nairaToKobo } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
@@ -136,6 +137,10 @@ export async function POST(_req: Request, ctx: Ctx) {
               discount: totals.discount,
               tax: totals.tax,
               total: totals.total,
+              subtotalKobo: nairaToKobo(totals.subtotal),
+              discountKobo: nairaToKobo(totals.discount),
+              taxKobo: nairaToKobo(totals.tax),
+              totalKobo: nairaToKobo(totals.total),
               vatApplied: tpl.applyVat,
               vatRate: totals.vatRate,
               note: tpl.note,
@@ -147,6 +152,7 @@ export async function POST(_req: Request, ctx: Ctx) {
                   productId: it.productId || null,
                   description: it.description,
                   unitPrice: it.unitPrice,
+                  unitPriceKobo: nairaToKobo(it.unitPrice),
                   quantity: it.quantity,
                   itemType: 'GOODS',
                 })),

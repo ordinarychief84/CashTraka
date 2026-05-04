@@ -7,6 +7,7 @@ import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { enforceQuota } from '@/lib/gate';
 import { debtService } from '@/lib/services/debt.service';
 import { handled, ok } from '@/lib/api-response';
+import { nairaToKobo } from '@/lib/money';
 
 /** GET /api/debts, paginated list of the user's debts. */
 export const GET = (req: Request) =>
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
       customerNameSnapshot: customerName.trim(),
       phoneSnapshot: normalizedPhone,
       amountOwed,
+      amountOwedKobo: nairaToKobo(amountOwed),
       dueDate: dueDate ? new Date(dueDate) : null,
     },
   });

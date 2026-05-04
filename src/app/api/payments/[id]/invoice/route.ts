@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { handled, ok, validationFail } from '@/lib/api-response';
 import { Err } from '@/lib/errors';
 import { nextInvoiceNumber } from '@/lib/invoice-number';
+import { nairaToKobo } from '@/lib/money';
 
 export const runtime = 'nodejs';
 
@@ -85,6 +86,9 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
         subtotal,
         tax,
         total,
+        subtotalKobo: nairaToKobo(subtotal),
+        taxKobo: nairaToKobo(tax),
+        totalKobo: nairaToKobo(total),
         note: parsed.data.note ?? null,
         dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
         paidAt: payment.status === 'PAID' ? new Date() : null,
@@ -96,6 +100,7 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
                   productId: it.productId ?? null,
                   description: it.description,
                   unitPrice: it.unitPrice,
+                  unitPriceKobo: nairaToKobo(it.unitPrice),
                   quantity: it.quantity,
                   itemType: 'GOODS',
                 })),
@@ -105,6 +110,7 @@ export const POST = (req: Request, ctx: { params: { id: string } }) =>
                   {
                     description: 'Payment received',
                     unitPrice: payment.amount,
+                    unitPriceKobo: nairaToKobo(payment.amount),
                     quantity: 1,
                     itemType: 'SERVICE',
                   },

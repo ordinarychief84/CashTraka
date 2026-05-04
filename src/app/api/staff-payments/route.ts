@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requirePermission } from '@/lib/auth';
 import { authFail } from '@/lib/api-response';
 import { requireFeature } from '@/lib/gate';
+import { nairaToKobo } from '@/lib/money';
 
 
 /**
@@ -71,6 +72,7 @@ export async function POST(req: Request) {
       staffId: staff.id,
       kind: d.kind,
       amount: d.amount,
+      amountKobo: nairaToKobo(d.amount),
       periodStart: d.periodStart ? new Date(d.periodStart) : null,
       periodEnd: d.periodEnd ? new Date(d.periodEnd) : null,
       note: d.note || null,
@@ -88,6 +90,7 @@ export async function POST(req: Request) {
         data: {
           userId: user.id,
           amount: d.amount,
+          amountKobo: nairaToKobo(d.amount),
           category: 'Payroll',
           note: `${d.kind === 'salary' ? 'Salary' : d.kind[0].toUpperCase() + d.kind.slice(1)}, ${staff.name}${d.note ? ' · ' + d.note : ''}`,
           incurredOn: paidAt,

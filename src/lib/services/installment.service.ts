@@ -13,6 +13,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { nairaToKobo } from '@/lib/money';
 
 export type InstallmentInterval = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
 
@@ -104,6 +105,11 @@ export const installmentService = {
         remainingAmount,
         initialAmount: input.initialAmount,
         recurringAmount: input.recurringAmount,
+        totalAmountKobo: nairaToKobo(input.totalAmount),
+        remainingAmountKobo: nairaToKobo(remainingAmount),
+        initialAmountKobo:
+          input.initialAmount == null ? null : nairaToKobo(input.initialAmount),
+        recurringAmountKobo: nairaToKobo(input.recurringAmount),
         interval: input.interval,
         totalInstallments: input.totalInstallments,
         completedInstallments: initialPaid > 0 ? 1 : 0,
@@ -156,6 +162,7 @@ export const installmentService = {
       where: { id: planId },
       data: {
         remainingAmount: newRemaining,
+        remainingAmountKobo: nairaToKobo(newRemaining),
         completedInstallments: newCompletedCount,
         lastChargedAt: now,
         failedAttempts: 0, // reset on success

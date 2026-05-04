@@ -7,6 +7,7 @@ import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { receiptService } from '@/lib/services/receipt.service';
 import { debtService } from '@/lib/services/debt.service';
 import { handled, ok } from '@/lib/api-response';
+import { nairaToKobo } from '@/lib/money';
 
 /** GET /api/debts/[id], single debt detail. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
@@ -81,6 +82,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           customerNameSnapshot: nameSnapshot,
           phoneSnapshot,
           amount: remaining,
+          amountKobo: nairaToKobo(remaining),
           status: 'PAID',
           verified: true,
           verifiedAt: new Date(),
@@ -92,6 +94,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
   }
 
+  const nextAmountPaid = transitioningToPaid ? nextAmountOwed : cappedAmountPaid;
   await prisma.debt.update({
     where: { id: debt.id },
     data: {
@@ -99,7 +102,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       customerNameSnapshot: nameSnapshot,
       phoneSnapshot,
       amountOwed: nextAmountOwed,
-      amountPaid: transitioningToPaid ? nextAmountOwed : cappedAmountPaid,
+      amountOwedKobo: nairaToKobo(nextAmountOwed),
+      amountPaid: nextAmountPaid,
+      amountPaidKobo: nairaToKobo(nextAmountPaid),
       dueDate: dueDate === undefined ? debt.dueDate : dueDate ? new Date(dueDate) : null,
       status: status ?? debt.status,
     },

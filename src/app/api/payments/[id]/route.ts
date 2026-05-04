@@ -7,6 +7,7 @@ import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { paymentService } from '@/lib/services/payment.service';
 import { receiptService } from '@/lib/services/receipt.service';
 import { handled, ok } from '@/lib/api-response';
+import { nairaToKobo } from '@/lib/money';
 
 const patchSchema = z.object({
   customerName: z.string().trim().min(1).optional(),
@@ -59,13 +60,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
   const prevCustomerId = payment.customerId;
 
+  const nextAmount = amount ?? payment.amount;
   await prisma.payment.update({
     where: { id: payment.id },
     data: {
       customerId,
       customerNameSnapshot: nameSnapshot,
       phoneSnapshot,
-      amount: amount ?? payment.amount,
+      amount: nextAmount,
+      amountKobo: nairaToKobo(nextAmount),
       status: status ?? payment.status,
     },
   });

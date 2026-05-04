@@ -10,6 +10,7 @@ import {
   withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { nairaToKobo } from '@/lib/money';
 
 export const runtime = 'nodejs';
 
@@ -122,6 +123,9 @@ export async function POST(req: Request) {
         subtotal: totals.subtotal,
         taxAmount: totals.tax,
         total: totals.total,
+        subtotalKobo: nairaToKobo(totals.subtotal),
+        taxAmountKobo: nairaToKobo(totals.tax),
+        totalKobo: nairaToKobo(totals.total),
         notes: data.notes || null,
         publicToken: makePublicToken(),
         items: {
@@ -129,6 +133,7 @@ export async function POST(req: Request) {
             productId: it.productId || null,
             description: it.description,
             unitPrice: it.unitPrice,
+            unitPriceKobo: nairaToKobo(it.unitPrice),
             quantity: it.quantity,
           })),
         },

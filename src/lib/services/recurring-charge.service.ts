@@ -25,6 +25,7 @@ import { prisma } from '@/lib/prisma';
 import { paystackCustomerAdapter } from './paystack-customer.service';
 import { installmentService } from './installment.service';
 import { ensureProvidersRegistered } from './provider-registry';
+import { nairaToKobo } from '@/lib/money';
 
 export type ChargeRunResult = {
   plansEvaluated: number;
@@ -156,6 +157,7 @@ export const recurringChargeService = {
         installmentPlanId: planId,
         userId: plan.userId,
         amount: chargeAmount,
+        amountKobo: nairaToKobo(chargeAmount),
         reference,
         status: 'PENDING',
       },

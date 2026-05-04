@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requirePermission } from '@/lib/auth';
 import { authFail } from '@/lib/api-response';
 import { enforceQuota } from '@/lib/gate';
+import { nairaToKobo } from '@/lib/money';
 
 
 const staffSchema = z.object({
@@ -72,6 +73,7 @@ export async function POST(req: Request) {
       role: d.role || null,
       payType: d.payType,
       payAmount: d.payAmount,
+      payAmountKobo: nairaToKobo(d.payAmount),
       startDate: d.startDate ? new Date(d.startDate) : null,
       bankName: d.bankName || null,
       bankAccountNumber: d.bankAccountNumber || null,

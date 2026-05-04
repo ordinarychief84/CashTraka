@@ -13,6 +13,7 @@ import {
   withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { nairaToKobo } from '@/lib/money';
 
 /**
  * GET /api/invoices?q=
@@ -176,6 +177,10 @@ export async function POST(req: Request) {
         discount: totals.discount,
         tax: totals.tax,
         total: totals.total,
+        subtotalKobo: nairaToKobo(totals.subtotal),
+        discountKobo: nairaToKobo(totals.discount),
+        taxKobo: nairaToKobo(totals.tax),
+        totalKobo: nairaToKobo(totals.total),
         vatApplied: vatOn,
         vatRate: totals.vatRate,
         note: note || null,
@@ -186,6 +191,7 @@ export async function POST(req: Request) {
             productId: it.productId || null,
             description: it.description,
             unitPrice: it.unitPrice,
+            unitPriceKobo: nairaToKobo(it.unitPrice),
             quantity: it.quantity,
             itemType: it.itemType ?? 'GOODS',
             hsCode: it.hsCode || null,

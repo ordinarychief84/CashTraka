@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { upsertCustomer, recomputeCustomerTotals } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { debtRepo } from '@/lib/repositories/debt.repository';
+import { nairaToKobo } from '@/lib/money';
 
 export const debtService = {
   listForUser: async (
@@ -39,6 +40,7 @@ export const debtService = {
         customerNameSnapshot: customerName.trim(),
         phoneSnapshot: normalizedPhone,
         amountOwed,
+        amountOwedKobo: nairaToKobo(amountOwed),
         dueDate: dueDate ? new Date(dueDate) : null,
       },
     });
@@ -59,6 +61,7 @@ export const debtService = {
     const updated = await debtRepo.update(debt.id, {
       status: 'PAID',
       amountPaid: debt.amountOwed,
+      amountPaidKobo: nairaToKobo(debt.amountOwed),
     });
     await recomputeCustomerTotals(debt.customerId);
 

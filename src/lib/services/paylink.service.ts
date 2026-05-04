@@ -3,6 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
+import { nairaToKobo } from '@/lib/money';
 
 async function nextLinkNumber(_userId: string): Promise<string> {
   // Query ALL users — linkNumber has a GLOBAL unique constraint
@@ -89,6 +90,7 @@ export const paylinkService = {
         customerName: args.customerName,
         customerPhone: args.customerPhone,
         amount: args.amount,
+        amountKobo: nairaToKobo(args.amount),
         description: args.description || null,
         debtId: args.debtId || null,
         linkNumber,

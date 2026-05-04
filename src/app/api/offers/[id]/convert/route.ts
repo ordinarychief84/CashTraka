@@ -8,6 +8,7 @@ import {
   withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { nairaToKobo } from '@/lib/money';
 
 export const runtime = 'nodejs';
 
@@ -88,12 +89,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             subtotal: offer.subtotal,
             tax: offer.taxAmount,
             total: offer.total,
+            subtotalKobo: nairaToKobo(offer.subtotal),
+            taxKobo: nairaToKobo(offer.taxAmount),
+            totalKobo: nairaToKobo(offer.total),
             dueDate: parsed.data.dueDate ? new Date(parsed.data.dueDate) : null,
             items: {
               create: offer.items.map((it) => ({
                 productId: it.productId || null,
                 description: it.description,
                 unitPrice: it.unitPrice,
+                unitPriceKobo: nairaToKobo(it.unitPrice),
                 quantity: it.quantity,
                 itemType: 'GOODS',
               })),
@@ -150,6 +155,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           orderNumber,
           status: 'CONFIRMED',
           total: offer.total,
+          totalKobo: nairaToKobo(offer.total),
           notes: offer.notes,
         },
       });

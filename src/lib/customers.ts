@@ -2,6 +2,7 @@ import { prisma } from './prisma';
 import { normalizeNigerianPhone } from './whatsapp';
 import { Err } from './errors';
 import { limitsFor, effectivePlan } from './plan-limits';
+import { nairaToKobo } from './money';
 
 /**
  * Upsert a customer by (userId, normalized phone). Returns the customer.
@@ -106,12 +107,16 @@ export async function recomputeCustomerTotals(customerId: string) {
   // Outstanding balance = sum(amountOwed) − sum(amountPaid) across OPEN debts.
   const totalOwed =
     (owedAgg._sum.amountOwed ?? 0) - (owedAgg._sum.amountPaid ?? 0);
+  const totalPaid = paidAgg._sum.amount ?? 0;
+  const totalOwedClamped = Math.max(totalOwed, 0);
 
   await prisma.customer.update({
     where: { id: customerId },
     data: {
-      totalPaid: paidAgg._sum.amount ?? 0,
-      totalOwed: Math.max(totalOwed, 0),
+      totalPaid,
+      totalOwed: totalOwedClamped,
+      totalPaidKobo: nairaToKobo(totalPaid),
+      totalOwedKobo: nairaToKobo(totalOwedClamped),
       transactionCount: paymentCount + debtCount,
       lastActivityAt: last as Date,
     },

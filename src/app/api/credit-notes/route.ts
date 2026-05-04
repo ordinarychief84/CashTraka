@@ -10,6 +10,7 @@ import {
   withDocumentNumberRetry,
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
+import { nairaToKobo } from '@/lib/money';
 
 /**
  * Tax+ two-person rule threshold for credit notes. Notes with a total
@@ -187,6 +188,9 @@ export async function POST(req: Request) {
           subtotal,
           taxAmount,
           total,
+          subtotalKobo: nairaToKobo(subtotal),
+          taxAmountKobo: nairaToKobo(taxAmount),
+          totalKobo: nairaToKobo(total),
           publicToken: makePublicToken(),
           approvedById,
         },

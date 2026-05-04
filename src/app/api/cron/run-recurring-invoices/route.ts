@@ -11,6 +11,7 @@ import { normalizeNigerianPhone, waLink } from '@/lib/whatsapp';
 import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 import { emailService } from '@/lib/services/email.service';
 import { formatNaira } from '@/lib/format';
+import { nairaToKobo } from '@/lib/money';
 
 export const runtime = 'nodejs';
 
@@ -165,6 +166,10 @@ export async function GET(req: Request) {
                 discount: totals.discount,
                 tax: totals.tax,
                 total: totals.total,
+                subtotalKobo: nairaToKobo(totals.subtotal),
+                discountKobo: nairaToKobo(totals.discount),
+                taxKobo: nairaToKobo(totals.tax),
+                totalKobo: nairaToKobo(totals.total),
                 vatApplied: tpl.applyVat,
                 vatRate: totals.vatRate,
                 note: tpl.note,
@@ -176,6 +181,7 @@ export async function GET(req: Request) {
                     productId: it.productId || null,
                     description: it.description,
                     unitPrice: it.unitPrice,
+                    unitPriceKobo: nairaToKobo(it.unitPrice),
                     quantity: it.quantity,
                     itemType: 'GOODS',
                   })),

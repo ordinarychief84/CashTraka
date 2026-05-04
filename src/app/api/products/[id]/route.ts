@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { productSchema } from '@/lib/validators';
+import { nairaToKobo } from '@/lib/money';
 
 const patchSchema = productSchema.partial().extend({
   archived: z.coerce.boolean().optional(),
@@ -45,12 +46,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     nextStock = Math.max(product.stock + stockDelta, 0);
   }
 
+  const nextPrice = price ?? product.price;
+  const nextCost = cost === undefined ? product.cost : cost;
   await prisma.product.update({
     where: { id: product.id },
     data: {
       name: name?.trim() ?? product.name,
-      price: price ?? product.price,
-      cost: cost === undefined ? product.cost : cost,
+      price: nextPrice,
+      priceKobo: nairaToKobo(nextPrice),
+      cost: nextCost,
+      costKobo: nextCost == null ? null : nairaToKobo(nextCost),
       stock: nextStock,
       trackStock: trackStock ?? product.trackStock,
       lowStockAt: lowStockAt ?? product.lowStockAt,

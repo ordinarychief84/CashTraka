@@ -6,6 +6,7 @@ import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { generateRefCode } from '@/lib/ref-code';
 import { paymentRepo } from '@/lib/repositories/payment.repository';
 import { receiptService } from './receipt.service';
+import { nairaToKobo } from '@/lib/money';
 
 /** Generate a reference code that doesn't collide with an existing one. */
 async function uniqueRefCode(): Promise<string> {
@@ -65,6 +66,7 @@ export const paymentService = {
           customerNameSnapshot: customerName.trim(),
           phoneSnapshot: normalizedPhone,
           amount,
+          amountKobo: nairaToKobo(amount),
           status,
           referenceCode,
           items: items.length
@@ -73,6 +75,7 @@ export const paymentService = {
                   productId: it.productId || null,
                   description: it.description,
                   unitPrice: it.unitPrice,
+                  unitPriceKobo: nairaToKobo(it.unitPrice),
                   quantity: it.quantity,
                 })),
               }

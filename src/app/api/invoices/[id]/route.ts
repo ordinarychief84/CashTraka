@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { nairaToKobo } from '@/lib/money';
 
 const patchSchema = z.object({
   status: z.enum(['DRAFT', 'SENT', 'PAID', 'CANCELLED']).optional(),
@@ -29,14 +30,18 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
   const { status, note, dueDate, tax } = parsed.data;
 
+  const nextTax = tax !== undefined ? tax : invoice.tax;
+  const nextTotal = tax !== undefined ? invoice.subtotal + tax : invoice.total;
   await prisma.invoice.update({
     where: { id: invoice.id },
     data: {
       status: status ?? invoice.status,
       note: note !== undefined ? note || null : invoice.note,
       dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : invoice.dueDate,
-      tax: tax !== undefined ? tax : invoice.tax,
-      total: tax !== undefined ? invoice.subtotal + tax : invoice.total,
+      tax: nextTax,
+      taxKobo: nairaToKobo(nextTax),
+      total: nextTotal,
+      totalKobo: nairaToKobo(nextTotal),
       paidAt: status === 'PAID' ? new Date() : invoice.paidAt,
     },
   });

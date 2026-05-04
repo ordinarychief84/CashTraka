@@ -9,6 +9,7 @@ import { Err } from '@/lib/errors';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { paymentProviderService } from './payment-provider.service';
 import { ensureProvidersRegistered } from './provider-registry';
+import { nairaToKobo } from '@/lib/money';
 
 export type CreatePromiseInput = {
   userId: string;
@@ -71,6 +72,8 @@ export const promiseToPayService = {
         phoneSnapshot: phone,
         originalAmount: input.amount,
         remainingAmount: input.amount,
+        originalAmountKobo: nairaToKobo(input.amount),
+        remainingAmountKobo: nairaToKobo(input.amount),
         status: 'OPEN',
         note: input.note || null,
       },
@@ -203,6 +206,7 @@ export const promiseToPayService = {
         provider: providerName,
         providerReference: reference,
         amount: input.amount,
+        amountKobo: nairaToKobo(input.amount),
         status: 'PENDING',
       },
     });

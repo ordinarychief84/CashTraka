@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { nairaToKobo } from '@/lib/money';
 
 /** GET /api/admin/refunds, List all refunds with pagination */
 export async function GET(req: Request) {
@@ -123,6 +124,7 @@ export async function POST(req: Request) {
         userId,
         paymentAttemptId: paymentAttemptId || null,
         amount,
+        amountKobo: nairaToKobo(amount),
         reason,
         status: 'pending',
       },

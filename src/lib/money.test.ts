@@ -14,7 +14,7 @@
 import {
   nairaToKobo,
   koboToNaira,
-  formatNaira,
+  formatKobo,
   safeMoneyInputToKobo,
 } from './money';
 
@@ -82,29 +82,29 @@ describe('koboToNaira', () => {
   });
 });
 
-describe('formatNaira', () => {
+describe('formatKobo', () => {
   it('formats whole-naira amounts without decimal', () => {
-    expect(formatNaira(10_000)).toBe('₦100');
-    expect(formatNaira(1_250_000)).toBe('₦12,500');
-    expect(formatNaira(0)).toBe('₦0');
+    expect(formatKobo(10_000)).toBe('₦100');
+    expect(formatKobo(1_250_000)).toBe('₦12,500');
+    expect(formatKobo(0)).toBe('₦0');
   });
 
   it('formats sub-naira remainder with two decimal digits', () => {
-    expect(formatNaira(10_050)).toBe('₦100.50');
-    expect(formatNaira(1_250_050)).toBe('₦12,500.50');
-    expect(formatNaira(101)).toBe('₦1.01');
+    expect(formatKobo(10_050)).toBe('₦100.50');
+    expect(formatKobo(1_250_050)).toBe('₦12,500.50');
+    expect(formatKobo(101)).toBe('₦1.01');
   });
 
   it('uses leading minus for negative values, before the symbol', () => {
-    expect(formatNaira(-500_000)).toBe('-₦5,000');
-    expect(formatNaira(-101)).toBe('-₦1.01');
+    expect(formatKobo(-500_000)).toBe('-₦5,000');
+    expect(formatKobo(-101)).toBe('-₦1.01');
   });
 
   it('falls back to ₦0 on non-finite input', () => {
-    expect(formatNaira(NaN)).toBe('₦0');
-    expect(formatNaira(Infinity)).toBe('₦0');
+    expect(formatKobo(NaN)).toBe('₦0');
+    expect(formatKobo(Infinity)).toBe('₦0');
     // @ts-expect-error testing runtime guard
-    expect(formatNaira(undefined)).toBe('₦0');
+    expect(formatKobo(undefined)).toBe('₦0');
   });
 });
 

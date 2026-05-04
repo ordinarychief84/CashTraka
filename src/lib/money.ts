@@ -56,7 +56,7 @@ export function koboToNaira(kobo: number): number {
  *
  * NaN / non-finite input falls back to "₦0".
  */
-export function formatNaira(kobo: number): string {
+export function formatKobo(kobo: number): string {
   if (typeof kobo !== 'number' || !Number.isFinite(kobo)) {
     return '₦0';
   }

@@ -38,9 +38,9 @@ export async function GET(
         invoiceNumber: it.invoiceNumber,
         issuedAt: it.issuedAt,
         customerName: it.customerName,
-        subtotal: it.subtotal,
-        tax: it.tax,
-        total: it.total,
+        subtotalKobo: it.subtotalKobo,
+        taxKobo: it.taxKobo,
+        totalKobo: it.totalKobo,
         status: it.status,
       })),
       expenses: result.expenses.map((ex) => ({
@@ -48,7 +48,7 @@ export async function GET(
         category: ex.category,
         vendor: ex.vendor ?? null,
         note: ex.note ?? null,
-        amount: ex.amount,
+        amountKobo: ex.amountKobo,
         vatPaid: ex.vatPaid,
       })),
     });

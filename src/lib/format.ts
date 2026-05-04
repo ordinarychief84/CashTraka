@@ -1,9 +1,22 @@
 // Naira currency + date helpers.
 
+/**
+ * Legacy naira formatter — accepts a NAIRA value and renders "₦12,500".
+ *
+ * During Phase 6 of the kobo migration, call sites are being switched to
+ * read from the new `*Kobo` columns and render via `formatKobo`. New code
+ * should use `formatKobo` directly. This wrapper stays during the migration
+ * so any unmigrated call site continues to render correctly.
+ */
 export function formatNaira(amount: number | bigint): string {
   const n = typeof amount === 'bigint' ? Number(amount) : amount;
   return '₦' + n.toLocaleString('en-NG');
 }
+
+// Re-export the kobo-native formatter so call sites can `import { formatKobo }
+// from '@/lib/format'` consistently with the rest of the helpers in this
+// module. The implementation lives in `src/lib/money.ts`.
+export { formatKobo } from './money';
 
 export function formatDate(d: Date | string): string {
   const date = typeof d === 'string' ? new Date(d) : d;

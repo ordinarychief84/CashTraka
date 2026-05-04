@@ -112,7 +112,12 @@ export const vatReturnService = {
           status: { in: [...ACTIVE_INVOICE_STATUSES] },
           issuedAt: { gte: periodStart, lte: periodEnd },
         },
-        _sum: { tax: true },
+        // Output VAT is the sum of Invoice.taxKobo. We cannot use the legacy
+        // Invoice.tax field here — it stores naira, but expenseAgg below sums
+        // Expense.vatPaid which is kobo. Mixing units made every Tax+ VAT
+        // return 100× off. Phase 5's backfill populates taxKobo from
+        // tax * 100 for every legacy row, so this aggregation is exact.
+        _sum: { taxKobo: true },
         _count: { _all: true },
       }),
       prisma.expense.aggregate({
@@ -125,7 +130,7 @@ export const vatReturnService = {
       }),
     ]);
 
-    const outputVatKobo = invoiceAgg._sum.tax ?? 0;
+    const outputVatKobo = invoiceAgg._sum.taxKobo ?? 0;
     const inputVatKobo = expenseAgg._sum.vatPaid ?? 0;
 
     return {
@@ -266,9 +271,10 @@ export const vatReturnService = {
           invoiceNumber: true,
           issuedAt: true,
           customerName: true,
-          subtotal: true,
-          tax: true,
-          total: true,
+          // Read kobo; downstream renders / CSV expect kobo from this point.
+          subtotalKobo: true,
+          taxKobo: true,
+          totalKobo: true,
           vatRate: true,
           status: true,
         },
@@ -286,7 +292,8 @@ export const vatReturnService = {
           category: true,
           vendor: true,
           note: true,
-          amount: true,
+          // amountKobo + vatPaid are both kobo; downstream sums in kobo.
+          amountKobo: true,
           vatPaid: true,
         },
       }),
@@ -298,7 +305,8 @@ export const vatReturnService = {
   /**
    * Build a flat CSV the accountant can paste into Excel. Two stacked
    * sections: invoice lines (output VAT), then a blank row, then expense
-   * lines (input VAT). All money figures are in naira (kobo divided by 100).
+   * lines (input VAT). All money columns are *_NGN — kobo is divided by
+   * 100 at output time so the spreadsheet stays readable.
    */
   buildCsv(args: {
     vatReturn: {
@@ -313,9 +321,9 @@ export const vatReturnService = {
       invoiceNumber: string;
       issuedAt: Date;
       customerName: string;
-      subtotal: number;
-      tax: number;
-      total: number;
+      subtotalKobo: number;
+      taxKobo: number;
+      totalKobo: number;
       status: string;
     }[];
     expenses: {
@@ -323,8 +331,8 @@ export const vatReturnService = {
       category: string;
       vendor: string | null;
       note: string | null;
-      amount: number;
-      vatPaid: number;
+      amountKobo: number;
+      vatPaid: number; // already kobo on disk
     }[];
   }): string {
     const escape = (raw: unknown): string => {
@@ -333,6 +341,9 @@ export const vatReturnService = {
       if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
       return s;
     };
+    // Convert kobo → naira for human-readable cells. Round-half-to-even via
+    // Math.round is intentional; sub-naira VAT remainders are vanishingly
+    // rare and rounding to whole naira matches the existing CSV format.
     const naira = (k: number) => Math.round(k / 100).toString();
     const toIso = (d: Date) => new Date(d).toISOString().slice(0, 10);
 
@@ -368,9 +379,9 @@ export const vatReturnService = {
           toIso(inv.issuedAt),
           inv.customerName,
           inv.status,
-          naira(inv.subtotal),
-          naira(inv.tax),
-          naira(inv.total),
+          naira(inv.subtotalKobo),
+          naira(inv.taxKobo),
+          naira(inv.totalKobo),
         ]
           .map(escape)
           .join(','),
@@ -389,7 +400,7 @@ export const vatReturnService = {
           ex.category,
           ex.vendor ?? '',
           ex.note ?? '',
-          naira(ex.amount),
+          naira(ex.amountKobo),
           naira(ex.vatPaid),
         ]
           .map(escape)

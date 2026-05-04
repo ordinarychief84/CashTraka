@@ -567,13 +567,14 @@ export type VatReturnPdfData = {
     invoiceNumber: string;
     issuedAt: Date;
     customerName: string;
-    total: number;
-    tax: number;
+    totalKobo: number;
+    taxKobo: number;
   }[];
   expenses: {
     incurredOn: Date;
     description: string;
-    amount: number;
+    amountKobo: number;
+    /// Already kobo on disk (Expense.vatPaid is the original kobo column).
     vatPaid: number;
   }[];
 };
@@ -715,10 +716,10 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
                 </Text>
                 <Text style={[styles.itemLabel, { flex: 3 }]}>{it.customerName}</Text>
                 <Text style={[styles.itemPrice, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(it.total))}
+                  {formatNaira(koboToNaira(it.totalKobo))}
                 </Text>
                 <Text style={[styles.itemTotal, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(it.tax))}
+                  {formatNaira(koboToNaira(it.taxKobo))}
                 </Text>
               </View>
             ))
@@ -749,7 +750,7 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
                 </Text>
                 <Text style={[styles.itemLabel, { flex: 5 }]}>{ex.description}</Text>
                 <Text style={[styles.itemPrice, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(ex.amount))}
+                  {formatNaira(koboToNaira(ex.amountKobo))}
                 </Text>
                 <Text style={[styles.itemTotal, { flex: 2 }]}>
                   {formatNaira(koboToNaira(ex.vatPaid))}

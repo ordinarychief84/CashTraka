@@ -3,7 +3,7 @@ import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { StatCard } from '@/components/StatCard';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatNaira, formatKobo, formatDate } from '@/lib/format';
 import {
   vatReturnService,
   periodLabel,
@@ -140,10 +140,10 @@ export default async function VatReturnDetailPage({
                     </td>
                     <td className="px-3 py-2 text-slate-700">{it.customerName}</td>
                     <td className="num px-3 py-2 text-right text-slate-700">
-                      {formatNaira(Math.round(it.total / 100))}
+                      {formatKobo(it.totalKobo)}
                     </td>
                     <td className="num px-3 py-2 text-right font-semibold text-ink">
-                      {formatNaira(Math.round(it.tax / 100))}
+                      {formatKobo(it.taxKobo)}
                     </td>
                   </tr>
                 ))}
@@ -182,10 +182,10 @@ export default async function VatReturnDetailPage({
                         .join(' · ') || ex.category}
                     </td>
                     <td className="num px-3 py-2 text-right text-slate-700">
-                      {formatNaira(Math.round(ex.amount / 100))}
+                      {formatKobo(ex.amountKobo)}
                     </td>
                     <td className="num px-3 py-2 text-right font-semibold text-ink">
-                      {formatNaira(Math.round(ex.vatPaid / 100))}
+                      {formatKobo(ex.vatPaid)}
                     </td>
                   </tr>
                 ))}

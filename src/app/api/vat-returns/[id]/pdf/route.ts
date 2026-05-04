@@ -51,15 +51,15 @@ export async function GET(
         invoiceNumber: it.invoiceNumber,
         issuedAt: it.issuedAt,
         customerName: it.customerName,
-        total: it.total,
-        tax: it.tax,
+        totalKobo: it.totalKobo,
+        taxKobo: it.taxKobo,
       })),
       expenses: expenses.map((ex) => ({
         incurredOn: ex.incurredOn,
         description:
           [ex.category, ex.vendor, ex.note].filter(Boolean).join(' · ') ||
           ex.category,
-        amount: ex.amount,
+        amountKobo: ex.amountKobo,
         vatPaid: ex.vatPaid,
       })),
     };

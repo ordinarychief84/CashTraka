@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { ReceiptActions } from '@/components/ReceiptActions';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
-import { formatNaira, formatDateTime } from '@/lib/format';
+import { formatKobo, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
@@ -57,9 +57,9 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
     payment?.customerNameSnapshot ?? debt?.customerNameSnapshot ?? 'Customer';
   const phone = payment?.phoneSnapshot ?? debt?.phoneSnapshot ?? '';
   const amount =
-    payment?.amount ??
-    (debt ? (debt.amountPaid > 0 ? debt.amountPaid : debt.amountOwed) : 0);
-  const balance = receipt.balanceRemaining ?? 0;
+    payment?.amountKobo ??
+    (debt ? (debt.amountPaidKobo > 0 ? debt.amountPaidKobo : debt.amountOwedKobo) : 0);
+  const balance = receipt.balanceRemainingKobo ?? 0;
 
   const businessName = user.businessName || user.name || 'Business';
 
@@ -145,7 +145,7 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
                         <td className="py-1.5 text-ink">{it.description}</td>
                         <td className="py-1.5 text-center text-slate-600">×{it.quantity}</td>
                         <td className="num py-1.5 text-right text-ink">
-                          {formatNaira(it.unitPrice * it.quantity)}
+                          {formatKobo(it.unitPriceKobo * it.quantity)}
                         </td>
                       </tr>
                     ))}
@@ -160,12 +160,12 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
                 <>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-slate-600">Amount paid</span>
-                    <span className="num font-semibold">{formatNaira(amount)}</span>
+                    <span className="num font-semibold">{formatKobo(amount)}</span>
                   </div>
                   <div className="mt-1.5 flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
                     <span className="text-sm font-semibold text-amber-700">Balance remaining</span>
                     <span className="num text-lg font-bold text-amber-700">
-                      {formatNaira(balance)}
+                      {formatKobo(balance)}
                     </span>
                   </div>
                 </>
@@ -174,7 +174,7 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
                   <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                     Total
                   </span>
-                  <span className="num text-2xl font-bold text-ink">{formatNaira(amount)}</span>
+                  <span className="num text-2xl font-bold text-ink">{formatKobo(amount)}</span>
                 </div>
               )}
             </div>
@@ -191,7 +191,10 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
               phone={phone}
               customerName={customerName}
               receiptId={receipt.id}
-              amount={amount}
+              // ReceiptActions formats this as ₦{amount.toLocaleString()} in
+              // a WhatsApp message — it expects naira, while `amount` here is
+              // kobo from the Phase 6 read-flip. Convert at the boundary.
+              amount={Math.round(amount / 100)}
               businessName={businessName}
             />
             <div className="mt-3 border-t border-border pt-3">

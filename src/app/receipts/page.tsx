@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
-import { formatNaira, formatDateTime } from '@/lib/format';
+import { formatKobo, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
@@ -53,13 +53,13 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: SP 
     paymentIds.length
       ? prisma.payment.findMany({
           where: { id: { in: paymentIds } },
-          select: { id: true, amount: true, customerNameSnapshot: true, phoneSnapshot: true },
+          select: { id: true, amountKobo: true, customerNameSnapshot: true, phoneSnapshot: true },
         })
       : Promise.resolve([]),
     debtIds.length
       ? prisma.debt.findMany({
           where: { id: { in: debtIds } },
-          select: { id: true, amountOwed: true, amountPaid: true, customerNameSnapshot: true, phoneSnapshot: true },
+          select: { id: true, amountOwedKobo: true, amountPaidKobo: true, customerNameSnapshot: true, phoneSnapshot: true },
         })
       : Promise.resolve([]),
   ]);
@@ -73,7 +73,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: SP 
       const d = r.debtId ? debtMap.get(r.debtId) : null;
       const customerName = p?.customerNameSnapshot ?? d?.customerNameSnapshot ?? 'Customer';
       const phone = p?.phoneSnapshot ?? d?.phoneSnapshot ?? '';
-      const amount = p?.amount ?? d?.amountPaid ?? d?.amountOwed ?? 0;
+      const amount = p?.amountKobo ?? d?.amountPaidKobo ?? d?.amountOwedKobo ?? 0;
       return { receipt: r, customerName, phone, amount };
     })
     .filter((row) => {
@@ -155,7 +155,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: SP 
                     <Link href={`/receipts/${receipt.id}`} className="font-mono text-xs text-brand-600 hover:underline">
                       {receipt.receiptNumber}
                     </Link>
-                    {receipt.balanceRemaining && receipt.balanceRemaining > 0 ? (
+                    {receipt.balanceRemainingKobo && receipt.balanceRemainingKobo > 0 ? (
                       <span className="ml-2 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
                         Partial
                       </span>
@@ -173,7 +173,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: SP 
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-slate-600">{formatDateTime(receipt.createdAt)}</td>
-                  <td className="num px-4 py-2.5 text-right font-semibold">{formatNaira(amount)}</td>
+                  <td className="num px-4 py-2.5 text-right font-semibold">{formatKobo(amount)}</td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="inline-flex items-center gap-1">
                       <Link

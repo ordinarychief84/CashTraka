@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { Logo } from '@/components/Logo';
 import { ReceiptActions } from '@/components/ReceiptActions';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatDate } from '@/lib/format';
 import { Check } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -28,11 +28,12 @@ export default async function ReceiptPage({ params }: Props) {
 
   const business = payment.user.businessName || payment.user.name || 'Seller';
   const hasItems = payment.items.length > 0;
-  const itemsTotal = payment.items.reduce(
-    (s, it) => s + it.unitPrice * it.quantity,
+  // All money values on this page are KOBO from this point onward.
+  const itemsTotalKobo = payment.items.reduce(
+    (s, it) => s + it.unitPriceKobo * it.quantity,
     0,
   );
-  const balanceRemaining = receipt?.balanceRemaining ?? null;
+  const balanceRemainingKobo = receipt?.balanceRemainingKobo ?? null;
   const displayReceiptNumber =
     receipt?.receiptNumber ?? payment.id.slice(-8).toUpperCase();
 
@@ -41,11 +42,11 @@ export default async function ReceiptPage({ params }: Props) {
   // the customer's view matches the tax invoice exactly.
   const taxInvoice = await prisma.invoice.findUnique({
     where: { paymentId: payment.id },
-    select: { vatApplied: true, vatRate: true, tax: true, subtotal: true },
+    select: { vatApplied: true, vatRate: true, taxKobo: true, subtotalKobo: true },
   });
   const vat =
-    taxInvoice && taxInvoice.vatApplied && taxInvoice.tax > 0
-      ? { rate: taxInvoice.vatRate, amount: taxInvoice.tax, subtotal: taxInvoice.subtotal }
+    taxInvoice && taxInvoice.vatApplied && taxInvoice.taxKobo > 0
+      ? { rate: taxInvoice.vatRate, amount: taxInvoice.taxKobo, subtotal: taxInvoice.subtotalKobo }
       : null;
 
   return (
@@ -99,7 +100,7 @@ export default async function ReceiptPage({ params }: Props) {
                       <td className="py-2 pr-2 text-ink">{it.description}</td>
                       <td className="py-2 text-center text-slate-600">{it.quantity}</td>
                       <td className="num py-2 text-right text-ink">
-                        {formatNaira(it.unitPrice * it.quantity)}
+                        {formatKobo(it.unitPriceKobo * it.quantity)}
                       </td>
                     </tr>
                   ))}
@@ -118,31 +119,31 @@ export default async function ReceiptPage({ params }: Props) {
               <>
                 <div className="mb-1.5 flex items-center justify-between text-sm">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="num text-slate-700">{formatNaira(vat.subtotal)}</span>
+                  <span className="num text-slate-700">{formatKobo(vat.subtotal)}</span>
                 </div>
                 <div className="mb-2 flex items-center justify-between text-sm">
                   <span className="text-slate-600">VAT ({vat.rate}%)</span>
-                  <span className="num text-slate-700">{formatNaira(vat.amount)}</span>
+                  <span className="num text-slate-700">{formatKobo(vat.amount)}</span>
                 </div>
               </>
-            ) : hasItems && itemsTotal !== payment.amount ? (
+            ) : hasItems && itemsTotalKobo !== payment.amountKobo ? (
               <div className="mb-2 flex items-center justify-between text-xs text-slate-500">
                 <span>Items subtotal</span>
-                <span className="num">{formatNaira(itemsTotal)}</span>
+                <span className="num">{formatKobo(itemsTotalKobo)}</span>
               </div>
             ) : null}
-            {balanceRemaining && balanceRemaining > 0 ? (
+            {balanceRemainingKobo && balanceRemainingKobo > 0 ? (
               <>
                 <div className="mb-2 flex items-center justify-between text-sm">
                   <span className="font-medium text-slate-600">Amount paid</span>
-                  <span className="num font-semibold text-ink">{formatNaira(payment.amount)}</span>
+                  <span className="num font-semibold text-ink">{formatKobo(payment.amountKobo)}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-amber-50 px-3 py-2">
                   <span className="text-sm font-semibold uppercase tracking-wide text-amber-700">
                     Balance remaining
                   </span>
                   <span className="num text-xl font-bold text-amber-700">
-                    {formatNaira(balanceRemaining)}
+                    {formatKobo(balanceRemainingKobo)}
                   </span>
                 </div>
               </>
@@ -151,7 +152,7 @@ export default async function ReceiptPage({ params }: Props) {
                 <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">
                   Total
                 </span>
-                <span className="num text-2xl text-ink">{formatNaira(payment.amount)}</span>
+                <span className="num text-2xl text-ink">{formatKobo(payment.amountKobo)}</span>
               </div>
             )}
           </div>

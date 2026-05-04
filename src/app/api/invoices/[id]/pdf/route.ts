@@ -114,14 +114,16 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     issuedAt: invoice.issuedAt,
     dueDate: invoice.dueDate,
     currency: invoice.currency,
-    subtotal: invoice.subtotal,
-    tax: invoice.tax,
+    // PDF expects kobo per Phase 6 read-flip. The InvoiceData field names
+    // (subtotal/tax/total/unitPrice) are unchanged; the values are now kobo.
+    subtotal: invoice.subtotalKobo,
+    tax: invoice.taxKobo,
     vatRate: invoice.vatApplied ? invoice.vatRate : null,
-    total: invoice.total,
+    total: invoice.totalKobo,
     note: invoice.note,
     items: invoice.items.map((i) => ({
       description: i.description,
-      unitPrice: i.unitPrice,
+      unitPrice: i.unitPriceKobo,
       quantity: i.quantity,
       itemType: i.itemType === 'SERVICE' ? 'SERVICE' : 'GOODS',
       hsCode: i.hsCode,

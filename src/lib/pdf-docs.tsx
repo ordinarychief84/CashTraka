@@ -115,8 +115,13 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatNaira(amount: number): string {
-  return 'NGN ' + amount.toLocaleString('en-NG');
+// Phase 6 of the kobo migration: this PDF expects KOBO inputs everywhere
+// (ReceiptData, InvoiceData, VatReturnPdfData fields). The helper converts
+// kobo to naira for display and uses the project's "NGN " prefix to keep
+// the PDF text language-neutral (the ₦ glyph isn't reliably embedded).
+function formatNaira(kobo: number): string {
+  const naira = Math.round(kobo / 100);
+  return 'NGN ' + naira.toLocaleString('en-NG');
 }
 
 function formatDate(d: Date): string {
@@ -579,16 +584,17 @@ export type VatReturnPdfData = {
   }[];
 };
 
-function koboToNaira(kobo: number): number {
-  return Math.round(kobo / 100);
-}
-
+// Phase 6: formatNaira(kobo) is the canonical formatter. The legacy
+// koboToNaira helper used to feed it a pre-divided naira number — that was
+// safe when formatNaira expected naira. Now it would double-divide. We
+// keep the computed kobo magnitudes around so the existing variable names
+// continue to read at call sites.
 export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
   const isFiled = data.status === 'FILED';
   const isRefund = data.netVatKobo < 0;
-  const netNaira = koboToNaira(Math.abs(data.netVatKobo));
-  const outputNaira = koboToNaira(data.outputVatKobo);
-  const inputNaira = koboToNaira(data.inputVatKobo);
+  const netKobo = Math.abs(data.netVatKobo);
+  const outputKobo = data.outputVatKobo;
+  const inputKobo = data.inputVatKobo;
 
   // Show at most 100 of each table to keep the PDF readable.
   const invoiceRows = data.invoices.slice(0, 100);
@@ -669,11 +675,11 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
           <Text style={styles.sectionTitle}>Summary</Text>
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Output VAT (charged on sales)</Text>
-            <Text style={styles.kvValue}>{formatNaira(outputNaira)}</Text>
+            <Text style={styles.kvValue}>{formatNaira(outputKobo)}</Text>
           </View>
           <View style={styles.kvRow}>
             <Text style={styles.kvLabel}>Input VAT (claimable on expenses)</Text>
-            <Text style={styles.kvValue}>{formatNaira(inputNaira)}</Text>
+            <Text style={styles.kvValue}>{formatNaira(inputKobo)}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>
@@ -685,7 +691,7 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
                 { color: isRefund ? palette.success700 : palette.ink },
               ]}
             >
-              {formatNaira(netNaira)}
+              {formatNaira(netKobo)}
             </Text>
           </View>
         </View>
@@ -716,10 +722,10 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
                 </Text>
                 <Text style={[styles.itemLabel, { flex: 3 }]}>{it.customerName}</Text>
                 <Text style={[styles.itemPrice, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(it.totalKobo))}
+                  {formatNaira(it.totalKobo)}
                 </Text>
                 <Text style={[styles.itemTotal, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(it.taxKobo))}
+                  {formatNaira(it.taxKobo)}
                 </Text>
               </View>
             ))
@@ -750,10 +756,10 @@ export function VatReturnDoc({ data }: { data: VatReturnPdfData }) {
                 </Text>
                 <Text style={[styles.itemLabel, { flex: 5 }]}>{ex.description}</Text>
                 <Text style={[styles.itemPrice, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(ex.amountKobo))}
+                  {formatNaira(ex.amountKobo)}
                 </Text>
                 <Text style={[styles.itemTotal, { flex: 2 }]}>
-                  {formatNaira(koboToNaira(ex.vatPaid))}
+                  {formatNaira(ex.vatPaid)}
                 </Text>
               </View>
             ))

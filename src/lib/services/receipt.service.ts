@@ -65,26 +65,27 @@ async function buildReceiptData(
     if (!payment || payment.userId !== userId) throw Err.notFound('Payment not found');
 
     // If this payment was the source of a Promise-to-Pay or Debt partial settlement,
-    // surface the remaining balance so the receipt can show it.
+    // surface the remaining balance (kobo) so the receipt can show it.
     let balanceRemaining: number | null = null;
     const promisePayment = await prisma.promisePayment.findFirst({
       where: { providerTransactionId: payment.providerTransactionId ?? '__never__' },
-      include: { promiseToPay: { select: { remainingAmount: true } } },
+      include: { promiseToPay: { select: { remainingAmountKobo: true } } },
     }).catch((e) => {
       console.warn(`[receipt.buildReceiptData] promisePayment lookup failed for payment ${payment.id}`, e);
       return null;
     });
-    if (promisePayment?.promiseToPay && promisePayment.promiseToPay.remainingAmount > 0) {
-      balanceRemaining = promisePayment.promiseToPay.remainingAmount;
+    if (promisePayment?.promiseToPay && promisePayment.promiseToPay.remainingAmountKobo > 0) {
+      balanceRemaining = promisePayment.promiseToPay.remainingAmountKobo;
     }
 
     // If a tax Invoice was created for this payment (manual receipt with VAT,
     // or invoice-from-payment), use its breakdown so the receipt PDF shows
-    // the VAT line and matches the customer's tax invoice exactly.
+    // the VAT line and matches the customer's tax invoice exactly. All
+    // amounts in kobo from this point forward.
     const linkedInvoice = await prisma.invoice
       .findUnique({
         where: { paymentId: payment.id },
-        select: { vatApplied: true, vatRate: true, tax: true, subtotal: true },
+        select: { vatApplied: true, vatRate: true, taxKobo: true, subtotalKobo: true },
       })
       .catch((e) => {
         console.warn(`[receipt.buildReceiptData] linked invoice lookup failed for payment ${payment.id}`, e);
@@ -92,8 +93,8 @@ async function buildReceiptData(
       });
 
     const vat =
-      linkedInvoice && linkedInvoice.vatApplied && linkedInvoice.tax > 0
-        ? { rate: linkedInvoice.vatRate, amount: linkedInvoice.tax, subtotal: linkedInvoice.subtotal }
+      linkedInvoice && linkedInvoice.vatApplied && linkedInvoice.taxKobo > 0
+        ? { rate: linkedInvoice.vatRate, amount: linkedInvoice.taxKobo, subtotal: linkedInvoice.subtotalKobo }
         : null;
 
     return {
@@ -108,17 +109,17 @@ async function buildReceiptData(
         customerPhone: displayPhone(payment.phoneSnapshot),
         createdAt: payment.createdAt,
         status: payment.status,
-        amount: payment.amount,
+        amount: payment.amountKobo,
         balanceRemaining,
         vat,
         items: payment.items.map((i) => ({
           description: i.description,
-          unitPrice: i.unitPrice,
+          unitPrice: i.unitPriceKobo,
           quantity: i.quantity,
         })),
       },
       customerId: payment.customerId,
-      amount: payment.amount,
+      amount: payment.amountKobo,
       phone: payment.phoneSnapshot,
       customerName: payment.customerNameSnapshot,
       balanceRemaining,
@@ -129,7 +130,9 @@ async function buildReceiptData(
     const debt = await prisma.debt.findUnique({ where: { id: src.debtId } });
     if (!debt || debt.userId !== userId) throw Err.notFound('Debt not found');
     const balanceRemaining =
-      debt.amountOwed > debt.amountPaid ? debt.amountOwed - debt.amountPaid : null;
+      debt.amountOwedKobo > debt.amountPaidKobo ? debt.amountOwedKobo - debt.amountPaidKobo : null;
+    const settledKobo =
+      debt.amountPaidKobo > 0 ? debt.amountPaidKobo : debt.amountOwedKobo;
     return {
       data: {
         business: user.businessName || user.name || 'Seller',
@@ -142,12 +145,12 @@ async function buildReceiptData(
         customerPhone: displayPhone(debt.phoneSnapshot),
         createdAt: debt.updatedAt,
         status: 'PAID',
-        amount: debt.amountPaid > 0 ? debt.amountPaid : debt.amountOwed,
+        amount: settledKobo,
         balanceRemaining,
         items: [],
       },
       customerId: debt.customerId,
-      amount: debt.amountPaid > 0 ? debt.amountPaid : debt.amountOwed,
+      amount: settledKobo,
       phone: debt.phoneSnapshot,
       customerName: debt.customerNameSnapshot,
       balanceRemaining,
@@ -212,9 +215,14 @@ export const receiptService = {
       receiptNumber,
       pdfUrl,
       status: RECEIPT_STATUS.GENERATED,
-      balanceRemaining: effectiveBalance && effectiveBalance > 0 ? effectiveBalance : null,
-      balanceRemainingKobo:
-        effectiveBalance && effectiveBalance > 0 ? nairaToKobo(effectiveBalance) : null,
+      // effectiveBalance is now KOBO (Phase 6 read-flip). Store kobo on the
+      // canonical *Kobo column and a naira-divided copy on the legacy column
+      // for any reader that hasn't been migrated yet.
+      balanceRemaining:
+        effectiveBalance && effectiveBalance > 0
+          ? Math.round(effectiveBalance / 100)
+          : null,
+      balanceRemainingKobo: effectiveBalance && effectiveBalance > 0 ? effectiveBalance : null,
       source: opts?.source ?? 'MANUAL',
     });
 

@@ -206,7 +206,9 @@ export const paymentConfirmationService = {
     try {
       const receipt = await receiptService.ensureForPayment(promise.userId, payment.id, {
         source: 'PROMISE',
-        balanceRemaining: newRemaining > 0 ? newRemaining : null,
+        // balanceRemaining is kobo per Phase 6 read-flip; convert from the
+        // naira-computed newRemaining at the boundary.
+        balanceRemaining: newRemaining > 0 ? nairaToKobo(newRemaining) : null,
       });
       // Send receipt email to customer if we have their email
       if (input.customerEmail && receipt) {
@@ -537,7 +539,7 @@ export const paymentConfirmationService = {
     try {
       const receipt = await receiptService.ensureForPayment(plan.userId, payment.id, {
         source: 'INSTALLMENT',
-        balanceRemaining: planRemaining > 0 ? planRemaining : null,
+        balanceRemaining: planRemaining > 0 ? nairaToKobo(planRemaining) : null,
       });
 
       // Link receipt to the charge

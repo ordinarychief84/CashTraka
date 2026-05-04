@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
-import { formatNaira, timeAgo } from '@/lib/format';
+import { formatKobo, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
@@ -83,9 +83,9 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
                     {displayPhone(c.phone)} · active {timeAgo(c.lastActivityAt)}
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <span className="badge-paid">Paid {formatNaira(c.totalPaid)}</span>
-                    {c.totalOwed > 0 && (
-                      <span className="badge-open">Owes {formatNaira(c.totalOwed)}</span>
+                    <span className="badge-paid">Paid {formatKobo(c.totalPaidKobo)}</span>
+                    {c.totalOwedKobo > 0 && (
+                      <span className="badge-open">Owes {formatKobo(c.totalOwedKobo)}</span>
                     )}
                     <span className="badge bg-slate-100 text-slate-600">
                       {c.transactionCount} {c.transactionCount === 1 ? 'txn' : 'txns'}

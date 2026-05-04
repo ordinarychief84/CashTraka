@@ -6,7 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { InvoiceRowActions } from '@/components/InvoiceRowActions';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatDate } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,8 +48,8 @@ export default async function InvoicesPage() {
       status: true,
       customerName: true,
       customerPhone: true,
-      total: true,
-      amountPaid: true,
+      totalKobo: true,
+      amountPaidKobo: true,
       dueDate: true,
       paidAt: true,
       createdAt: true,
@@ -67,9 +67,9 @@ export default async function InvoicesPage() {
   for (const inv of invoices) {
     if (inv.status === 'DRAFT') draftCount++;
     if (inv.status === 'CANCELLED' || inv.status === 'CREDITED') continue;
-    const remaining = Math.max(0, inv.total - inv.amountPaid);
+    const remaining = Math.max(0, inv.totalKobo - inv.amountPaidKobo);
     outstanding += remaining;
-    if (inv.paidAt && inv.paidAt >= startOfMonth) paidThisMonth += inv.amountPaid;
+    if (inv.paidAt && inv.paidAt >= startOfMonth) paidThisMonth += inv.amountPaidKobo;
     if (remaining > 0 && inv.dueDate && inv.dueDate.getTime() < now.getTime()) {
       overdueCount++;
     }
@@ -96,8 +96,8 @@ export default async function InvoicesPage() {
 
       {/* Summary cards */}
       <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <SummaryCard label="Outstanding" value={formatNaira(outstanding)} accent="brand" />
-        <SummaryCard label="Paid this month" value={formatNaira(paidThisMonth)} accent="success" />
+        <SummaryCard label="Outstanding" value={formatKobo(outstanding)} accent="brand" />
+        <SummaryCard label="Paid this month" value={formatKobo(paidThisMonth)} accent="success" />
         <SummaryCard label="Overdue" value={String(overdueCount)} accent="red" />
         <SummaryCard label="Drafts" value={String(draftCount)} accent="slate" />
       </div>
@@ -131,7 +131,7 @@ export default async function InvoicesPage() {
                   </div>
                 </Link>
                 <div className="text-right">
-                  <div className="num text-lg text-ink">{formatNaira(inv.total)}</div>
+                  <div className="num text-lg text-ink">{formatKobo(inv.totalKobo)}</div>
                 </div>
                 <InvoiceRowActions
                   id={inv.id}
@@ -140,7 +140,7 @@ export default async function InvoicesPage() {
                   status={inv.status}
                   customerName={inv.customerName}
                   phone={inv.customerPhone}
-                  total={inv.total}
+                  total={inv.totalKobo}
                 />
               </div>
             </li>

@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { PaymentRowActions } from '@/components/PaymentRowActions';
 import { TimeRange } from '@/components/TimeRange';
 import { VerificationBadge } from '@/components/VerificationBadge';
-import { formatNaira, formatDateTime } from '@/lib/format';
+import { formatKobo, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 import { parseRange, rangeStart } from '@/lib/range';
 import { cn } from '@/lib/utils';
@@ -51,9 +51,9 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
     take: 200,
   });
 
-  const total = payments
+  const totalKobo = payments
     .filter((p) => p.status === 'PAID')
-    .reduce((sum, p) => sum + p.amount, 0);
+    .reduce((sum, p) => sum + p.amountKobo, 0);
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
@@ -71,7 +71,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <TimeRange value={range} basePath="/payments" />
         <div className="text-sm text-slate-600">
-          Paid in view: <span className="num text-success-700">{formatNaira(total)}</span>
+          Paid in view: <span className="num text-success-700">{formatKobo(totalKobo)}</span>
         </div>
       </div>
 
@@ -134,7 +134,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
                     p.status === 'PAID' ? 'num text-success-700' : 'num text-ink'
                   }
                 >
-                  {formatNaira(p.amount)}
+                  {formatKobo(p.amountKobo)}
                 </div>
                 <span className={p.status === 'PAID' ? 'badge-paid' : 'badge-pending'}>
                   {p.status === 'PAID' ? 'Paid' : 'Pending'}

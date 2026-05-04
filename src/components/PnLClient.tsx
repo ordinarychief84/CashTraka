@@ -51,17 +51,22 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'custom', label: 'Custom Range' },
 ];
 
-function formatNaira(n: number) {
-  const abs = Math.abs(n);
+// All money values in this component arrive as KOBO from /api/reports/pnl.
+// Local helpers convert kobo → naira at render time. Compact mode rounds to
+// the nearest M/K naira for the at-a-glance KPI cards.
+function formatNaira(kobo: number) {
+  const naira = Math.round(kobo / 100);
+  const abs = Math.abs(naira);
   const formatted = '₦' + abs.toLocaleString('en-NG');
-  return n < 0 ? '-' + formatted : formatted;
+  return naira < 0 ? '-' + formatted : formatted;
 }
 
-function formatCompact(n: number) {
-  const abs = Math.abs(n);
-  if (abs >= 1_000_000) return (n < 0 ? '-' : '') + '₦' + (abs / 1_000_000).toFixed(1) + 'M';
-  if (abs >= 1_000) return (n < 0 ? '-' : '') + '₦' + (abs / 1_000).toFixed(0) + 'K';
-  return formatNaira(n);
+function formatCompact(kobo: number) {
+  const naira = Math.round(kobo / 100);
+  const abs = Math.abs(naira);
+  if (abs >= 1_000_000) return (naira < 0 ? '-' : '') + '₦' + (abs / 1_000_000).toFixed(1) + 'M';
+  if (abs >= 1_000) return (naira < 0 ? '-' : '') + '₦' + (abs / 1_000).toFixed(0) + 'K';
+  return formatNaira(kobo);
 }
 
 function pctChange(current: number, previous: number): number | null {

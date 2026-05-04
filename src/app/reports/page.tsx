@@ -14,7 +14,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { BarChart, ColumnChart } from '@/components/BarChart';
 import { StatCard } from '@/components/StatCard';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 import { isPropertyManager } from '@/lib/business-type';
 import { ReportsTabNav } from '@/components/ReportsTabNav';
 
@@ -44,16 +44,17 @@ export default async function ReportsPage() {
         status: 'PAID',
         createdAt: { gte: earliest },
       },
-      select: { amount: true, createdAt: true },
+      select: { amountKobo: true, createdAt: true },
     }),
     prisma.expense.findMany({
       // Reports show the BUSINESS P&L only — personal spending is private
       // budgeting data and shouldn't roll into profit trends.
       where: { userId: user.id, kind: 'business', incurredOn: { gte: earliest } },
-      select: { amount: true, category: true, incurredOn: true },
+      select: { amountKobo: true, category: true, incurredOn: true },
     }),
   ]);
 
+  // All bucketed values are kobo. Display layer formats via formatKobo.
   function bucket(items: { amount: number; date: Date }[]) {
     const out = new Array(monthStarts.length).fill(0) as number[];
     for (const it of items) {
@@ -67,10 +68,10 @@ export default async function ReportsPage() {
     return out;
   }
   const revenueByMonth = bucket(
-    paidPayments.map((p) => ({ amount: p.amount, date: p.createdAt })),
+    paidPayments.map((p) => ({ amount: p.amountKobo, date: p.createdAt })),
   );
   const expenseByMonth = bucket(
-    expenses.map((e) => ({ amount: e.amount, date: e.incurredOn })),
+    expenses.map((e) => ({ amount: e.amountKobo, date: e.incurredOn })),
   );
   const profitByMonth = revenueByMonth.map((r, i) => r - expenseByMonth[i]);
 
@@ -80,7 +81,7 @@ export default async function ReportsPage() {
 
   const expenseByCategory = new Map<string, number>();
   for (const e of expenses) {
-    expenseByCategory.set(e.category, (expenseByCategory.get(e.category) ?? 0) + e.amount);
+    expenseByCategory.set(e.category, (expenseByCategory.get(e.category) ?? 0) + e.amountKobo);
   }
   const catEntries = [...expenseByCategory.entries()].sort((a, b) => b[1] - a[1]);
 
@@ -97,10 +98,10 @@ export default async function ReportsPage() {
   if (!isPm) {
     const [topCustomers, topProducts] = await Promise.all([
       prisma.customer.findMany({
-        where: { userId: user.id, totalPaid: { gt: 0 } },
-        orderBy: { totalPaid: 'desc' },
+        where: { userId: user.id, totalPaidKobo: { gt: 0 } },
+        orderBy: { totalPaidKobo: 'desc' },
         take: 5,
-        select: { name: true, totalPaid: true },
+        select: { name: true, totalPaidKobo: true },
       }),
       prisma.paymentItem.groupBy({
         by: ['productId', 'description'],
@@ -112,7 +113,7 @@ export default async function ReportsPage() {
     ]);
     topCustomersChart = {
       labels: topCustomers.map((c) => c.name),
-      values: topCustomers.map((c) => c.totalPaid),
+      values: topCustomers.map((c) => c.totalPaidKobo),
     };
     topProductsChart = {
       labels: topProducts.map((p) => p.description),
@@ -128,7 +129,7 @@ export default async function ReportsPage() {
         include: {
           rentPayments: {
             where: { status: 'PAID' },
-            select: { amount: true },
+            select: { amountKobo: true },
           },
         },
       }),
@@ -141,7 +142,7 @@ export default async function ReportsPage() {
             include: {
               rentPayments: {
                 where: { period: new Date().toISOString().slice(0, 7), status: 'PAID' },
-                select: { amount: true },
+                select: { amountKobo: true },
               },
             },
           },
@@ -152,7 +153,7 @@ export default async function ReportsPage() {
         include: {
           rentPayments: {
             where: { period: new Date().toISOString().slice(0, 7), status: 'PAID' },
-            select: { amount: true },
+            select: { amountKobo: true },
           },
         },
       }),
@@ -162,7 +163,7 @@ export default async function ReportsPage() {
     const tenantRanked = topTenants
       .map((t) => ({
         name: `${t.name}${t.unitLabel ? ` · ${t.unitLabel}` : ''}`,
-        total: t.rentPayments.reduce((s, p) => s + p.amount, 0),
+        total: t.rentPayments.reduce((s, p) => s + p.amountKobo, 0),
       }))
       .filter((t) => t.total > 0)
       .sort((a, b) => b.total - a.total)
@@ -176,7 +177,7 @@ export default async function ReportsPage() {
     const propCollection = properties
       .map((p) => {
         const collected = p.tenants.reduce(
-          (s, t) => s + t.rentPayments.reduce((ss, rp) => ss + rp.amount, 0),
+          (s, t) => s + t.rentPayments.reduce((ss, rp) => ss + rp.amountKobo, 0),
           0,
         );
         return { name: p.name, collected };
@@ -196,9 +197,9 @@ export default async function ReportsPage() {
     // Expected vs collected this month.
     const expected = tenants
       .filter((t) => t.status === 'active')
-      .reduce((s, t) => s + t.rentAmount, 0);
+      .reduce((s, t) => s + t.rentAmountKobo, 0);
     const collected = tenants.reduce(
-      (s, t) => s + t.rentPayments.reduce((ss, rp) => ss + rp.amount, 0),
+      (s, t) => s + t.rentPayments.reduce((ss, rp) => ss + rp.amountKobo, 0),
       0,
     );
     const rate = expected > 0 ? Math.round((collected / expected) * 100) : 0;
@@ -225,12 +226,12 @@ export default async function ReportsPage() {
         <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard
             label="Expected this month"
-            value={formatNaira(rentThisMonthStat.expected)}
+            value={formatKobo(rentThisMonthStat.expected)}
             sub="From active tenants"
           />
           <StatCard
             label="Collected this month"
-            value={formatNaira(rentThisMonthStat.collected)}
+            value={formatKobo(rentThisMonthStat.collected)}
             tone="brand"
           />
           <StatCard
@@ -254,11 +255,11 @@ export default async function ReportsPage() {
         </div>
       ) : (
         <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3">
-          <StatCard label={revenueLabel} value={formatNaira(totalRevenue)} tone="brand" />
-          <StatCard label="Expenses (6mo)" value={formatNaira(totalExpenses)} />
+          <StatCard label={revenueLabel} value={formatKobo(totalRevenue)} tone="brand" />
+          <StatCard label="Expenses (6mo)" value={formatKobo(totalExpenses)} />
           <StatCard
             label="Net profit (6mo)"
-            value={formatNaira(totalProfit)}
+            value={formatKobo(totalProfit)}
             tone={totalProfit >= 0 ? 'brand' : 'danger'}
           />
         </div>
@@ -273,7 +274,7 @@ export default async function ReportsPage() {
         <ColumnChart
           labels={monthLabels}
           values={revenueByMonth}
-          formatValue={formatNaira}
+          formatValue={formatKobo}
           height={180}
         />
         <div className="mt-4 grid grid-cols-6 gap-2 border-t border-border pt-3">
@@ -281,7 +282,7 @@ export default async function ReportsPage() {
             <div key={m} className="text-center">
               <div className="text-[10px] font-semibold text-slate-500">{m}</div>
               <div className="num text-xs text-brand-700">
-                {revenueByMonth[i] > 0 ? formatNaira(revenueByMonth[i]) : '—'}
+                {revenueByMonth[i] > 0 ? formatKobo(revenueByMonth[i]) : '—'}
               </div>
               <div
                 className={
@@ -291,7 +292,7 @@ export default async function ReportsPage() {
                 }
               >
                 {profitByMonth[i] >= 0 ? '+' : ''}
-                {formatNaira(profitByMonth[i])}
+                {formatKobo(profitByMonth[i])}
               </div>
             </div>
           ))}
@@ -313,7 +314,7 @@ export default async function ReportsPage() {
                 <BarChart
                   labels={topCustomersChart.labels}
                   values={topCustomersChart.values}
-                  formatValue={formatNaira}
+                  formatValue={formatKobo}
                 />
               )}
             </section>
@@ -355,7 +356,7 @@ export default async function ReportsPage() {
                 <BarChart
                   labels={topTenantsChart.labels}
                   values={topTenantsChart.values}
-                  formatValue={formatNaira}
+                  formatValue={formatKobo}
                 />
               )}
             </section>
@@ -373,7 +374,7 @@ export default async function ReportsPage() {
                 <BarChart
                   labels={propertyCollectionChart.labels}
                   values={propertyCollectionChart.values}
-                  formatValue={formatNaira}
+                  formatValue={formatKobo}
                   barClassName="bg-success-500"
                 />
               )}
@@ -393,7 +394,7 @@ export default async function ReportsPage() {
             <BarChart
               labels={catEntries.map((e) => e[0])}
               values={catEntries.map((e) => e[1])}
-              formatValue={formatNaira}
+              formatValue={formatKobo}
               barClassName="bg-owed-500"
             />
           )}

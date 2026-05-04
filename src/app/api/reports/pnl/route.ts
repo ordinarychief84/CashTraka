@@ -52,51 +52,51 @@ async function aggregateForPeriod(userId: string, start: Date, end: Date, isPm: 
     // Revenue: paid payments
     prisma.payment.aggregate({
       where: { userId, status: 'PAID', createdAt: { gte: start, lte: end } },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     // Revenue: sales
     prisma.sale.aggregate({
       where: { userId, soldAt: { gte: start, lte: end } },
-      _sum: { total: true },
+      _sum: { totalKobo: true },
       _count: true,
     }),
     // Expenses by category
     prisma.expense.findMany({
       where: { userId, kind: 'business', incurredOn: { gte: start, lte: end } },
-      select: { amount: true, category: true },
+      select: { amountKobo: true, category: true },
     }),
     // Payroll
     prisma.staffPayment.aggregate({
       where: { userId, paidAt: { gte: start, lte: end } },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     // Rent income (PM only)
     isPm
       ? prisma.rentPayment.aggregate({
           where: { userId, status: 'PAID', paidAt: { gte: start, lte: end } },
-          _sum: { amount: true },
+          _sum: { amountKobo: true },
           _count: true,
         })
       : null,
   ]);
 
-  // Group expenses by category
+  // Group expenses by category (all values stay in kobo until display).
   const categoryMap = new Map<string, number>();
   let totalExpenses = 0;
   for (const e of expenses) {
-    categoryMap.set(e.category, (categoryMap.get(e.category) ?? 0) + e.amount);
-    totalExpenses += e.amount;
+    categoryMap.set(e.category, (categoryMap.get(e.category) ?? 0) + e.amountKobo);
+    totalExpenses += e.amountKobo;
   }
   const expenseCategories = [...categoryMap.entries()]
     .map(([category, amount]) => ({ category, amount }))
     .sort((a, b) => b.amount - a.amount);
 
-  const payrollTotal = staffPay._sum.amount ?? 0;
-  const paymentRevenue = payments._sum.amount ?? 0;
-  const salesRevenue = sales._sum.total ?? 0;
-  const rentRevenue = rentPay?._sum.amount ?? 0;
+  const payrollTotal = staffPay._sum.amountKobo ?? 0;
+  const paymentRevenue = payments._sum.amountKobo ?? 0;
+  const salesRevenue = sales._sum.totalKobo ?? 0;
+  const rentRevenue = rentPay?._sum.amountKobo ?? 0;
 
   const totalRevenue = paymentRevenue + salesRevenue + rentRevenue;
   const totalCosts = totalExpenses + payrollTotal;
@@ -159,40 +159,40 @@ export async function GET(req: Request) {
     const [mPayments, mSales, mExpenses, mStaff, mRent] = await Promise.all([
       prisma.payment.aggregate({
         where: { userId: user.id, status: 'PAID', createdAt: { gte: mStart, lte: mEnd } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
       }),
       prisma.sale.aggregate({
         where: { userId: user.id, soldAt: { gte: mStart, lte: mEnd } },
-        _sum: { total: true },
+        _sum: { totalKobo: true },
       }),
       prisma.expense.aggregate({
         where: { userId: user.id, kind: 'business', incurredOn: { gte: mStart, lte: mEnd } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
       }),
       prisma.staffPayment.aggregate({
         where: { userId: user.id, paidAt: { gte: mStart, lte: mEnd } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
       }),
       isPm
         ? prisma.rentPayment.aggregate({
             where: { userId: user.id, status: 'PAID', paidAt: { gte: mStart, lte: mEnd } },
-            _sum: { amount: true },
+            _sum: { amountKobo: true },
           })
         : null,
     ]);
 
-    const rev = (mPayments._sum.amount ?? 0) + (mSales._sum.total ?? 0) + (mRent?._sum.amount ?? 0);
-    const exp = (mExpenses._sum.amount ?? 0) + (mStaff._sum.amount ?? 0);
+    const rev = (mPayments._sum.amountKobo ?? 0) + (mSales._sum.totalKobo ?? 0) + (mRent?._sum.amountKobo ?? 0);
+    const exp = (mExpenses._sum.amountKobo ?? 0) + (mStaff._sum.amountKobo ?? 0);
     months.push({ label, revenue: rev, expenses: exp, net: rev - exp });
   }
 
   // Outstanding debts snapshot
   const outstandingDebts = await prisma.debt.aggregate({
     where: { userId: user.id, status: 'OPEN' },
-    _sum: { amountOwed: true, amountPaid: true },
+    _sum: { amountOwedKobo: true, amountPaidKobo: true },
     _count: true,
   });
-  const debtsOwed = (outstandingDebts._sum.amountOwed ?? 0) - (outstandingDebts._sum.amountPaid ?? 0);
+  const debtsOwed = (outstandingDebts._sum.amountOwedKobo ?? 0) - (outstandingDebts._sum.amountPaidKobo ?? 0);
 
   return NextResponse.json({
     period: {

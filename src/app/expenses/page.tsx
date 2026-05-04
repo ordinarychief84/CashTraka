@@ -24,7 +24,7 @@ import { TimeRange } from '@/components/TimeRange';
 import { ExpenseRowActions } from '@/components/ExpenseRowActions';
 import { ExpenseSearchBar } from '@/components/ExpenseSearchBar';
 import { PersonalBudgetCard } from '@/components/PersonalBudgetCard';
-import { formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatNaira, formatDate } from '@/lib/format';
 import { parseRange, rangeStart, RANGE_LABELS } from '@/lib/range';
 import { cn } from '@/lib/utils';
 
@@ -109,7 +109,7 @@ export default async function ExpensesPage({
         kind: 'business',
         ...(start ? { incurredOn: { gte: start } } : {}),
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     prisma.expense.aggregate({
@@ -118,7 +118,7 @@ export default async function ExpensesPage({
         kind: 'personal',
         ...(start ? { incurredOn: { gte: start } } : {}),
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
       _count: true,
     }),
     prisma.payment.aggregate({
@@ -127,7 +127,7 @@ export default async function ExpensesPage({
         status: 'PAID',
         ...(start ? { createdAt: { gte: start } } : {}),
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.expense.aggregate({
       where: {
@@ -135,7 +135,7 @@ export default async function ExpensesPage({
         kind: 'personal',
         incurredOn: { gte: weekStart },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.expense.aggregate({
       where: {
@@ -143,7 +143,7 @@ export default async function ExpensesPage({
         kind: 'personal',
         incurredOn: { gte: monthStart },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.expense.aggregate({
       where: {
@@ -151,7 +151,7 @@ export default async function ExpensesPage({
         kind: 'business',
         incurredOn: { gte: prevMonthStart, lte: prevMonthEnd },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.expense.aggregate({
       where: {
@@ -159,7 +159,7 @@ export default async function ExpensesPage({
         kind: 'personal',
         incurredOn: { gte: prevMonthStart, lte: prevMonthEnd },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.expense.count({
       where: { userId: user.id, isRecurring: true },
@@ -171,35 +171,40 @@ export default async function ExpensesPage({
         taxDeductible: true,
         ...(start ? { incurredOn: { gte: start } } : {}),
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
   ]);
 
-  const businessTotal = businessAgg._sum.amount ?? 0;
-  const personalTotal = personalAgg._sum.amount ?? 0;
-  const received = receivedAgg._sum.amount ?? 0;
+  const businessTotal = businessAgg._sum.amountKobo ?? 0;
+  const personalTotal = personalAgg._sum.amountKobo ?? 0;
+  const received = receivedAgg._sum.amountKobo ?? 0;
   const profit = received - businessTotal;
-  const prevBusiness = prevMonthBusinessAgg._sum.amount ?? 0;
-  const prevPersonal = prevMonthPersonalAgg._sum.amount ?? 0;
-  const taxDeductibleTotal = taxDeductibleAgg._sum?.amount ?? 0;
+  const prevBusiness = prevMonthBusinessAgg._sum.amountKobo ?? 0;
+  const prevPersonal = prevMonthPersonalAgg._sum.amountKobo ?? 0;
+  const taxDeductibleTotal = taxDeductibleAgg._sum?.amountKobo ?? 0;
 
-  const personalWeek = personalWeekAgg._sum.amount ?? 0;
-  const personalMonth = personalMonthAgg._sum.amount ?? 0;
+  const personalWeek = personalWeekAgg._sum.amountKobo ?? 0;
+  const personalMonth = personalMonthAgg._sum.amountKobo ?? 0;
+  // Budgets are stored on User as naira ints. Compare against personalWeek/
+  // personalMonth (kobo) by promoting the budgets to kobo for the math, but
+  // keep the naira values around for the budget label display.
   const weeklyBudget = user.personalBudgetWeekly ?? null;
   const monthlyBudget = user.personalBudgetMonthly ?? null;
-  const overWeek = weeklyBudget !== null && personalWeek > weeklyBudget;
-  const overMonth = monthlyBudget !== null && personalMonth > monthlyBudget;
+  const weeklyBudgetKobo = weeklyBudget != null ? weeklyBudget * 100 : null;
+  const monthlyBudgetKobo = monthlyBudget != null ? monthlyBudget * 100 : null;
+  const overWeek = weeklyBudgetKobo !== null && personalWeek > weeklyBudgetKobo;
+  const overMonth = monthlyBudgetKobo !== null && personalMonth > monthlyBudgetKobo;
 
   // Category breakdown
   const byCategory = new Map<string, number>();
   for (const e of expenses)
-    byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.amount);
+    byCategory.set(e.category, (byCategory.get(e.category) ?? 0) + e.amountKobo);
 
   // Payment method breakdown
   const byPayMethod = new Map<string, number>();
   for (const e of expenses) {
     const m = (e as Record<string, unknown>).paymentMethod as string | null;
-    if (m) byPayMethod.set(m, (byPayMethod.get(m) ?? 0) + e.amount);
+    if (m) byPayMethod.set(m, (byPayMethod.get(m) ?? 0) + e.amountKobo);
   }
 
   // Trend calculation
@@ -242,19 +247,19 @@ export default async function ExpensesPage({
             <ul className="mt-1 space-y-0.5 text-red-700">
               {overWeek && (
                 <li>
-                  This week: {formatNaira(personalWeek)} spent vs{' '}
+                  This week: {formatKobo(personalWeek)} spent vs{' '}
                   {formatNaira(weeklyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalWeek - weeklyBudget!)} over
+                    {formatKobo(personalWeek - weeklyBudgetKobo!)} over
                   </strong>
                 </li>
               )}
               {overMonth && (
                 <li>
-                  This month: {formatNaira(personalMonth)} spent vs{' '}
+                  This month: {formatKobo(personalMonth)} spent vs{' '}
                   {formatNaira(monthlyBudget!)} budget ·{' '}
                   <strong>
-                    {formatNaira(personalMonth - monthlyBudget!)} over
+                    {formatKobo(personalMonth - monthlyBudgetKobo!)} over
                   </strong>
                 </li>
               )}
@@ -306,7 +311,7 @@ export default async function ExpensesPage({
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
           <StatCard
             label={`Business costs`}
-            value={formatNaira(businessTotal)}
+            value={formatKobo(businessTotal)}
             tone="neutral"
             sub={
               businessTrend !== null
@@ -317,7 +322,7 @@ export default async function ExpensesPage({
           {kind === 'all' && (
             <StatCard
               label="Personal spending"
-              value={formatNaira(personalTotal)}
+              value={formatKobo(personalTotal)}
               tone={overWeek || overMonth ? 'danger' : 'neutral'}
               sub={
                 personalTrend !== null
@@ -328,12 +333,12 @@ export default async function ExpensesPage({
           )}
           <StatCard
             label="Revenue"
-            value={formatNaira(received)}
+            value={formatKobo(received)}
             tone="brand"
           />
           <StatCard
             label="Net profit"
-            value={formatNaira(profit)}
+            value={formatKobo(profit)}
             tone={profit >= 0 ? 'brand' : 'danger'}
             sub={
               profit < 0
@@ -344,7 +349,7 @@ export default async function ExpensesPage({
           {kind === 'business' && taxDeductibleTotal > 0 && (
             <StatCard
               label="Tax deductible"
-              value={formatNaira(taxDeductibleTotal)}
+              value={formatKobo(taxDeductibleTotal)}
               tone="neutral"
               sub="Potential tax savings"
             />
@@ -355,7 +360,7 @@ export default async function ExpensesPage({
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard
             label="This week"
-            value={formatNaira(personalWeek)}
+            value={formatKobo(personalWeek)}
             tone={overWeek ? 'danger' : 'neutral'}
             sub={
               weeklyBudget
@@ -365,7 +370,7 @@ export default async function ExpensesPage({
           />
           <StatCard
             label="This month"
-            value={formatNaira(personalMonth)}
+            value={formatKobo(personalMonth)}
             tone={overMonth ? 'danger' : 'neutral'}
             sub={
               monthlyBudget
@@ -375,7 +380,7 @@ export default async function ExpensesPage({
           />
           <StatCard
             label="Total personal"
-            value={formatNaira(personalTotal)}
+            value={formatKobo(personalTotal)}
             tone="neutral"
             sub={
               personalTrend !== null
@@ -409,7 +414,7 @@ export default async function ExpensesPage({
                 {PAY_METHOD_ICONS[method] ?? null}
                 <span className="capitalize text-slate-600">{method}</span>
                 <span className="num font-semibold text-ink">
-                  {formatNaira(total)}
+                  {formatKobo(total)}
                 </span>
               </span>
             ))}
@@ -447,7 +452,7 @@ export default async function ExpensesPage({
                   >
                     <span className="font-semibold text-ink">{cat}</span>
                     <span className="num text-slate-600">
-                      {formatNaira(total)}
+                      {formatKobo(total)}
                     </span>
                     <span className="text-slate-400">{pct}%</span>
                   </span>
@@ -538,7 +543,7 @@ export default async function ExpensesPage({
                   </div>
                 </div>
                 <div className="num text-owed-600 whitespace-nowrap">
-                  -{formatNaira(e.amount)}
+                  -{formatKobo(e.amountKobo)}
                 </div>
                 <ExpenseRowActions id={e.id} />
               </li>

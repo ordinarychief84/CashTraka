@@ -254,6 +254,9 @@ model Customer {
   phone            String
   totalPaid        Int       @default(0)
   totalOwed        Int       @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration. See docs/kobo-migration-plan.md.
+  totalPaidKobo    Int       @default(0)
+  totalOwedKobo    Int       @default(0)
   transactionCount Int       @default(0)
   lastActivityAt   DateTime  @default(now())
   createdAt        DateTime  @default(now())
@@ -312,6 +315,8 @@ model Payment {
   customerNameSnapshot String
   phoneSnapshot        String
   amount               Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo           Int       @default(0)
   status               String    @default("PAID")
   createdAt            DateTime  @default(now())
 
@@ -357,6 +362,8 @@ model PaymentItem {
   productId   String?
   description String
   unitPrice   Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  unitPriceKobo Int    @default(0)
   quantity    Int      @default(1)
 
   payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
@@ -373,6 +380,9 @@ model Debt {
   phoneSnapshot        String
   amountOwed           Int
   amountPaid           Int       @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  amountOwedKobo       Int       @default(0)
+  amountPaidKobo       Int       @default(0)
   dueDate              DateTime?
   status               String    @default("OPEN")
   createdAt            DateTime  @default(now())
@@ -398,6 +408,9 @@ model Product {
   name        String
   price       Int
   cost        Int?
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  priceKobo   Int       @default(0)
+  costKobo    Int?
   stock       Int       @default(0)
   trackStock  Boolean   @default(true)
   lowStockAt  Int       @default(3)
@@ -446,6 +459,11 @@ model Sale {
   tax             Int        @default(0)
   discount        Int        @default(0)
   total           Int        @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  subtotalKobo    Int        @default(0)
+  taxKobo         Int        @default(0)
+  discountKobo    Int        @default(0)
+  totalKobo       Int        @default(0)
   /// "CASH" | "TRANSFER" | "POS" | "CARD"
   paymentMethod   String     @default("CASH")
   note            String?
@@ -468,6 +486,9 @@ model SaleItem {
   unitPrice   Int
   quantity    Int      @default(1)
   total       Int      @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  unitPriceKobo Int    @default(0)
+  totalKobo     Int    @default(0)
 
   sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
@@ -481,6 +502,8 @@ model Expense {
   id             String   @id @default(cuid())
   userId         String
   amount         Int
+  /// Kobo sibling — Phase 3 of the kobo migration. (vatPaid below is already kobo.)
+  amountKobo     Int      @default(0)
   category       String
   note           String?
   /// "business" (default) or "personal"
@@ -564,6 +587,11 @@ model Invoice {
   discount        Int       @default(0)
   tax             Int       @default(0)
   total           Int       @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  subtotalKobo    Int       @default(0)
+  discountKobo    Int       @default(0)
+  taxKobo         Int       @default(0)
+  totalKobo       Int       @default(0)
   note            String?
   /// Free-text payment terms shown on the invoice (e.g. "Net 14",
   /// "Due on receipt"). Falls back to User.paymentInstructions when empty.
@@ -574,6 +602,8 @@ model Invoice {
   /// Cumulative amount paid against this invoice (across one or more
   /// PaymentRequest/Payment rows). Used to compute outstanding balance.
   amountPaid      Int       @default(0)
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountPaidKobo  Int       @default(0)
   /// Set the first time the public /invoice/[publicToken] page renders.
   viewedAt        DateTime?
   /// Set when /api/invoices/[id]/send fires. Used by the dashboard to
@@ -649,6 +679,8 @@ model InvoiceItem {
   productId   String?
   description String
   unitPrice   Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  unitPriceKobo Int    @default(0)
   quantity    Int      @default(1)
 
   /// "GOODS" | "SERVICE". Required for FIRS classification.
@@ -703,6 +735,10 @@ model CreditNote {
   subtotal         Int      @default(0)
   taxAmount        Int      @default(0)
   total            Int      @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  subtotalKobo     Int      @default(0)
+  taxAmountKobo    Int      @default(0)
+  totalKobo        Int      @default(0)
   pdfUrl           String?
   /// Non-guessable token if we ever expose a public credit-note page.
   publicToken      String?  @unique
@@ -811,6 +847,10 @@ model Offer {
   subtotal      Int      @default(0)
   taxAmount     Int      @default(0)
   total         Int      @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  subtotalKobo  Int      @default(0)
+  taxAmountKobo Int      @default(0)
+  totalKobo     Int      @default(0)
   notes         String?
   pdfUrl        String?
   publicToken   String?  @unique
@@ -835,6 +875,8 @@ model OfferItem {
   productId   String?
   description String
   unitPrice   Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  unitPriceKobo Int    @default(0)
   quantity    Int      @default(1)
 
   offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
@@ -856,6 +898,8 @@ model OrderConfirmation {
   /// "DRAFT" | "CONFIRMED" | "FULFILLED" | "CANCELLED"
   status        String   @default("CONFIRMED")
   total         Int      @default(0)
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  totalKobo     Int      @default(0)
   notes         String?
   pdfUrl        String?
   createdAt     DateTime @default(now())
@@ -975,6 +1019,8 @@ model Tenant {
   unitLabel     String?
   /// Monthly rent in Naira.
   rentAmount    Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  rentAmountKobo Int      @default(0)
   /// Day of month rent is due (1-28).
   rentDueDay    Int       @default(1)
   /// "monthly" | "quarterly" | "yearly"
@@ -1000,6 +1046,8 @@ model RentPayment {
   userId       String
   tenantId     String
   amount       Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo   Int       @default(0)
   /// The calendar month this covers, e.g. "2026-04".
   period       String
   /// "PAID" | "PARTIAL" | "PENDING" | "OVERDUE"
@@ -1072,6 +1120,8 @@ model StaffMember {
   lastLoginAt          DateTime?
   payType     String    @default("monthly")
   payAmount   Int       @default(0)
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  payAmountKobo Int     @default(0)
   startDate   DateTime?
   bankName             String?
   bankAccountNumber    String?
@@ -1117,6 +1167,8 @@ model StaffPayment {
   staffId      String
   kind         String
   amount       Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo   Int       @default(0)
   periodStart  DateTime?
   periodEnd    DateTime?
   note         String?
@@ -1233,6 +1285,8 @@ model Receipt {
   /// Outstanding balance when this receipt was generated (partial payment).
   /// null = full payment; >0 means the receipt should display "Balance: X".
   balanceRemaining Int?
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  balanceRemainingKobo Int?
   /// Where this receipt originated. "MANUAL" | "PAYSTACK" | "PROMISE" | "INSTALLMENT" | "DEBT" | "CATALOG"
   source           String   @default("MANUAL")
 
@@ -1472,6 +1526,8 @@ model Refund {
   userId            String
   paymentAttemptId  String?
   amount            Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo        Int      @default(0)
   currency          String   @default("NGN")
   status            String   @default("pending")
   reason            String
@@ -1518,6 +1574,8 @@ model PaymentRequest {
   customerName     String
   customerPhone    String
   amount           Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo       Int       @default(0)
   description      String?
   status           String    @default("pending")
   viewedAt         DateTime?
@@ -1591,6 +1649,8 @@ model ReminderLog {
   customerName  String
   customerPhone String
   amount        Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo    Int       @default(0)
   /// "whatsapp" | "email"
   channel       String
   /// "gentle" | "firm" | "final"
@@ -1623,6 +1683,9 @@ model CollectionScore {
   collectedAmount     Int       @default(0)
   /// Total amount outstanding
   outstandingAmount   Int       @default(0)
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  collectedAmountKobo  Int      @default(0)
+  outstandingAmountKobo Int     @default(0)
   /// Number of active follow-up rules
   activeReminders     Int       @default(0)
   /// Scoring period start
@@ -1701,6 +1764,9 @@ model PromiseToPay {
   phoneSnapshot        String
   originalAmount       Int
   remainingAmount      Int
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  originalAmountKobo   Int       @default(0)
+  remainingAmountKobo  Int       @default(0)
   /// OPEN | PARTIALLY_PAID | PROMISED | PAID | BROKEN | CANCELLED | EXPIRED
   status               String    @default("OPEN")
   publicToken          String    @unique @default(cuid())
@@ -1747,6 +1813,8 @@ model PromisePayment {
   providerReference    String?
   providerTransactionId String?
   amount               Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo           Int       @default(0)
   /// PENDING | SUCCESS | FAILED
   status               String    @default("PENDING")
   verifiedAt           DateTime?
@@ -1776,6 +1844,11 @@ model InstallmentPlan {
   remainingAmount                Int
   initialAmount                  Int?      // first payment amount (may differ from recurring)
   recurringAmount                Int
+  /// Kobo siblings — Phase 3 of the kobo migration.
+  totalAmountKobo                Int       @default(0)
+  remainingAmountKobo            Int       @default(0)
+  initialAmountKobo              Int?
+  recurringAmountKobo            Int       @default(0)
   /// DAILY | WEEKLY | BIWEEKLY | MONTHLY
   interval                       String    @default("MONTHLY")
   totalInstallments              Int?      // null = charge until cleared
@@ -1809,6 +1882,8 @@ model InstallmentCharge {
   installmentPlanId     String
   userId                String
   amount                Int
+  /// Kobo sibling — Phase 3 of the kobo migration.
+  amountKobo            Int       @default(0)
   reference             String    @unique
   /// PENDING | SUCCESS | FAILED | VERIFICATION_PENDING
   status                String    @default("PENDING")

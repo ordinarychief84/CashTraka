@@ -974,6 +974,58 @@ export async function GET(req: NextRequest) {
     results.push('FK FAIL: bank sync - ' + e.message?.substring(0, 100));
   }
 
+  // ── Kobo migration Phase 3: additive columns ──────────────────
+  // Every legacy naira Int column gets a sibling *Kobo column with default 0.
+  // Old columns stay in place during phases 1-6. Drop is Phase 7 only.
+  // See docs/kobo-migration-plan.md.
+  await addCol('Customer', 'totalPaidKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Customer', 'totalOwedKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Payment', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('PaymentItem', 'unitPriceKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Debt', 'amountOwedKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Debt', 'amountPaidKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Product', 'priceKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Product', 'costKobo', 'INTEGER', 'NULL');
+  await addCol('Sale', 'subtotalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Sale', 'taxKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Sale', 'discountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Sale', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('SaleItem', 'unitPriceKobo', 'INTEGER NOT NULL', '0');
+  await addCol('SaleItem', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Expense', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'subtotalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'discountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'taxKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Invoice', 'amountPaidKobo', 'INTEGER NOT NULL', '0');
+  await addCol('InvoiceItem', 'unitPriceKobo', 'INTEGER NOT NULL', '0');
+  await addCol('CreditNote', 'subtotalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('CreditNote', 'taxAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('CreditNote', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Offer', 'subtotalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Offer', 'taxAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Offer', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('OfferItem', 'unitPriceKobo', 'INTEGER NOT NULL', '0');
+  await addCol('OrderConfirmation', 'totalKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Tenant', 'rentAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('RentPayment', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('StaffMember', 'payAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('StaffPayment', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('Receipt', 'balanceRemainingKobo', 'INTEGER', 'NULL');
+  await addCol('Refund', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('PaymentRequest', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('ReminderLog', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('CollectionScore', 'collectedAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('CollectionScore', 'outstandingAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('PromiseToPay', 'originalAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('PromiseToPay', 'remainingAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('PromisePayment', 'amountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('InstallmentPlan', 'totalAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('InstallmentPlan', 'remainingAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('InstallmentPlan', 'initialAmountKobo', 'INTEGER', 'NULL');
+  await addCol('InstallmentPlan', 'recurringAmountKobo', 'INTEGER NOT NULL', '0');
+  await addCol('InstallmentCharge', 'amountKobo', 'INTEGER NOT NULL', '0');
+
   // Final test: try creating and deleting a user
   let finalTest = 'NOT_RUN';
   try {

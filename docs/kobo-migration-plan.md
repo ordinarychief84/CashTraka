@@ -1,8 +1,15 @@
 # Kobo money migration: plan and checklist
 
-> **Status: PLAN ONLY. Not implemented.**
-> **Branch: `feature/kobo-money-migration`. Do not merge.**
-> **Production: untouched. Naira `Int` storage stays in place until this plan is fully executed and verified in staging.**
+> **Status as of 2026-05-04 (UTC):**
+> - Phase 1 (utility layer) — **shipped on `main`**.
+> - Phase 2 (read-compat helpers) — **shipped on `main`**.
+> - Phase 3 (additive `*Kobo` columns) — **shipped on `main`**, columns live on prod DB.
+> - Phase 4 (dual-write) — **live on prod**. Every monetary write populates both columns. Integration test (`scripts/test-dual-write.mjs`) verified 23/23 pairs against prod DB.
+> - Phase 5 (backfill) — **complete on prod**. 104 historical rows updated. Every legacy ↔ kobo pair is consistent across all 47 columns.
+> - Phase 6 (read-flip) — **partial**. The two real 100× bugs (`vat-return.service.ts`, `accountant-pack.service.ts`) are fixed and live. Other read sites still read legacy naira columns; this is correct-but-not-yet-tidy and can be migrated incrementally without urgency since the data is consistent.
+> - Phase 7 (drop legacy columns) — **not started**. Wait until Phase 6 is fully done and stable for at least 48h.
+>
+> Branch `feature/kobo-money-migration` was fast-forward merged into `main` on 2026-05-04.
 
 ## Why this exists
 

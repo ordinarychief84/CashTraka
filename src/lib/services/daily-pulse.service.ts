@@ -66,17 +66,17 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     // Today's revenue
     prisma.payment.aggregate({
       where: { userId, createdAt: { gte: todayStart }, status: 'PAID' },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     // Yesterday's revenue
     prisma.payment.aggregate({
       where: { userId, createdAt: { gte: yesterdayStart, lt: todayStart }, status: 'PAID' },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     // Total outstanding debts
     prisma.debt.aggregate({
       where: { userId, status: 'OPEN' },
-      _sum: { amountOwed: true },
+      _sum: { amountOwedKobo: true },
     }),
     // Overdue debts (past due date, still open)
     prisma.debt.count({
@@ -101,9 +101,9 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     // Top 5 debtors
     prisma.debt.findMany({
       where: { userId, status: 'OPEN' },
-      orderBy: { amountOwed: 'desc' },
+      orderBy: { amountOwedKobo: 'desc' },
       take: 5,
-      select: { customerNameSnapshot: true, phoneSnapshot: true, amountOwed: true, amountPaid: true },
+      select: { customerNameSnapshot: true, phoneSnapshot: true, amountOwedKobo: true, amountPaidKobo: true },
     }),
     // Yesterday's business expenses
     prisma.expense.aggregate({
@@ -112,12 +112,12 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
         kind: 'business',
         incurredOn: { gte: yesterdayStart, lt: todayStart },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
   ]);
 
-  const todayRev = todayPayments._sum.amount || 0;
-  const yesterdayRev = yesterdayPayments._sum.amount || 0;
+  const todayRev = todayPayments._sum.amountKobo || 0;
+  const yesterdayRev = yesterdayPayments._sum.amountKobo || 0;
   const delta = yesterdayRev > 0
     ? Math.round(((todayRev - yesterdayRev) / yesterdayRev) * 100)
     : todayRev > 0 ? 100 : 0;
@@ -141,7 +141,7 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     todayRevenue: todayRev,
     yesterdayRevenue: yesterdayRev,
     revenueDelta: delta,
-    totalOwed: openDebts._sum.amountOwed || 0,
+    totalOwed: openDebts._sum.amountOwedKobo || 0,
     overdueDebts,
     pendingPaylinks,
     claimedPaylinks,
@@ -150,9 +150,9 @@ export async function computeDailyPulse(userId: string): Promise<DailyPulseData>
     topDebtors: topDebtors.map((d) => ({
       name: d.customerNameSnapshot,
       phone: d.phoneSnapshot,
-      amount: d.amountOwed - d.amountPaid,
+      amount: d.amountOwedKobo - d.amountPaidKobo,
     })),
-    yesterdaySpent: yesterdayExpenses._sum.amount ?? 0,
+    yesterdaySpent: yesterdayExpenses._sum.amountKobo ?? 0,
     activePromises: promiseStats.activePromises,
     brokenPromises: promiseStats.brokenPromises,
     committedUnpaid: promiseStats.committedUnpaid,

@@ -3,7 +3,7 @@ import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { analyticsService } from '@/lib/services/analytics.service';
 import { ColumnChart } from '@/components/BarChart';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,7 +50,7 @@ export default async function AdminAnalyticsPage() {
           <ColumnChart
             labels={monthLabels}
             values={data.revenue}
-            formatValue={formatNaira}
+            formatValue={formatKobo}
             height={200}
           />
           <div className="mt-3 grid grid-cols-6 gap-1 text-center">
@@ -58,7 +58,7 @@ export default async function AdminAnalyticsPage() {
               <div key={m} className="text-[10px] font-semibold text-slate-500">
                 {m}
                 <div className="num text-xs text-brand-700">
-                  {data.revenue[i] > 0 ? formatNaira(data.revenue[i]) : '—'}
+                  {data.revenue[i] > 0 ? formatKobo(data.revenue[i]) : '—'}
                 </div>
               </div>
             ))}

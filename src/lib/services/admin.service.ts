@@ -101,11 +101,11 @@ export const adminService = {
     const [paidAgg, openDebtAgg, recentActivity, notes] = await Promise.all([
       prisma.payment.aggregate({
         where: { userId: id, status: 'PAID' },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
       }),
       prisma.debt.aggregate({
         where: { userId: id, status: 'OPEN' },
-        _sum: { amountOwed: true, amountPaid: true },
+        _sum: { amountOwedKobo: true, amountPaidKobo: true },
       }),
       prisma.payment.findMany({
         where: { userId: id },
@@ -114,7 +114,7 @@ export const adminService = {
         select: {
           id: true,
           customerNameSnapshot: true,
-          amount: true,
+          amountKobo: true,
           status: true,
           createdAt: true,
         },
@@ -131,9 +131,9 @@ export const adminService = {
     return {
       user: safe,
       totals: {
-        revenue: paidAgg._sum.amount ?? 0,
+        revenue: paidAgg._sum.amountKobo ?? 0,
         outstandingDebt: Math.max(
-          (openDebtAgg._sum.amountOwed ?? 0) - (openDebtAgg._sum.amountPaid ?? 0),
+          (openDebtAgg._sum.amountOwedKobo ?? 0) - (openDebtAgg._sum.amountPaidKobo ?? 0),
           0,
         ),
       },

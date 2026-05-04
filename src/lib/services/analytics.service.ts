@@ -47,10 +47,10 @@ export const analyticsService = {
       prisma.payment.count(),
       prisma.debt.count(),
       prisma.customer.count(),
-      prisma.payment.aggregate({ where: { status: 'PAID' }, _sum: { amount: true } }),
+      prisma.payment.aggregate({ where: { status: 'PAID' }, _sum: { amountKobo: true } }),
       prisma.debt.aggregate({
         where: { status: 'OPEN' },
-        _sum: { amountOwed: true, amountPaid: true },
+        _sum: { amountOwedKobo: true, amountPaidKobo: true },
       }),
       prisma.user.findMany({
         orderBy: { createdAt: 'desc' },
@@ -69,7 +69,7 @@ export const analyticsService = {
         select: {
           id: true,
           customerNameSnapshot: true,
-          amount: true,
+          amountKobo: true,
           status: true,
           createdAt: true,
           user: { select: { name: true, businessName: true } },
@@ -81,7 +81,7 @@ export const analyticsService = {
         select: {
           id: true,
           customerNameSnapshot: true,
-          amountOwed: true,
+          amountOwedKobo: true,
           status: true,
           createdAt: true,
           user: { select: { name: true, businessName: true } },
@@ -97,7 +97,7 @@ export const analyticsService = {
     ]);
 
     const outstandingDebt = Math.max(
-      (outstandingDebtAgg._sum.amountOwed ?? 0) - (outstandingDebtAgg._sum.amountPaid ?? 0),
+      (outstandingDebtAgg._sum.amountOwedKobo ?? 0) - (outstandingDebtAgg._sum.amountPaidKobo ?? 0),
       0,
     );
 
@@ -109,7 +109,7 @@ export const analyticsService = {
         payments: totalPayments,
         debts: totalDebts,
         customers: totalCustomers,
-        revenue: totalRevenueAgg._sum.amount ?? 0,
+        revenue: totalRevenueAgg._sum.amountKobo ?? 0,
         outstandingDebt,
         zeroActivityUsers,
         suspendedUsers,
@@ -182,7 +182,7 @@ export const analyticsService = {
       prisma.user.groupBy({ by: ['subscriptionStatus'], _count: true }),
       prisma.payment.aggregate({
         where: { status: 'PAID', createdAt: { gte: monthStart } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
         _count: true,
       }),
       prisma.payment.aggregate({
@@ -190,24 +190,24 @@ export const analyticsService = {
           status: 'PAID',
           createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
         },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
         _count: true,
       }),
       prisma.debt.aggregate({
         where: { status: 'OPEN' },
-        _sum: { amountOwed: true, amountPaid: true },
+        _sum: { amountOwedKobo: true, amountPaidKobo: true },
       }),
       prisma.payment.aggregate({
         where: { status: 'PAID' },
-        _avg: { amount: true },
+        _avg: { amountKobo: true },
       }),
       // Top tenants by GMV this month
       prisma.payment.groupBy({
         by: ['userId'],
         where: { status: 'PAID', createdAt: { gte: monthStart } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
         _count: true,
-        orderBy: { _sum: { amount: 'desc' } },
+        orderBy: { _sum: { amountKobo: 'desc' } },
         take: 5,
       }),
       prisma.user.findMany({
@@ -250,7 +250,7 @@ export const analyticsService = {
         select: {
           id: true,
           customerNameSnapshot: true,
-          amount: true,
+          amountKobo: true,
           createdAt: true,
           user: { select: { id: true, name: true, businessName: true } },
         },
@@ -271,7 +271,7 @@ export const analyticsService = {
       // Platform-wide expense totals this month
       prisma.expense.aggregate({
         where: { incurredOn: { gte: monthStart } },
-        _sum: { amount: true },
+        _sum: { amountKobo: true },
         _count: true,
       }),
     ]);
@@ -324,16 +324,16 @@ export const analyticsService = {
         : null;
 
     // GMV delta
-    const thisMonthGmv = gmvThisMonth._sum.amount ?? 0;
-    const prevMonthGmv = gmvPrevMonth._sum.amount ?? 0;
+    const thisMonthGmv = gmvThisMonth._sum.amountKobo ?? 0;
+    const prevMonthGmv = gmvPrevMonth._sum.amountKobo ?? 0;
     const gmvDelta =
       prevMonthGmv > 0
         ? Math.round(((thisMonthGmv - prevMonthGmv) / prevMonthGmv) * 100)
         : null;
 
     const outstandingDebt = Math.max(
-      (outstandingDebtAgg._sum.amountOwed ?? 0) -
-        (outstandingDebtAgg._sum.amountPaid ?? 0),
+      (outstandingDebtAgg._sum.amountOwedKobo ?? 0) -
+        (outstandingDebtAgg._sum.amountPaidKobo ?? 0),
       0,
     );
 
@@ -387,8 +387,8 @@ export const analyticsService = {
         gmvDeltaPct: gmvDelta,
         txnsThisMonth: gmvThisMonth._count,
         outstandingDebt,
-        avgTxn: Math.round(avgTxnAgg._avg.amount ?? 0),
-        expensesThisMonth: platformExpensesAgg._sum.amount ?? 0,
+        avgTxn: Math.round(avgTxnAgg._avg.amountKobo ?? 0),
+        expensesThisMonth: platformExpensesAgg._sum.amountKobo ?? 0,
         expenseCount: platformExpensesAgg._count,
       },
       topTenants: topTenants.map((t) => ({
@@ -398,7 +398,7 @@ export const analyticsService = {
           tenantById.get(t.userId)?.name ||
           'Unknown',
         plan: tenantById.get(t.userId)?.plan ?? 'free',
-        gmv: t._sum.amount ?? 0,
+        gmv: t._sum.amountKobo ?? 0,
         txns: t._count,
       })),
       activity: {
@@ -425,7 +425,7 @@ export const analyticsService = {
       }),
       prisma.payment.findMany({
         where: { status: 'PAID', createdAt: { gte: start } },
-        select: { amount: true, createdAt: true },
+        select: { amountKobo: true, createdAt: true },
       }),
     ]);
 
@@ -452,7 +452,7 @@ export const analyticsService = {
     }
     for (const p of payments) {
       const k = monthIndex(p.createdAt);
-      if (revenueSums.has(k)) revenueSums.set(k, (revenueSums.get(k) ?? 0) + p.amount);
+      if (revenueSums.has(k)) revenueSums.set(k, (revenueSums.get(k) ?? 0) + p.amountKobo);
     }
 
     return {

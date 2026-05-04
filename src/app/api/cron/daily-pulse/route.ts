@@ -64,22 +64,25 @@ export async function GET(req: Request) {
         }));
       } catch { /* suggestions are optional */ }
 
+      // computeDailyPulse returns money fields in kobo. emailService.sendDailyPulse
+      // (and the templated email body) expects naira — convert at the boundary.
+      const koboToNaira = (k: number) => Math.round(k / 100);
       const result = await emailService.sendDailyPulse({
         to: user.email,
         name: user.name.split(' ')[0],
-        todayRevenue: pulse.todayRevenue,
+        todayRevenue: koboToNaira(pulse.todayRevenue),
         revenueDelta: pulse.revenueDelta,
-        totalOwed: pulse.totalOwed,
+        totalOwed: koboToNaira(pulse.totalOwed),
         overdueDebts: pulse.overdueDebts,
         claimedPaylinks: pulse.claimedPaylinks,
         remindersDueToday: pulse.remindersDueToday,
-        topDebtors: pulse.topDebtors,
-        yesterdaySpent: pulse.yesterdaySpent,
+        topDebtors: pulse.topDebtors.map((d) => ({ ...d, amount: koboToNaira(d.amount) })),
+        yesterdaySpent: pulse.yesterdaySpent != null ? koboToNaira(pulse.yesterdaySpent) : pulse.yesterdaySpent,
         suggestions,
         activePromises: pulse.activePromises,
         brokenPromises: pulse.brokenPromises,
         autoConfirmedToday: pulse.autoConfirmedToday,
-        autoConfirmedAmountToday: pulse.autoConfirmedAmountToday,
+        autoConfirmedAmountToday: koboToNaira(pulse.autoConfirmedAmountToday),
       });
 
       if (result.ok) sent++;

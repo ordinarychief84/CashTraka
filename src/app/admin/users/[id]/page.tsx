@@ -14,7 +14,7 @@ import {
   getOverrideMap,
   mergeLimits,
 } from '@/lib/services/user-override.service';
-import { formatNaira, formatDate, timeAgo } from '@/lib/format';
+import { formatKobo, formatDate, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -86,8 +86,8 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
       </div>
 
       <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <MC icon={Banknote} label="Revenue collected" value={formatNaira(totals.revenue)} color="brand" />
-        <MC icon={BarChart3} label="Outstanding debt" value={formatNaira(totals.outstandingDebt)} color="danger" />
+        <MC icon={Banknote} label="Revenue collected" value={formatKobo(totals.revenue)} color="brand" />
+        <MC icon={BarChart3} label="Outstanding debt" value={formatKobo(totals.outstandingDebt)} color="danger" />
         <MC icon={Users} label="Customers" value={String(user._count?.customers ?? 0)} />
         <MC icon={FileText} label="Invoices" value={String(user._count?.invoices ?? 0)} />
       </div>
@@ -152,7 +152,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
                       <span className={cn('rounded px-1.5 py-0.5 font-bold uppercase', p.status === 'PAID' ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-600')}>{p.status}</span>
                     </div>
                   </div>
-                  <div className="num text-sm font-bold text-brand-700">{formatNaira(p.amount)}</div>
+                  <div className="num text-sm font-bold text-brand-700">{formatKobo(p.amountKobo)}</div>
                 </li>
               ))}
             </ul>

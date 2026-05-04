@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatNaira } from '@/lib/format';
+import { formatKobo } from '@/lib/format';
 import { getCashflowForecast } from '@/lib/services/cashflow.service';
 
 /**
@@ -91,22 +91,22 @@ export async function CashFlowForecastCard({ userId }: { userId: string }) {
         )}
       >
         {netPositive ? '' : '-'}
-        {formatNaira(Math.abs(projectedNet))}
+        {formatKobo(Math.abs(projectedNet))}
       </div>
       <div className="mt-1 text-[11px] text-slate-500">Projected net</div>
 
       <dl className="mt-3 space-y-1.5 border-t border-border pt-2 text-[12px]">
         <div className="flex items-center justify-between">
           <dt className="text-slate-600">Expected in</dt>
-          <dd className="num font-semibold text-ink">{formatNaira(expectedInflow)}</dd>
+          <dd className="num font-semibold text-ink">{formatKobo(expectedInflow)}</dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-slate-600">Recurring in</dt>
-          <dd className="num font-semibold text-ink">{formatNaira(recurringInflow)}</dd>
+          <dd className="num font-semibold text-ink">{formatKobo(recurringInflow)}</dd>
         </div>
         <div className="flex items-center justify-between">
           <dt className="text-slate-600">Expected out</dt>
-          <dd className="num font-semibold text-ink">{formatNaira(expectedOutflow)}</dd>
+          <dd className="num font-semibold text-ink">{formatKobo(expectedOutflow)}</dd>
         </div>
       </dl>
     </div>

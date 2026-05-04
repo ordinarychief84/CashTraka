@@ -15,7 +15,10 @@
  *   - Recent revenue trend: percent change in Payments + manual receipts
  *     between (now-30d .. now) and (now-60d .. now-30d).
  *
- * All amounts are integers in naira.
+ * All amounts are integers in KOBO. The legacy CashflowForecast field
+ * names (expectedInflow, recurringInflow, etc.) are unchanged for
+ * backwards compat; the values they hold are now kobo. Renderers in
+ * CashFlowForecastCard format via formatKobo.
  */
 
 import { prisma } from '@/lib/prisma';
@@ -36,14 +39,17 @@ type ParsedTemplateItem = {
   quantity?: number;
 };
 
-function estimateRuleAmountFromTemplate(templateData: string): number {
+// templateData is a JSON snapshot of the recurring-invoice form, where
+// unitPrice is naira (matching the seller-facing input). Returns kobo so the
+// caller can sum it alongside Invoice.totalKobo without unit mixing.
+function estimateRuleAmountKoboFromTemplate(templateData: string): number {
   try {
     const parsed = JSON.parse(templateData) as { items?: ParsedTemplateItem[] };
     if (!parsed.items || !Array.isArray(parsed.items)) return 0;
     return parsed.items.reduce((sum, it) => {
       const unit = typeof it.unitPrice === 'number' ? it.unitPrice : 0;
       const qty = typeof it.quantity === 'number' ? it.quantity : 1;
-      return sum + Math.max(0, unit * qty);
+      return sum + Math.max(0, unit * qty) * 100; // naira → kobo at the boundary
     }, 0);
   } catch {
     return 0;
@@ -71,7 +77,7 @@ export async function getCashflowForecast(userId: string): Promise<CashflowForec
         status: { in: ['SENT', 'VIEWED', 'PARTIALLY_PAID'] },
         dueDate: { gte: now, lte: in30 },
       },
-      select: { total: true, amountPaid: true },
+      select: { totalKobo: true, amountPaidKobo: true },
     }),
     // Active rules due to fire next inside the window. Pull the latest
     // generated invoice for each so we can use the actual amount when
@@ -88,13 +94,13 @@ export async function getCashflowForecast(userId: string): Promise<CashflowForec
         invoices: {
           orderBy: { createdAt: 'desc' },
           take: 1,
-          select: { total: true },
+          select: { totalKobo: true },
         },
       },
     }),
     prisma.expense.aggregate({
       where: { userId, incurredOn: { gte: last30Start, lte: now } },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.payment.aggregate({
       where: {
@@ -102,7 +108,7 @@ export async function getCashflowForecast(userId: string): Promise<CashflowForec
         status: 'PAID',
         createdAt: { gte: last30Start, lte: now },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
     prisma.payment.aggregate({
       where: {
@@ -110,25 +116,25 @@ export async function getCashflowForecast(userId: string): Promise<CashflowForec
         status: 'PAID',
         createdAt: { gte: prior30Start, lt: last30Start },
       },
-      _sum: { amount: true },
+      _sum: { amountKobo: true },
     }),
   ]);
 
   const expectedInflow = expectedInvoiceRows.reduce(
-    (sum, row) => sum + Math.max(0, row.total - row.amountPaid),
+    (sum, row) => sum + Math.max(0, row.totalKobo - row.amountPaidKobo),
     0,
   );
 
   const recurringInflow = recurringRules.reduce((sum, rule) => {
-    const lastTotal = rule.invoices[0]?.total ?? 0;
-    if (lastTotal > 0) return sum + lastTotal;
-    return sum + estimateRuleAmountFromTemplate(rule.templateData);
+    const lastTotalKobo = rule.invoices[0]?.totalKobo ?? 0;
+    if (lastTotalKobo > 0) return sum + lastTotalKobo;
+    return sum + estimateRuleAmountKoboFromTemplate(rule.templateData);
   }, 0);
 
-  const expectedOutflow = expensesAgg._sum.amount ?? 0;
+  const expectedOutflow = expensesAgg._sum.amountKobo ?? 0;
 
-  const last30Total = paymentsLast30._sum.amount ?? 0;
-  const prior30Total = paymentsPrior30._sum.amount ?? 0;
+  const last30Total = paymentsLast30._sum.amountKobo ?? 0;
+  const prior30Total = paymentsPrior30._sum.amountKobo ?? 0;
   const recentRevenueTrend30d =
     prior30Total > 0
       ? Math.round(((last30Total - prior30Total) / prior30Total) * 100)

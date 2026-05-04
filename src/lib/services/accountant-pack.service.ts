@@ -92,7 +92,7 @@ export const accountantPackService = {
       r.receiptNumber,
       toIso(r.createdAt),
       r.paymentId ?? '',
-      r.balanceRemaining != null ? naira(r.balanceRemaining) : '',
+      r.balanceRemainingKobo != null ? naira(r.balanceRemainingKobo) : '',
       r.source,
       r.status,
     ]);
@@ -127,13 +127,13 @@ export const accountantPackService = {
       it.customerName,
       it.customerPhone,
       it.buyerTin ?? '',
-      naira(it.subtotal),
-      naira(it.discount),
+      naira(it.subtotalKobo),
+      naira(it.discountKobo),
       it.vatApplied ? 'true' : 'false',
       String(it.vatRate ?? 0),
-      naira(it.tax),
-      naira(it.total),
-      naira(it.amountPaid),
+      naira(it.taxKobo),
+      naira(it.totalKobo),
+      naira(it.amountPaidKobo),
       it.currency,
       it.firsStatus ?? '',
       it.firsIrn ?? '',
@@ -162,9 +162,9 @@ export const accountantPackService = {
       toIso(cn.createdAt),
       cn.invoice?.invoiceNumber ?? '',
       cn.reason ?? '',
-      naira(cn.subtotal),
-      naira(cn.taxAmount),
-      naira(cn.total),
+      naira(cn.subtotalKobo),
+      naira(cn.taxAmountKobo),
+      naira(cn.totalKobo),
     ]);
 
     // ── Payments ───────────────────────────────────────────────
@@ -185,7 +185,7 @@ export const accountantPackService = {
       toIso(p.createdAt),
       p.customerNameSnapshot,
       p.phoneSnapshot,
-      naira(p.amount),
+      naira(p.amountKobo),
       p.status,
       p.referenceCode ?? '',
       p.provider ?? '',
@@ -214,7 +214,7 @@ export const accountantPackService = {
       ex.note ?? '',
       ex.kind,
       ex.paymentMethod ?? '',
-      naira(ex.amount),
+      naira(ex.amountKobo),
       naira(ex.vatPaid),
       ex.taxDeductible ? 'true' : 'false',
     ]);
@@ -249,29 +249,29 @@ export const accountantPackService = {
       vr.filedAt ? toIso(vr.filedAt) : '',
     ]);
 
-    // ── Totals ─────────────────────────────────────────────────
-    const totalRevenue = invoices.reduce((s, it) => s + (it.total ?? 0), 0);
-    const totalPayments = payments.reduce((s, p) => s + (p.amount ?? 0), 0);
-    const totalExpense = expenses.reduce((s, ex) => s + ex.amount, 0);
-    const totalVatOut = invoices.reduce(
-      (s, it) => s + (it.vatApplied ? it.tax : 0),
+    // ── Totals (everything sums kobo so units stay consistent) ─────
+    const totalRevenueKobo = invoices.reduce((s, it) => s + (it.totalKobo ?? 0), 0);
+    const totalPaymentsKobo = payments.reduce((s, p) => s + (p.amountKobo ?? 0), 0);
+    const totalExpenseKobo = expenses.reduce((s, ex) => s + ex.amountKobo, 0);
+    const totalVatOutKobo = invoices.reduce(
+      (s, it) => s + (it.vatApplied ? it.taxKobo : 0),
       0,
     );
-    const totalVatIn = expenses.reduce((s, ex) => s + ex.vatPaid, 0);
+    const totalVatInKobo = expenses.reduce((s, ex) => s + ex.vatPaid, 0);
 
     // ── Manifest ───────────────────────────────────────────────
     const manifestHeader = ['Section', 'Rows', 'Total_NGN'];
     const manifestRows: string[][] = [
       ['receipts.csv', String(receipts.length), ''],
-      ['invoices.csv', String(invoices.length), naira(totalRevenue)],
+      ['invoices.csv', String(invoices.length), naira(totalRevenueKobo)],
       ['credit-notes.csv', String(creditNotes.length), ''],
-      ['payments.csv', String(payments.length), naira(totalPayments)],
-      ['expenses.csv', String(expenses.length), naira(totalExpense)],
+      ['payments.csv', String(payments.length), naira(totalPaymentsKobo)],
+      ['expenses.csv', String(expenses.length), naira(totalExpenseKobo)],
       ['vat-returns.csv', String(vatReturns.length), ''],
       ['', '', ''],
-      ['Total output VAT', '', naira(totalVatOut)],
-      ['Total input VAT', '', naira(totalVatIn)],
-      ['Net VAT', '', naira(totalVatOut - totalVatIn)],
+      ['Total output VAT', '', naira(totalVatOutKobo)],
+      ['Total input VAT', '', naira(totalVatInKobo)],
+      ['Net VAT', '', naira(totalVatOutKobo - totalVatInKobo)],
       ['', '', ''],
       ['Year', String(year), ''],
       ['Generated', toIso(new Date()), ''],

@@ -1,9 +1,16 @@
 'use client';
 
+import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
+
 /**
  * Global error boundary for layout-level crashes.
  * Next.js 14 requires this as a separate file from error.tsx
  * because it wraps the root layout itself.
+ *
+ * Reports caught errors to Sentry. Runs only when the SDK has been
+ * initialised (i.e. NEXT_PUBLIC_SENTRY_DSN is set in Vercel env);
+ * otherwise Sentry.captureException is a no-op.
  */
 export default function GlobalError({
   error,
@@ -12,6 +19,10 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <html lang="en">
       <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif' }}>

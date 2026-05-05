@@ -33,7 +33,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://ucarecdn.com https://*.uploadcare.com",
-              "connect-src 'self' https://api.paystack.co https://upload.uploadcare.com",
+              "connect-src 'self' https://api.paystack.co https://upload.uploadcare.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io",
               "frame-src 'self' https://js.paystack.co",
               "frame-ancestors 'none'",
               "base-uri 'self'",
@@ -62,4 +62,28 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// Sentry wrapper. The wrapper is a no-op at runtime when SENTRY_DSN is
+// unset, so it's safe to apply unconditionally — once the user pastes the
+// DSN into Vercel env vars, the next deploy uploads source maps and
+// reports errors automatically. Build-time source-map upload only fires
+// when the auth token is present, so without setup nothing happens.
+const { withSentryConfig } = require('@sentry/nextjs');
+
+module.exports = withSentryConfig(nextConfig, {
+  // Org + project come from env vars set in Vercel:
+  //   SENTRY_ORG=cashtraka (whatever you name it)
+  //   SENTRY_PROJECT=cashtraka-web
+  //   SENTRY_AUTH_TOKEN=<from sentry.io/settings/account/api/auth-tokens/>
+  // If any of these is missing the wrapper logs a warning at build time
+  // and skips source-map upload. The runtime SDK still works.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.SENTRY_AUTH_TOKEN,
+  // Hide source maps from end users — tunnel them through a /monitoring
+  // route on our domain so adblockers don't drop them and so the bundles
+  // shipped to the browser don't contain raw map URLs.
+  widenClientFileUpload: true,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: false,
+});

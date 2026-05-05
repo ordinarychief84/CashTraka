@@ -18,6 +18,7 @@ import {
   Building2,
   Home,
   Wallet,
+  Shield,
 } from 'lucide-react';
 
 type Props = { businessType?: string };
@@ -228,6 +229,35 @@ export function DangerZoneTab({ businessType }: Props) {
 
   return (
     <div className="space-y-8">
+      {/* ── NDPR full-data export (free for all plans, legal right) ── */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-6 py-4">
+          <h2 className="flex items-center gap-2 text-base font-bold text-slate-900">
+            <Shield size={18} className="text-brand-500" />
+            Download all your data
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Under the Nigerian Data Protection Regulation, you have the
+            right to receive a copy of every record we hold on your
+            account. The download is a single JSON file that includes your
+            profile, customers, payments, debts, invoices, expenses, and
+            every other table you own.
+          </p>
+        </div>
+        <div className="flex items-center justify-between gap-4 px-6 py-4">
+          <div className="text-xs text-slate-500">
+            One-click download. Free on every plan.
+          </div>
+          <a
+            href="/api/account/export"
+            className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 transition-colors"
+          >
+            <Download size={14} />
+            Download JSON
+          </a>
+        </div>
+      </div>
+
       {/* ── Export Data ── */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         {/* Header */}

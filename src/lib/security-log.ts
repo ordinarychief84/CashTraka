@@ -28,7 +28,9 @@ export type SecurityEvent =
   | 'ACCOUNT_DELETED'
   | 'RATE_LIMITED'
   | 'CSRF_BLOCKED'
-  | 'SESSION_EXPIRED';
+  | 'SESSION_EXPIRED'
+  | 'NDPR_DATA_EXPORT'
+  | 'NDPR_ACCOUNT_DELETION';
 
 type LogPayload = {
   event: SecurityEvent;

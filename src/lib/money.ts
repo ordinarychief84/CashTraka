@@ -89,10 +89,14 @@ export function safeMoneyInputToKobo(
     if (!Number.isFinite(input)) return null;
     return nairaToKobo(input);
   }
+  // Strip the naira symbol wherever it appears (not just position 0).
+  // Previously `replace(/^₦/, '')` only removed a leading symbol, so
+  // `-₦5,000` left the symbol intact between the minus and the digits
+  // and failed the digits-only regex below.
   const cleaned = input
     .toString()
     .trim()
-    .replace(/^₦/, '')
+    .replace(/₦/g, '')
     .replace(/,/g, '');
   if (cleaned.length === 0) return null;
   // Reject anything that is not optional minus + digits + optional

@@ -18,7 +18,14 @@ export type DocumentEntity =
   | 'DELIVERY_NOTE'
   | 'OFFER'
   | 'ORDER_CONFIRMATION'
-  | 'RECURRING_RULE';
+  | 'RECURRING_RULE'
+  // Operational planning entities (small-batch ops pivot).
+  | 'SUPPLIER'
+  | 'RAW_MATERIAL'
+  | 'RECIPE'
+  | 'CUSTOMER_ORDER'
+  | 'PRODUCTION_ORDER'
+  | 'PURCHASE_ORDER';
 
 export type DocumentAction =
   | 'CREATED'
@@ -37,7 +44,15 @@ export type DocumentAction =
   | 'FIRS_REJECTED'
   | 'CONVERTED'
   | 'RECURRING_GENERATED'
-  | 'PUBLIC_PAYMENT_INIT';
+  | 'PUBLIC_PAYMENT_INIT'
+  // Operational planning actions.
+  | 'STATUS_CHANGED'
+  | 'STARTED'
+  | 'COMPLETED'
+  | 'DELAYED'
+  | 'STOCK_ADJUSTED'
+  | 'RECEIVED'
+  | 'PARTIALLY_RECEIVED';
 
 export const documentAudit = {
   /**

@@ -19,6 +19,16 @@ const nextConfig = {
     },
   },
 
+  async redirects() {
+    return [
+      // Legacy route after the operational-planning pivot. Served as a
+      // proper 308 with a Location header so SEO + curl + bots follow
+      // through. Previously this lived in a page that called
+      // next/navigation `redirect()`, which returned 307 with no Location.
+      { source: '/for-business', destination: '/solutions', permanent: true },
+    ];
+  },
+
   async headers() {
     return [
       {

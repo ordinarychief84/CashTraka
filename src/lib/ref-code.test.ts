@@ -27,12 +27,16 @@ describe('ref-code', () => {
     }
   });
 
-  it('is uniformly random — 5,000 draws produce no duplicates', () => {
+  it('is uniformly random — 5,000 draws produce ≥99.8% unique codes', () => {
+    const N = 5_000;
     const seen = new Set<string>();
-    for (let i = 0; i < 5_000; i++) seen.add(generateRefCode());
-    // 32^5 = 33,554,432 possibilities; collisions at 5k draws are
-    // mathematically vanishing. If this ever fails, randomness regressed.
-    expect(seen.size).toBe(5_000);
+    for (let i = 0; i < N; i++) seen.add(generateRefCode());
+    // Birthday-paradox math: 32^5 = 33,554,432 possibilities. Expected
+    // collisions at N=5000 ≈ N²/(2·K) ≈ 0.37, so 0 or a single-digit
+    // count is normal. We assert ≥ 99.8% unique (≤10 collisions) which
+    // is statistically reliable but still catches a real randomness
+    // regression (e.g. Math.random with its tiny effective entropy).
+    expect(seen.size).toBeGreaterThanOrEqual(N - 10);
   });
 
   it('normalises text for comparison', () => {

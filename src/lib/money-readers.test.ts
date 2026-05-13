@@ -10,6 +10,7 @@
  * Vitest-style. See money.test.ts for the runner-wiring note.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   koboFromDual,
   nullableKoboFromDual,
@@ -19,13 +20,6 @@ import {
   receiptBalanceRemainingKobo,
   productCostKobo,
 } from './money-readers';
-
-declare const describe: (name: string, fn: () => void) => void;
-declare const it: (name: string, fn: () => void) => void;
-declare const expect: (actual: unknown) => {
-  toBe: (expected: unknown) => void;
-  toBeNull: () => void;
-};
 
 describe('koboFromDual', () => {
   it('prefers kobo when populated and non-zero', () => {

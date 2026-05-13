@@ -78,7 +78,7 @@ export default function ContactPage({
   const Icon = variant.icon;
 
   return (
-    <LegalLayout title="Contact">
+    <LegalLayout>
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
           <Icon size={20} />

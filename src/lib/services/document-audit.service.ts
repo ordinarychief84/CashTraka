@@ -25,7 +25,9 @@ export type DocumentEntity =
   | 'RECIPE'
   | 'CUSTOMER_ORDER'
   | 'PRODUCTION_ORDER'
-  | 'PURCHASE_ORDER';
+  | 'PURCHASE_ORDER'
+  // Admin actions targeting users / sessions.
+  | 'USER';
 
 export type DocumentAction =
   | 'CREATED'
@@ -52,7 +54,10 @@ export type DocumentAction =
   | 'DELAYED'
   | 'STOCK_ADJUSTED'
   | 'RECEIVED'
-  | 'PARTIALLY_RECEIVED';
+  | 'PARTIALLY_RECEIVED'
+  // Admin / impersonation.
+  | 'IMPERSONATION_STARTED'
+  | 'IMPERSONATION_ENDED';
 
 export const documentAudit = {
   /**

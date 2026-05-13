@@ -28,6 +28,9 @@ import type { AccessRole } from './rbac';
 
 const SESSION_COOKIE = 'cashtraka_session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days (tighter for financial app)
+/// Impersonation sessions are short-lived (1 hour). An admin who needs longer
+/// access can re-impersonate. Keeps blast radius small if the admin walks away.
+const IMPERSONATION_MAX_AGE = 60 * 60; // 1 hour
 
 function getSecret() {
   const s = process.env.AUTH_SECRET;
@@ -43,19 +46,39 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-type SessionKind = 'owner' | 'staff' | 'admin_staff';
+type SessionKind = 'owner' | 'staff' | 'admin_staff' | 'owner_impersonated';
+
+/**
+ * When `kind === 'owner_impersonated'`, `sub` is the target (impersonated)
+ * user's id and `imp` carries the original admin so the "end impersonation"
+ * action can restore them. Every state change made under this session is
+ * tagged with `imp.aid` in the audit log so we know it wasn't the user.
+ */
+type ImpersonationClaim = {
+  /** Admin id (User.id for super admin, AdminStaff.id for admin_staff). */
+  aid: string;
+  /** Which kind of admin to restore when impersonation ends. */
+  akind: 'owner' | 'admin_staff';
+  /** Unix ms when impersonation started. */
+  ts: number;
+};
 
 type SessionPayload = {
   kind: SessionKind;
   sub: string;
+  imp?: ImpersonationClaim;
 };
 
-async function signSession(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ kind: payload.kind, sub: payload.sub })
+async function signSession(payload: SessionPayload, maxAgeSeconds: number = SESSION_MAX_AGE): Promise<string> {
+  const builder = new SignJWT({
+    kind: payload.kind,
+    sub: payload.sub,
+    ...(payload.imp ? { imp: payload.imp } : {}),
+  })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime(`${SESSION_MAX_AGE}s`)
-    .sign(getSecret());
+    .setExpirationTime(`${maxAgeSeconds}s`);
+  return builder.sign(getSecret());
 }
 
 async function verifySession(token: string): Promise<SessionPayload | null> {
@@ -64,7 +87,8 @@ async function verifySession(token: string): Promise<SessionPayload | null> {
     const sub = payload.sub as string | undefined;
     const kind = (payload.kind as SessionKind | undefined) ?? 'owner';
     if (!sub) return null;
-    return { kind, sub };
+    const imp = payload.imp as ImpersonationClaim | undefined;
+    return { kind, sub, ...(imp ? { imp } : {}) };
   } catch {
     return null;
   }
@@ -100,6 +124,35 @@ export async function setAdminStaffSession(adminStaffId: string) {
     secure: true,
     path: '/',
     maxAge: SESSION_MAX_AGE,
+  });
+}
+
+/**
+ * Start an impersonation session. The cookie now scopes app access to the
+ * target user (so the admin sees what the user sees), but `getAuthContext`
+ * exposes the original admin id so the UI can render a banner and so every
+ * action gets attributed to the admin in audit logs.
+ *
+ * Expires after 1 hour — the admin must re-impersonate for longer access.
+ */
+export async function setImpersonationSession(
+  targetUserId: string,
+  admin: { id: string; kind: 'owner' | 'admin_staff' },
+) {
+  const token = await signSession(
+    {
+      kind: 'owner_impersonated',
+      sub: targetUserId,
+      imp: { aid: admin.id, akind: admin.kind, ts: Date.now() },
+    },
+    IMPERSONATION_MAX_AGE,
+  );
+  cookies().set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: true,
+    path: '/',
+    maxAge: IMPERSONATION_MAX_AGE,
   });
 }
 
@@ -150,6 +203,18 @@ export function readSessionTokenFromRequest(req: Request): string | null {
  * staff principal, and an access role. This is the single source of truth
  * for "who is acting in this request and on whose data".
  */
+/**
+ * Set when an admin is currently impersonating this owner. Downstream
+ * audit-log calls pass `impersonation.adminId` as the actor so we know it
+ * wasn't really the user, and the UI mounts a sitewide banner with an
+ * "End impersonation" button.
+ */
+export type ImpersonationContext = {
+  adminId: string;
+  adminKind: 'owner' | 'admin_staff';
+  startedAt: number;
+};
+
 export type AuthContext = {
   owner: NonNullable<Awaited<ReturnType<typeof prisma.user.findUnique>>>;
   /** Null when the principal is the owner themselves. */
@@ -158,6 +223,8 @@ export type AuthContext = {
   isOwner: boolean;
   principalName: string;
   principalId: string;
+  /** Null unless this session is an admin impersonating the owner. */
+  impersonation: ImpersonationContext | null;
 };
 
 /** Resolve the current AuthContext from the session cookie, or null. */
@@ -177,6 +244,31 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       isOwner: true,
       principalName: owner.name,
       principalId: owner.id,
+      impersonation: null,
+    };
+  }
+
+  if (payload.kind === 'owner_impersonated') {
+    // Validate that the impersonating admin is still allowed to do this. If
+    // their admin account was revoked while impersonating, the session is
+    // refused — we don't want a dangling impersonation to outlive the admin.
+    if (!payload.imp) return null;
+    const admin = await resolveImpersonatingAdmin(payload.imp);
+    if (!admin) return null;
+    const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
+    if (!owner) return null;
+    return {
+      owner,
+      staff: null,
+      accessRole: 'OWNER',
+      isOwner: true,
+      principalName: owner.name,
+      principalId: owner.id,
+      impersonation: {
+        adminId: payload.imp.aid,
+        adminKind: payload.imp.akind,
+        startedAt: payload.imp.ts,
+      },
     };
   }
 
@@ -193,7 +285,25 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     isOwner: false,
     principalName: staff.name,
     principalId: staff.id,
+    impersonation: null,
   };
+}
+
+/**
+ * Confirm the admin embedded in an impersonation token is still a valid,
+ * active admin. Returns the admin or null if the admin was deleted /
+ * suspended / had their role revoked since impersonation started.
+ */
+async function resolveImpersonatingAdmin(imp: ImpersonationClaim) {
+  if (imp.akind === 'owner') {
+    const u = await prisma.user.findUnique({ where: { id: imp.aid } });
+    if (!u || u.deletedAt || u.isSuspended) return null;
+    if (u.role !== ROLES.ADMIN) return null;
+    return { kind: 'owner' as const, id: u.id, name: u.name, email: u.email };
+  }
+  const s = await prisma.adminStaff.findUnique({ where: { id: imp.aid } });
+  if (!s || s.status !== 'active') return null;
+  return { kind: 'admin_staff' as const, id: s.id, name: s.name, email: s.email };
 }
 
 /**

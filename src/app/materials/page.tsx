@@ -5,6 +5,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { rawMaterialsService } from '@/lib/services/raw-materials.service';
+import { MaterialScanLookup } from '@/components/ops/MaterialScanLookup';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,10 +37,13 @@ export default async function MaterialsPage({ searchParams }: { searchParams: SP
         title="Raw materials"
         subtitle={`${total} material${total === 1 ? '' : 's'}${lowCount > 0 ? ` · ${lowCount} low` : ''}`}
         action={
-          <Link href="/materials/new" className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} />
-            New material
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <MaterialScanLookup />
+            <Link href="/materials/new" className="btn-primary inline-flex items-center gap-2">
+              <Plus size={16} />
+              New material
+            </Link>
+          </div>
         }
       />
 

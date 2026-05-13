@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { BarcodeScanButton } from './BarcodeScanButton';
 
 type Initial = {
   id?: string;
@@ -30,6 +31,7 @@ export function RawMaterialForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sku, setSku] = useState<string>(initial?.sku ?? '');
   const isEdit = Boolean(initial?.id);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -39,7 +41,7 @@ export function RawMaterialForm({
     const fd = new FormData(e.currentTarget);
     const payload: Record<string, unknown> = {
       name: String(fd.get('name') ?? '').trim(),
-      sku: String(fd.get('sku') ?? '').trim() || undefined,
+      sku: sku.trim() || undefined,
       unit: String(fd.get('unit') ?? '').trim() || undefined,
       reorderLevel: Number(fd.get('reorderLevel') ?? 0),
       unitCostKobo: Math.round(Number(fd.get('unitCostNaira') ?? 0) * 100),
@@ -94,7 +96,15 @@ export function RawMaterialForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-semibold text-slate-700">SKU</label>
-          <input name="sku" defaultValue={initial?.sku ?? ''} className="input" placeholder="Optional" />
+          <div className="flex gap-2">
+            <input
+              value={sku}
+              onChange={(e) => setSku(e.target.value)}
+              className="input flex-1"
+              placeholder="Optional"
+            />
+            <BarcodeScanButton label="Scan" onScan={(text) => setSku(text)} />
+          </div>
         </div>
         <div>
           <label className="mb-1 block text-sm font-semibold text-slate-700">Unit</label>

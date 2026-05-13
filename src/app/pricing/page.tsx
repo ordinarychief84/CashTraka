@@ -14,7 +14,7 @@ import {
 } from '@/lib/marketing-content';
 
 export const metadata: Metadata = {
-  title: 'CashTraka Pricing | Production Planning Software for Small Businesses',
+  title: 'Pricing — Production Planning Software for Small Businesses',
   description:
     'Choose a CashTraka plan for customer orders, production planning, raw material tracking, inventory, invoices, receipts, purchase orders, and operational reports.',
   alternates: { canonical: 'https://www.cashtraka.co/pricing' },

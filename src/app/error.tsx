@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 export default function GlobalError({
   error,
@@ -10,7 +11,16 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Unhandled error:', error);
+    // Surface to Sentry first, then log for local dev.
+    // `digest` is Next.js's server-side error id — attaching it as a
+    // tag lets us pivot from a user report ("I got error abc123") to
+    // the exact Sentry issue.
+    Sentry.captureException(error, {
+      tags: { digest: error.digest, source: 'app/error.tsx' },
+    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Unhandled error:', error);
+    }
   }, [error]);
 
   return (
@@ -21,6 +31,11 @@ export default function GlobalError({
         <p className="mt-1 text-sm text-slate-500">
           An unexpected error occurred. Please try again.
         </p>
+        {error.digest && (
+          <p className="mt-2 font-mono text-xs text-slate-400">
+            Reference: {error.digest}
+          </p>
+        )}
         <div className="mt-6 flex items-center justify-center gap-3">
           <button
             onClick={reset}

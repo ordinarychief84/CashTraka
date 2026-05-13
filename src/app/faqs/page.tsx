@@ -9,7 +9,7 @@ import { Reveal } from '@/components/marketing/Reveal';
 import { FAQ_ITEMS } from '@/lib/marketing-content';
 
 export const metadata: Metadata = {
-  title: 'CashTraka FAQs | Production Planning Software for Small Businesses',
+  title: 'FAQs — Production Planning Software for Small Businesses',
   description:
     'Answers to common questions about CashTraka — production planning, material tracking, inventory, invoices, receipts, and operational reports for small batch businesses.',
   alternates: { canonical: 'https://www.cashtraka.co/faqs' },

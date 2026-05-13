@@ -66,7 +66,7 @@ export function Reveal({
     return () => io.disconnect();
   }, []);
 
-  const hidden: React.CSSProperties = (() => {
+  const hidden: { transform?: string } = (() => {
     switch (from) {
       case 'up':
         return { transform: `translate3d(0, ${distance}px, 0)` };

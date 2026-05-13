@@ -64,7 +64,7 @@ export default async function AdminSettingsPage() {
             </div>
             <div className="mt-1">
               <span className="inline-flex items-center rounded-full bg-slate-900 px-2 py-0.5 text-xs font-semibold text-success-400">
-                {admin.role}
+                {admin.adminRole}
               </span>
             </div>
           </div>

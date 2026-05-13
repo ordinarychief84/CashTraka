@@ -10,8 +10,13 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const adminId = url.searchParams.get('adminId');
     const action = url.searchParams.get('action');
-    const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const perPage = parseInt(url.searchParams.get('perPage') || '50', 10);
+    // Clamp pagination so a malicious or buggy caller can't request
+    // `perPage=999999999` and exhaust the database, or `page=-1` and
+    // produce a negative skip that errors out (or worse).
+    const pageRaw = parseInt(url.searchParams.get('page') || '1', 10);
+    const perPageRaw = parseInt(url.searchParams.get('perPage') || '50', 10);
+    const page = Math.max(1, Math.min(Number.isFinite(pageRaw) ? pageRaw : 1, 10_000));
+    const perPage = Math.max(1, Math.min(Number.isFinite(perPageRaw) ? perPageRaw : 50, 200));
 
     const skip = (page - 1) * perPage;
 

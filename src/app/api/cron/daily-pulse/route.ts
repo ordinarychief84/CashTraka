@@ -59,8 +59,11 @@ export async function GET(req: Request) {
       try {
         const allSuggestions = await suggestionService.generate(user.id);
         suggestions = allSuggestions.slice(0, 3).map((s) => ({
-          emoji: s.category === 'COLLECT' ? '💰' : s.category === 'REWARD' ? '🌟' : s.category === 'RE_ENGAGE' ? '📞' : '⚡',
-          label: s.label,
+          emoji:
+            s.type === 'COLLECT' ? '💰' :
+            s.type === 'REWARD' ? '🌟' :
+            s.type === 'RE_ENGAGE' ? '📞' : '⚡',
+          label: s.title,
         }));
       } catch { /* suggestions are optional */ }
 

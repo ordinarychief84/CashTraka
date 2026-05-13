@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, FileText, User, Banknote, Shield, ClipboardList } from 'lucide-react';
+import { ArrowLeft, FileText, User, Banknote, Shield, ClipboardList, type LucideIcon } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminInvoiceActions } from '@/components/admin/AdminInvoiceActions';
@@ -224,7 +224,7 @@ export default async function AdminInvoiceDetailPage({ params }: { params: { id:
   );
 }
 
-function MC({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: string; color?: 'brand' | 'danger' }) {
+function MC({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string; color?: 'brand' | 'danger' }) {
   const c = color === 'brand' ? 'text-brand-600' : color === 'danger' ? 'text-red-500' : 'text-slate-500';
   return (
     <div className="rounded-xl border border-border bg-white p-4">

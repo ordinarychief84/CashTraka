@@ -169,6 +169,21 @@ export const recurringChargeService = {
     );
 
     // ── Call Paystack charge_authorization ─────────────────────
+    // chargeAuthorization is optional on the adapter interface — guard
+    // so a future provider without it doesn't crash this cron.
+    if (!paystackCustomerAdapter.chargeAuthorization) {
+      await prisma.installmentCharge.update({
+        where: { id: charge.id },
+        data: { status: 'FAILED', failureReason: 'provider_does_not_support_off_session_charge' },
+      });
+      return {
+        planId,
+        status: 'failed',
+        reason: 'provider_does_not_support_off_session_charge',
+        reference,
+        amount: chargeAmount,
+      };
+    }
     const chargeResult = await paystackCustomerAdapter.chargeAuthorization({
       authorizationCode: plan.paystackAuthorizationCode,
       email: plan.paystackEmail,
@@ -207,13 +222,13 @@ export const recurringChargeService = {
       where: { id: charge.id },
       data: {
         status: 'VERIFICATION_PENDING',
-        providerTransactionId: chargeResult.data.transactionId,
+        providerTransactionId: chargeResult.data.providerTransactionId,
       },
     });
 
     console.log(
       `RECURRING_CHARGE_INITIATED: Plan ${planId} ref=${reference} ` +
-      `txId=${chargeResult.data.transactionId} status=${chargeResult.data.status}`
+      `txId=${chargeResult.data.providerTransactionId} status=${chargeResult.data.status}`
     );
 
     return {

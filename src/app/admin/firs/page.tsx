@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Clock, RefreshCw } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, CheckCircle2, XCircle, Clock, RefreshCw, type LucideIcon } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { prisma } from '@/lib/prisma';
@@ -185,7 +185,7 @@ export default async function AdminFirsPage() {
 function StatCard({
   icon: Icon, label, value, color,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: number;
   color?: 'success' | 'danger' | 'brand';

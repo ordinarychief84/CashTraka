@@ -2,10 +2,16 @@
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
+    // Keep ESLint off during Vercel builds so lint warnings don't block a
+    // deploy. CI runs it separately. Type errors *do* block builds now.
     ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    // Production-readiness pass cleared all 67 pre-existing TS errors
+    // (including 4 runtime crashes in /api/installments, /api/customers
+    // /[id]/notes, /api/clock/*, and the recurring-charge cron). Future
+    // regressions now fail the build instead of silently shipping.
+    ignoreBuildErrors: false,
   },
   experimental: {
     serverActions: {

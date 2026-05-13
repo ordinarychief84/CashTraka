@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { emailService } from '@/lib/services/email.service';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -42,6 +43,18 @@ function hashToken(raw: string): string {
 }
 
 export async function POST(req: Request) {
+  // Per-IP cap to stop a single host from enumerating emails or flooding
+  // the reset queue. Per-account limit below is still enforced.
+  const ip = clientIp(req);
+  const limited = await rateLimit('forgot-password', ip, {
+    max: 10,
+    windowMs: 60 * 60_000,
+  });
+  if (!limited.allowed) {
+    // Still 200 so we don't leak rate-limit state to enumerators.
+    return NextResponse.json(GENERIC_RESPONSE);
+  }
+
   let email: string;
   try {
     const body = await req.json();

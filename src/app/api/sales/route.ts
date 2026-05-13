@@ -126,7 +126,13 @@ export async function POST(req: Request) {
 
     for (const item of items) {
       if (item.productId) {
-        const product = await tx.product.findUnique({ where: { id: item.productId } });
+        // Tenant-scoped lookup: a logged-in user must NOT be able to
+        // decrement stock on a product owned by a different tenant by
+        // passing that tenant's product id in the sale payload. The
+        // earlier `findUnique({where:{id}})` skipped this check entirely.
+        const product = await tx.product.findFirst({
+          where: { id: item.productId, userId: user.id },
+        });
         if (product && product.trackStock) {
           await tx.product.update({
             where: { id: item.productId },

@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -25,6 +26,21 @@ function hashToken(raw: string): string {
 }
 
 export async function POST(req: Request) {
+  // Per-IP cap to stop attackers from burning bcrypt-12 cycles by spraying
+  // random tokens. Even if the token itself is 32 random bytes, the
+  // endpoint still hashes the supplied password on every call.
+  const ip = clientIp(req);
+  const limited = await rateLimit('reset-password', ip, {
+    max: 30,
+    windowMs: 60 * 60_000,
+  });
+  if (!limited.allowed) {
+    return NextResponse.json(
+      { ok: false, error: `Too many attempts. Try again in ${limited.retryAfter}s.` },
+      { status: 429 },
+    );
+  }
+
   let token: string;
   let password: string;
   try {

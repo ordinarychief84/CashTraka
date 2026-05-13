@@ -156,6 +156,12 @@ async function verify(token: string | undefined): Promise<string | null> {
  */
 const CSRF_EXEMPT_PREFIXES = [
   '/api/billing/webhook',
+  // Provider webhooks (Paystack, Flutterwave) are cross-origin POSTs from
+  // the provider's servers with no Origin/Referer header. HMAC signature
+  // verification inside each route handler is the auth boundary; without
+  // this exemption the same-origin check returns 403 before the handler
+  // ever runs and every real-money confirmation is dropped.
+  '/api/webhooks/',
   '/api/payments/claim/',
   '/api/pay/',
   '/api/cron/',

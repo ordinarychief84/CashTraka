@@ -9,6 +9,9 @@
     { "path": "/api/cron/weekly-summary",          "schedule": "0 8 * * 1"   },
     { "path": "/api/cron/broken-promises",         "schedule": "0 10 * * *"  },
     { "path": "/api/cron/run-installment-charges", "schedule": "0 6 1,15 * *"},
-    { "path": "/api/cron/run-recurring-invoices",  "schedule": "0 5 * * *"   }
+    { "path": "/api/cron/run-recurring-invoices",  "schedule": "0 5 * * *"   },
+    { "path": "/api/cron/low-stock-check",         "schedule": "15 7 * * *"  },
+    { "path": "/api/cron/expiring-materials",      "schedule": "45 7 * * *"  },
+    { "path": "/api/cron/overdue-production",      "schedule": "30 9 * * *"  }
   ]
 }

@@ -118,3 +118,87 @@ export function paylinkWhatsappLink(args: {
   });
   return whatsappLink(args.phone, msg);
 }
+
+// ── Operational planning templates ───────────────────────────────────
+
+/**
+ * Build a wa.me link to send a purchase order to a supplier. The message
+ * lists the requested materials and total so the supplier can confirm
+ * directly in WhatsApp; if the PO has a PDF, it's linked too.
+ */
+export function lowStockSupplierPingLink(args: {
+  phone: string;
+  supplierName: string;
+  businessName: string;
+  poNumber: string;
+  items: { materialName: string; unit: string; quantity: number }[];
+  totalKobo: number;
+  pdfUrl?: string | null;
+  expectedAt?: Date | string | null;
+}): string {
+  const lines = args.items
+    .map((it) => `• ${it.quantity} ${it.unit} ${it.materialName}`)
+    .join('\n');
+  const total = '₦' + Math.round(args.totalKobo / 100).toLocaleString('en-NG');
+  const dueLine = args.expectedAt
+    ? `\nNeeded by: ${new Date(args.expectedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long' })}`
+    : '';
+  const pdfLine = args.pdfUrl ? `\nSigned copy: ${args.pdfUrl}` : '';
+  const msg =
+    `Hi ${args.supplierName},\n\n` +
+    `${args.businessName} would like to place purchase order ${args.poNumber}:\n` +
+    `${lines}\n\n` +
+    `Total: ${total}${dueLine}${pdfLine}\n\n` +
+    `Please confirm availability. Thanks!\n— Sent via CashTraka`;
+  return whatsappLink(args.phone, msg);
+}
+
+/**
+ * Customer-facing confirmation that an order has been received and is
+ * being scheduled / produced. Reused on CustomerOrder status=CONFIRMED.
+ */
+export function customerOrderConfirmationLink(args: {
+  phone: string;
+  customerName: string;
+  orderNumber: string;
+  businessName: string;
+  totalKobo?: number;
+  dueAt?: Date | string | null;
+  items?: { description: string; quantity: number }[];
+}): string {
+  const lines = args.items?.length
+    ? '\n' + args.items.map((it) => `• ${it.quantity} × ${it.description}`).join('\n')
+    : '';
+  const total =
+    args.totalKobo != null
+      ? `\nTotal: ₦${Math.round(args.totalKobo / 100).toLocaleString('en-NG')}`
+      : '';
+  const due = args.dueAt
+    ? `\nExpected by: ${new Date(args.dueAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long' })}`
+    : '';
+  const msg =
+    `Hi ${args.customerName},\n\n` +
+    `Thanks for your order with ${args.businessName}! ${args.orderNumber} is confirmed.${lines}${total}${due}\n\n` +
+    `We'll keep you posted as we work on it.\n\n— ${args.businessName}`;
+  return whatsappLink(args.phone, msg);
+}
+
+/**
+ * Customer-facing "your order is ready" message. Reused on CustomerOrder
+ * status transitions to READY (which fires when its ProductionOrder
+ * completes, or on a manual mark-ready action).
+ */
+export function productionCompletedLink(args: {
+  phone: string;
+  customerName: string;
+  orderNumber: string;
+  businessName: string;
+  pickupNote?: string;
+}): string {
+  const note = args.pickupNote ? `\n${args.pickupNote}\n` : '';
+  const msg =
+    `Hi ${args.customerName},\n\n` +
+    `Good news — your order ${args.orderNumber} is ready! 🎉\n${note}` +
+    `Reach out if you have any questions.\n\n— ${args.businessName}`;
+  return whatsappLink(args.phone, msg);
+}

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Mail, MessageCircle, ArrowRight } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { FOOTER } from '@/lib/marketing-content';
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -12,7 +13,7 @@ export function Footer() {
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider text-brand-600">
-                Contact us
+                Talk to us
               </div>
               <h3 className="mt-1 text-xl font-bold text-ink md:text-2xl">
                 Got a question or stuck on something? Send us a message.
@@ -37,37 +38,46 @@ export function Footer() {
       </div>
 
       <div className="container-app py-12">
-        <div className="grid gap-8 md:grid-cols-4">
-          {/* Column 1: brand */}
+        <div className="grid gap-8 md:grid-cols-5">
+          {/* Brand */}
           <div className="md:col-span-1">
             <Link href="/" className="inline-flex items-center">
               <Logo size="md" />
             </Link>
-            <p className="mt-3 text-sm text-slate-600">
-              Invoices, payments, receipts, and debt collection in one app, built for Nigerian businesses.
-            </p>
+            <p className="mt-3 text-sm text-slate-600">{FOOTER.tagline}</p>
           </div>
 
-          {/* Column 2: product */}
           <Column title="Product">
-            <FooterLink href="/#solutions">Solutions</FooterLink>
-            <FooterLink href="/#how-it-works">How it Works</FooterLink>
-            <FooterLink href="/#pricing">Pricing</FooterLink>
-            <FooterLink href="/#faq">FAQ</FooterLink>
-            <FooterLink href="/about">About us</FooterLink>
-            <FooterLink href="/blog">Blog</FooterLink>
+            {FOOTER.columns.product.map((l) => (
+              <FooterLink key={l.label} href={l.href}>
+                {l.label}
+              </FooterLink>
+            ))}
           </Column>
 
-          {/* Column 3: account */}
-          <Column title="Account">
-            <FooterLink href="/login">Sign in</FooterLink>
-            <FooterLink href="/signup">Start free</FooterLink>
+          <Column title="Solutions">
+            {FOOTER.columns.solutions.map((l) => (
+              <FooterLink key={l.label} href={l.href}>
+                {l.label}
+              </FooterLink>
+            ))}
           </Column>
 
-          {/* Column 4: contact / legal */}
-          <Column title="Contact & Legal">
-            <FooterLink href="/contact">Contact us</FooterLink>
-            <FooterLink href="mailto:Support@cashtraka.co">Support@cashtraka.co</FooterLink>
+          <Column title="Industries">
+            {FOOTER.columns.industries.map((l) => (
+              <FooterLink key={l.label} href={l.href}>
+                {l.label}
+              </FooterLink>
+            ))}
+          </Column>
+
+          <Column title="Company">
+            {FOOTER.columns.company.map((l) => (
+              <FooterLink key={l.label} href={l.href}>
+                {l.label}
+              </FooterLink>
+            ))}
+            <FooterLink href="/contact">Contact</FooterLink>
             <FooterLink href="/privacy">Privacy Policy</FooterLink>
             <FooterLink href="/terms">Terms of Use</FooterLink>
           </Column>
@@ -75,7 +85,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-6 text-xs text-slate-500 md:flex-row md:items-center">
           <div>&copy; {year} CashTraka. All rights reserved.</div>
-          <div>Built for small businesses and landlords in Nigeria.</div>
+          <div>Operational planning for small batch businesses in Nigeria & Africa.</div>
         </div>
       </div>
     </footer>

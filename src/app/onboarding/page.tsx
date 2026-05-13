@@ -11,22 +11,22 @@ export default async function OnboardingPage() {
   if (!user.emailVerified) redirect('/verify-email');
   if (user.onboardingCompleted) redirect('/dashboard');
 
-  const isPm = user.businessType === 'property_manager';
-
-  const [payments, debts, latestDebt, properties, tenants, latestProperty, latestTenant] = await Promise.all([
+  const [payments, debts, latestDebt] = await Promise.all([
     prisma.payment.count({ where: { userId: user.id } }),
     prisma.debt.count({ where: { userId: user.id } }),
-    prisma.debt.findFirst({ where: { userId: user.id, status: 'OPEN' }, orderBy: { createdAt: 'desc' } }),
-    prisma.property.count({ where: { userId: user.id } }),
-    prisma.tenant.count({ where: { userId: user.id } }),
-    prisma.property.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' } }),
-    prisma.tenant.findFirst({ where: { userId: user.id }, orderBy: { createdAt: 'desc' }, include: { property: { select: { name: true } } } }),
+    prisma.debt.findFirst({
+      where: { userId: user.id, status: 'OPEN' },
+      orderBy: { createdAt: 'desc' },
+    }),
   ]);
 
   return (
     <Onboarding
       firstName={user.name.split(' ')[0] || ''}
-      businessType={user.businessType || 'seller'}
+      // Landlord vertical removed during the small-batch ops pivot.
+      // Onboarding is now seller-only — the Onboarding component still
+      // accepts `businessType` for back-compat but only renders the seller flow.
+      businessType="seller"
       initial={{
         payments,
         debts,
@@ -38,18 +38,10 @@ export default async function OnboardingPage() {
               amountOwed: latestDebt.amountOwed,
             }
           : null,
-        properties,
-        tenants,
-        latestProperty: latestProperty ? { id: latestProperty.id, name: latestProperty.name } : null,
-        latestTenant: latestTenant
-          ? {
-              id: latestTenant.id,
-              name: latestTenant.name,
-              phone: latestTenant.phone,
-              rentAmount: latestTenant.rentAmount,
-              propertyName: latestTenant.property.name,
-            }
-          : null,
+        properties: 0,
+        tenants: 0,
+        latestProperty: null,
+        latestTenant: null,
       }}
     />
   );

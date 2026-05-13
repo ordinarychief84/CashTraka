@@ -21,8 +21,6 @@ const KNOWN_PLANS: { key: PlanName; color: string }[] = [
   // Legacy
   { key: 'business', color: 'bg-success-500' },
   { key: 'business_plus', color: 'bg-success-600' },
-  { key: 'landlord', color: 'bg-indigo-500' },
-  { key: 'estate_manager', color: 'bg-violet-600' },
 ];
 
 export function PlanDistribution({ title = 'Plan distribution', counts }: Props) {

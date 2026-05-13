@@ -47,8 +47,8 @@ function prevPeriodDates(start: Date, end: Date) {
   return { start: prevStart, end: prevEnd };
 }
 
-async function aggregateForPeriod(userId: string, start: Date, end: Date, isPm: boolean) {
-  const [payments, sales, expenses, staffPay, rentPay] = await Promise.all([
+async function aggregateForPeriod(userId: string, start: Date, end: Date, _isPm: boolean) {
+  const [payments, sales, expenses, staffPay] = await Promise.all([
     // Revenue: paid payments
     prisma.payment.aggregate({
       where: { userId, status: 'PAID', createdAt: { gte: start, lte: end } },
@@ -72,15 +72,9 @@ async function aggregateForPeriod(userId: string, start: Date, end: Date, isPm: 
       _sum: { amountKobo: true },
       _count: true,
     }),
-    // Rent income (PM only)
-    isPm
-      ? prisma.rentPayment.aggregate({
-          where: { userId, status: 'PAID', paidAt: { gte: start, lte: end } },
-          _sum: { amountKobo: true },
-          _count: true,
-        })
-      : null,
   ]);
+  // Landlord vertical removed — rent revenue is always zero.
+  const rentPay = null as { _sum: { amountKobo: number | null }; _count: number } | null;
 
   // Group expenses by category (all values stay in kobo until display).
   const categoryMap = new Map<string, number>();
@@ -156,7 +150,7 @@ export async function GET(req: Request) {
     const mEnd = new Date(endYear, endMonth - i + 1, 0, 23, 59, 59, 999);
     const label = mStart.toLocaleDateString('en-NG', { month: 'short', year: '2-digit' });
 
-    const [mPayments, mSales, mExpenses, mStaff, mRent] = await Promise.all([
+    const [mPayments, mSales, mExpenses, mStaff] = await Promise.all([
       prisma.payment.aggregate({
         where: { userId: user.id, status: 'PAID', createdAt: { gte: mStart, lte: mEnd } },
         _sum: { amountKobo: true },
@@ -173,15 +167,9 @@ export async function GET(req: Request) {
         where: { userId: user.id, paidAt: { gte: mStart, lte: mEnd } },
         _sum: { amountKobo: true },
       }),
-      isPm
-        ? prisma.rentPayment.aggregate({
-            where: { userId: user.id, status: 'PAID', paidAt: { gte: mStart, lte: mEnd } },
-            _sum: { amountKobo: true },
-          })
-        : null,
     ]);
 
-    const rev = (mPayments._sum.amountKobo ?? 0) + (mSales._sum.totalKobo ?? 0) + (mRent?._sum.amountKobo ?? 0);
+    const rev = (mPayments._sum.amountKobo ?? 0) + (mSales._sum.totalKobo ?? 0);
     const exp = (mExpenses._sum.amountKobo ?? 0) + (mStaff._sum.amountKobo ?? 0);
     months.push({ label, revenue: rev, expenses: exp, net: rev - exp });
   }

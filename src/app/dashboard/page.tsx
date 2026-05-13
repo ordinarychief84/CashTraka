@@ -31,6 +31,7 @@ import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
 import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
+import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
 import { formatKobo } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
@@ -476,6 +477,9 @@ export default async function DashboardPage() {
       principalName={user.principalName}
       pendingTaskCount={staffTaskCounts?.pending}
     >
+      {/* ───── Operations cards (small-batch ops pivot — auto-hidden if all zero) ───── */}
+      {!isPm && <OpsDashboardCards userId={user.id} />}
+
       {/* ───────── Welcome + primary CTA ───────── */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
         <div>

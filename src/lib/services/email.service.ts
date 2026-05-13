@@ -1449,5 +1449,146 @@ export const emailService = {
     });
   },
 
+  /* ══════════════════════════════════════════════════════════════════════
+   *  OPS — Customer order confirmation (small-batch ops pivot)
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendCustomerOrderConfirmation(args: {
+    to: string;
+    customerName: string;
+    businessName: string;
+    orderNumber: string;
+    items: { description: string; quantity: number; unitPriceKobo: number }[];
+    totalKobo: number;
+    dueAt?: Date | string | null;
+    notes?: string | null;
+  }): Promise<SendResult> {
+    const lineRows = args.items
+      .map((it) => {
+        const lineKobo = it.unitPriceKobo * it.quantity;
+        return `
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:14px;color:#1A1A1A;">${esc(it.description)}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;text-align:center;">${it.quantity}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;text-align:right;">${naira(Math.round(it.unitPriceKobo / 100))}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:14px;color:#1A1A1A;text-align:right;font-weight:600;">${naira(Math.round(lineKobo / 100))}</td>
+          </tr>`;
+      })
+      .join('');
+
+    const body = `
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1A1A1A;">Order ${esc(args.orderNumber)} received</h2>
+      <p style="margin:0 0 20px;font-size:14px;color:#64748B;">Hi ${esc(args.customerName)}, thanks for ordering from ${esc(args.businessName)}. Here's a copy for your records.</p>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:10px;overflow:hidden;margin:8px 0 20px;">
+        <thead>
+          <tr style="background:#0F172A;color:#FFFFFF;">
+            <th style="padding:10px 12px;text-align:left;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Item</th>
+            <th style="padding:10px 12px;text-align:center;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Qty</th>
+            <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Unit</th>
+            <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${lineRows}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="padding:12px;text-align:right;font-size:13px;font-weight:700;color:#0F172A;">Total</td>
+            <td style="padding:12px;text-align:right;font-size:16px;font-weight:800;color:#0F172A;">${naira(Math.round(args.totalKobo / 100))}</td>
+          </tr>
+        </tfoot>
+      </table>
+      ${args.dueAt ? `<p style="margin:4px 0;font-size:13px;color:#475569;"><strong>Expected by:</strong> ${esc(fmtDate(args.dueAt))}</p>` : ''}
+      ${args.notes ? `<p style="margin:12px 0;font-size:13px;color:#475569;white-space:pre-line;">${esc(args.notes)}</p>` : ''}
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;">Sent on behalf of ${esc(args.businessName)} via CashTraka.</p>`;
+
+    return send({
+      to: args.to,
+      subject: `Order ${args.orderNumber} confirmed — ${args.businessName}`,
+      html: layout(body, { preheader: `Order ${args.orderNumber} confirmed` }),
+    });
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════
+   *  OPS — Production completed / order ready
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendProductionCompleted(args: {
+    to: string;
+    customerName: string;
+    businessName: string;
+    orderNumber: string;
+    pickupNote?: string | null;
+    pickupLink?: string | null;
+  }): Promise<SendResult> {
+    const body = `
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1A1A1A;">${esc(args.orderNumber)} is ready 🎉</h2>
+      <p style="margin:0 0 12px;font-size:15px;color:#1A1A1A;">Hi ${esc(args.customerName)}, your order with ${esc(args.businessName)} is ready.</p>
+      ${args.pickupNote ? `<p style="margin:0 0 12px;font-size:14px;color:#475569;white-space:pre-line;">${esc(args.pickupNote)}</p>` : ''}
+      ${args.pickupLink ? ctaButton('View order details', args.pickupLink) : ''}
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;">Sent on behalf of ${esc(args.businessName)} via CashTraka.</p>`;
+
+    return send({
+      to: args.to,
+      subject: `Your order ${args.orderNumber} is ready`,
+      html: layout(body, { preheader: `Order ${args.orderNumber} ready for pickup / delivery` }),
+    });
+  },
+
+  /* ══════════════════════════════════════════════════════════════════════
+   *  OPS — Purchase order to supplier (small-batch ops pivot)
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendPurchaseOrderToSupplier(args: {
+    to: string;
+    supplierName: string;
+    businessName: string;
+    poNumber: string;
+    expectedAt?: Date | string | null;
+    notes?: string | null;
+    items: { materialName: string; unit: string; quantity: number; unitCostKobo: number }[];
+    totalKobo: number;
+    pdfUrl?: string | null;
+  }): Promise<SendResult> {
+    const lineRows = args.items
+      .map((it) => {
+        const lineKobo = it.unitCostKobo * it.quantity;
+        return `
+          <tr>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:14px;color:#1A1A1A;">${esc(it.materialName)}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;text-align:center;">${it.quantity} ${esc(it.unit)}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:13px;color:#64748B;text-align:right;">${naira(Math.round(it.unitCostKobo / 100))}</td>
+            <td style="padding:8px 12px;border-bottom:1px solid #F1F5F9;font-size:14px;color:#1A1A1A;text-align:right;font-weight:600;">${naira(Math.round(lineKobo / 100))}</td>
+          </tr>`;
+      })
+      .join('');
+
+    const body = `
+      <h2 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1A1A1A;">Purchase order ${esc(args.poNumber)}</h2>
+      <p style="margin:0 0 20px;font-size:14px;color:#64748B;">Hi ${esc(args.supplierName)}, ${esc(args.businessName)} would like to order the items below.</p>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:10px;overflow:hidden;margin:8px 0 20px;">
+        <thead>
+          <tr style="background:#0F172A;color:#FFFFFF;">
+            <th style="padding:10px 12px;text-align:left;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Material</th>
+            <th style="padding:10px 12px;text-align:center;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Qty</th>
+            <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Unit</th>
+            <th style="padding:10px 12px;text-align:right;font-size:12px;letter-spacing:0.4px;text-transform:uppercase;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${lineRows}</tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="padding:12px;text-align:right;font-size:13px;font-weight:700;color:#0F172A;">Total</td>
+            <td style="padding:12px;text-align:right;font-size:16px;font-weight:800;color:#0F172A;">${naira(Math.round(args.totalKobo / 100))}</td>
+          </tr>
+        </tfoot>
+      </table>
+      ${args.expectedAt ? `<p style="margin:4px 0;font-size:13px;color:#475569;"><strong>Expected by:</strong> ${esc(fmtDate(args.expectedAt))}</p>` : ''}
+      ${args.notes ? `<p style="margin:12px 0;font-size:13px;color:#475569;white-space:pre-line;">${esc(args.notes)}</p>` : ''}
+      ${args.pdfUrl ? ctaButton('View signed copy', args.pdfUrl) : ''}
+      <p style="margin:24px 0 0;font-size:12px;color:#94A3B8;">Sent on behalf of ${esc(args.businessName)} via CashTraka.</p>`;
+
+    return send({
+      to: args.to,
+      subject: `Purchase order ${args.poNumber} from ${args.businessName}`,
+      html: layout(body, { preheader: `New PO from ${args.businessName} (${args.poNumber})` }),
+    });
+  },
+
   raw: send,
 };

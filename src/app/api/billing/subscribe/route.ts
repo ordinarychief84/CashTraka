@@ -10,11 +10,14 @@ const schema = z.object({
     'starter_quarterly',
     'starter_biannually',
     'starter_yearly',
+    // Operational planning monthly tiers
+    'pro_monthly',
+    'business_monthly',
+    // Marketing aliases — mapped to the real keys via resolvePlanKey()
+    'pro',
     // Legacy keys - still accepted for backwards compat
     'business',
     'business_plus',
-    'landlord',
-    'estate_manager',
   ]),
 });
 

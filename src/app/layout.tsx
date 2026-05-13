@@ -3,9 +3,42 @@ import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
 
 export const metadata: Metadata = {
-  title: 'CashTraka, Know who paid. Know who owes. Collect everything.',
+  metadataBase: new URL('https://www.cashtraka.co'),
+  title: {
+    default:
+      'CashTraka | Production Planning Software for Small Batch Businesses',
+    template: '%s | CashTraka',
+  },
   description:
-    'The #1 payment tracker for Nigerian small businesses and landlords. Track payments, chase debts via WhatsApp, send payment links, issue receipts, all from your phone.',
+    'CashTraka helps small batch businesses plan production, track raw materials, avoid shortages, manage orders, and generate invoices and receipts from one simple system.',
+  keywords: [
+    'production planning software',
+    'inventory management for small manufacturers',
+    'material planning software',
+    'small business production planning',
+    'manufacturing order tracking',
+    'raw material inventory tracking',
+    'small batch production software',
+    'invoice and receipt software',
+    'purchase order tracking',
+    'production planning app Nigeria',
+    'CashTraka',
+  ],
+  openGraph: {
+    type: 'website',
+    siteName: 'CashTraka',
+    title:
+      'CashTraka | Production Planning Software for Small Batch Businesses',
+    description:
+      'Plan production, track materials, and avoid costly shortages. Built for small factories, skincare brands, food processors, fashion workshops, and more.',
+    url: 'https://www.cashtraka.co/',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CashTraka | Production Planning for Small Batch Businesses',
+    description:
+      'Plan production, track materials, and avoid costly shortages from one simple system.',
+  },
   // PWA metadata
   applicationName: 'CashTraka',
   manifest: '/manifest.webmanifest',

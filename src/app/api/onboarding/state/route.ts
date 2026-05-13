@@ -6,31 +6,12 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const [
-    payments,
-    debts,
-    latestDebt,
-    properties,
-    tenants,
-    latestProperty,
-    latestTenant,
-  ] = await Promise.all([
+  const [payments, debts, latestDebt] = await Promise.all([
     prisma.payment.count({ where: { userId: user.id } }),
     prisma.debt.count({ where: { userId: user.id } }),
     prisma.debt.findFirst({
       where: { userId: user.id, status: 'OPEN' },
       orderBy: { createdAt: 'desc' },
-    }),
-    prisma.property.count({ where: { userId: user.id } }),
-    prisma.tenant.count({ where: { userId: user.id } }),
-    prisma.property.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.tenant.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-      include: { property: { select: { name: true } } },
     }),
   ]);
 
@@ -45,19 +26,11 @@ export async function GET() {
           amountOwed: latestDebt.amountOwed,
         }
       : null,
-    properties,
-    tenants,
-    latestProperty: latestProperty
-      ? { id: latestProperty.id, name: latestProperty.name }
-      : null,
-    latestTenant: latestTenant
-      ? {
-          id: latestTenant.id,
-          name: latestTenant.name,
-          phone: latestTenant.phone,
-          rentAmount: latestTenant.rentAmount,
-          propertyName: latestTenant.property.name,
-        }
-      : null,
+    // Landlord vertical removed: these fields stay in the response (set to
+    // null/zero) so any in-flight client still parsing them doesn't crash.
+    properties: 0,
+    tenants: 0,
+    latestProperty: null,
+    latestTenant: null,
   });
 }

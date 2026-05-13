@@ -21,7 +21,12 @@ export type PaidPlanKey =
   | 'starter_yearly'
   | 'tax_plus_quarterly'
   | 'tax_plus_biannually'
-  | 'tax_plus_yearly';
+  | 'tax_plus_yearly'
+  // Operational planning pivot — monthly plans surfaced on the new
+  // pricing page. Use Paystack one-shot initTransaction per cycle
+  // (cycleDays=30) — no separate Paystack plan_code is required.
+  | 'pro_monthly'
+  | 'business_monthly';
 
 export type PlanPricing = {
   key: PaidPlanKey;
@@ -97,6 +102,29 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     perMonthKobo: 20_000 * 100, // ₦20,000/mo
     savingsPercent: 20,
   },
+  // ── Operational planning pivot plans ─────────────────────────────
+  // The marketing site advertises monthly cycles (Pro ₦12k/mo,
+  // Business ₦35k/mo). cycleDays=30 so Paystack charges every month.
+  pro_monthly: {
+    key: 'pro_monthly',
+    label: 'Pro',
+    frequency: 'quarterly', // closest cycle bucket; cycleDays is the source of truth
+    amountKobo: 12_000 * 100, // ₦12,000/month
+    cycleDays: 30,
+    trialDays: 7,
+    perMonthKobo: 12_000 * 100,
+    savingsPercent: 0,
+  },
+  business_monthly: {
+    key: 'business_monthly',
+    label: 'Business',
+    frequency: 'quarterly',
+    amountKobo: 35_000 * 100, // ₦35,000/month
+    cycleDays: 30,
+    trialDays: 14, // longer trial for the team tier
+    perMonthKobo: 35_000 * 100,
+    savingsPercent: 0,
+  },
 };
 
 /** All available frequencies in order */
@@ -123,11 +151,11 @@ export function isPaidPlan(key: string | null | undefined): key is PaidPlanKey {
     key === 'tax_plus_quarterly' ||
     key === 'tax_plus_biannually' ||
     key === 'tax_plus_yearly' ||
+    key === 'pro_monthly' ||
+    key === 'business_monthly' ||
     // Legacy keys, treat as equivalent to starter_quarterly for existing users
     key === 'business' ||
-    key === 'business_plus' ||
-    key === 'landlord' ||
-    key === 'estate_manager'
+    key === 'business_plus'
   );
 }
 
@@ -148,8 +176,9 @@ export function getPlanByFrequency(freq: BillingFrequency): PlanPricing {
 const LEGACY_MAP: Record<string, PaidPlanKey> = {
   business: 'starter_quarterly',
   business_plus: 'starter_quarterly',
-  landlord: 'starter_quarterly',
-  estate_manager: 'starter_quarterly',
+  // Marketing aliases. /signup?plan=pro and ?plan=business shortcut to
+  // the real monthly keys so the pricing page CTAs Just Work.
+  pro: 'pro_monthly',
 };
 
 export function resolvePlanKey(key: string): PaidPlanKey | null {

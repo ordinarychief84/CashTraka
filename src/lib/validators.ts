@@ -272,3 +272,138 @@ export const initPromisePaymentSchema = z.object({
   email: z.string().email('Valid email required for payment'),
   provider: z.enum(['PAYSTACK', 'FLUTTERWAVE']).optional(),
 });
+
+/* ─────────────────────────────────────────────────────────────────
+ * Operational Planning — small-batch ops pivot.
+ * Validators for suppliers, raw materials, recipes, customer orders,
+ * production orders, purchase orders, and inventory adjustments.
+ * Reused by both API routes and server actions.
+ * ──────────────────────────────────────────────────────────────── */
+
+const emptyToUndefined = (v: unknown) => (v === '' ? undefined : v);
+const trimmedString = (max: number, min = 1) =>
+  z.string().trim().min(min).max(max);
+
+export const supplierSchema = z.object({
+  name: trimmedString(120),
+  contactPerson: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
+  phone: z.preprocess(emptyToUndefined, z.string().trim().max(30).optional()),
+  email: z.preprocess(emptyToUndefined, z.string().trim().toLowerCase().email().optional()),
+  address: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+});
+
+export const supplierUpdateSchema = supplierSchema.partial();
+
+export const rawMaterialUnitSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(16)
+  .regex(/^[A-Za-z0-9_./\- ]+$/, 'Use letters, numbers, and basic punctuation only.');
+
+export const rawMaterialSchema = z.object({
+  name: trimmedString(120),
+  sku: z.preprocess(emptyToUndefined, z.string().trim().max(60).optional()),
+  unit: z.preprocess(emptyToUndefined, rawMaterialUnitSchema.optional()),
+  stock: z.coerce.number().int().nonnegative().optional(),
+  reorderLevel: z.coerce.number().int().nonnegative().optional(),
+  unitCostKobo: z.coerce.number().int().nonnegative().optional(),
+  supplierId: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
+  expiresAt: z.preprocess(
+    emptyToUndefined,
+    z.coerce.date().optional(),
+  ),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+});
+
+export const rawMaterialUpdateSchema = rawMaterialSchema.partial();
+
+export const stockMovementReasonSchema = z.enum([
+  'PURCHASE_RECEIVE',
+  'PRODUCTION_CONSUME',
+  'PRODUCTION_PRODUCE',
+  'SALE',
+  'ADJUSTMENT',
+  'WRITE_OFF',
+  'RETURN',
+]);
+
+export const adjustStockSchema = z.object({
+  delta: z.coerce
+    .number()
+    .int()
+    .refine((v) => v !== 0, { message: 'Delta must be non-zero.' }),
+  reason: stockMovementReasonSchema.optional(),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+});
+
+export const recipeItemSchema = z.object({
+  materialId: z.string().cuid(),
+  quantity: z.coerce.number().int().positive(),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+});
+
+export const recipeSchema = z.object({
+  yieldQty: z.coerce.number().int().positive().default(1),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+  items: z.array(recipeItemSchema).min(1, 'Add at least one material.'),
+});
+
+export const customerOrderItemSchema = z.object({
+  productId: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
+  description: trimmedString(200),
+  quantity: z.coerce.number().int().positive().default(1),
+  unitPriceKobo: z.coerce.number().int().nonnegative().default(0),
+});
+
+export const customerOrderSchema = z.object({
+  customerId: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
+  customerName: trimmedString(120),
+  customerPhone: z.preprocess(emptyToUndefined, z.string().trim().max(30).optional()),
+  dueAt: z.preprocess(emptyToUndefined, z.coerce.date().optional()),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+  items: z.array(customerOrderItemSchema).min(1, 'Add at least one item.'),
+});
+
+export const customerOrderStatusSchema = z.object({
+  status: z.enum(['NEW', 'CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED', 'CANCELLED']),
+  reason: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+});
+
+export const productionOrderItemSchema = z.object({
+  productId: z.string().cuid(),
+  quantity: z.coerce.number().int().positive(),
+});
+
+export const productionOrderSchema = z.object({
+  plannedStartAt: z.preprocess(emptyToUndefined, z.coerce.date().optional()),
+  plannedEndAt: z.preprocess(emptyToUndefined, z.coerce.date().optional()),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+  items: z.array(productionOrderItemSchema).min(1, 'Add at least one product.'),
+});
+
+export const purchaseOrderItemSchema = z.object({
+  materialId: z.string().cuid(),
+  quantity: z.coerce.number().int().positive(),
+  unitCostKobo: z.coerce.number().int().nonnegative().default(0),
+});
+
+export const purchaseOrderSchema = z.object({
+  supplierId: z.string().cuid(),
+  expectedAt: z.preprocess(emptyToUndefined, z.coerce.date().optional()),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
+  items: z.array(purchaseOrderItemSchema).min(1, 'Add at least one material.'),
+});
+
+export const purchaseOrderReceiveSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        itemId: z.string().cuid(),
+        quantity: z.coerce.number().int().positive(),
+      }),
+    )
+    .min(1),
+  notes: z.preprocess(emptyToUndefined, z.string().trim().max(300).optional()),
+});

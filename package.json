@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma db push --skip-generate && prisma generate && next build",
+    "build": "prisma db push --skip-generate --accept-data-loss && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
@@ -24,6 +24,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.37.0",
     "@vercel/functions": "^3.5.0",
+    "@zxing/browser": "^0.1.5",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.0",
     "jose": "^5.4.0",

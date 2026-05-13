@@ -1,44 +1,59 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
-  Banknote,
-  Clock3,
-  MessageCircle,
-  Users,
-  AlertTriangle,
-  Inbox,
-  SearchX,
-  RefreshCcw,
-  Shield,
-  Sparkles,
-  PhoneCall,
-  Check,
-  CreditCard,
-  HandCoins,
-  Repeat,
-  ListChecks,
-  Receipt,
-  BarChart3,
   ArrowRight,
-  Star,
-  BadgeCheck,
-  Smartphone,
+  Check,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
 import { Navbar } from '@/components/marketing/Navbar';
 import { Footer } from '@/components/marketing/Footer';
 import { Section } from '@/components/marketing/Section';
 import { PricingCards } from '@/components/marketing/PricingCards';
 import { FAQ } from '@/components/marketing/FAQ';
-import { HeroMockup } from '@/components/marketing/HeroMockup';
-import { HeroSolutions } from '@/components/marketing/HeroSolutions';
-import { SolutionsPath } from '@/components/marketing/SolutionsPath';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Stagger } from '@/components/marketing/Stagger';
-import { AnimatedStat } from '@/components/marketing/AnimatedStat';
-import { HoverLift } from '@/components/marketing/HoverLift';
 import { ScrollProgress } from '@/components/marketing/ScrollProgress';
-import { Marquee } from '@/components/marketing/Marquee';
-import { FeatureCarousel } from '@/components/marketing/FeatureCarousel';
-import { FeatureDeepDive } from '@/components/marketing/FeatureDeepDive';
+import {
+  HERO,
+  PROBLEM,
+  SOLUTION,
+  HOW_IT_WORKS,
+  FEATURES,
+  SHORTAGE,
+  INDUSTRIES,
+  INVOICES_RECEIPTS,
+  DASHBOARD,
+  PRICING_HEADING,
+  PRICING_SUB,
+  FAQ_ITEMS,
+  FINAL_CTA,
+} from '@/lib/marketing-content';
+
+export const metadata: Metadata = {
+  title: 'CashTraka | Production Planning Software for Small Batch Businesses',
+  description:
+    'CashTraka helps small batch businesses plan production, track raw materials, avoid shortages, manage orders, and generate invoices and receipts from one simple system.',
+  alternates: { canonical: 'https://www.cashtraka.co/' },
+  openGraph: {
+    title: 'CashTraka | Production Planning Software for Small Batch Businesses',
+    description:
+      'Plan production, track materials, and avoid costly shortages. CashTraka brings customer orders, production, raw materials, inventory, invoices, and receipts into one simple workflow.',
+    url: 'https://www.cashtraka.co/',
+    siteName: 'CashTraka',
+    type: 'website',
+    images: [
+      { url: 'https://www.cashtraka.co/icon-512.png', width: 1200, height: 630 },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CashTraka | Production Planning for Small Batch Businesses',
+    description:
+      'Plan production, track materials, and avoid costly shortages. Built for small factories, skincare, food, fashion, furniture, agro-processing, and printing.',
+    images: ['https://www.cashtraka.co/icon-512.png'],
+  },
+};
 
 export default function LandingPage() {
   return (
@@ -46,26 +61,17 @@ export default function LandingPage() {
       <ScrollProgress />
       <Navbar />
       <main>
-        {/* Trust + storytelling base, the register that fits Nigerian SMB
-            buyers. Light, bright, scannable. */}
-        <HeroSolutions />
-        <SolutionsPath />
-        <Problem />
-        <Solution />
-
-        {/* Single dark feature spotlight. Stripe / Apple alternation
-            pattern: one strong dark moment makes the rest of the page
-            feel deliberate. */}
-        <FeatureSpotlightDark />
-
-        <HowItWorks />
-
-        {/* Animated bento grid replaces the old flat testimonial row. */}
-        <BentoTestimonialsLight />
-
-        <ValueSection />
-        <Pricing />
-        <FAQSection />
+        <Hero />
+        <ProblemSection />
+        <SolutionSection />
+        <HowItWorksSection />
+        <FeatureGrid />
+        <ShortageHighlight />
+        <IndustriesPreview />
+        <InvoicesReceiptsSection />
+        <DashboardSection />
+        <PricingPreview />
+        <FAQPreview />
         <FinalCTA />
       </main>
       <Footer />
@@ -73,1123 +79,495 @@ export default function LandingPage() {
   );
 }
 
-/* ============== HYBRID ADDITIONS: dark interlude + light bento =========== */
-
-/**
- * Dark feature spotlight. Sits between Solution and HowItWorks on the
- * light page as a single high-contrast moment. Self-contained: brings
- * its own background and brand glows so the surrounding light sections
- * are unaffected. The base is built from the brand cyan palette
- * (brand-900 -> brand-700) so the section reads as CashTraka, not
- * generic fintech navy.
- */
-function FeatureSpotlightDark() {
-  return (
-    <section
-      className="relative overflow-hidden py-20 md:py-24"
-      style={{
-        // Diagonal blend through the brand's deep-cyan family with a
-        // brand-500 hot spot top-left and a brand-300 cool spot
-        // bottom-right. Reads luminous and unmistakably CashTraka.
-        backgroundImage:
-          'radial-gradient(circle at 18% 0%, rgba(31,193,238,0.55), transparent 55%),' +
-          'radial-gradient(circle at 88% 100%, rgba(69,203,242,0.30), transparent 55%),' +
-          'linear-gradient(135deg, #003A52 0%, #00577A 45%, #0076A0 100%)',
-      }}
-    >
-      {/* Soft cyan haze layered on top for depth */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-24 -top-24 h-[480px] w-[480px] rounded-full bg-brand-400/30 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-24 -bottom-24 h-[440px] w-[440px] rounded-full bg-brand-200/25 blur-3xl"
-      />
-      {/* Subtle dotted texture so the gradient does not look flat */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-soft-light"
-        style={{
-          backgroundImage:
-            'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)',
-          backgroundSize: '22px 22px',
-        }}
-      />
-
-      <div className="relative mx-auto max-w-6xl px-5">
-        <Reveal from="up">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-300">
-              Built for the way you actually work
-            </p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-white md:text-4xl lg:text-5xl">
-              Less admin, more time on the shop floor.
-            </h2>
-            <p className="mt-4 text-base text-slate-300 md:text-lg">
-              Two things you do every week, taken off your hands.
-            </p>
-          </div>
-        </Reveal>
-
-        <div className="mt-12 grid gap-4 md:grid-cols-2 md:gap-6">
-          <Reveal from="up" delay={80}>
-            <article className="group relative h-full overflow-hidden rounded-3xl bg-white/[0.04] p-7 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/[0.07] hover:ring-brand-400/40 md:p-9">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-brand-500/0 blur-3xl transition duration-500 group-hover:bg-brand-500/30"
-              />
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
-                Invoices &amp; payments
-              </span>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
-                One link your customer pays in seconds.
-              </h3>
-              <p className="mt-3 text-sm text-slate-300 md:text-base">
-                Make the invoice, send it on WhatsApp, the customer pays via
-                Paystack. The receipt sends itself. The dashboard shows the
-                payment in real time.
-              </p>
-              <ul className="mt-5 space-y-2 text-sm text-slate-200">
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  Public pay link, no login for the customer
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  Bank alert verification when they pay by transfer
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  Automatic receipt with your business header
-                </li>
-              </ul>
-            </article>
-          </Reveal>
-
-          <Reveal from="up" delay={160}>
-            <article className="group relative h-full overflow-hidden rounded-3xl bg-white/[0.04] p-7 ring-1 ring-white/10 backdrop-blur-sm transition hover:bg-white/[0.07] hover:ring-brand-400/40 md:p-9">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-12 -bottom-12 h-44 w-44 rounded-full bg-indigo-500/0 blur-3xl transition duration-500 group-hover:bg-indigo-500/30"
-              />
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-300">
-                Tax &amp; compliance
-              </span>
-              <h3 className="mt-3 text-2xl font-black tracking-tight text-white md:text-3xl">
-                Tax invoices that match FIRS rules.
-              </h3>
-              <p className="mt-3 text-sm text-slate-300 md:text-base">
-                TIN, buyer details, VAT line, and HS codes already in the
-                template. When FIRS e-invoicing turns on, the data is in the
-                right shape and the IRN prints on the PDF.
-              </p>
-              <ul className="mt-5 space-y-2 text-sm text-slate-200">
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  TIN and buyer fields built in
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  VAT 7.5% applied or exempt per line
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check size={16} className="mt-0.5 shrink-0 text-brand-300" />
-                  Six-year archive that meets retention rules
-                </li>
-              </ul>
-            </article>
-          </Reveal>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Testimonials, redesigned with one job: prove other Nigerian
- * businesses already use this and got their time back.
- *
- * Why the rewrite
- *   - Cards are now uniform (3-col x 2-row on desktop). The mixed
- *     spans + decorative logo cells were visual noise; a clean grid
- *     reads as "these are six real receipts of value."
- *   - Each card breathes on idle (subtle Y float, custom delay per
- *     card) so the section feels alive even before the cursor lands.
- *   - On hover the float pauses, the card lifts harder, brand glow
- *     ring kicks in, accent strip on the left edge brightens.
- *   - Avatar circle in brand-100 / brand-700 gives the quote a face,
- *     and replaces the abstract corner glow with something concrete.
- */
-const TESTIMONIALS: { quote: string; name: string; role: string }[] = [
-  {
-    quote:
-      'Customers used to come back asking for receipts weeks later. Now I just send a WhatsApp link and the receipt is done.',
-    name: 'Tope A',
-    role: 'Boutique owner, Lagos',
-  },
-  {
-    quote:
-      "Bank alert verification means I don't have to refresh Paystack every five minutes. Paste the SMS, the payment is logged.",
-    name: 'Chiamaka N',
-    role: 'Skincare brand, Port Harcourt',
-  },
-  {
-    quote:
-      'We used to send the same monthly invoice to 14 clients by hand. Now it runs on its own.',
-    name: 'Ifeoma O',
-    role: 'Cleaning service, Abuja',
-  },
-  {
-    quote:
-      'I see who paid in real time on the dashboard. The end of month stress is gone.',
-    name: 'Bashir M',
-    role: 'Phone accessory shop, Kano',
-  },
-  {
-    quote:
-      'Switching from a paper book to CashTraka saved my accountant a full week of work.',
-    name: 'Kelechi U',
-    role: 'Landlord, Abuja',
-  },
-  {
-    quote:
-      'Rent reminders go out on their own. Tenants pay through the link. I do not chase anyone in a group chat anymore.',
-    name: 'Mrs Adeniyi',
-    role: 'Property manager, Lekki',
-  },
-];
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
-
-function BentoTestimonialsLight() {
-  return (
-    <section className="relative overflow-hidden bg-white py-20 md:py-24">
-      {/* Soft brand wash centred behind the grid */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[440px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-100/60 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-20 top-10 h-72 w-72 rounded-full bg-brand-200/30 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-success-200/25 blur-3xl"
-      />
-
-      <div className="relative mx-auto max-w-6xl px-5">
-        <Reveal from="up">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-600">
-              The proof
-            </p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl lg:text-5xl">
-              Six businesses, one fewer headache each.
-            </h2>
-            <p className="mt-4 text-base text-slate-600 md:text-lg">
-              Real Nigerian operators who used to do this work twice. Then they
-              stopped.
-            </p>
-          </div>
-        </Reveal>
-
-        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} from="up" delay={120 + i * 80} duration={650}>
-              <TestimonialCard
-                quote={t.quote}
-                name={t.name}
-                role={t.role}
-                index={i}
-              />
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Single testimonial card. Uniform size, brand-cyan accent strip on
- * the left edge, avatar circle, idle float driven by the existing
- * `animate-float` keyframes with a per-card phase offset so the row
- * breathes in a wave. Hovering pauses the float (Tailwind:
- * hover:[animation-play-state:paused]) and pushes the lift further.
- */
-function TestimonialCard({
-  quote,
-  name,
-  role,
-  index,
-}: {
-  quote: string;
-  name: string;
-  role: string;
-  index: number;
-}) {
-  return (
-    <div
-      className="group relative h-full animate-float [animation-play-state:running] hover:[animation-play-state:paused]"
-      style={
-        {
-          // Phase + speed tuned per card so the grid breathes in a wave
-          // rather than sync. Speed varies slightly to break uniformity.
-          animationDelay: `${(index * 0.55).toFixed(2)}s`,
-          animationDuration: `${5.5 + (index % 3) * 0.6}s`,
-          ['--float-distance' as never]: '6px',
-        } as React.CSSProperties
-      }
-    >
-      <article className="relative flex h-full flex-col overflow-hidden rounded-2xl bg-white p-6 ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:ring-brand-300 hover:shadow-[0_22px_42px_-14px_rgba(0,184,232,0.4)]">
-        {/* Brand-cyan accent strip, brightens on hover */}
-        <span
-          aria-hidden
-          className="absolute inset-y-4 left-0 w-[3px] rounded-r-full bg-gradient-to-b from-brand-200 via-brand-500 to-brand-300 opacity-70 transition group-hover:opacity-100"
-        />
-        {/* Soft brand glow that fades in on hover */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-100/0 blur-2xl transition duration-500 group-hover:bg-brand-200/80"
-        />
-
-        <p className="relative z-10 flex-1 pl-3 text-base leading-relaxed text-ink">
-          {`"${quote}"`}
-        </p>
-
-        <div className="relative z-10 mt-6 flex items-center gap-3 pl-3 pt-4 ring-1 ring-transparent">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
-          />
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-brand-100 transition group-hover:bg-brand-100 group-hover:text-brand-800">
-            {initials(name)}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-ink">{name}</div>
-            <div className="truncate text-xs text-slate-500">{role}</div>
-          </div>
-        </div>
-      </article>
-    </div>
-  );
-}
-
-/* ===== Legacy section helpers (kept defined, no longer rendered) ========= */
+/* ============== HERO ============== */
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-brand-50 via-white to-white py-14 md:py-20">
+    <section className="relative overflow-hidden">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 -z-0 h-80 w-[45rem] -translate-x-1/2 rounded-full bg-brand-200/40 blur-3xl"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          backgroundImage:
+            'radial-gradient(60% 80% at 50% 0%, rgba(31,193,238,0.18), transparent 70%),' +
+            'radial-gradient(40% 60% at 80% 20%, rgba(139,217,30,0.10), transparent 70%)',
+        }}
       />
-      <div className="container-app relative z-10 grid items-center gap-10 md:grid-cols-2 md:gap-12">
+      <div className="container-app pt-14 pb-16 md:pt-20 md:pb-24">
         <Reveal from="up">
-          <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
-            Invoices, payments and debts in one place
+          <span className="inline-block rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-700">
+            {HERO.eyebrow}
           </span>
-          <h1 className="mt-4 text-4xl font-black leading-tight tracking-tight text-ink md:text-5xl lg:text-6xl">
-            Send invoices, take payments, and chase debts in one place
+        </Reveal>
+        <Reveal from="up" delay={80}>
+          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-ink md:text-6xl md:leading-[1.05]">
+            {HERO.h1}
           </h1>
-          <p className="mt-4 text-lg text-slate-600 md:text-xl">
-            Built for Nigerian businesses. Send a proper invoice on WhatsApp,
-            take payment via Paystack, and let CashTraka handle the receipt,
-            the follow-up, and the FIRS paperwork.
+        </Reveal>
+        <Reveal from="up" delay={160}>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl">
+            {HERO.sub}
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/signup" className="btn-primary">Start free</Link>
-            <a href="#solutions" className="btn-secondary">See how it works</a>
+        </Reveal>
+        <Reveal from="up" delay={240}>
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link href={HERO.primaryCta.href} className="btn-primary text-sm md:text-base">
+              {HERO.primaryCta.label}
+              <ArrowRight size={16} />
+            </Link>
+            <Link href={HERO.secondaryCta.href} className="btn-secondary text-sm md:text-base">
+              {HERO.secondaryCta.label}
+            </Link>
           </div>
-          <p className="mt-4 text-sm text-slate-500">
-            Set up in under 5 minutes. No card required.
-          </p>
         </Reveal>
-        <Reveal from="right" delay={150} className="order-first md:order-last">
-          <HeroMockup />
+        <Reveal from="up" delay={320}>
+          <p className="mt-6 max-w-3xl text-sm text-slate-500">{HERO.support}</p>
         </Reveal>
       </div>
     </section>
   );
 }
 
-function AudienceMarquee() {
-  const chips = [
-    'Beauty sellers',
-    'Fashion brands',
-    'Phone accessory shops',
-    'Skincare brands',
-    'Food vendors',
-    'Thrift stores',
-    'Perfume sellers',
-    'Landlords',
-    'Property managers',
-    'Hair & wig sellers',
-    'Tailors & designers',
-    'Electronics resellers',
-  ];
-  const items = chips.map((c, i) => (
-    <span
-      key={`${c}-${i}`}
-      className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-brand-400 hover:text-brand-700"
-    >
-      {c}
-    </span>
-  ));
-  return (
-    <section className="border-y border-border bg-slate-50 py-8">
-      <div className="container-app mb-4">
-        <Reveal from="zoom" distance={10}>
-          <p className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Used by Nigerian businesses every day
-          </p>
-        </Reveal>
-      </div>
-      <Marquee items={items} speed={35} />
-    </section>
-  );
-}
+/* ============== PROBLEM ============== */
 
-function SocialProof() {
-  const cards = [
-    {
-      label: 'Average seller recovers',
-      number: (
-        <AnimatedStat
-          prefix="₦"
-          value={150_000}
-          suffix="+"
-          className="text-brand-600"
-        />
-      ),
-      body: 'in old debts within the first 30 days of using CashTraka.',
-      accent: 'brand',
-    },
-    {
-      label: 'Setup time',
-      number: (
-        <AnimatedStat value={5} suffix=" min" className="text-success-700" />
-      ),
-      body: 'from signup to your first invoice or recorded payment.',
-      accent: 'success',
-    },
-    {
-      label: 'Collection rate',
-      number: <AnimatedStat value={82} suffix="%" className="text-brand-600" />,
-      body: 'of money owed comes in vs 54% on a notebook or spreadsheet.',
-      accent: 'brand',
-    },
-  ] as const;
-
-  return (
-    <section className="py-14 md:py-20">
-      <div className="container-app">
-        <Reveal from="up" blur>
-          <p className="text-center text-xs font-semibold uppercase tracking-wider text-brand-600">
-            Real businesses. Real money in the account.
-          </p>
-          <h2 className="mx-auto mt-3 max-w-2xl text-center text-2xl font-black tracking-tight text-ink md:text-3xl">
-            Built to put money in your account
-          </h2>
-        </Reveal>
-        <ul className="mx-auto mt-10 grid max-w-4xl gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-          <Stagger step={110} from="up" className="contents">
-            {cards.map((c, i) => (
-              <li
-                key={c.label}
-                className={
-                  'group relative flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-white p-5 text-center shadow-xs transition hover:-translate-y-1 hover:shadow-md md:p-6' +
-                  (i === 0 ? ' sm:col-span-2 lg:col-span-1' : '')
-                }
-              >
-                <span
-                  aria-hidden
-                  className={
-                    'pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition group-hover:opacity-100 ' +
-                    (c.accent === 'brand'
-                      ? 'bg-gradient-to-br from-brand-500/0 via-brand-500/5 to-brand-500/0'
-                      : 'bg-gradient-to-br from-success-500/0 via-success-500/10 to-success-500/0')
-                  }
-                />
-                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
-                  {c.label}
-                </span>
-                <span
-                  className="relative mt-3 block text-3xl font-black leading-none tracking-tight md:text-4xl"
-                  style={{ fontVariantNumeric: 'tabular-nums' }}
-                >
-                  {c.number}
-                </span>
-                <p className="relative mt-3 max-w-[22ch] text-xs leading-relaxed text-slate-600">
-                  {c.body}
-                </p>
-              </li>
-            ))}
-          </Stagger>
-        </ul>
-      </div>
-    </section>
-  );
-}
-
-function Problem() {
-  const pains = [
-    {
-      icon: Receipt,
-      title: 'Receipts on receipt paper that fade in two months',
-      body: 'Your customer comes back asking for proof of payment. The thermal print is now a blank strip. You apologise and write a new one by hand.',
-    },
-    {
-      icon: Inbox,
-      title: '"Boss, can you send me a proper invoice?"',
-      body: 'A WhatsApp message with the amount is not enough for a corporate client. They want a TIN, a buyer address, line items, the full thing.',
-    },
-    {
-      icon: Clock3,
-      title: 'You forgot to chase Chidi. Again.',
-      body: 'He owes ₦80,000 from last month. He went quiet. Your reminder is sitting in your head, not on a list, and you only remember at 2am.',
-    },
-    {
-      icon: RefreshCcw,
-      title: 'Same monthly invoice, retyped from scratch',
-      body: 'Your retainer client. Same line items every month. You open Word, copy last month, change the date, save as PDF, send. Every. Single. Month.',
-    },
-  ];
+function ProblemSection() {
   return (
     <Section
       id="problem"
-      eyebrow="You know this story"
-      title="The boring stuff is what loses you money."
-      subtitle="Faded receipts. Customers asking for invoices you do not have. Debts that go quiet. FIRS rules you have not had time to read. None of it is the work you signed up for."
+      tone="muted"
+      eyebrow="The reality"
+      title={PROBLEM.heading}
+      subtitle={PROBLEM.body}
     >
-      <Stagger step={100} from="up" className="grid gap-4 md:grid-cols-2">
-        {pains.map((p) => (
-          <HoverLift key={p.title}>
-            <div className="card flex h-full gap-4 p-5 transition">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-owed-50 text-owed-600 transition group-hover:scale-110 group-hover:bg-owed-100">
-                <p.icon size={20} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-ink">{p.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{p.body}</p>
-              </div>
+      <Stagger from="up" step={70}>
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          {PROBLEM.pains.map((p) => (
+            <div key={p} className="card flex items-start gap-3 p-4">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                <X size={14} strokeWidth={3} />
+              </span>
+              <p className="text-sm font-medium text-slate-800">{p}</p>
             </div>
-          </HoverLift>
-        ))}
+          ))}
+        </div>
       </Stagger>
-      <Reveal delay={400} from="zoom" distance={14}>
-        <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
-          You do not need to work harder. You need a system that does the boring parts for you.
+      <Reveal from="up" delay={200}>
+        <p className="mt-10 max-w-3xl text-base font-medium text-slate-700 md:text-lg">
+          {PROBLEM.closing}
         </p>
       </Reveal>
     </Section>
   );
 }
 
-function Solution() {
-  const features = [
-    {
-      icon: <Receipt size={22} />,
-      title: 'Make an invoice in 30 seconds',
-      body: 'Pick the customer, add line items, send. The link goes to WhatsApp. The customer can view it, download a PDF, or pay it online.',
-    },
-    {
-      icon: <CreditCard size={22} />,
-      title: 'Customer pays via the public pay link',
-      body: 'They tap the link, choose card or transfer, and Paystack handles the rest. Your invoice marks itself as paid the moment the money lands.',
-    },
-    {
-      icon: <Repeat size={22} />,
-      title: 'Recurring invoices for retainer clients',
-      body: 'Set it up once. CashTraka issues the same invoice every month, sends it on WhatsApp, and reminds the client when it is due.',
-    },
-    {
-      icon: <Shield size={22} />,
-      title: 'Tax invoices ready for FIRS',
-      body: 'TIN, buyer address, item codes, IRN and QR code on the receipt. Download the XML and submit when FIRS asks for it.',
-    },
-    {
-      icon: <RefreshCcw size={22} />,
-      title: 'Credit notes when you cancel a sale',
-      body: 'Customer returned the goods? Issue a credit note in two taps. The invoice updates, the receipt updates, your books stay clean.',
-    },
-    {
-      icon: <Banknote size={22} />,
-      title: 'Record a payment, the receipt sends itself',
-      body: 'Cash, transfer, or POS. Log the amount and CashTraka emails the receipt and shares the link on WhatsApp without you typing a word.',
-    },
-    {
-      icon: <Shield size={22} />,
-      title: 'Bank alert verification',
-      body: 'Got the bank SMS but Paystack has not confirmed yet? Paste the alert. CashTraka reads the amount, sender, and reference. No fake screenshots.',
-    },
-    {
-      icon: <HandCoins size={22} />,
-      title: 'Promise to Pay',
-      body: 'Customer cannot pay today? Send them a Promise link. They pick a date and amount. If they miss it, the system flags it for you.',
-    },
-    {
-      icon: <ListChecks size={22} />,
-      title: 'Smart Collection Queue',
-      body: 'Every overdue invoice, broken promise, and failed installment ranked by priority. Tap to open WhatsApp with the message ready to send.',
-    },
-    {
-      icon: <MessageCircle size={22} />,
-      title: 'Chase debts on WhatsApp',
-      body: 'One tap drafts a polite reminder in your own WhatsApp. No tone-deaf templates. Send it, close the chat, move on.',
-    },
-    {
-      icon: <Users size={22} />,
-      title: 'Your customer book builds itself',
-      body: 'Every buyer is saved with their phone, email, payment history, and what they bought. Phone-only customers welcome.',
-    },
-    {
-      icon: <BarChart3 size={22} />,
-      title: 'Daily business pulse',
-      body: 'Wake up to an email of yesterday. Who paid, who is overdue, what came in, what went out. Five seconds to read.',
-    },
-  ];
+/* ============== SOLUTION ============== */
+
+function SolutionSection() {
   return (
     <Section
-      id="solutions"
-      tone="muted"
-      eyebrow="What you do in CashTraka"
-      title="The whole back office, on your phone."
-      subtitle="Make an invoice. Take the payment. Send the receipt. Chase the debt. Set up the next one to run on autopilot. Everything happens in one app."
+      id="solution"
+      eyebrow="The answer"
+      title={SOLUTION.heading}
+      subtitle={SOLUTION.body}
     >
-      <Reveal>
-        <FeatureCarousel items={features} />
-      </Reveal>
+      <Stagger from="up" step={60}>
+        <div className="grid gap-3 md:grid-cols-2">
+          {SOLUTION.bullets.map((b) => (
+            <div key={b} className="flex items-start gap-3 rounded-xl border border-border bg-white p-4">
+              <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                <Check size={14} strokeWidth={3} />
+              </span>
+              <p className="text-sm font-medium text-slate-800">{b}</p>
+            </div>
+          ))}
+        </div>
+      </Stagger>
+      <div className="mt-10 flex flex-wrap gap-3">
+        <Link href="/signup" className="btn-primary text-sm">
+          Start free
+          <ArrowRight size={16} />
+        </Link>
+        <Link href="/solutions" className="btn-secondary text-sm">
+          See how it works
+        </Link>
+      </div>
     </Section>
   );
 }
 
-function DeepDives() {
-  const items = [
-    {
-      eyebrow: 'Invoice engine',
-      title: 'Send a proper invoice. Get paid by tapping a link.',
-      body: 'Build an invoice with line items, tax, discounts, and your logo. Share it on WhatsApp. The customer opens the public pay link, pays via Paystack, and the invoice marks itself as paid. No follow-up email needed.',
-      bullets: [
-        'Public pay link, no account or app needed for the customer',
-        'Auto confirmed via Paystack webhook the second they pay',
-        'Receipt with QR and PDF emails the customer right away',
-      ],
-      visual: <PaymentsCard />,
-    },
-    {
-      eyebrow: 'Recurring invoices',
-      title: 'Set it once. Send it every month. Forever.',
-      body: 'For retainers, rent, subscriptions, anything that bills on a schedule. Pick the day of the month, the customer, and the line items. CashTraka issues, sends, and tracks each one. You just check that the money came in.',
-      bullets: [
-        'Monthly, weekly, or custom intervals',
-        'Auto sends on WhatsApp on the issue date',
-        'Pause, edit, or cancel from one screen',
-      ],
-      visual: <DebtsCard />,
-    },
-    {
-      eyebrow: 'FIRS-ready tax invoices',
-      title: 'Tax invoices that pass FIRS the first time',
-      body: 'Your TIN, the buyer TIN, item codes, the right tax breakdown, and an IRN with a QR code on the receipt. Download the XML and submit when FIRS asks. Six years of document archive included.',
-      bullets: [
-        'TIN, buyer details, line-level tax codes, all in one form',
-        'IRN and QR printed on the receipt',
-        'XML download for FIRS submission',
-      ],
-      visual: <InstallmentCard />,
-    },
-    {
-      eyebrow: 'Collection Queue',
-      title: 'Always know who to chase next',
-      body: 'Every overdue invoice, broken promise, expired pay link, and failed auto-debit ranked by priority. Each one comes with a suggested action. No more wondering which customer to call today.',
-      bullets: [
-        'Priority ranked by amount, days overdue, and history',
-        'Suggested actions like "Call now", "Resend link", "Follow up"',
-        'One tap opens WhatsApp with the message already written',
-      ],
-      visual: <FollowUpCard />,
-    },
-  ];
-  return (
-    <Section>
-      <FeatureDeepDive items={items} />
-    </Section>
-  );
-}
+/* ============== HOW IT WORKS ============== */
 
-function HowItWorks() {
-  const steps = [
-    {
-      n: 1,
-      title: 'Add the work',
-      body: 'Make an invoice, log a sale, or record a debt. Takes 30 seconds. Share it on WhatsApp from the same screen.',
-    },
-    {
-      n: 2,
-      title: 'CashTraka collects',
-      body: 'Pay link confirms via Paystack. Recurring invoices send themselves. Bank alerts verify transfers. Receipts go out automatically.',
-    },
-    {
-      n: 3,
-      title: 'You handle the rest',
-      body: 'Open the Collection Queue, pick the top name, send the WhatsApp reminder. Done in two taps.',
-    },
-  ];
+function HowItWorksSection() {
   return (
     <Section
       id="how-it-works"
       tone="muted"
-      eyebrow="3 steps"
-      title="Set up today. See money in your account this week."
+      eyebrow="How it works"
+      title={HOW_IT_WORKS.heading}
+      subtitle="Five steps. One workflow. No spreadsheets."
     >
-      <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
-        <div
-          aria-hidden
-          className="absolute left-0 right-0 top-6 hidden h-0.5 overflow-hidden bg-brand-100 md:block"
-        >
-          <div className="h-full w-1/2 animate-shimmer bg-gradient-to-r from-transparent via-brand-500 to-transparent" />
-        </div>
-        <Stagger step={140} from="up" className="contents">
-          {steps.map((s) => (
-            <div key={s.n} className="relative">
-              <div className="group/step relative z-10 mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-500 text-lg font-black text-white shadow-md transition hover:scale-110 hover:shadow-lg">
-                <span className="absolute inset-0 rounded-full bg-brand-500 opacity-40 blur-lg transition group-hover/step:opacity-70" />
-                <span className="relative">{s.n}</span>
-              </div>
-              <div className="mt-4 text-center">
-                <h3 className="text-lg font-semibold text-ink">{s.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{s.body}</p>
-              </div>
+      <ol className="grid gap-4 md:grid-cols-5">
+        {HOW_IT_WORKS.steps.map((step, i) => (
+          <Reveal key={step.title} from="up" delay={i * 80}>
+            <li className="card relative h-full p-5">
+              <span className="absolute -top-3 left-5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-sm font-black text-white shadow-md">
+                {i + 1}
+              </span>
+              <h3 className="mt-3 text-base font-bold text-ink">{step.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{step.body}</p>
+            </li>
+          </Reveal>
+        ))}
+      </ol>
+    </Section>
+  );
+}
+
+/* ============== FEATURE GRID ============== */
+
+function FeatureGrid() {
+  return (
+    <Section
+      id="features"
+      eyebrow="Features"
+      title="Everything small production businesses need to stay organized."
+      subtitle="Each feature is built for the way small batch teams actually work — fast, mobile, WhatsApp-friendly."
+    >
+      <Stagger from="up" step={50}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="card group h-full p-5 transition hover:-translate-y-0.5">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white">
+                <f.icon size={20} />
+              </span>
+              <h3 className="mt-4 text-base font-bold text-ink">{f.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{f.body}</p>
             </div>
           ))}
-        </Stagger>
+        </div>
+      </Stagger>
+      <div className="mt-10 flex flex-wrap gap-3">
+        <Link href="/signup" className="btn-primary text-sm">
+          Start free
+          <ArrowRight size={16} />
+        </Link>
+        <Link href="/solutions" className="btn-secondary text-sm">
+          View all features
+        </Link>
       </div>
     </Section>
   );
 }
 
-function ValueSection() {
-  // Four wins that are genuinely different from anything in the
-  // bookkeeping apps a buyer might compare us to. Six was too much.
-  const wins = [
-    {
-      icon: MessageCircle,
-      label:
-        'WhatsApp first. Invoices, receipts and reminders go where your customers already read.',
-    },
-    {
-      icon: PhoneCall,
-      label:
-        'Phone-only customers welcome. No email needed. Save them by phone, send via WhatsApp.',
-    },
-    {
-      icon: Shield,
-      label:
-        'Bank alert verification. Paste the SMS, the payment is logged. No need to refresh Paystack.',
-    },
-    {
-      icon: Sparkles,
-      label:
-        'Mobile first. Built for the phone in your hand, not a laptop in an office.',
-    },
-  ];
-  return (
-    <Section
-      eyebrow="Built around how you actually work"
-      title="No new habits. Just less typing."
-      subtitle="You already run your business on WhatsApp and bank alerts. CashTraka fits into that, it does not fight it."
-    >
-      <Stagger step={90} from="left" className="mx-auto grid max-w-3xl gap-3 sm:grid-cols-2">
-        {wins.map((w) => (
-          <HoverLift key={w.label}>
-            <div className="card flex items-center gap-3 p-4 transition">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-100 group-hover:scale-110">
-                <w.icon size={18} />
-              </div>
-              <span className="font-medium text-slate-800">{w.label}</span>
-            </div>
-          </HoverLift>
-        ))}
-      </Stagger>
-    </Section>
-  );
-}
+/* ============== SHORTAGE HIGHLIGHT ============== */
 
-function Objections() {
-  const items = [
-    {
-      title: 'New: full invoice engine',
-      body: 'Make an invoice with line items, tax, discounts, and your logo. Share via the public pay link or WhatsApp. Customer pays online or marks as paid offline.',
-    },
-    {
-      title: 'New: recurring invoices',
-      body: 'Set up once for retainer clients, monthly rent, or subscriptions. CashTraka sends and tracks each cycle. You just confirm payment.',
-    },
-    {
-      title: 'New: credit notes and delivery notes',
-      body: 'Cancel a sale, refund a customer, or document goods delivered. The full set of business documents, not just receipts.',
-    },
-    {
-      title: 'New: FIRS-ready tax invoices',
-      body: 'TIN, buyer details, item codes, IRN, QR on the receipt, and XML for FIRS submission. Six-year document archive built in.',
-    },
-    {
-      title: 'New: document audit log',
-      body: 'See who edited what, and when. Every invoice, credit note, and receipt has a full history. Useful for staff, accountants, and FIRS.',
-    },
-  ];
+function ShortageHighlight() {
   return (
-    <Section
-      tone="muted"
-      eyebrow="What is new this season"
-      title="A full invoice engine, FIRS-ready, on your phone"
+    <section
+      className="relative overflow-hidden py-20 md:py-24"
+      style={{
+        backgroundImage:
+          'radial-gradient(circle at 18% 0%, rgba(31,193,238,0.40), transparent 55%),' +
+          'radial-gradient(circle at 88% 100%, rgba(69,203,242,0.25), transparent 55%),' +
+          'linear-gradient(135deg, #003A52 0%, #00577A 45%, #0076A0 100%)',
+      }}
     >
-      <Stagger step={100} from="zoom" distance={18} className="grid gap-4 md:grid-cols-3">
-        {items.map((it) => (
-          <HoverLift key={it.title}>
-            <div className="card p-6 transition">
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600 transition group-hover:bg-brand-100 group-hover:rotate-6">
-                <Sparkles size={20} />
-              </div>
-              <h3 className="font-semibold text-ink">{it.title}</h3>
-              <p className="mt-1 text-sm text-slate-600">{it.body}</p>
-            </div>
-          </HoverLift>
-        ))}
-      </Stagger>
-      <Reveal delay={400} from="zoom" distance={14}>
-        <p className="mx-auto mt-8 max-w-2xl text-center text-base font-semibold text-slate-700 md:text-lg">
-          If you can send a WhatsApp message, you can run your business on CashTraka.
-        </p>
-      </Reveal>
-    </Section>
-  );
-}
-
-function Pricing() {
-  return (
-    <Section
-      id="pricing"
-      eyebrow="Pricing"
-      title="Free for small operations. ₦3,000/month for the full toolkit."
-      subtitle="Start free, no card. When you need invoices, FIRS, recurring billing, and the rest, switch to Starter for as little as ₦3,000 a month."
-    >
-      <Reveal>
-        <div className="mx-auto max-w-3xl">
-          <PricingCards />
-        </div>
-      </Reveal>
-      <Reveal delay={200}>
-        <p className="mt-6 text-center text-sm text-slate-600">
-          See the full breakdown on the{' '}
-          <Link href="/pricing" className="font-semibold text-brand-700 hover:text-brand-800 underline underline-offset-2">
-            pricing page
-          </Link>
-          .
-        </p>
-      </Reveal>
-    </Section>
-  );
-}
-
-function FAQSection() {
-  return (
-    <Section
-      id="faq"
-      tone="muted"
-      eyebrow="FAQ"
-      title="Questions people ask before they sign up."
-    >
-      <Reveal>
-        <FAQ />
-      </Reveal>
-    </Section>
-  );
-}
-
-function FinalCTA() {
-  return (
-    <section className="py-16 md:py-24">
       <div className="container-app">
-        <Reveal from="zoom" distance={20} blur>
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-600 via-brand-500 to-success-500 px-6 py-12 text-center text-white md:px-12 md:py-16">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl animate-slow-spin"
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-success-300/30 blur-3xl animate-slow-spin"
-              style={{ animationDuration: '32s', animationDirection: 'reverse' }}
-            />
-            <div className="relative">
-              <h2 className="text-3xl font-black leading-tight tracking-tight md:text-4xl">
-                Stop running around for receipts. Start the day with money in.
-              </h2>
-              <p className="mt-3 text-lg text-white/90">Free to start. Five minutes to set up. Your first invoice goes out today.</p>
-              <div className="mt-7 flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/signup"
-                  className="btn group/cta relative inline-flex overflow-hidden bg-white text-brand-700 shadow-lg hover:bg-brand-50"
-                >
-                  <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-brand-200/60 to-transparent transition-transform duration-700 group-hover/cta:translate-x-full" />
-                  <span className="relative font-bold">Start free</span>
-                </Link>
-                <Link
-                  href="/login"
-                  className="btn inline-flex border border-white/40 bg-transparent text-white hover:bg-white/10"
-                >
-                  Sign in
-                </Link>
+        <Reveal from="up">
+          <span className="inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
+            Shortage alerts
+          </span>
+        </Reveal>
+        <Reveal from="up" delay={80}>
+          <h2 className="mt-5 max-w-3xl text-3xl font-black tracking-tight text-white md:text-5xl md:leading-[1.1]">
+            {SHORTAGE.heading}
+          </h2>
+        </Reveal>
+        <Reveal from="up" delay={160}>
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-cyan-100 md:text-lg">
+            {SHORTAGE.body}
+          </p>
+        </Reveal>
+
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <Reveal from="up" delay={200}>
+            <div className="rounded-2xl bg-white/95 p-5 shadow-xl">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                You need
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm font-medium text-slate-800">
+                {SHORTAGE.required.map((r) => (
+                  <li key={r.unit} className="flex items-center justify-between">
+                    <span>{r.unit}</span>
+                    <span className="font-mono font-bold">{r.qty}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+          <Reveal from="up" delay={280}>
+            <div className="rounded-2xl bg-white/95 p-5 shadow-xl">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                You have
+              </h3>
+              <ul className="mt-3 space-y-2 text-sm font-medium text-slate-800">
+                {SHORTAGE.onHand.map((r) => (
+                  <li key={r.unit} className="flex items-center justify-between">
+                    <span>{r.unit}</span>
+                    <span className="font-mono font-bold">{r.qty}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+          <Reveal from="up" delay={360}>
+            <div className="flex h-full flex-col justify-between rounded-2xl border border-rose-300 bg-rose-50 p-5 shadow-xl">
+              <div>
+                <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-rose-700">
+                  <AlertTriangle size={12} /> CashTraka shows
+                </h3>
+                <p className="mt-3 text-sm text-rose-800">Shortage</p>
+                <p className="mt-1 text-3xl font-black text-rose-900">{SHORTAGE.shortage.qty}</p>
+                <p className="text-sm font-semibold text-rose-800">{SHORTAGE.shortage.unit}</p>
               </div>
-              <p className="mt-4 text-sm text-white/80">
-                No card. No trial expiry on the free plan. Upgrade only when you need invoices and FIRS.
+              <p className="mt-4 text-xs text-rose-700">
+                Buy or substitute before you start the run.
               </p>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
+
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link
+            href={SHORTAGE.cta.href}
+            className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-50"
+          >
+            {SHORTAGE.cta.label}
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/solutions"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20"
+          >
+            How it works
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
 
-function PaymentsCard() {
-  return (
-    <div className="card relative p-5 shadow-sm md:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs font-medium text-slate-500">Payments · today</div>
-          <div className="num mt-1 text-2xl text-success-700">₦28,500</div>
-        </div>
-        <div className="flex gap-1">
-          <span className="rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700">
-            Paid
-          </span>
-          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-            Pending
-          </span>
-        </div>
-      </div>
-      <div className="mt-4 space-y-2">
-        <PayRow name="Amaka Nwosu" meta="Just now" amount="₦8,500" paid />
-        <PayRow name="Chidi Okafor" meta="2h ago" amount="₦12,000" paid />
-        <PayRow name="Tolu Bello" meta="Yesterday" amount="₦3,000" />
-        <PayRow name="Kemi Adewale" meta="3 days ago" amount="₦15,000" paid />
-      </div>
-    </div>
-  );
-}
+/* ============== INDUSTRIES PREVIEW ============== */
 
-function PayRow({
-  name,
-  meta,
-  amount,
-  paid,
-}: {
-  name: string;
-  meta: string;
-  amount: string;
-  paid?: boolean;
-}) {
+function IndustriesPreview() {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
-      <div className="min-w-0">
-        <div className="truncate text-sm font-semibold text-ink">{name}</div>
-        <div className="text-[11px] text-slate-500">{meta}</div>
-      </div>
-      <div className="text-right">
-        <div className={'num text-sm ' + (paid ? 'text-success-700' : 'text-ink')}>
-          {amount}
-        </div>
-        <div className="text-[10px] font-semibold text-slate-500">
-          {paid ? 'Paid' : 'Pending'}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DebtsCard() {
-  return (
-    <div className="card p-5 shadow-sm md:p-6">
-      <div className="text-xs font-medium text-slate-500">Money owed to you</div>
-      <div className="num mt-1 text-3xl text-owed-600">₦27,500</div>
-      <div className="mt-4 space-y-2">
-        <DebtRow name="Chidi Okafor" meta="Due in 3 days" amount="₦7,500" />
-        <DebtRow name="Tolu Bello" meta="No due date" amount="₦20,000" />
-      </div>
-      <div className="mt-4 flex items-center justify-between rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-2.5">
-        <div className="flex items-center gap-2 text-sm text-slate-700">
-          <MessageCircle size={16} className="text-[#128C7E]" />
-          Send reminder to Chidi
-        </div>
-        <span className="rounded-full bg-[#25D366] px-2.5 py-1 text-[10px] font-semibold text-white">
-          WhatsApp
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function DebtRow({ name, meta, amount }: { name: string; meta: string; amount: string }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
-      <div className="min-w-0">
-        <div className="truncate text-sm font-semibold text-ink">{name}</div>
-        <div className="text-[11px] text-slate-500">{meta}</div>
-      </div>
-      <div className="text-right">
-        <div className="num text-sm text-owed-600">{amount}</div>
-        <span className="text-[10px] font-semibold text-owed-700">Open</span>
-      </div>
-    </div>
-  );
-}
-
-function InstallmentCard() {
-  return (
-    <div className="card p-5 shadow-sm md:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-xs font-medium text-slate-500">Installment plan</div>
-          <div className="mt-0.5 text-sm font-semibold text-ink">Amaka Nwosu · Hair order</div>
-        </div>
-        <span className="rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-semibold text-success-700">
-          Active
-        </span>
-      </div>
-      <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl bg-slate-50 p-3">
-        <div className="text-center">
-          <div className="num text-lg font-bold text-ink">₦45,000</div>
-          <div className="text-[10px] text-slate-500">Total</div>
-        </div>
-        <div className="text-center">
-          <div className="num text-lg font-bold text-success-700">₦30,000</div>
-          <div className="text-[10px] text-slate-500">Collected</div>
-        </div>
-        <div className="text-center">
-          <div className="num text-lg font-bold text-owed-600">₦15,000</div>
-          <div className="text-[10px] text-slate-500">Remaining</div>
-        </div>
-      </div>
-      <div className="mt-3 space-y-1.5">
-        <ChargeRow date="Apr 1" amount="₦15,000" status="paid" />
-        <ChargeRow date="Apr 8" amount="₦15,000" status="paid" />
-        <ChargeRow date="Apr 15" amount="₦15,000" status="upcoming" />
-      </div>
-      <div className="mt-3 flex items-center justify-center gap-1 rounded-lg bg-brand-50 py-2 text-[11px] font-semibold text-brand-700">
-        <Repeat size={12} />
-        Next auto-charge: Apr 15
-      </div>
-    </div>
-  );
-}
-
-function ChargeRow({ date, amount, status }: { date: string; amount: string; status: 'paid' | 'upcoming' }) {
-  return (
-    <div className="flex items-center justify-between rounded-lg border border-slate-100 bg-white px-3 py-1.5">
-      <div className="text-[11px] text-slate-500">{date}</div>
-      <div className={'num text-sm font-semibold ' + (status === 'paid' ? 'text-success-700' : 'text-slate-400')}>{amount}</div>
-      <span className={'rounded-full px-2 py-0.5 text-[9px] font-bold ' + (status === 'paid' ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-500')}>
-        {status === 'paid' ? 'Paid' : 'Upcoming'}
-      </span>
-    </div>
-  );
-}
-
-function FollowUpCard() {
-  return (
-    <div className="card p-5 shadow-sm md:p-6">
-      <div className="text-xs font-medium text-slate-500">Recipient</div>
-      <div className="mt-1 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white">
-          A
-        </span>
-        <div className="text-sm font-semibold text-ink">Amaka Nwosu</div>
-        <div className="ml-auto text-xs text-slate-500">+234 801 111 2222</div>
-      </div>
-      <div className="mt-4 text-xs font-medium text-slate-500">Message</div>
-      <div className="mt-1 rounded-lg border border-slate-200 bg-white p-3 text-sm leading-relaxed text-slate-700">
-        Hi Amaka, your invoice INV-0142 is due tomorrow. Pay link inside if it helps.
-      </div>
-      <button className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] text-sm font-semibold text-white hover:bg-[#1fbd5b]">
-        <MessageCircle size={16} />
-        Open in WhatsApp
-      </button>
-      <div className="mt-2 flex items-center justify-center gap-1 text-[11px] text-slate-500">
-        <Check size={12} className="text-brand-600" />
-        Goes through your own WhatsApp. Nothing to connect.
-      </div>
-    </div>
-  );
-}
-
-function PropertyManagerSpotlight() {
-  const features = [
-    {
-      title: 'Every tenant, every unit',
-      body: 'See who lives where, how much they pay, and when rent is due, all on one screen.',
-    },
-    {
-      title: 'Rent tracker with collection rate',
-      body: 'Each month: how much you expected, how much came in, and who is still owing.',
-    },
-    {
-      title: 'Auto reminders on WhatsApp',
-      body: 'Nudge tenants a few days before rent is due, and again when it is overdue.',
-    },
-    {
-      title: 'Verified payments, auto receipts',
-      body: 'Paste the bank alert, confirm the tenant paid, and the receipt sends itself.',
-    },
-  ];
-  return (
-    <section id="property-manager" className="py-16 md:py-24">
-      <div className="container-app">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-block rounded-full bg-brand-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand-700">
-              Also for landlords and property managers
-            </span>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Every tenant. Every unit. Every naira accounted for.
-            </h2>
-            <p className="mt-3 text-slate-600 md:text-lg">
-              No more chasing tenants in group chats. CashTraka gives every property a clean
-              ledger, sends rent reminders automatically, and issues receipts the moment payment lands.
-            </p>
-          </div>
-        </Reveal>
-        <div className="mx-auto mt-10 grid max-w-4xl gap-4 md:grid-cols-2">
-          {features.map((f, i) => (
-            <Reveal key={f.title} delay={i * 80}>
-              <div className="card flex h-full items-start gap-3 p-5">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
-                  <Check size={16} strokeWidth={3} />
-                </span>
-                <div>
-                  <h3 className="font-semibold text-ink">{f.title}</h3>
-                  <p className="mt-1 text-sm text-slate-600">{f.body}</p>
-                </div>
-              </div>
-            </Reveal>
+    <Section
+      id="industries"
+      tone="muted"
+      eyebrow="Industries"
+      title="Built for small batch businesses across many industries."
+      subtitle="Each one looks different from the outside, but the daily problem is the same: keep orders, materials, production, and receipts in sync."
+    >
+      <Stagger from="up" step={60}>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {INDUSTRIES.map((ind) => (
+            <Link
+              key={ind.slug}
+              href={`/industries#${ind.slug}`}
+              className="card group h-full p-5 transition hover:-translate-y-0.5"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-success-50 text-success-700 transition group-hover:bg-success-500 group-hover:text-white">
+                <ind.icon size={20} />
+              </span>
+              <h3 className="mt-4 text-base font-bold text-ink">{ind.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{ind.body}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand-700">
+                See how
+                <ArrowRight size={12} className="transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
           ))}
         </div>
-        <Reveal className="mt-8 flex justify-center">
-          <Link href="/signup?type=property_manager" className="btn-primary">
-            Start managing property
-          </Link>
+      </Stagger>
+      <div className="mt-10 flex flex-wrap gap-3">
+        <Link href="/industries" className="btn-primary text-sm">
+          Explore industries
+          <ArrowRight size={16} />
+        </Link>
+        <Link href="/signup" className="btn-secondary text-sm">
+          Start free
+        </Link>
+      </div>
+    </Section>
+  );
+}
+
+/* ============== INVOICES & RECEIPTS ============== */
+
+function InvoicesReceiptsSection() {
+  return (
+    <Section
+      id="invoices"
+      eyebrow="Invoices & receipts"
+      title={INVOICES_RECEIPTS.heading}
+      subtitle={INVOICES_RECEIPTS.body}
+    >
+      <div className="grid gap-8 md:grid-cols-2">
+        <Stagger from="up" step={60}>
+          <ul className="space-y-3">
+            {INVOICES_RECEIPTS.bullets.map((b) => (
+              <li key={b} className="flex items-start gap-3">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                  <Check size={12} strokeWidth={3} />
+                </span>
+                <span className="text-sm font-medium text-slate-800">{b}</span>
+              </li>
+            ))}
+          </ul>
+        </Stagger>
+        <Reveal from="up" delay={200}>
+          <div className="card overflow-hidden p-0">
+            <div className="border-b border-border bg-slate-50 px-5 py-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Invoice
+              </p>
+              <p className="mt-0.5 font-mono text-sm font-bold text-slate-900">INV-00042</p>
+            </div>
+            <div className="space-y-2 p-5 text-sm">
+              <Row label="Body cream, 250ml × 100" value="₦150,000" />
+              <Row label="Custom labels × 100" value="₦12,000" />
+              <Row label="Delivery" value="₦5,000" />
+              <div className="my-3 border-t border-border" />
+              <Row label="Total" value="₦167,000" bold />
+              <p className="text-xs text-slate-500">Pay via card or transfer · Receipt sent automatically</p>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </Section>
+  );
+}
+
+function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className={bold ? 'font-bold text-slate-900' : 'text-slate-700'}>{label}</span>
+      <span className={bold ? 'font-bold text-slate-900' : 'text-slate-900'}>{value}</span>
+    </div>
+  );
+}
+
+/* ============== DASHBOARD ============== */
+
+function DashboardSection() {
+  return (
+    <Section
+      id="dashboard"
+      tone="muted"
+      eyebrow="Dashboard"
+      title={DASHBOARD.heading}
+      subtitle={DASHBOARD.body}
+    >
+      <Stagger from="up" step={50}>
+        <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+          {DASHBOARD.signals.map((s, i) => (
+            <div key={s} className="card p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{s}</p>
+              <p className="mt-2 text-2xl font-black text-ink">
+                {[3, 2, 4, 1, 5, 7, 2, 6][i] ?? 0}
+              </p>
+            </div>
+          ))}
+        </div>
+      </Stagger>
+      <p className="mt-5 text-xs text-slate-500">
+        Sample numbers for illustration. Your real dashboard reflects your own orders, production, materials, and payments.
+      </p>
+    </Section>
+  );
+}
+
+/* ============== PRICING PREVIEW ============== */
+
+function PricingPreview() {
+  return (
+    <Section
+      id="pricing"
+      eyebrow="Pricing"
+      title={PRICING_HEADING}
+      subtitle={PRICING_SUB}
+    >
+      <PricingCards />
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <Link href="/pricing" className="btn-primary text-sm">
+          View full pricing
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+    </Section>
+  );
+}
+
+/* ============== FAQ PREVIEW ============== */
+
+function FAQPreview() {
+  return (
+    <Section
+      id="faq"
+      tone="muted"
+      eyebrow="FAQs"
+      title="Quick answers."
+      subtitle="The questions small batch businesses ask before signing up."
+    >
+      <FAQ items={FAQ_ITEMS.slice(0, 6)} />
+      <div className="mt-10 flex justify-center">
+        <Link href="/faqs" className="btn-secondary text-sm">
+          Read all FAQs
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+    </Section>
+  );
+}
+
+/* ============== FINAL CTA ============== */
+
+function FinalCTA() {
+  return (
+    <section
+      className="relative overflow-hidden py-20 md:py-24"
+      style={{
+        backgroundImage:
+          'linear-gradient(135deg, #003A52 0%, #0076A0 60%, #1FC1EE 100%)',
+      }}
+    >
+      <div className="container-app text-center">
+        <Reveal from="up">
+          <h2 className="mx-auto max-w-3xl text-3xl font-black tracking-tight text-white md:text-5xl md:leading-[1.1]">
+            {FINAL_CTA.heading}
+          </h2>
+        </Reveal>
+        <Reveal from="up" delay={120}>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-cyan-50 md:text-lg">
+            {FINAL_CTA.body}
+          </p>
+        </Reveal>
+        <Reveal from="up" delay={200}>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href={FINAL_CTA.primaryCta.href}
+              className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:bg-cyan-50 md:text-base"
+            >
+              {FINAL_CTA.primaryCta.label}
+              <ArrowRight size={16} />
+            </Link>
+            <Link
+              href={FINAL_CTA.secondaryCta.href}
+              className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-6 py-3 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/20 md:text-base"
+            >
+              {FINAL_CTA.secondaryCta.label}
+            </Link>
+          </div>
         </Reveal>
       </div>
     </section>

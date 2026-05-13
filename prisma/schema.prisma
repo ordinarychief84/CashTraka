@@ -18,103 +18,103 @@ datasource db {
 // ---------- USER ----------
 
 model User {
-  id                   String    @id @default(cuid())
-  name                 String
-  email                String    @unique
-  passwordHash         String
-  businessName         String?
-  whatsappNumber       String?
-  receiptFooter        String?
+  id             String    @id @default(cuid())
+  name           String
+  email          String    @unique
+  passwordHash   String
+  businessName   String?
+  whatsappNumber String?
+  receiptFooter  String?
   /// "seller" (default) or "property_manager"
-  businessType         String    @default("seller")
+  businessType   String    @default("seller")
   /// "free" | "business" | "business_plus" | "landlord" | "estate_manager"
-  plan                 String    @default("free")
+  plan           String    @default("free")
   /// "USER" (default) or "ADMIN". Admins access /admin.
-  role                 String    @default("USER")
+  role           String    @default("USER")
   /// Suspended users cannot log in.
-  isSuspended          Boolean   @default(false)
+  isSuspended    Boolean   @default(false)
   /// Soft-delete marker. Tax-relevant FKs are Restrict, so a hard
   /// delete on this user would fail. Set this instead. Nigerian FIRS
   /// requires 6-year retention on receipts/invoices/payments.
-  deletedAt            DateTime?
+  deletedAt      DateTime?
   /// Timestamp of last successful login (for audit + analytics).
-  lastLoginAt          DateTime?
+  lastLoginAt    DateTime?
 
-  bankName             String?
-  bankAccountNumber    String?
-  bankAccountName      String?
+  bankName          String?
+  bankAccountNumber String?
+  bankAccountName   String?
 
   /// Address line shown on invoices.
-  businessAddress      String?
+  businessAddress String?
   /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
-  logoUrl              String?
+  logoUrl         String?
 
   /// Per-business receipt prefix. Defaults to "CT" → CT-00001. Editable in Settings.
-  receiptPrefix        String?   @default("CT")
+  receiptPrefix String? @default("CT")
 
   /// Public storefront slug (used in /store/[slug]). Unique, kebab-case.
-  slug                 String?   @unique
+  slug           String? @unique
   /// Whether the public catalog is published. Slug must also be set.
-  catalogEnabled       Boolean   @default(false)
+  catalogEnabled Boolean @default(false)
   /// Optional headline shown above the catalog grid.
-  catalogTagline       String?
+  catalogTagline String?
 
   /// ── Nigerian tax / FIRS compliance ────────────────────────────
   /// Tax Identification Number issued by FIRS. Required on tax invoices
   /// once the business is VAT-registered.
-  tin                  String?
+  tin            String?
   /// Whether the business is VAT-registered with FIRS. Mandatory for
   /// businesses with annual turnover > ₦25M; optional below that threshold.
-  vatRegistered        Boolean   @default(false)
+  vatRegistered  Boolean @default(false)
   /// Default VAT rate (percent) applied when vatRegistered=true. Standard
   /// Nigerian rate is 7.5; some categories may use a different rate.
-  vatRate              Float     @default(7.5)
+  vatRate        Float   @default(7.5)
   /// Merchant ID assigned by FIRS once the business onboards to MBS.
   /// Required by the real FIRS adapter; not used by NoopFIRSAdapter.
-  firsMerchantId       String?
+  firsMerchantId String?
 
   /// ── Invoice settings ──────────────────────────────────────────
   /// Default currency code (ISO-4217). NGN by default for Nigerian SMBs.
-  defaultCurrency      String    @default("NGN")
+  defaultCurrency     String  @default("NGN")
   /// Per-business invoice number prefix. e.g. "INV" -> INV-00042.
-  invoicePrefix        String?   @default("INV")
+  invoicePrefix       String? @default("INV")
   /// Per-business credit-note prefix. e.g. "CN" -> CN-00042.
-  creditNotePrefix     String?   @default("CN")
+  creditNotePrefix    String? @default("CN")
   /// Per-business offer/quote prefix. e.g. "OFF" -> OFF-00042.
-  offerPrefix          String?   @default("OFF")
+  offerPrefix         String? @default("OFF")
   /// Per-business delivery-note prefix.
-  deliveryNotePrefix   String?   @default("DN")
+  deliveryNotePrefix  String? @default("DN")
   /// Per-business order-confirmation prefix.
-  orderPrefix          String?   @default("ORD")
+  orderPrefix         String? @default("ORD")
   /// Whether tax (VAT) is enabled by default on new invoices. Mirrors
   /// vatRegistered for the common case but can be overridden per invoice.
-  taxEnabled           Boolean   @default(false)
+  taxEnabled          Boolean @default(false)
   /// Free-form payment instructions printed on invoices ("Pay to bank X
   /// account 1234567890. Reference your invoice number.").
-  paymentInstructions  String?
+  paymentInstructions String?
   /// Hex accent color used on invoice PDFs and the public page.
-  invoiceAccentColor   String?   @default("#00B8E8")
+  invoiceAccentColor  String? @default("#00B8E8")
   /// "simple" | "professional" | "compact" — chooses the PDF template.
-  invoiceTemplate      String?   @default("professional")
+  invoiceTemplate     String? @default("professional")
 
   /// ── Workflow defaults (per-user preferences inside an unlocked plan) ──
   /// Auto-submit invoices to FIRS on creation when plan allows + user opts in.
-  firsAutoSubmit          Boolean   @default(false)
+  firsAutoSubmit           Boolean @default(false)
   /// Default due date offset, in days, for new invoices. null = no default.
-  defaultInvoiceDueDays   Int?
+  defaultInvoiceDueDays    Int?
   /// Default payment terms text shown on every new invoice unless overridden.
-  defaultPaymentTerms     String?  @db.VarChar(120)
+  defaultPaymentTerms      String? @db.VarChar(120)
   /// Reminder cadence: OFF | FRIENDLY_3_DAYS | FRIENDLY_7_DAYS | OVERDUE_DAILY.
-  invoiceReminderCadence  String   @default("OFF")
+  invoiceReminderCadence   String  @default("OFF")
   /// Auto-archive receipts/PDFs older than N days. null = never.
-  autoArchiveDays         Int?
+  autoArchiveDays          Int?
   /// Default for new recurring rules: autoSend on.
   recurringAutoSendDefault Boolean @default(false)
   /// Auto-generate XML when submitting to FIRS.
-  xmlGenerateOnFirs       Boolean   @default(true)
+  xmlGenerateOnFirs        Boolean @default(true)
   /// Retention hint shown on DocumentArchive (72 months = 6 years per Nigerian
   /// tax records best practice).
-  documentRetentionMonths Int       @default(72)
+  documentRetentionMonths  Int     @default(72)
 
   /// Billing state. `plan` (above) is the *tier name*; these fields describe
   /// the subscription lifecycle around that tier.
@@ -133,20 +133,20 @@ model User {
   /// Personal-expense thresholds (naira). When the owner's personal spending
   /// in the current week / month crosses either number, the dashboard
   /// surfaces a warning banner. Both are optional — leave null to disable.
-  personalBudgetWeekly     Int?
-  personalBudgetMonthly    Int?
+  personalBudgetWeekly  Int?
+  personalBudgetMonthly Int?
 
   /// ── Service Check (customer feedback) preferences ─────────────
   /// Master switch. When false, no automatic feedback links are minted.
-  autoSendFeedback         Boolean   @default(false)
+  autoSendFeedback         Boolean @default(false)
   /// Auto-create a feedback link after a receipt is generated.
-  feedbackAfterReceipt     Boolean   @default(true)
+  feedbackAfterReceipt     Boolean @default(true)
   /// Auto-create a feedback link after a payment is confirmed.
-  feedbackAfterPayment     Boolean   @default(true)
+  feedbackAfterPayment     Boolean @default(true)
   /// Auto-create a feedback link after an invoice is fully paid.
-  feedbackAfterInvoicePaid Boolean   @default(true)
+  feedbackAfterInvoicePaid Boolean @default(true)
   /// Days the public feedback link stays valid. null = never expire.
-  feedbackLinkExpiryDays   Int?      @default(14)
+  feedbackLinkExpiryDays   Int?    @default(14)
   /// Optional WhatsApp message template. Supports {name} and {url} placeholders.
   feedbackMessageTemplate  String?
 
@@ -156,74 +156,79 @@ model User {
   /// metadata on the Payment row. v1 is informational only — no funds are
   /// split, the seller remits manually. Future versions will plug into
   /// Paystack subaccount split.
-  platformFeeOptIn         Boolean   @default(false)
+  platformFeeOptIn Boolean @default(false)
 
-  onboardingCompleted  Boolean   @default(false)
+  onboardingCompleted Boolean   @default(false)
   /// Whether the user has verified their email via OTP.
-  emailVerified        Boolean   @default(false)
+  emailVerified       Boolean   @default(false)
   /// Timestamp when user accepted Terms & Privacy Policy.
-  termsAcceptedAt      DateTime?
+  termsAcceptedAt     DateTime?
   /// Timestamp when the delayed welcome email was sent (30 min after signup).
-  welcomeEmailSentAt   DateTime?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  welcomeEmailSentAt  DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  customers            Customer[]
-  payments             Payment[]
-  debts                Debt[]
-  products             Product[]
-  expenses             Expense[]
-  templates            MessageTemplate[]
-  fraudReports         FraudReport[]
-  invoices             Invoice[]
-  reminderSchedules    ReminderSchedule[]
-  properties           Property[]
-  tenants              Tenant[]
-  rentPayments         RentPayment[]
-  customRoles          CustomRole[]
-  staffMembers         StaffMember[]
-  attendance           Attendance[]
-  staffPayments        StaffPayment[]
-  tasks                Task[]
-  checklists           Checklist[]
-  checklistRuns        ChecklistRun[]
-  sales                Sale[]
-  receipts             Receipt[]
-  adminNotesAuthored   AdminNote[]       @relation("AdminNoteAuthor")
-  adminNotesReceived   AdminNote[]       @relation("AdminNoteTarget")
-  paymentAttempts      PaymentAttempt[]
-  passwordResetTokens  PasswordResetToken[]
-  leaseReminders       LeaseReminder[]
-  supportTickets       SupportTicket[]   @relation("UserTickets")
-  assignedTickets      SupportTicket[]   @relation("AssignedTickets")
-  ticketReplies        TicketReply[]
-  notifications        Notification[]
-  refunds              Refund[]          @relation("UserRefunds")
-  processedRefunds     Refund[]          @relation("ProcessedRefunds")
-  auditLogs            AuditLog[]        @relation("AuditLogAdmin")
-  paymentRequests      PaymentRequest[]
-  emailVerifications   EmailVerification[]
-  reminderRules        ReminderRule[]
-  reminderLogs         ReminderLog[]
-  customerNotes        CustomerNote[]
-  createdAdminStaff    AdminStaff[]      @relation("AdminStaffCreator")
-  promisesToPay        PromiseToPay[]
-  installmentPlans     InstallmentPlan[]
-  catalogEvents        CatalogEvent[]
-  albums               Album[]
-  invoiceReminders     InvoiceReminder[]
-  creditNotes          CreditNote[]
-  recurringInvoices    RecurringInvoiceRule[]
-  deliveryNotes        DeliveryNote[]
-  offers               Offer[]
-  orderConfirmations   OrderConfirmation[]
-  documentArchives     DocumentArchive[]
-  documentAuditLogs    DocumentAuditLog[]
-  feedbacks            Feedback[]
-  vatReturns           VatReturn[]
-  linkedBankAccounts   LinkedBankAccount[]
-  virtualAccounts      VirtualAccount[]
-  override             UserOverride?
+  customers           Customer[]
+  payments            Payment[]
+  debts               Debt[]
+  products            Product[]
+  expenses            Expense[]
+  templates           MessageTemplate[]
+  fraudReports        FraudReport[]
+  invoices            Invoice[]
+  reminderSchedules   ReminderSchedule[]
+  customRoles         CustomRole[]
+  staffMembers        StaffMember[]
+  attendance          Attendance[]
+  staffPayments       StaffPayment[]
+  tasks               Task[]
+  checklists          Checklist[]
+  checklistRuns       ChecklistRun[]
+  sales               Sale[]
+  receipts            Receipt[]
+  adminNotesAuthored  AdminNote[]            @relation("AdminNoteAuthor")
+  adminNotesReceived  AdminNote[]            @relation("AdminNoteTarget")
+  paymentAttempts     PaymentAttempt[]
+  passwordResetTokens PasswordResetToken[]
+  supportTickets      SupportTicket[]        @relation("UserTickets")
+  assignedTickets     SupportTicket[]        @relation("AssignedTickets")
+  ticketReplies       TicketReply[]
+  notifications       Notification[]
+  refunds             Refund[]               @relation("UserRefunds")
+  processedRefunds    Refund[]               @relation("ProcessedRefunds")
+  auditLogs           AuditLog[]             @relation("AuditLogAdmin")
+  paymentRequests     PaymentRequest[]
+  emailVerifications  EmailVerification[]
+  reminderRules       ReminderRule[]
+  reminderLogs        ReminderLog[]
+  customerNotes       CustomerNote[]
+  createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
+  promisesToPay       PromiseToPay[]
+  installmentPlans    InstallmentPlan[]
+  catalogEvents       CatalogEvent[]
+  albums              Album[]
+  invoiceReminders    InvoiceReminder[]
+  creditNotes         CreditNote[]
+  recurringInvoices   RecurringInvoiceRule[]
+  deliveryNotes       DeliveryNote[]
+  offers              Offer[]
+  orderConfirmations  OrderConfirmation[]
+  documentArchives    DocumentArchive[]
+  documentAuditLogs   DocumentAuditLog[]
+  feedbacks           Feedback[]
+  vatReturns          VatReturn[]
+  linkedBankAccounts  LinkedBankAccount[]
+  virtualAccounts     VirtualAccount[]
+  override            UserOverride?
+
+  // ── Operational Planning (small-batch ops) ────────────────────
+  suppliers        Supplier[]
+  rawMaterials     RawMaterial[]
+  recipes          Recipe[]
+  customerOrders   CustomerOrder[]
+  productionOrders ProductionOrder[]
+  purchaseOrders   PurchaseOrder[]
+  stockMovements   StockMovement[]
 
   @@index([role])
   @@index([businessType])
@@ -240,7 +245,7 @@ model EmailVerification {
   usedAt    DateTime?
   createdAt DateTime  @default(now())
 
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -248,45 +253,46 @@ model EmailVerification {
 // ---------- CORE: customers, payments, debts ----------
 
 model Customer {
-  id               String    @id @default(cuid())
+  id               String   @id @default(cuid())
   userId           String
   name             String
   phone            String
-  totalPaid        Int       @default(0)
-  totalOwed        Int       @default(0)
+  totalPaid        Int      @default(0)
+  totalOwed        Int      @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration. See docs/kobo-migration-plan.md.
-  totalPaidKobo    Int       @default(0)
-  totalOwedKobo    Int       @default(0)
-  transactionCount Int       @default(0)
-  lastActivityAt   DateTime  @default(now())
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  totalPaidKobo    Int      @default(0)
+  totalOwedKobo    Int      @default(0)
+  transactionCount Int      @default(0)
+  lastActivityAt   DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   /// Phase 4 — behavior tagging: FAST_PAYER | LATE_PAYER | DORMANT | HIGH_VALUE | NEW
-  behaviorTag      String?
+  behaviorTag    String?
   /// Average number of days to pay after receiving a request
-  avgPayDays       Float?
+  avgPayDays     Float?
   /// Number of times this customer has been reminded
-  totalReminders   Int       @default(0)
+  totalReminders Int       @default(0)
   /// Last time a reminder was sent for any debt
-  lastRemindedAt   DateTime?
+  lastRemindedAt DateTime?
 
   /// Free-text notes about this customer (e.g. preferences, history)
-  notes            String?
+  notes String?
   /// Comma-separated custom tags for grouping/filtering
-  tags             String?
+  tags  String?
 
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments         Payment[]
-  debts            Debt[]
-  invoices         Invoice[]
-  paymentRequests  PaymentRequest[]
-  customerNotes    CustomerNote[]
-  promisesToPay    PromiseToPay[]
-  deliveryNotes    DeliveryNote[]
-  offers           Offer[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments           Payment[]
+  debts              Debt[]
+  invoices           Invoice[]
+  paymentRequests    PaymentRequest[]
+  customerNotes      CustomerNote[]
+  promisesToPay      PromiseToPay[]
+  deliveryNotes      DeliveryNote[]
+  offers             Offer[]
   orderConfirmations OrderConfirmation[]
-  feedbacks        Feedback[]
+  feedbacks          Feedback[]
+  customerOrders     CustomerOrder[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -295,79 +301,79 @@ model Customer {
 }
 
 model CustomerNote {
-  id          String   @id @default(cuid())
-  customerId  String
-  userId      String
-  note        String
-  createdAt   DateTime @default(now())
+  id         String   @id @default(cuid())
+  customerId String
+  userId     String
+  note       String
+  createdAt  DateTime @default(now())
 
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([customerId])
   @@index([userId])
 }
 
 model Payment {
-  id                   String    @id @default(cuid())
+  id                   String   @id @default(cuid())
   userId               String
   customerId           String
   customerNameSnapshot String
   phoneSnapshot        String
   amount               Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo           Int       @default(0)
-  status               String    @default("PAID")
-  createdAt            DateTime  @default(now())
+  amountKobo           Int      @default(0)
+  status               String   @default("PAID")
+  createdAt            DateTime @default(now())
 
-  referenceCode        String?   @unique
-  verified             Boolean   @default(false)
-  verifiedAt           DateTime?
-  verificationMethod   String?
-  bankAlertText        String?
-  bankAlertSenderName  String?
-  bankAlertBank        String?
-  claimedAt            DateTime?
+  referenceCode       String?   @unique
+  verified            Boolean   @default(false)
+  verifiedAt          DateTime?
+  verificationMethod  String?
+  bankAlertText       String?
+  bankAlertSenderName String?
+  bankAlertBank       String?
+  claimedAt           DateTime?
 
   /// If this payment was created from an invoice, link back.
-  invoiceId            String?
+  invoiceId String?
 
   /// Whether a receipt was auto-sent after verification.
-  receiptSentAt        DateTime?
+  receiptSentAt DateTime?
 
   /// Provider payment fields (for auto-confirmed payments via webhook)
-  externalRef              String?
-  provider                 String?
-  providerTransactionId    String?
-  confirmedAutomatically   Boolean   @default(false)
-  confirmedAt              DateTime?
+  externalRef            String?
+  provider               String?
+  providerTransactionId  String?
+  confirmedAutomatically Boolean   @default(false)
+  confirmedAt            DateTime?
 
-  user                 User          @relation(fields: [userId], references: [id], onDelete: Restrict)
-  customer             Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  items                PaymentItem[]
-  invoice              Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  feedbacks            Feedback[]
+  user      User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  customer  Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items     PaymentItem[]
+  invoice   Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  feedbacks Feedback[]
 
-  @@index([userId, createdAt])
-  @@index([userId, verified])
   // Webhook idempotency: two simultaneous Paystack retries must not double-book.
   // Enforced as a partial unique index at the DB level (some manual-entry Payment
   // rows have NULL externalRef) via runtime DDL in src/app/api/migrate/route.ts.
   @@unique([userId, externalRef])
+  @@index([userId, createdAt])
+  @@index([userId, verified])
 }
 
 model PaymentItem {
-  id          String   @id @default(cuid())
-  paymentId   String
-  productId   String?
-  description String
-  unitPrice   Int
+  id            String  @id @default(cuid())
+  paymentId     String
+  productId     String?
+  description   String
+  unitPrice     Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  unitPriceKobo Int    @default(0)
-  quantity    Int      @default(1)
+  unitPriceKobo Int     @default(0)
+  quantity      Int     @default(1)
 
-  payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  payment Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([paymentId])
 }
@@ -389,13 +395,13 @@ model Debt {
   updatedAt            DateTime  @updatedAt
 
   /// Phase 2 — follow-up tracking
-  reminderCount        Int       @default(0)
-  lastRemindedAt       DateTime?
+  reminderCount  Int       @default(0)
+  lastRemindedAt DateTime?
 
-  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer             Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  reminderSchedules    ReminderSchedule[]
-  reminderRules        ReminderRule[]
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer          Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  reminderSchedules ReminderSchedule[]
+  reminderRules     ReminderRule[]
 
   @@index([userId, status])
 }
@@ -403,43 +409,46 @@ model Debt {
 // ---------- PRODUCTS ----------
 
 model Product {
-  id          String    @id @default(cuid())
-  userId      String
-  name        String
-  price       Int
-  cost        Int?
+  id         String  @id @default(cuid())
+  userId     String
+  name       String
+  price      Int
+  cost       Int?
   /// Kobo siblings — Phase 3 of the kobo migration.
-  priceKobo   Int       @default(0)
-  costKobo    Int?
-  stock       Int       @default(0)
-  trackStock  Boolean   @default(true)
-  lowStockAt  Int       @default(3)
-  note        String?
-  archived    Boolean   @default(false)
+  priceKobo  Int     @default(0)
+  costKobo   Int?
+  stock      Int     @default(0)
+  trackStock Boolean @default(true)
+  lowStockAt Int     @default(3)
+  note       String?
+  archived   Boolean @default(false)
 
   /// Catalog (Sell) fields.
   /// Up to 8 Uploadcare image URLs (validator enforces the cap).
-  images        String[]  @default([])
+  images        String[] @default([])
   /// Optional SKU shown on the catalog detail page.
   sku           String?
   /// Public-facing description shown on /store/[slug]/[productId].
   description   String?
   /// When true, the product appears on /store/[slug] (requires User.catalogEnabled too).
-  isPublished   Boolean   @default(false)
+  isPublished   Boolean  @default(false)
   /// "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" — manual override used only when trackStock=false.
-  catalogStatus String    @default("AVAILABLE")
+  catalogStatus String   @default("AVAILABLE")
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items         PaymentItem[]
-  invoiceItems  InvoiceItem[]
-  saleItems     SaleItem[]
-  catalogEvents CatalogEvent[]
-  albumLinks    AlbumProduct[]
-  deliveryNoteItems DeliveryNoteItem[]
-  offerItems    OfferItem[]
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items                PaymentItem[]
+  invoiceItems         InvoiceItem[]
+  saleItems            SaleItem[]
+  catalogEvents        CatalogEvent[]
+  albumLinks           AlbumProduct[]
+  deliveryNoteItems    DeliveryNoteItem[]
+  offerItems           OfferItem[]
+  recipe               Recipe?
+  customerOrderItems   CustomerOrderItem[]
+  productionOrderItems ProductionOrderItem[]
 
   @@index([userId, archived])
   @@index([userId, isPublished])
@@ -448,50 +457,50 @@ model Product {
 // ---------- SALES (Walk-in POS) ----------
 
 model Sale {
-  id              String     @id @default(cuid())
-  userId          String
+  id            String   @id @default(cuid())
+  userId        String
   /// Auto-incrementing receipt number like "SLE-00042"
-  saleNumber      String     @unique
-  customerName    String?
-  customerPhone   String?
-  customerEmail   String?
-  subtotal        Int        @default(0)
-  tax             Int        @default(0)
-  discount        Int        @default(0)
-  total           Int        @default(0)
+  saleNumber    String   @unique
+  customerName  String?
+  customerPhone String?
+  customerEmail String?
+  subtotal      Int      @default(0)
+  tax           Int      @default(0)
+  discount      Int      @default(0)
+  total         Int      @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration.
-  subtotalKobo    Int        @default(0)
-  taxKobo         Int        @default(0)
-  discountKobo    Int        @default(0)
-  totalKobo       Int        @default(0)
+  subtotalKobo  Int      @default(0)
+  taxKobo       Int      @default(0)
+  discountKobo  Int      @default(0)
+  totalKobo     Int      @default(0)
   /// "CASH" | "TRANSFER" | "POS" | "CARD"
-  paymentMethod   String     @default("CASH")
-  note            String?
+  paymentMethod String   @default("CASH")
+  note          String?
   /// Exact time the sale was recorded
-  soldAt          DateTime   @default(now())
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  soldAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user            User       @relation(fields: [userId], references: [id], onDelete: Restrict)
-  items           SaleItem[]
+  user  User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items SaleItem[]
 
   @@index([userId, soldAt])
 }
 
 model SaleItem {
-  id          String   @id @default(cuid())
-  saleId      String
-  productId   String?
-  description String
-  unitPrice   Int
-  quantity    Int      @default(1)
-  total       Int      @default(0)
+  id            String  @id @default(cuid())
+  saleId        String
+  productId     String?
+  description   String
+  unitPrice     Int
+  quantity      Int     @default(1)
+  total         Int     @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration.
-  unitPriceKobo Int    @default(0)
-  totalKobo     Int    @default(0)
+  unitPriceKobo Int     @default(0)
+  totalKobo     Int     @default(0)
 
-  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sale    Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([saleId])
 }
@@ -499,32 +508,32 @@ model SaleItem {
 // ---------- EXPENSES ----------
 
 model Expense {
-  id             String   @id @default(cuid())
-  userId         String
-  amount         Int
+  id            String   @id @default(cuid())
+  userId        String
+  amount        Int
   /// Kobo sibling — Phase 3 of the kobo migration. (vatPaid below is already kobo.)
-  amountKobo     Int      @default(0)
-  category       String
-  note           String?
+  amountKobo    Int      @default(0)
+  category      String
+  note          String?
   /// "business" (default) or "personal"
-  kind           String   @default("business")
+  kind          String   @default("business")
   /// Payment method: cash, transfer, card, pos, other
-  paymentMethod  String?
+  paymentMethod String?
   /// Vendor / payee name
-  vendor         String?
+  vendor        String?
   /// Whether this is a recurring expense
-  isRecurring    Boolean  @default(false)
+  isRecurring   Boolean  @default(false)
   /// Receipt or reference number
-  receiptRef     String?
+  receiptRef    String?
   /// Whether this expense is tax-deductible (business only)
-  taxDeductible  Boolean  @default(false)
+  taxDeductible Boolean  @default(false)
   /// Input VAT in kobo, the seller-paid VAT they can claim back on this expense.
   /// Used by the VAT-return generator (Tax+ tier) to compute net VAT due.
-  vatPaid        Int      @default(0)
-  incurredOn     DateTime @default(now())
-  createdAt      DateTime @default(now())
+  vatPaid       Int      @default(0)
+  incurredOn    DateTime @default(now())
+  createdAt     DateTime @default(now())
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, incurredOn])
   @@index([userId, kind, incurredOn])
@@ -533,14 +542,14 @@ model Expense {
 // ---------- MESSAGING ----------
 
 model MessageTemplate {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  body        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -548,13 +557,13 @@ model MessageTemplate {
 // ---------- FRAUD ----------
 
 model FraudReport {
-  id         String   @id @default(cuid())
-  userId     String
-  phone      String
-  reason     String
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  phone     String
+  reason    String
+  createdAt DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, phone])
   @@index([phone])
@@ -565,79 +574,79 @@ model FraudReport {
 /// A formal invoice the seller can generate and share before or after payment.
 /// Public at /invoice/[invoiceNumber].
 model Invoice {
-  id              String    @id @default(cuid())
-  userId          String
-  customerId      String?
+  id               String    @id @default(cuid())
+  userId           String
+  customerId       String?
   /// Human-readable number like "INV-00042".
-  invoiceNumber   String    @unique
-  customerName    String
-  customerPhone   String
-  customerEmail   String?
+  invoiceNumber    String    @unique
+  customerName     String
+  customerPhone    String
+  customerEmail    String?
   /// Status pipeline:
   ///   DRAFT  -> SENT   when /send is invoked
   ///   SENT   -> VIEWED when the public page is opened
   ///   any    -> PARTIALLY_PAID / PAID when payments arrive
   ///   any    -> OVERDUE when dueDate passes and not fully paid
   ///   any    -> CANCELLED / CREDITED via credit-note flow
-  status          String    @default("DRAFT")
-  subtotal        Int       @default(0)
+  status           String    @default("DRAFT")
+  subtotal         Int       @default(0)
   /// Optional flat-amount discount in the invoice currency (subtracted from
   /// subtotal before VAT). Percent discounts can be modeled as line-item
   /// edits to keep the math simple here.
-  discount        Int       @default(0)
-  tax             Int       @default(0)
-  total           Int       @default(0)
+  discount         Int       @default(0)
+  tax              Int       @default(0)
+  total            Int       @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration.
-  subtotalKobo    Int       @default(0)
-  discountKobo    Int       @default(0)
-  taxKobo         Int       @default(0)
-  totalKobo       Int       @default(0)
-  note            String?
+  subtotalKobo     Int       @default(0)
+  discountKobo     Int       @default(0)
+  taxKobo          Int       @default(0)
+  totalKobo        Int       @default(0)
+  note             String?
   /// Free-text payment terms shown on the invoice (e.g. "Net 14",
   /// "Due on receipt"). Falls back to User.paymentInstructions when empty.
-  paymentTerms    String?
-  dueDate         DateTime?
-  issuedAt        DateTime  @default(now())
-  paidAt          DateTime?
+  paymentTerms     String?
+  dueDate          DateTime?
+  issuedAt         DateTime  @default(now())
+  paidAt           DateTime?
   /// Cumulative amount paid against this invoice (across one or more
   /// PaymentRequest/Payment rows). Used to compute outstanding balance.
-  amountPaid      Int       @default(0)
+  amountPaid       Int       @default(0)
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountPaidKobo  Int       @default(0)
+  amountPaidKobo   Int       @default(0)
   /// Set the first time the public /invoice/[publicToken] page renders.
-  viewedAt        DateTime?
+  viewedAt         DateTime?
   /// Set when /api/invoices/[id]/send fires. Used by the dashboard to
   /// distinguish issued-but-not-sent vs. issued-and-sent invoices.
-  sentAt          DateTime?
+  sentAt           DateTime?
   /// Non-guessable token that powers /invoice/[publicToken]. We rotate
   /// the model default to a cuid+random suffix so brute-force is impractical.
-  publicToken     String?   @unique
+  publicToken      String?   @unique
   /// Internal XML export URL (not an official FIRS-schema submission;
   /// see invoice-xml.service.ts comments). Used by the "Download XML" button.
-  xmlUrl          String?
-  xmlGeneratedAt  DateTime?
+  xmlUrl           String?
+  xmlGeneratedAt   DateTime?
   /// Optional electronic-submission status separate from firsStatus.
   /// "DRAFT" | "READY_FOR_SUBMISSION" | "SUBMITTED" | "FAILED" | "ACCEPTED" |
   /// "REJECTED" | "NOT_CONFIGURED"
   electronicStatus String?
   /// Optional link to a recurring rule that produced this invoice.
-  recurringRuleId String?
+  recurringRuleId  String?
 
   /// 1:1 link back to the Payment that spawned this invoice (if generated from one).
   /// Used for idempotent generation from /api/payments/[id]/invoice.
-  paymentId       String?   @unique
+  paymentId String? @unique
 
   /// ── Nigerian tax compliance fields ─────────────────────────────
   /// Buyer's TIN (required on B2B tax invoices when issuing under FIRS rules).
-  buyerTin        String?
+  buyerTin     String?
   /// Buyer's billing address.
-  buyerAddress    String?
+  buyerAddress String?
   /// Was VAT applied to this invoice? Snapshot at issue time.
-  vatApplied      Boolean   @default(false)
+  vatApplied   Boolean @default(false)
   /// VAT rate (percent) at issue time. Snapshot from User.vatRate.
-  vatRate         Float     @default(0)
+  vatRate      Float   @default(0)
   /// Currency code. Defaults to NGN. ISO-4217.
-  currency        String    @default("NGN")
+  currency     String  @default("NGN")
 
   /// ── FIRS MBS (Merchant Buyer Solution) submission state ────────
   /// Adapter is a Noop until FIRS_API_BASE_URL + FIRS_API_KEY are configured
@@ -645,28 +654,29 @@ model Invoice {
   firsTransmissionRef String?
   /// Invoice Reference Number issued by FIRS on successful submission.
   /// Must be rendered on the invoice once received.
-  firsIrn         String?
+  firsIrn             String?
   /// Opaque QR code payload returned by FIRS. Rendered as a QR on the invoice.
-  firsQrPayload   String?
+  firsQrPayload       String?
   /// "PENDING" | "SUBMITTED" | "ACCEPTED" | "REJECTED" | "RETRYING" | "FAILED" | null
-  firsStatus      String?
-  firsLastError   String?
-  firsRetryCount  Int       @default(0)
-  firsSubmittedAt DateTime?
-  firsAcceptedAt  DateTime?
+  firsStatus          String?
+  firsLastError       String?
+  firsRetryCount      Int       @default(0)
+  firsSubmittedAt     DateTime?
+  firsAcceptedAt      DateTime?
 
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user            User           @relation(fields: [userId], references: [id], onDelete: Restrict)
-  customer        Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items           InvoiceItem[]
-  payments        Payment[]
-  reminders       InvoiceReminder[]
-  creditNotes     CreditNote[]
-  recurringRule   RecurringInvoiceRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
-  feedbacks       Feedback[]
-  virtualAccount  VirtualAccount?
+  user           User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  customer       Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items          InvoiceItem[]
+  payments       Payment[]
+  reminders      InvoiceReminder[]
+  creditNotes    CreditNote[]
+  recurringRule  RecurringInvoiceRule? @relation(fields: [recurringRuleId], references: [id], onDelete: SetNull)
+  feedbacks      Feedback[]
+  virtualAccount VirtualAccount?
+  customerOrder  CustomerOrder?
 
   @@index([userId, status])
   @@index([userId, dueDate])
@@ -674,24 +684,24 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String   @id @default(cuid())
-  invoiceId   String
-  productId   String?
-  description String
-  unitPrice   Int
+  id            String  @id @default(cuid())
+  invoiceId     String
+  productId     String?
+  description   String
+  unitPrice     Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  unitPriceKobo Int    @default(0)
-  quantity    Int      @default(1)
+  unitPriceKobo Int     @default(0)
+  quantity      Int     @default(1)
 
   /// "GOODS" | "SERVICE". Required for FIRS classification.
-  itemType    String   @default("GOODS")
+  itemType  String  @default("GOODS")
   /// Harmonized System code (e.g., "8517.12"). Required for goods on tax invoices.
-  hsCode      String?
+  hsCode    String?
   /// Whether this line is VAT-exempt (basic food, books, medical, etc.).
-  vatExempt   Boolean  @default(false)
+  vatExempt Boolean @default(false)
 
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([invoiceId])
 }
@@ -700,11 +710,11 @@ model InvoiceItem {
 /// fire from the invoice detail page; automated reminders are produced by
 /// /api/cron/run-recurring-invoices when a rule schedules them.
 model InvoiceReminder {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   invoiceId String
   /// "FRIENDLY_REMINDER" | "OVERDUE_NOTICE" | "FINAL_NOTICE"
-  type      String   @default("FRIENDLY_REMINDER")
+  type      String    @default("FRIENDLY_REMINDER")
   /// "EMAIL" | "WHATSAPP"
   channel   String
   /// The message body actually sent (or queued). Snapshot so we can
@@ -712,11 +722,11 @@ model InvoiceReminder {
   message   String
   sentAt    DateTime?
   /// "QUEUED" | "SENT" | "FAILED"
-  status    String   @default("QUEUED")
-  createdAt DateTime @default(now())
+  status    String    @default("QUEUED")
+  createdAt DateTime  @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([invoiceId, createdAt])
@@ -749,8 +759,8 @@ model CreditNote {
   approvedById     String?
   createdAt        DateTime @default(now())
 
-  user             User     @relation(fields: [userId], references: [id], onDelete: Restrict)
-  invoice          Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
   @@index([userId, createdAt])
   @@index([invoiceId])
@@ -782,8 +792,8 @@ model RecurringInvoiceRule {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoices      Invoice[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
 
   @@index([userId, status])
   @@index([nextRunAt, status])
@@ -793,40 +803,40 @@ model RecurringInvoiceRule {
 /// (e.g. when goods ship before invoicing) and converted into an invoice
 /// later via /api/delivery-notes/[id]/convert-to-invoice.
 model DeliveryNote {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   userId             String
   customerId         String?
   customerName       String
   customerPhone      String?
   customerAddress    String?
-  deliveryNoteNumber String   @unique
+  deliveryNoteNumber String    @unique
   /// "DRAFT" | "ISSUED" | "DELIVERED" | "CONVERTED" | "CANCELLED"
-  status             String   @default("DRAFT")
+  status             String    @default("DRAFT")
   deliveryDate       DateTime?
   notes              String?
   pdfUrl             String?
   /// When converted to an invoice, link to the resulting Invoice.
-  convertedInvoiceId String?  @unique
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  convertedInvoiceId String?   @unique
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer           Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items              DeliveryNoteItem[]
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    DeliveryNoteItem[]
 
   @@index([userId, status])
   @@index([userId, createdAt])
 }
 
 model DeliveryNoteItem {
-  id              String   @id @default(cuid())
-  deliveryNoteId  String
-  productId       String?
-  description     String
-  quantity        Int      @default(1)
+  id             String  @id @default(cuid())
+  deliveryNoteId String
+  productId      String?
+  description    String
+  quantity       Int     @default(1)
 
-  deliveryNote    DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
-  product         Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  deliveryNote DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  product      Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([deliveryNoteId])
 }
@@ -834,35 +844,35 @@ model DeliveryNoteItem {
 /// Quote / offer the seller can send before issuing an invoice. Convertible
 /// to either an Invoice or an OrderConfirmation.
 model Offer {
-  id            String   @id @default(cuid())
-  userId        String
-  customerId    String?
-  customerName  String
-  customerPhone String?
-  customerEmail String?
-  offerNumber   String   @unique
+  id                           String    @id @default(cuid())
+  userId                       String
+  customerId                   String?
+  customerName                 String
+  customerPhone                String?
+  customerEmail                String?
+  offerNumber                  String    @unique
   /// "DRAFT" | "SENT" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CONVERTED"
-  status        String   @default("DRAFT")
-  validUntil    DateTime?
-  subtotal      Int      @default(0)
-  taxAmount     Int      @default(0)
-  total         Int      @default(0)
+  status                       String    @default("DRAFT")
+  validUntil                   DateTime?
+  subtotal                     Int       @default(0)
+  taxAmount                    Int       @default(0)
+  total                        Int       @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration.
-  subtotalKobo  Int      @default(0)
-  taxAmountKobo Int      @default(0)
-  totalKobo     Int      @default(0)
-  notes         String?
-  pdfUrl        String?
-  publicToken   String?  @unique
+  subtotalKobo                 Int       @default(0)
+  taxAmountKobo                Int       @default(0)
+  totalKobo                    Int       @default(0)
+  notes                        String?
+  pdfUrl                       String?
+  publicToken                  String?   @unique
   /// When converted, link to the produced Invoice or OrderConfirmation.
-  convertedInvoiceId           String?  @unique
-  convertedOrderConfirmationId String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  convertedInvoiceId           String?   @unique
+  convertedOrderConfirmationId String?   @unique
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
 
-  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer      Customer?            @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items         OfferItem[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer           Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items              OfferItem[]
   orderConfirmations OrderConfirmation[]
 
   @@index([userId, status])
@@ -870,17 +880,17 @@ model Offer {
 }
 
 model OfferItem {
-  id          String   @id @default(cuid())
-  offerId     String
-  productId   String?
-  description String
-  unitPrice   Int
+  id            String  @id @default(cuid())
+  offerId       String
+  productId     String?
+  description   String
+  unitPrice     Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  unitPriceKobo Int    @default(0)
-  quantity    Int      @default(1)
+  unitPriceKobo Int     @default(0)
+  quantity      Int     @default(1)
 
-  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  offer   Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([offerId])
 }
@@ -889,25 +899,26 @@ model OfferItem {
 /// Snapshots the offer's items so price changes on the offer cannot
 /// retroactively change the order.
 model OrderConfirmation {
-  id            String   @id @default(cuid())
-  userId        String
-  offerId       String?
-  customerId    String?
-  customerName  String
-  orderNumber   String   @unique
+  id           String   @id @default(cuid())
+  userId       String
+  offerId      String?
+  customerId   String?
+  customerName String
+  orderNumber  String   @unique
   /// "DRAFT" | "CONFIRMED" | "FULFILLED" | "CANCELLED"
-  status        String   @default("CONFIRMED")
-  total         Int      @default(0)
+  status       String   @default("CONFIRMED")
+  total        Int      @default(0)
   /// Kobo sibling — Phase 3 of the kobo migration.
-  totalKobo     Int      @default(0)
-  notes         String?
-  pdfUrl        String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  totalKobo    Int      @default(0)
+  notes        String?
+  pdfUrl       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  offer         Offer?    @relation(fields: [offerId], references: [id], onDelete: SetNull)
-  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer          Offer?          @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerOrders CustomerOrder[]
 
   @@index([userId, createdAt])
 }
@@ -916,7 +927,7 @@ model OrderConfirmation {
 /// search. Receipts/Invoices/CreditNotes/etc. write here on creation.
 /// `retentionUntil` is a hint for soft-purge tooling; we do not auto-delete.
 model DocumentArchive {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   userId         String
   /// "RECEIPT" | "INVOICE" | "CREDIT_NOTE" | "DELIVERY_NOTE" | "OFFER" |
   /// "ORDER_CONFIRMATION"
@@ -928,12 +939,12 @@ model DocumentArchive {
   pdfUrl         String?
   xmlUrl         String?
   /// "ACTIVE" | "ARCHIVED" | "PURGED"
-  status         String   @default("ACTIVE")
+  status         String    @default("ACTIVE")
   /// Optional soft-retention hint; UI surfaces a warning before this date.
   retentionUntil DateTime?
-  createdAt      DateTime @default(now())
+  createdAt      DateTime  @default(now())
 
-  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([documentType, documentId])
   @@index([userId, documentType, createdAt])
@@ -960,7 +971,7 @@ model DocumentAuditLog {
   metadata   String?
   createdAt  DateTime @default(now())
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([userId, entityType, entityId, createdAt])
   @@index([userId, action, createdAt])
@@ -971,167 +982,72 @@ model DocumentAuditLog {
 /// A scheduled reminder linked to a Debt. The system surfaces which reminders are
 /// "due today" so the seller can one-tap send them all in WhatsApp.
 model ReminderSchedule {
-  id          String    @id @default(cuid())
-  userId      String
-  debtId      String
-  /// "daily" | "every_3_days" | "weekly" | "custom"
-  frequency   String    @default("weekly")
-  /// Custom: number of days between reminders. Used when frequency=custom.
-  intervalDays Int      @default(7)
-  nextDueAt   DateTime
-  lastSentAt  DateTime?
-  enabled     Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  debt        Debt     @relation(fields: [debtId], references: [id], onDelete: Cascade)
-
-  @@index([userId, nextDueAt])
-}
-
-// ---------- PROPERTY MANAGEMENT ----------
-
-/// A property (building / compound) owned or managed by the user.
-model Property {
-  id            String    @id @default(cuid())
-  userId        String
-  name          String
-  address       String?
-  unitCount     Int       @default(0)
-  note          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenants       Tenant[]
-
-  @@index([userId])
-}
-
-/// A tenant occupying a unit in a Property.
-model Tenant {
-  id            String    @id @default(cuid())
-  userId        String
-  propertyId    String
-  name          String
-  phone         String
-  unitLabel     String?
-  /// Monthly rent in Naira.
-  rentAmount    Int
-  /// Kobo sibling — Phase 3 of the kobo migration.
-  rentAmountKobo Int      @default(0)
-  /// Day of month rent is due (1-28).
-  rentDueDay    Int       @default(1)
-  /// "monthly" | "quarterly" | "yearly"
-  rentFrequency String    @default("monthly")
-  leaseStart    DateTime?
-  leaseEnd      DateTime?
-  /// "active" | "moved_out" | "evicted"
-  status        String    @default("active")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  property      Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  rentPayments    RentPayment[]
-  leaseReminders  LeaseReminder[]
-
-  @@index([userId, status])
-}
-
-/// Tracks each rent payment (or partial) for a tenant in a given period.
-model RentPayment {
   id           String    @id @default(cuid())
   userId       String
-  tenantId     String
-  amount       Int
-  /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo   Int       @default(0)
-  /// The calendar month this covers, e.g. "2026-04".
-  period       String
-  /// "PAID" | "PARTIAL" | "PENDING" | "OVERDUE"
-  status       String    @default("PENDING")
-  verified     Boolean   @default(false)
-  paidAt       DateTime?
-  note         String?
+  debtId       String
+  /// "daily" | "every_3_days" | "weekly" | "custom"
+  frequency    String    @default("weekly")
+  /// Custom: number of days between reminders. Used when frequency=custom.
+  intervalDays Int       @default(7)
+  nextDueAt    DateTime
+  lastSentAt   DateTime?
+  enabled      Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debt Debt @relation(fields: [debtId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, period])
-  @@index([userId, period])
-}
-
-
-/// Tracks lease-lifecycle reminders so the cron never double-sends.
-/// One row per (tenant x reminder type). Created lazily by the cron route.
-model LeaseReminder {
-  id         String    @id @default(cuid())
-  userId     String
-  tenantId   String
-  /// "30_day_warning" | "expiry_day" | "post_expiry" | "notice_to_quit"
-  kind       String
-  sentAt     DateTime  @default(now())
-  /// "email" | "whatsapp" | "both"
-  channel    String    @default("email")
-
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@unique([tenantId, kind])
-  @@index([userId])
+  @@index([userId, nextDueAt])
 }
 
 // ---------- TEAM, ATTENDANCE & PAYROLL ----------
 
 model CustomRole {
-  id              String    @id @default(cuid())
-  userId          String
-  name            String
-  description     String?
-  baseRole        String    @default("CASHIER")
-  color           String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  baseRole    String   @default("CASHIER")
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  staffMembers    StaffMember[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  staffMembers StaffMember[]
 
   @@unique([userId, name])
   @@index([userId])
 }
 
 model StaffMember {
-  id          String    @id @default(cuid())
-  userId      String
-  name        String
-  phone       String?
-  pin         String?
-  role        String?
-  customRoleId         String?
-  email                String?
-  passwordHash         String?
-  accessRole           String    @default("NONE")
-  inviteToken          String?   @unique
-  inviteExpiresAt      DateTime?
-  lastLoginAt          DateTime?
-  payType     String    @default("monthly")
-  payAmount   Int       @default(0)
+  id                String    @id @default(cuid())
+  userId            String
+  name              String
+  phone             String?
+  pin               String?
+  role              String?
+  customRoleId      String?
+  email             String?
+  passwordHash      String?
+  accessRole        String    @default("NONE")
+  inviteToken       String?   @unique
+  inviteExpiresAt   DateTime?
+  lastLoginAt       DateTime?
+  payType           String    @default("monthly")
+  payAmount         Int       @default(0)
   /// Kobo sibling — Phase 3 of the kobo migration.
-  payAmountKobo Int     @default(0)
-  startDate   DateTime?
-  bankName             String?
-  bankAccountNumber    String?
-  bankAccountName      String?
-  nextOfKinName        String?
-  nextOfKinPhone       String?
-  notes       String?
-  status      String    @default("active")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  payAmountKobo     Int       @default(0)
+  startDate         DateTime?
+  bankName          String?
+  bankAccountNumber String?
+  bankAccountName   String?
+  nextOfKinName     String?
+  nextOfKinPhone    String?
+  notes             String?
+  status            String    @default("active")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   customRole    CustomRole?    @relation(fields: [customRoleId], references: [id], onDelete: SetNull)
@@ -1162,18 +1078,18 @@ model Attendance {
 }
 
 model StaffPayment {
-  id           String    @id @default(cuid())
-  userId       String
-  staffId      String
-  kind         String
-  amount       Int
+  id          String    @id @default(cuid())
+  userId      String
+  staffId     String
+  kind        String
+  amount      Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo   Int       @default(0)
-  periodStart  DateTime?
-  periodEnd    DateTime?
-  note         String?
-  paidAt       DateTime  @default(now())
-  createdAt    DateTime  @default(now())
+  amountKobo  Int       @default(0)
+  periodStart DateTime?
+  periodEnd   DateTime?
+  note        String?
+  paidAt      DateTime  @default(now())
+  createdAt   DateTime  @default(now())
 
   user  User        @relation(fields: [userId], references: [id], onDelete: Restrict)
   staff StaffMember @relation(fields: [staffId], references: [id], onDelete: Cascade)
@@ -1185,24 +1101,24 @@ model StaffPayment {
 // ---------- TASK MANAGEMENT ----------
 
 model Task {
-  id           String    @id @default(cuid())
-  userId       String
-  title        String
-  description  String?
-  assignedToId String?
-  customerId   String?
-  priority     String    @default("normal")
-  status       String    @default("todo")
-  dueDate      DateTime?
-  completedAt  DateTime?
+  id              String    @id @default(cuid())
+  userId          String
+  title           String
+  description     String?
+  assignedToId    String?
+  customerId      String?
+  priority        String    @default("normal")
+  status          String    @default("todo")
+  dueDate         DateTime?
+  completedAt     DateTime?
   completedByKind String?
   completedById   String?
   completionNote  String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo   StaffMember? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo StaffMember? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
   @@index([assignedToId, status])
@@ -1211,29 +1127,29 @@ model Task {
 // ---------- CHECKLISTS ----------
 
 model Checklist {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   name        String
   description String?
-  category    String    @default("custom")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  category    String   @default("custom")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       ChecklistItem[]
-  runs        ChecklistRun[]
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ChecklistItem[]
+  runs  ChecklistRun[]
 
   @@index([userId])
 }
 
 model ChecklistItem {
-  id          String    @id @default(cuid())
+  id          String @id @default(cuid())
   checklistId String
   label       String
-  sortOrder   Int       @default(0)
+  sortOrder   Int    @default(0)
 
-  checklist   Checklist        @relation(fields: [checklistId], references: [id], onDelete: Cascade)
-  results     ChecklistResult[]
+  checklist Checklist         @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  results   ChecklistResult[]
 
   @@index([checklistId])
 }
@@ -1247,9 +1163,9 @@ model ChecklistRun {
   completedBy String?
   createdAt   DateTime  @default(now())
 
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  checklist   Checklist         @relation(fields: [checklistId], references: [id], onDelete: Cascade)
-  results     ChecklistResult[]
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklist Checklist         @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  results   ChecklistResult[]
 
   @@index([userId, checklistId])
 }
@@ -1262,8 +1178,8 @@ model ChecklistResult {
   note      String?
   checkedAt DateTime?
 
-  run       ChecklistRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
-  item      ChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  run  ChecklistRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  item ChecklistItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([runId])
 }
@@ -1271,30 +1187,30 @@ model ChecklistResult {
 // ---------- RECEIPTS ----------
 
 model Receipt {
-  id             String    @id @default(cuid())
-  userId         String
-  customerId     String?
-  paymentId      String?   @unique
-  debtId         String?   @unique
-  receiptNumber  String    @unique
-  pdfUrl         String?
-  status         String    @default("GENERATED")
-  emailedTo      String?
-  emailedAt      DateTime?
+  id            String    @id @default(cuid())
+  userId        String
+  customerId    String?
+  paymentId     String?   @unique
+  debtId        String?   @unique
+  receiptNumber String    @unique
+  pdfUrl        String?
+  status        String    @default("GENERATED")
+  emailedTo     String?
+  emailedAt     DateTime?
 
   /// Outstanding balance when this receipt was generated (partial payment).
   /// null = full payment; >0 means the receipt should display "Balance: X".
-  balanceRemaining Int?
+  balanceRemaining     Int?
   /// Kobo sibling — Phase 3 of the kobo migration.
   balanceRemainingKobo Int?
   /// Where this receipt originated. "MANUAL" | "PAYSTACK" | "PROMISE" | "INSTALLMENT" | "DEBT" | "CATALOG"
-  source           String   @default("MANUAL")
+  source               String @default("MANUAL")
 
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user           User      @relation(fields: [userId], references: [id], onDelete: Restrict)
-  feedbacks      Feedback[]
+  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  feedbacks Feedback[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1304,14 +1220,14 @@ model Receipt {
 // ---------- ADMIN ----------
 
 model AdminNote {
-  id            String   @id @default(cuid())
-  adminUserId   String
-  targetUserId  String
-  note          String
-  createdAt     DateTime @default(now())
+  id           String   @id @default(cuid())
+  adminUserId  String
+  targetUserId String
+  note         String
+  createdAt    DateTime @default(now())
 
-  author        User     @relation("AdminNoteAuthor", fields: [adminUserId],  references: [id], onDelete: Cascade)
-  target        User     @relation("AdminNoteTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  author User @relation("AdminNoteAuthor", fields: [adminUserId], references: [id], onDelete: Cascade)
+  target User @relation("AdminNoteTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
 
   @@index([targetUserId, createdAt])
 }
@@ -1336,15 +1252,15 @@ model UserOverride {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model SystemSetting {
-  id         String   @id @default(cuid())
-  key        String   @unique
-  value      String
-  updatedAt  DateTime @updatedAt
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 // ---------- CATALOG (Sell) ----------
@@ -1353,22 +1269,22 @@ model SystemSetting {
 /// without creating Payment rows (we don't auto-pend orders — see plan).
 /// ipHash is sha256(ip + YYYY-MM-DD + AUTH_SECRET): rotates daily, prevents linkability.
 model CatalogEvent {
-  id          String   @id @default(cuid())
-  userId      String
-  productId   String?
+  id            String   @id @default(cuid())
+  userId        String
+  productId     String?
   /// "VIEW" | "WHATSAPP_ORDER"
-  type        String
-  ipHash      String?
-  userAgent   String?
-  referrer    String?
+  type          String
+  ipHash        String?
+  userAgent     String?
+  referrer      String?
   /// Optional shopper details captured on the order form (free text, length-capped).
   customerName  String?
   customerPhone String?
   note          String?
-  createdAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([productId])
@@ -1400,8 +1316,8 @@ model Album {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products         AlbumProduct[]
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products AlbumProduct[]
 
   @@unique([userId, slug])
   @@index([userId, isPublished])
@@ -1415,8 +1331,8 @@ model AlbumProduct {
   position  Int      @default(0)
   addedAt   DateTime @default(now())
 
-  album     Album    @relation(fields: [albumId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  album   Album   @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@id([albumId, productId])
   @@index([albumId, position])
@@ -1436,7 +1352,7 @@ model PaymentAttempt {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   refunds Refund[]
 
   @@index([userId, createdAt])
@@ -1452,12 +1368,12 @@ model BillingEvent {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -1468,20 +1384,20 @@ model PasswordResetToken {
 // ---------- SUPPORT & TICKETS ----------
 
 model SupportTicket {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   subject     String
   description String
-  status      String   @default("open")
-  priority    String   @default("medium")
+  status      String    @default("open")
+  priority    String    @default("medium")
   assignedTo  String?
   closedAt    DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  user        User     @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
-  assignee    User?    @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
-  replies     TicketReply[]
+  user     User          @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  assignee User?         @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
+  replies  TicketReply[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1496,8 +1412,8 @@ model TicketReply {
   isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  ticket    SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([ticketId, createdAt])
 }
@@ -1514,7 +1430,7 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead, createdAt])
 }
@@ -1522,24 +1438,24 @@ model Notification {
 // ---------- REFUNDS ----------
 
 model Refund {
-  id                String   @id @default(cuid())
-  userId            String
-  paymentAttemptId  String?
-  amount            Int
+  id               String    @id @default(cuid())
+  userId           String
+  paymentAttemptId String?
+  amount           Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo        Int      @default(0)
-  currency          String   @default("NGN")
-  status            String   @default("pending")
-  reason            String
-  adminNote         String?
-  processedBy       String?
-  processedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  amountKobo       Int       @default(0)
+  currency         String    @default("NGN")
+  status           String    @default("pending")
+  reason           String
+  adminNote        String?
+  processedBy      String?
+  processedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  user              User     @relation("UserRefunds", fields: [userId], references: [id], onDelete: Restrict)
-  processor         User?    @relation("ProcessedRefunds", fields: [processedBy], references: [id], onDelete: SetNull)
-  paymentAttempt    PaymentAttempt? @relation(fields: [paymentAttemptId], references: [id], onDelete: SetNull)
+  user           User            @relation("UserRefunds", fields: [userId], references: [id], onDelete: Restrict)
+  processor      User?           @relation("ProcessedRefunds", fields: [processedBy], references: [id], onDelete: SetNull)
+  paymentAttempt PaymentAttempt? @relation(fields: [paymentAttemptId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1556,7 +1472,7 @@ model AuditLog {
   ipAddress String?
   createdAt DateTime @default(now())
 
-  admin     User     @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: Restrict)
+  admin User @relation("AuditLogAdmin", fields: [adminId], references: [id], onDelete: Restrict)
 
   @@index([adminId, createdAt])
   @@index([action])
@@ -1566,39 +1482,39 @@ model AuditLog {
 // ---------- PAYLINK (Payment Requests) ----------
 
 model PaymentRequest {
-  id               String    @id @default(cuid())
-  userId           String
-  customerId       String?
-  token            String    @unique @default(cuid())
-  linkNumber       String    @unique
-  customerName     String
-  customerPhone    String
-  amount           Int
+  id             String    @id @default(cuid())
+  userId         String
+  customerId     String?
+  token          String    @unique @default(cuid())
+  linkNumber     String    @unique
+  customerName   String
+  customerPhone  String
+  amount         Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo       Int       @default(0)
-  description      String?
-  status           String    @default("pending")
-  viewedAt         DateTime?
-  claimedAt        DateTime?
-  confirmedAt      DateTime?
-  whatsappSentAt   DateTime?
-  emailSentAt      DateTime?
-  customerEmail    String?
-  debtId           String?
-  expiresAt        DateTime?
+  amountKobo     Int       @default(0)
+  description    String?
+  status         String    @default("pending")
+  viewedAt       DateTime?
+  claimedAt      DateTime?
+  confirmedAt    DateTime?
+  whatsappSentAt DateTime?
+  emailSentAt    DateTime?
+  customerEmail  String?
+  debtId         String?
+  expiresAt      DateTime?
 
   /// Provider payment tracking (for auto-confirmed paylinks)
-  provider         String?
-  externalRef      String?
+  provider          String?
+  externalRef       String?
   /// PENDING | SUCCESS | FAILED
-  paymentStatus    String?
+  paymentStatus     String?
   webhookVerifiedAt DateTime?
 
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer         Customer? @relation(fields: [customerId], references: [id])
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id])
 
   @@index([userId, status])
   @@index([userId, createdAt])
@@ -1611,29 +1527,29 @@ model PaymentRequest {
 /// The cron job (`/api/cron/run-reminders`) evaluates all active rules and
 /// creates ReminderLog entries + surfaces WhatsApp deep-links.
 model ReminderRule {
-  id            String    @id @default(cuid())
-  userId        String
-  debtId        String
+  id           String   @id @default(cuid())
+  userId       String
+  debtId       String
   /// "gentle" | "firm" | "final" — escalation tone
-  tone          String    @default("gentle")
+  tone         String   @default("gentle")
   /// Number of days between auto-reminders
-  intervalDays  Int       @default(3)
+  intervalDays Int      @default(3)
   /// Maximum number of reminders before the rule auto-disables
-  maxReminders  Int       @default(5)
+  maxReminders Int      @default(5)
   /// How many reminders have been sent under this rule
-  sentCount     Int       @default(0)
+  sentCount    Int      @default(0)
   /// When the next reminder should fire
-  nextFireAt    DateTime
+  nextFireAt   DateTime
   /// Whether this rule is active
-  enabled       Boolean   @default(true)
+  enabled      Boolean  @default(true)
   /// "whatsapp" | "email" | "both"
-  channel       String    @default("whatsapp")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  channel      String   @default("whatsapp")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  debt          Debt      @relation(fields: [debtId], references: [id], onDelete: Cascade)
-  logs          ReminderLog[]
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  debt Debt          @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  logs ReminderLog[]
 
   @@index([userId, enabled, nextFireAt])
   @@index([debtId])
@@ -1641,7 +1557,7 @@ model ReminderRule {
 
 /// Log of every reminder sent (for audit & analytics).
 model ReminderLog {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   userId        String
   ruleId        String?
   debtId        String?
@@ -1650,17 +1566,17 @@ model ReminderLog {
   customerPhone String
   amount        Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo    Int       @default(0)
+  amountKobo    Int      @default(0)
   /// "whatsapp" | "email"
   channel       String
   /// "gentle" | "firm" | "final"
-  tone          String    @default("gentle")
+  tone          String   @default("gentle")
   /// WhatsApp deep link or email ID for tracking
   deliveryRef   String?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime @default(now())
 
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rule          ReminderRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rule ReminderRule? @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([ruleId])
@@ -1671,28 +1587,28 @@ model ReminderLog {
 /// Snapshot of a seller's collection performance, computed daily by cron.
 /// Powers the "Collection Score" widget on the dashboard.
 model CollectionScore {
-  id                  String    @id @default(cuid())
-  userId              String
+  id                    String   @id @default(cuid())
+  userId                String
   /// 0-100 overall collection effectiveness score
-  score               Int       @default(50)
+  score                 Int      @default(50)
   /// Percentage of debts collected on time (0-100)
-  onTimeRate          Float     @default(0)
+  onTimeRate            Float    @default(0)
   /// Average days to collect across all debts
-  avgCollectionDays   Float     @default(0)
+  avgCollectionDays     Float    @default(0)
   /// Total amount collected in the scoring window
-  collectedAmount     Int       @default(0)
+  collectedAmount       Int      @default(0)
   /// Total amount outstanding
-  outstandingAmount   Int       @default(0)
+  outstandingAmount     Int      @default(0)
   /// Kobo siblings — Phase 3 of the kobo migration.
-  collectedAmountKobo  Int      @default(0)
-  outstandingAmountKobo Int     @default(0)
+  collectedAmountKobo   Int      @default(0)
+  outstandingAmountKobo Int      @default(0)
   /// Number of active follow-up rules
-  activeReminders     Int       @default(0)
+  activeReminders       Int      @default(0)
   /// Scoring period start
-  periodStart         DateTime
+  periodStart           DateTime
   /// Scoring period end
-  periodEnd           DateTime
-  createdAt           DateTime  @default(now())
+  periodEnd             DateTime
+  createdAt             DateTime @default(now())
 
   @@unique([userId, periodStart])
   @@index([userId, createdAt])
@@ -1701,25 +1617,25 @@ model CollectionScore {
 // ---------- BLOG ----------
 
 model BlogPost {
-  id            String    @id @default(cuid())
-  title         String
-  slug          String    @unique
-  excerpt       String    @default("")
-  content       String
-  coverImage    String?
-  author        String
-  status        String    @default("draft")
-  category      String    @default("general")
-  tags          String    @default("")
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  excerpt         String    @default("")
+  content         String
+  coverImage      String?
+  author          String
+  status          String    @default("draft")
+  category        String    @default("general")
+  tags            String    @default("")
   /// SEO meta description (auto-filled from excerpt if blank)
   metaDescription String?
   /// Open Graph title override
-  ogTitle       String?
+  ogTitle         String?
   /// Open Graph image override (falls back to coverImage)
-  ogImage       String?
-  publishedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  ogImage         String?
+  publishedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([status, publishedAt])
   @@index([category])
@@ -1744,7 +1660,7 @@ model AdminStaff {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  createdBy       User      @relation("AdminStaffCreator", fields: [createdById], references: [id])
+  createdBy User @relation("AdminStaffCreator", fields: [createdById], references: [id])
 
   @@index([adminRole])
   @@index([status])
@@ -1776,10 +1692,10 @@ model PromiseToPay {
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 
-  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customer             Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  commitments          PromiseCommitment[]
-  payments             PromisePayment[]
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer    Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  commitments PromiseCommitment[]
+  payments    PromisePayment[]
 
   @@index([userId, status])
   @@index([userId, createdAt])
@@ -1799,31 +1715,31 @@ model PromiseCommitment {
   message         String?
   createdAt       DateTime  @default(now())
 
-  promiseToPay    PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
+  promiseToPay PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
 
   @@index([promiseToPayId])
 }
 
 /// A payment made against a PromiseToPay, tracked through a payment provider.
 model PromisePayment {
-  id                   String    @id @default(cuid())
-  promiseToPayId       String
+  id                    String    @id @default(cuid())
+  promiseToPayId        String
   /// PAYSTACK | FLUTTERWAVE
-  provider             String?
-  providerReference    String?
+  provider              String?
+  providerReference     String?
   providerTransactionId String?
-  amount               Int
+  amount                Int
   /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo           Int       @default(0)
+  amountKobo            Int       @default(0)
   /// PENDING | SUCCESS | FAILED
-  status               String    @default("PENDING")
-  verifiedAt           DateTime?
-  paidAt               DateTime?
-  rawWebhookStored     Boolean   @default(false)
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  status                String    @default("PENDING")
+  verifiedAt            DateTime?
+  paidAt                DateTime?
+  rawWebhookStored      Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  promiseToPay         PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
+  promiseToPay PromiseToPay @relation(fields: [promiseToPayId], references: [id], onDelete: Cascade)
 
   @@index([promiseToPayId])
   @@index([providerReference])
@@ -1833,41 +1749,41 @@ model PromisePayment {
 
 /// Installment plan for recurring auto-debit via Paystack authorization.
 model InstallmentPlan {
-  id                             String    @id @default(cuid())
-  userId                         String
-  promiseToPayId                 String?
-  debtId                         String?
-  customerId                     String?
-  customerNameSnapshot           String
-  phoneSnapshot                  String
-  totalAmount                    Int
-  remainingAmount                Int
-  initialAmount                  Int?      // first payment amount (may differ from recurring)
-  recurringAmount                Int
+  id                            String    @id @default(cuid())
+  userId                        String
+  promiseToPayId                String?
+  debtId                        String?
+  customerId                    String?
+  customerNameSnapshot          String
+  phoneSnapshot                 String
+  totalAmount                   Int
+  remainingAmount               Int
+  initialAmount                 Int? // first payment amount (may differ from recurring)
+  recurringAmount               Int
   /// Kobo siblings — Phase 3 of the kobo migration.
-  totalAmountKobo                Int       @default(0)
-  remainingAmountKobo            Int       @default(0)
-  initialAmountKobo              Int?
-  recurringAmountKobo            Int       @default(0)
+  totalAmountKobo               Int       @default(0)
+  remainingAmountKobo           Int       @default(0)
+  initialAmountKobo             Int?
+  recurringAmountKobo           Int       @default(0)
   /// DAILY | WEEKLY | BIWEEKLY | MONTHLY
-  interval                       String    @default("MONTHLY")
-  totalInstallments              Int?      // null = charge until cleared
-  completedInstallments          Int       @default(0)
-  nextChargeAt                   DateTime?
-  lastChargedAt                  DateTime?
+  interval                      String    @default("MONTHLY")
+  totalInstallments             Int? // null = charge until cleared
+  completedInstallments         Int       @default(0)
+  nextChargeAt                  DateTime?
+  lastChargedAt                 DateTime?
   /// ACTIVE | COMPLETED | FAILED | CANCELLED | PAUSED
-  status                         String    @default("ACTIVE")
-  paystackAuthorizationCode      String?
-  paystackAuthorizationReusable  Boolean   @default(false)
-  paystackCustomerCode           String?
-  paystackEmail                  String?
-  failedAttempts                 Int       @default(0)
-  lastFailureReason              String?
-  createdAt                      DateTime  @default(now())
-  updatedAt                      DateTime  @updatedAt
+  status                        String    @default("ACTIVE")
+  paystackAuthorizationCode     String?
+  paystackAuthorizationReusable Boolean   @default(false)
+  paystackCustomerCode          String?
+  paystackEmail                 String?
+  failedAttempts                Int       @default(0)
+  lastFailureReason             String?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
 
-  user                           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  charges                        InstallmentCharge[]
+  user    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  charges InstallmentCharge[]
 
   @@index([userId, status])
   @@index([status, nextChargeAt])
@@ -1889,14 +1805,14 @@ model InstallmentCharge {
   status                String    @default("PENDING")
   providerTransactionId String?
   failureReason         String?
-  paymentId             String?   // linked Payment record after success
-  receiptId             String?   // linked Receipt record after success
+  paymentId             String? // linked Payment record after success
+  receiptId             String? // linked Receipt record after success
   verifiedAt            DateTime?
   paidAt                DateTime?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  installmentPlan       InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
+  installmentPlan InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
 
   @@index([installmentPlanId])
   @@index([reference])
@@ -1907,17 +1823,17 @@ model InstallmentCharge {
 
 /// Durable log for all incoming payment webhooks — audit and replay.
 model WebhookEventLog {
-  id                  String    @id @default(cuid())
+  id                 String    @id @default(cuid())
   /// PAYSTACK | FLUTTERWAVE
-  provider            String
-  eventType           String
-  reference           String?
-  transactionId       String?
-  payload             String
+  provider           String
+  eventType          String
+  reference          String?
+  transactionId      String?
+  payload            String
   /// RECEIVED | VERIFIED | REJECTED | DUPLICATE | FAILED
-  verificationStatus  String    @default("RECEIVED")
-  processedAt         DateTime?
-  createdAt           DateTime  @default(now())
+  verificationStatus String    @default("RECEIVED")
+  processedAt        DateTime?
+  createdAt          DateTime  @default(now())
 
   @@index([provider, reference])
   @@index([provider, transactionId])
@@ -1982,36 +1898,36 @@ model Feedback {
 /// the pre-computed totals so the seller can hand the PDF + CSV to their
 /// accountant or the FIRS portal directly.
 model VatReturn {
-  id              String   @id @default(cuid())
-  userId          String
+  id            String    @id @default(cuid())
+  userId        String
   /// "MONTHLY" or "QUARTERLY"
-  period          String   @default("QUARTERLY")
+  period        String    @default("QUARTERLY")
   /// First day of the period (UTC), e.g. 2025-04-01 for Q2 2025.
-  periodStart     DateTime
+  periodStart   DateTime
   /// Last day of the period (UTC), inclusive, e.g. 2025-06-30.
-  periodEnd       DateTime
+  periodEnd     DateTime
   /// Sum of vatApplied invoice tax in kobo, output VAT.
-  outputVatKobo   Int      @default(0)
+  outputVatKobo Int       @default(0)
   /// Sum of expense vatPaid in kobo, input VAT.
-  inputVatKobo    Int      @default(0)
+  inputVatKobo  Int       @default(0)
   /// outputVat - inputVat. Can be negative (refund position).
-  netVatKobo      Int      @default(0)
+  netVatKobo    Int       @default(0)
   /// Counts that produced the totals, useful for the accountant.
-  invoiceCount    Int      @default(0)
-  expenseCount    Int      @default(0)
+  invoiceCount  Int       @default(0)
+  expenseCount  Int       @default(0)
   /// Locked when the seller has filed it. Locked rows are read-only.
-  status          String   @default("DRAFT")
+  status        String    @default("DRAFT")
   /// "DRAFT" | "FILED" | "PAID"
-  filedAt         DateTime?
-  filedBy         String?
+  filedAt       DateTime?
+  filedBy       String?
   /// FIRS reference if the seller pasted one after filing manually.
-  firsReference   String?
-  pdfUrl          String?
-  csvUrl          String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  firsReference String?
+  pdfUrl        String?
+  csvUrl        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([userId, periodStart, periodEnd])
   @@index([userId, status])
@@ -2025,26 +1941,26 @@ model VatReturn {
 /// The Mono integration ships behind a feature flag, the row shape exists
 /// now so partnership wiring can plug in without further schema work.
 model LinkedBankAccount {
-  id              String   @id @default(cuid())
-  userId          String
+  id            String    @id @default(cuid())
+  userId        String
   /// Provider key, currently always "MONO" but reserved for future
   /// providers (Okra, Stitch, etc.).
-  provider        String   @default("MONO")
+  provider      String    @default("MONO")
   /// Provider-side account id. For Mono this is the account uuid.
-  externalId      String   @unique
-  bankName        String
-  accountName     String
-  accountNumber   String
+  externalId    String    @unique
+  bankName      String
+  accountName   String
+  accountNumber String
   /// Last successful sync. Null when never synced.
-  lastSyncAt      DateTime?
+  lastSyncAt    DateTime?
   /// "ACTIVE" | "DISCONNECTED" | "ERROR"
-  status          String   @default("ACTIVE")
-  errorMessage    String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  status        String    @default("ACTIVE")
+  errorMessage  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  transactions    BankTransaction[]
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions BankTransaction[]
 
   @@index([userId, status])
 }
@@ -2053,22 +1969,22 @@ model LinkedBankAccount {
 /// per provider externalId. matchStatus tracks reconciliation against an
 /// Invoice or Payment row.
 model BankTransaction {
-  id             String   @id @default(cuid())
-  accountId      String
-  externalId     String   @unique
+  id               String   @id @default(cuid())
+  accountId        String
+  externalId       String   @unique
   /// "CREDIT" or "DEBIT"
-  direction      String
-  amountKobo     Int
-  description    String?
-  reference      String?
-  occurredAt     DateTime
+  direction        String
+  amountKobo       Int
+  description      String?
+  reference        String?
+  occurredAt       DateTime
   /// "UNMATCHED" | "MATCHED" | "IGNORED"
-  matchStatus    String   @default("UNMATCHED")
+  matchStatus      String   @default("UNMATCHED")
   matchedInvoiceId String?
   matchedPaymentId String?
-  createdAt      DateTime @default(now())
+  createdAt        DateTime @default(now())
 
-  account        LinkedBankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account LinkedBankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
   @@index([accountId, occurredAt])
   @@index([accountId, matchStatus])
@@ -2081,24 +1997,307 @@ model BankTransaction {
 /// Providus) and tied to one invoice. Customers transfer to this account
 /// and the partner webhook (future work) reconciles automatically.
 model VirtualAccount {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   userId        String
-  invoiceId     String?  @unique
+  invoiceId     String?   @unique
   /// Provider: "WEMA" | "STERLING" | "PROVIDUS"
   provider      String
   /// Provider-side reference / account id
-  externalId    String   @unique
+  externalId    String    @unique
   /// The 10-digit NUBAN to print on the invoice
   accountNumber String
   accountName   String
   bankName      String
   /// "ACTIVE" | "EXPIRED" | "RECONCILED"
-  status        String   @default("ACTIVE")
+  status        String    @default("ACTIVE")
   expiresAt     DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoice       Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoice Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index([userId, status])
+}
+
+// ─────────────────────────────────────────────────────────────────
+// OPERATIONAL PLANNING — small-batch operations
+// Pivot: orders → production → materials → inventory → purchases.
+// All models below are additive. They do NOT modify existing tables.
+// Money is stored as Int kobo. Status fields are String literals
+// (matching the existing convention — no native enums).
+// Soft-delete = deletedAt DateTime?. Tenant-scoped via userId.
+// ─────────────────────────────────────────────────────────────────
+
+/// A vendor that supplies raw materials. Distinct from Customer.
+model Supplier {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  notes         String?
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rawMaterials   RawMaterial[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([userId, deletedAt])
+  @@index([userId, name])
+}
+
+/// A raw material consumed during production. Distinct from Product
+/// (Product = finished good with selling price; RawMaterial = input).
+model RawMaterial {
+  id           String    @id @default(cuid())
+  userId       String
+  name         String
+  sku          String?
+  /// Unit of measure label, e.g. "kg" | "g" | "l" | "ml" | "unit" | "m" | "pack".
+  /// Stock is stored as an Int in this single base unit; no multi-unit math.
+  unit         String    @default("unit")
+  stock        Int       @default(0)
+  reorderLevel Int       @default(0)
+  /// Last known cost per unit (kobo). Used by production-costing.
+  unitCostKobo Int       @default(0)
+  supplierId   String?
+  /// Optional expiry hint for the nearest-expiring batch.
+  expiresAt    DateTime?
+  notes        String?
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+
+  recipeItems        RecipeItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@index([userId, deletedAt])
+  @@index([userId, supplierId])
+  @@index([userId, expiresAt])
+}
+
+/// Recipe (a.k.a. "Materials Needed") for one finished Product.
+/// Simple single-level BOM — no phantom or sub-assembly recipes.
+model Recipe {
+  id        String    @id @default(cuid())
+  userId    String
+  productId String    @unique
+  /// One batch of this recipe yields N units of the product.
+  yieldQty  Int       @default(1)
+  notes     String?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  items   RecipeItem[]
+
+  @@index([userId, deletedAt])
+}
+
+/// One material line in a Recipe.
+model RecipeItem {
+  id         String  @id @default(cuid())
+  recipeId   String
+  materialId String
+  /// Quantity of the material consumed to produce one full yieldQty batch.
+  quantity   Int
+  notes      String?
+
+  recipe   Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  material RawMaterial @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@unique([recipeId, materialId])
+  @@index([materialId])
+}
+
+/// Customer-facing order with a fulfilment lifecycle.
+/// Distinct from the legacy `OrderConfirmation` (a sales doc derived from
+/// accepted offers). `orderConfirmationId` is an optional soft bridge.
+model CustomerOrder {
+  id                  String    @id @default(cuid())
+  userId              String
+  customerId          String?
+  /// Snapshot for resilience against customer rename/delete.
+  customerName        String
+  customerPhone       String?
+  /// Human-readable e.g. "CO-00042".
+  orderNumber         String    @unique
+  /// "NEW" | "CONFIRMED" | "IN_PRODUCTION" | "READY" | "DELIVERED" | "CANCELLED"
+  status              String    @default("NEW")
+  dueAt               DateTime?
+  totalKobo           Int       @default(0)
+  notes               String?
+  /// Optional bridge to legacy `OrderConfirmation` if the user converted one.
+  orderConfirmationId String?
+  /// Generated production order — nullable until production is planned.
+  productionOrderId   String?   @unique
+  /// Generated invoice — nullable until invoiced.
+  invoiceId           String?   @unique
+  deletedAt           DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer          Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  orderConfirmation OrderConfirmation?  @relation(fields: [orderConfirmationId], references: [id], onDelete: SetNull)
+  productionOrder   ProductionOrder?    @relation(fields: [productionOrderId], references: [id], onDelete: SetNull)
+  invoice           Invoice?            @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  items             CustomerOrderItem[]
+
+  @@index([userId, status, createdAt])
+  @@index([userId, customerId, createdAt])
+  @@index([userId, dueAt])
+  @@index([userId, deletedAt])
+}
+
+/// Line item on a CustomerOrder.
+model CustomerOrderItem {
+  id              String  @id @default(cuid())
+  customerOrderId String
+  productId       String?
+  description     String
+  quantity        Int     @default(1)
+  unitPriceKobo   Int     @default(0)
+  totalKobo       Int     @default(0)
+
+  customerOrder CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
+  product       Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([customerOrderId])
+  @@index([productId])
+}
+
+/// Internal production run for one or more finished products.
+/// Lifecycle: PLANNED → MATERIALS_NEEDED → IN_PRODUCTION → COMPLETED
+///            (or → DELAYED / CANCELLED from any state).
+model ProductionOrder {
+  id               String    @id @default(cuid())
+  userId           String
+  /// Human-readable e.g. "PRD-00042".
+  productionNumber String    @unique
+  /// "PLANNED" | "MATERIALS_NEEDED" | "IN_PRODUCTION" | "COMPLETED" | "DELAYED" | "CANCELLED"
+  status           String    @default("PLANNED")
+  plannedStartAt   DateTime?
+  plannedEndAt     DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  notes            String?
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerOrder CustomerOrder?
+  items         ProductionOrderItem[]
+
+  @@index([userId, status, createdAt])
+  @@index([userId, plannedEndAt])
+  @@index([userId, deletedAt])
+}
+
+/// One product line in a ProductionOrder.
+model ProductionOrderItem {
+  id                   String @id @default(cuid())
+  productionOrderId    String
+  productId            String
+  quantity             Int
+  /// Snapshot of per-unit material cost (kobo) computed when status flips to
+  /// COMPLETED. Null until then.
+  unitCostKoboSnapshot Int?
+
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([productionOrderId, productId])
+  @@index([productId])
+}
+
+/// Outbound purchase order sent to a supplier.
+/// Lifecycle: DRAFT → SENT → ORDERED → PARTIALLY_RECEIVED → RECEIVED
+///            (or → CANCELLED from any state).
+model PurchaseOrder {
+  id         String    @id @default(cuid())
+  userId     String
+  supplierId String
+  /// Human-readable e.g. "PO-00042".
+  poNumber   String    @unique
+  /// "DRAFT" | "SENT" | "ORDERED" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED"
+  status     String    @default("DRAFT")
+  expectedAt DateTime?
+  receivedAt DateTime?
+  totalKobo  Int       @default(0)
+  notes      String?
+  pdfUrl     String?
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  supplier Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items    PurchaseOrderItem[]
+
+  @@index([userId, status, createdAt])
+  @@index([userId, supplierId])
+  @@index([userId, expectedAt])
+  @@index([userId, deletedAt])
+}
+
+/// One material line in a PurchaseOrder.
+model PurchaseOrderItem {
+  id               String @id @default(cuid())
+  purchaseOrderId  String
+  materialId       String
+  quantity         Int
+  /// How many units have been received so far (drives partial-receipt flow).
+  quantityReceived Int    @default(0)
+  unitCostKobo     Int    @default(0)
+  totalKobo        Int    @default(0)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  material      RawMaterial   @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@unique([purchaseOrderId, materialId])
+  @@index([materialId])
+}
+
+/// Unified ledger of every stock change for both Products and RawMaterials.
+/// Polymorphic via (itemType, itemId). Append-only — never updated.
+/// `balanceAfter` is a denormalised snapshot of the item's stock at the
+/// time of this movement, written by the inventory service for fast audit
+/// queries. Use this table to reconstruct stock history for any item.
+model StockMovement {
+  id           String   @id @default(cuid())
+  userId       String
+  /// "PRODUCT" | "MATERIAL"
+  itemType     String
+  itemId       String
+  /// Movement reason. One of:
+  /// "PURCHASE_RECEIVE" | "PRODUCTION_CONSUME" | "PRODUCTION_PRODUCE" |
+  /// "SALE" | "ADJUSTMENT" | "WRITE_OFF" | "RETURN"
+  reason       String
+  /// Positive for stock in, negative for stock out.
+  delta        Int
+  /// The item's new stock level after this movement was applied.
+  balanceAfter Int
+  /// Loose pointer to the source doc that caused this movement.
+  /// e.g. refType="PURCHASE_ORDER" + refId=<PurchaseOrder.id>.
+  refType      String?
+  refId        String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, itemType, itemId, createdAt])
+  @@index([userId, reason, createdAt])
+  @@index([userId, refType, refId])
 }

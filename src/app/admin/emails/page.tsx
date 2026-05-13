@@ -69,19 +69,17 @@ export default async function AdminEmailsPage() {
     take: 20,
   });
 
-  // Get lease reminders sent
-  const recentReminders = await prisma.leaseReminder.findMany({
-    select: {
-      id: true,
-      kind: true,
-      sentAt: true,
-      channel: true,
-      user: { select: { name: true, email: true } },
-      tenant: { select: { name: true } },
-    },
-    orderBy: { sentAt: 'desc' },
-    take: 15,
-  });
+  // Landlord vertical was removed during the small-batch ops pivot —
+  // LeaseReminder no longer exists. The "Recent reminders" panel below
+  // is kept as an empty placeholder so the admin layout doesn't shift.
+  const recentReminders: Array<{
+    id: string;
+    kind: string;
+    sentAt: Date;
+    channel: string;
+    user: { name: string | null; email: string };
+    tenant: { name: string };
+  }> = [];
 
   // Stats
   const totalUsersWithEmail = await prisma.user.count();

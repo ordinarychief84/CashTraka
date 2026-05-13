@@ -192,4 +192,235 @@ export const inventoryService = {
     ]);
     return { rows, total };
   },
+
+  /**
+   * Products at or below their lowStockAt threshold (not archived, tracking on).
+   * Used by the dashboard "Low Stock Products" view and reports.
+   */
+  async computeLowStockProducts(userId: string) {
+    const candidates = await prisma.product.findMany({
+      where: { userId, archived: false, trackStock: true },
+      orderBy: [{ stock: 'asc' }, { name: 'asc' }],
+    });
+    return candidates.filter((p) => p.stock <= p.lowStockAt);
+  },
+
+  /**
+   * Per-batch material cost for a recipe in kobo. Returns the cost to
+   * produce one yieldQty batch (i.e. recipe.yieldQty units of product).
+   */
+  async computeRecipeBatchCostKobo(userId: string, productId: string): Promise<number> {
+    const recipe = await prisma.recipe.findUnique({
+      where: { productId },
+      include: { items: { include: { material: true } } },
+    });
+    if (!recipe || recipe.userId !== userId || recipe.deletedAt) return 0;
+    return recipe.items.reduce(
+      (sum, item) => sum + item.quantity * (item.material.unitCostKobo ?? 0),
+      0,
+    );
+  },
+
+  /**
+   * Per-unit material cost for one finished product in kobo.
+   * recipe.yieldQty is normalised to at least 1.
+   */
+  async computeRecipeUnitCostKobo(userId: string, productId: string): Promise<number> {
+    const recipe = await prisma.recipe.findUnique({
+      where: { productId },
+      include: { items: { include: { material: true } } },
+    });
+    if (!recipe || recipe.userId !== userId || recipe.deletedAt) return 0;
+    const batchCost = recipe.items.reduce(
+      (sum, item) => sum + item.quantity * (item.material.unitCostKobo ?? 0),
+      0,
+    );
+    const yieldQty = Math.max(1, recipe.yieldQty);
+    return Math.round(batchCost / yieldQty);
+  },
+
+  /**
+   * Total material cost for a production order's planned output in kobo.
+   * Sums (recipeUnitCost × productionOrderItem.quantity) across all items.
+   */
+  async computeProductionOrderCostKobo(
+    userId: string,
+    productionOrderId: string,
+  ): Promise<number> {
+    const order = await prisma.productionOrder.findUnique({
+      where: { id: productionOrderId },
+      include: { items: true },
+    });
+    if (!order || order.userId !== userId) return 0;
+    let total = 0;
+    for (const item of order.items) {
+      const unitCost = await this.computeRecipeUnitCostKobo(userId, item.productId);
+      total += unitCost * item.quantity;
+    }
+    return total;
+  },
+
+  /**
+   * Raw materials whose expiresAt falls within `daysAhead` from now.
+   * Excludes soft-deleted materials and materials without an expiresAt.
+   */
+  async computeExpiringMaterials(userId: string, daysAhead = 14) {
+    const horizon = new Date(Date.now() + daysAhead * 24 * 60 * 60 * 1000);
+    return prisma.rawMaterial.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        expiresAt: { not: null, lte: horizon },
+      },
+      include: { supplier: { select: { id: true, name: true, phone: true } } },
+      orderBy: { expiresAt: 'asc' },
+    });
+  },
+
+  /**
+   * Compute material shortages across all *active* production orders.
+   * For each (production-order, recipe-item) pair we need
+   *   required = recipeItem.quantity × poItem.quantity / recipe.yieldQty
+   * Then we aggregate per material and compare against current stock.
+   *
+   * Returns one row per material that is short, with the contributing
+   * production orders so the UI can show "needed for PRD-001, PRD-003".
+   */
+  async computeShortages(userId: string) {
+    type ShortageRow = {
+      materialId: string;
+      materialName: string;
+      unit: string;
+      required: number;
+      onHand: number;
+      shortBy: number;
+      productionOrderIds: string[];
+      productionNumbers: string[];
+    };
+
+    const activeOrders = await prisma.productionOrder.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        status: { in: ['PLANNED', 'MATERIALS_NEEDED', 'IN_PRODUCTION'] },
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                recipe: {
+                  include: { items: { include: { material: true } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const byMaterial = new Map<string, ShortageRow>();
+    for (const order of activeOrders) {
+      for (const item of order.items) {
+        const recipe = item.product.recipe;
+        if (!recipe || recipe.deletedAt) continue;
+        const yieldQty = Math.max(1, recipe.yieldQty);
+        for (const ri of recipe.items) {
+          // Round up so we never under-purchase.
+          const required = Math.ceil((ri.quantity * item.quantity) / yieldQty);
+          const existing = byMaterial.get(ri.materialId) ?? {
+            materialId: ri.materialId,
+            materialName: ri.material.name,
+            unit: ri.material.unit,
+            required: 0,
+            onHand: ri.material.stock,
+            shortBy: 0,
+            productionOrderIds: [],
+            productionNumbers: [],
+          };
+          existing.required += required;
+          if (!existing.productionOrderIds.includes(order.id)) {
+            existing.productionOrderIds.push(order.id);
+            existing.productionNumbers.push(order.productionNumber);
+          }
+          byMaterial.set(ri.materialId, existing);
+        }
+      }
+    }
+
+    const shortages: ShortageRow[] = [];
+    for (const row of byMaterial.values()) {
+      row.shortBy = Math.max(0, row.required - row.onHand);
+      if (row.shortBy > 0) shortages.push(row);
+    }
+    shortages.sort((a, b) => b.shortBy - a.shortBy);
+    return shortages;
+  },
+
+  /**
+   * Same shape as `computeShortages` but scoped to a single production
+   * order — used by the order detail page and the /shortages route.
+   */
+  async computeShortagesForOrder(userId: string, productionOrderId: string) {
+    const order = await prisma.productionOrder.findUnique({
+      where: { id: productionOrderId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                recipe: {
+                  include: { items: { include: { material: true } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!order || order.userId !== userId) {
+      throw Err.notFound('Production order not found');
+    }
+
+    const rows: {
+      materialId: string;
+      materialName: string;
+      unit: string;
+      required: number;
+      onHand: number;
+      shortBy: number;
+    }[] = [];
+
+    const byMaterial = new Map<string, { required: number; onHand: number; name: string; unit: string }>();
+
+    for (const item of order.items) {
+      const recipe = item.product.recipe;
+      if (!recipe || recipe.deletedAt) continue;
+      const yieldQty = Math.max(1, recipe.yieldQty);
+      for (const ri of recipe.items) {
+        const required = Math.ceil((ri.quantity * item.quantity) / yieldQty);
+        const existing = byMaterial.get(ri.materialId) ?? {
+          required: 0,
+          onHand: ri.material.stock,
+          name: ri.material.name,
+          unit: ri.material.unit,
+        };
+        existing.required += required;
+        byMaterial.set(ri.materialId, existing);
+      }
+    }
+
+    for (const [materialId, row] of byMaterial.entries()) {
+      const shortBy = Math.max(0, row.required - row.onHand);
+      rows.push({
+        materialId,
+        materialName: row.name,
+        unit: row.unit,
+        required: row.required,
+        onHand: row.onHand,
+        shortBy,
+      });
+    }
+    return rows.sort((a, b) => b.shortBy - a.shortBy);
+  },
 };

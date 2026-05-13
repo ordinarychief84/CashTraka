@@ -2,7 +2,12 @@ import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 
 type Props = {
-  title: string;
+  /**
+   * Renders the page's `<h1>`. Pass empty/omit when the page already
+   * owns its own H1 inside `children` (e.g. the Contact page, where the
+   * headline varies by topic) so we don't ship two H1s and confuse SEO.
+   */
+  title?: string;
   updated?: string;
   intro?: string;
   children: React.ReactNode;
@@ -29,7 +34,9 @@ export function LegalLayout({ title, updated, intro, children }: Props) {
       <Navbar />
       <main className="container-app py-12 md:py-16">
         <div className="mx-auto max-w-2xl">
-          <h1 className="text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
+          {title ? (
+            <h1 className="text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
+          ) : null}
           {updated && (
             <p className="mt-2 text-sm text-slate-500">Effective date: {updated}</p>
           )}

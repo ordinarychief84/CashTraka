@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     siteName: 'CashTraka',
     type: 'website',
     images: [
-      { url: 'https://www.cashtraka.co/og-image.png', width: 1200, height: 630 },
+      { url: 'https://www.cashtraka.co/icon-512.png', width: 1200, height: 630 },
     ],
   },
   twitter: {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     title: 'CashTraka | Production Planning for Small Batch Businesses',
     description:
       'Plan production, track materials, and avoid costly shortages. Built for small factories, skincare, food, fashion, furniture, agro-processing, and printing.',
-    images: ['https://www.cashtraka.co/og-image.png'],
+    images: ['https://www.cashtraka.co/icon-512.png'],
   },
 };
 

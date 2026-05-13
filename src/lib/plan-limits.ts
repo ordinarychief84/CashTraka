@@ -27,6 +27,9 @@ export type PlanName =
   | 'tax_plus_quarterly'
   | 'tax_plus_biannually'
   | 'tax_plus_yearly'
+  // Operational planning pivot — monthly tiers
+  | 'pro_monthly'
+  | 'business_monthly'
   // Legacy keys, kept for existing DB rows
   | 'business'
   | 'business_plus';
@@ -217,6 +220,28 @@ const TAX_PLUS: Limits = {
   multiUserAudit: true,
 };
 
+/**
+ * Pro — small-batch operational planning. Unlocks production planning,
+ * shortage alerts, recipes, purchase orders, and PDF invoices/receipts.
+ * Inherits the Starter feature set then layers paid ops features.
+ */
+const PRO_MONTHLY: Limits = {
+  ...STARTER,
+};
+
+/**
+ * Business — Pro plus team access, advanced reports, barcode scanning,
+ * priority support. Higher caps across the board.
+ */
+const BUSINESS_MONTHLY: Limits = {
+  ...PRO_MONTHLY,
+  customers: null,
+  templates: null,
+  teamMembers: null,
+  customBranding: true,
+  prioritySupport: true,
+};
+
 const PLAN_LIMITS: Record<PlanName, Limits> = {
   free: FREE,
   starter_quarterly: STARTER,
@@ -225,6 +250,8 @@ const PLAN_LIMITS: Record<PlanName, Limits> = {
   tax_plus_quarterly: TAX_PLUS,
   tax_plus_biannually: TAX_PLUS,
   tax_plus_yearly: TAX_PLUS,
+  pro_monthly: PRO_MONTHLY,
+  business_monthly: BUSINESS_MONTHLY,
   // Legacy plans, kept for existing DB rows
   business: BUSINESS,
   business_plus: BUSINESS_PLUS,
@@ -242,6 +269,8 @@ export const PLAN_LABELS: Record<PlanName, string> = {
   tax_plus_quarterly: 'Tax+ (Quarterly)',
   tax_plus_biannually: 'Tax+ (Biannual)',
   tax_plus_yearly: 'Tax+ (Yearly)',
+  pro_monthly: 'Pro',
+  business_monthly: 'Business',
   // Legacy
   business: 'Business',
   business_plus: 'Business Plus',

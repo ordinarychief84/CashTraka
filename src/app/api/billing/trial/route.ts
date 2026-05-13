@@ -11,6 +11,11 @@ const schema = z.object({
     'starter_quarterly',
     'starter_biannually',
     'starter_yearly',
+    // Operational planning monthly tiers
+    'pro_monthly',
+    'business_monthly',
+    // Marketing aliases
+    'pro',
     // Legacy keys
     'business',
     'business_plus',

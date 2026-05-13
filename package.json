@@ -12,6 +12,7 @@
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
+    "users:cleanup": "tsx scripts/cleanup-users.ts",
     "icons": "node scripts/generate-icons.mjs",
     "migrate:prod": "node scripts/post-deploy-migrate.mjs"
   },

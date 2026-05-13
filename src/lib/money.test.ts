@@ -1,30 +1,17 @@
 /**
- * Tests for the canonical money utilities.
- *
- * Written in vitest's `describe / it / expect` style. The repo does not
- * yet have a test runner wired in (no `vitest` or `jest` in deps), so
- * these don't execute in CI yet — they document the intended behaviour
- * and run as soon as Phase 6 of the kobo migration plan adds vitest.
- *
- * Until then, treat this file as executable spec: when changing
- * `money.ts`, mentally walk each case below and confirm the new
- * behaviour still matches.
+ * Tests for the canonical money utilities. Money math has to be exact:
+ * every invoice total, receipt amount, refund, and report depends on
+ * `nairaToKobo` / `koboToNaira` / `formatKobo` / `safeMoneyInputToKobo`
+ * being correct, including at the rounding and overflow boundaries.
  */
 
+import { describe, it, expect } from 'vitest';
 import {
   nairaToKobo,
   koboToNaira,
   formatKobo,
   safeMoneyInputToKobo,
 } from './money';
-
-declare const describe: (name: string, fn: () => void) => void;
-declare const it: (name: string, fn: () => void) => void;
-declare const expect: (actual: unknown) => {
-  toBe: (expected: unknown) => void;
-  toBeNull: () => void;
-  toThrow: () => void;
-};
 
 describe('nairaToKobo', () => {
   it('converts whole naira to kobo', () => {

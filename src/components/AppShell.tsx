@@ -32,6 +32,7 @@ import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
 import { UpgradeBanner } from './UpgradeBanner';
 import { SideLink } from './SideLink';
+import { NotificationsBell } from './NotificationsBell';
 import { can, type AccessRole, ROLE_LABELS } from '@/lib/rbac';
 
 type Props = {
@@ -187,8 +188,13 @@ export function AppShell({
       </aside>
 
       <header className="sticky top-0 z-20 hidden h-14 border-b border-border bg-white/90 backdrop-blur md:block md:pl-56">
-        <div className="flex h-full items-center px-6">
-          <GlobalSearch />
+        <div className="flex h-full items-center justify-between px-6">
+          <div className="min-w-0 flex-1">
+            <GlobalSearch />
+          </div>
+          <div className="ml-3 flex shrink-0 items-center">
+            <NotificationsBell />
+          </div>
         </div>
       </header>
 
@@ -198,6 +204,7 @@ export function AppShell({
             <Logo size="sm" />
           </Link>
           <div className="flex items-center gap-1">
+            <NotificationsBell />
             {show.settings && (
               <Link
                 href="/settings"

@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 import bcrypt from 'bcryptjs';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { prisma } from './prisma';
 import { Err } from './errors';
 import { ROLES } from './constants/roles';
@@ -227,16 +227,37 @@ export type AuthContext = {
   impersonation: ImpersonationContext | null;
 };
 
+/**
+ * Read the session JWT from the request. Web sessions live in the
+ * `cashtraka_session` httpOnly cookie. The mobile React Native client
+ * (which can't read httpOnly cookies) sends the same JWT in an
+ * `Authorization: Bearer <token>` header instead. Cookie wins when both
+ * are present so admin tabs that include the header by mistake don't
+ * downgrade their session kind.
+ */
+function readSessionFromRequest(): string | null {
+  const cookieToken = cookies().get(SESSION_COOKIE)?.value;
+  if (cookieToken) return cookieToken;
+  const auth = headers().get('authorization') || headers().get('Authorization');
+  if (!auth) return null;
+  const m = auth.match(/^Bearer\s+(.+)$/i);
+  return m ? m[1].trim() : null;
+}
+
 /** Resolve the current AuthContext from the session cookie, or null. */
 export async function getAuthContext(): Promise<AuthContext | null> {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = readSessionFromRequest();
   if (!token) return null;
   const payload = await verifySession(token);
   if (!payload) return null;
 
   if (payload.kind === 'owner') {
     const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
-    if (!owner) return null;
+    // Refuse soft-deleted users even if the session JWT is still
+    // valid — the cleanup script flips `deletedAt` without clearing
+    // sessions, so without this any leftover cookie would still
+    // resolve to a "live" auth context.
+    if (!owner || owner.deletedAt) return null;
     return {
       owner,
       staff: null,
@@ -256,7 +277,11 @@ export async function getAuthContext(): Promise<AuthContext | null> {
     const admin = await resolveImpersonatingAdmin(payload.imp);
     if (!admin) return null;
     const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
-    if (!owner) return null;
+    // Mid-impersonation suspension or deletion of the target user must
+    // immediately invalidate the impersonation session — otherwise the
+    // banner keeps showing and partial reads of the target's data
+    // succeed via `getAuthContext()`.
+    if (!owner || owner.deletedAt || owner.isSuspended) return null;
     return {
       owner,
       staff: null,
@@ -277,7 +302,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   if (!staff || staff.status !== 'active') return null;
   if (staff.accessRole === 'NONE' || !staff.passwordHash) return null;
   const owner = await prisma.user.findUnique({ where: { id: staff.userId } });
-  if (!owner || owner.isSuspended) return null; // block staff if owner is suspended
+  // Block staff when the owner tenant is suspended OR soft-deleted.
+  if (!owner || owner.isSuspended || owner.deletedAt) return null;
   return {
     owner,
     staff,
@@ -391,7 +417,7 @@ export function requireBusinessAccess(
  * or null if the session is not an admin_staff session.
  */
 export async function getAdminStaffFromSession() {
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = readSessionFromRequest();
   if (!token) return null;
   const payload = await verifySession(token);
   if (!payload || payload.kind !== 'admin_staff') return null;
@@ -420,12 +446,14 @@ export async function requireAdminOrStaff() {
     };
   }
   // Second try: is this a regular admin (User.role === ADMIN)?
-  const token = cookies().get(SESSION_COOKIE)?.value;
+  const token = readSessionFromRequest();
   if (!token) throw Err.unauthorized();
   const payload = await verifySession(token);
   if (!payload || payload.kind !== 'owner') throw Err.unauthorized();
   const owner = await prisma.user.findUnique({ where: { id: payload.sub } });
-  if (!owner || owner.role !== ROLES.ADMIN) throw Err.forbidden('Admin access required.');
+  if (!owner || owner.deletedAt || owner.role !== ROLES.ADMIN) {
+    throw Err.forbidden('Admin access required.');
+  }
   return {
     kind: 'super_admin' as const,
     id: owner.id,

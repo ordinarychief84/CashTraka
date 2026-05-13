@@ -63,6 +63,11 @@ export async function apiFetch<T>(path: string, opts: FetchOpts = {}): Promise<T
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    // Marks the request as coming from the React Native mobile client.
+    // The web `/api/auth/login` route reads this and includes a `token`
+    // field in its response so we can store the JWT in secure storage
+    // (mobile can't read httpOnly cookies). Every other route ignores it.
+    'x-client': 'mobile',
     ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
     ...extraHeaders,
   };

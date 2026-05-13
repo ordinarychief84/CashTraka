@@ -98,18 +98,32 @@ class NoopFIRSAdapter implements FIRSInvoiceAdapter {
   }
 }
 
-function selectAdapter(): FIRSInvoiceAdapter {
-  // When implementing the real adapter, gate on env presence:
-  //   if (process.env.FIRS_API_BASE_URL && process.env.FIRS_API_KEY) {
-  //     return new RealFIRSAdapter({
-  //       baseUrl: process.env.FIRS_API_BASE_URL!,
-  //       apiKey:  process.env.FIRS_API_KEY!,
-  //     });
-  //   }
+/**
+ * Resolve the active FIRS adapter at call time. Two gates must pass for
+ * the real adapter to be used:
+ *   1. `FIRS_API_BASE_URL` and `FIRS_API_KEY` env vars present.
+ *   2. The `feature.firs_real_adapter` flag is enabled in SystemSetting
+ *      (toggleable from /admin/feature-flags without a redeploy).
+ *
+ * Either check failing falls back to NoopFIRSAdapter so submissions
+ * succeed locally during development and never accidentally hit the
+ * real FIRS API. Called per-submission rather than once at module load
+ * so the flag is honored on the very next request after a toggle.
+ */
+async function getAdapter(): Promise<FIRSInvoiceAdapter> {
+  if (!process.env.FIRS_API_BASE_URL || !process.env.FIRS_API_KEY) {
+    return new NoopFIRSAdapter();
+  }
+  const { isFeatureEnabled } = await import('@/lib/feature-flags');
+  const realEnabled = await isFeatureEnabled('feature.firs_real_adapter');
+  if (!realEnabled) return new NoopFIRSAdapter();
+  // When implementing the real adapter, return it here:
+  //   return new RealFIRSAdapter({
+  //     baseUrl: process.env.FIRS_API_BASE_URL!,
+  //     apiKey:  process.env.FIRS_API_KEY!,
+  //   });
   return new NoopFIRSAdapter();
 }
-
-const adapter = selectAdapter();
 
 /**
  * Validate that an invoice has the minimum required fields for a FIRS-compliant
@@ -175,9 +189,11 @@ function buildPayload(
 }
 
 export const firsInvoiceService = {
-  adapter,
+  /** Exposed for tests + admin tools. Resolved at call time. */
+  getAdapter,
 
   async submitInvoice(userId: string, invoiceId: string) {
+    const adapter = await getAdapter();
     const invoice = await loadInvoice(userId, invoiceId);
 
     const ready = validateFirsReadiness({
@@ -233,6 +249,7 @@ export const firsInvoiceService = {
         error: 'Invoice has not been submitted to FIRS yet.',
       };
     }
+    const adapter = await getAdapter();
     const result = await adapter.checkInvoiceStatus(invoice.firsTransmissionRef);
     const update: Record<string, unknown> = { firsStatus: result.status };
     if (result.status === 'ACCEPTED' && !invoice.firsAcceptedAt) {
@@ -247,6 +264,16 @@ export const firsInvoiceService = {
 
   async retrySubmission(userId: string, invoiceId: string) {
     const invoice = await loadInvoice(userId, invoiceId);
+    // Tax-compliance guard: refuse to retry an already-ACCEPTED submission.
+    // A real adapter would allocate a fresh IRN on each call and create a
+    // duplicate tax invoice in FIRS' system — a Nigerian compliance
+    // violation. Only `FAILED`, `RETRYING`, `PENDING`, or unsubmitted
+    // invoices are retryable.
+    if (invoice.firsStatus === 'ACCEPTED' || invoice.firsStatus === 'SUBMITTED') {
+      throw new Error(
+        `Invoice ${invoice.invoiceNumber} is already ${invoice.firsStatus}. Refusing to resubmit.`,
+      );
+    }
     await prisma.invoice.update({
       where: { id: invoice.id },
       data: { firsRetryCount: { increment: 1 }, firsStatus: 'RETRYING' },

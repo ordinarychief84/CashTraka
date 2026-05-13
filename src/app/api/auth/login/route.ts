@@ -3,12 +3,38 @@ import {
   setOwnerSession,
   setStaffSession,
   setAdminStaffSession,
+  signSessionToken,
   verifyPassword,
 } from '@/lib/auth';
+import { SignJWT } from 'jose';
 import { loginSchema } from '@/lib/validators';
 import { ok, fail, unauthorized, forbidden, validationFail } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { securityLog } from '@/lib/security-log';
+
+/**
+ * Mint a session JWT for non-browser clients (the React Native mobile
+ * app) that can't read the httpOnly cookie set by `setOwnerSession()`
+ * etc. The mobile client opts in by sending `x-client: mobile`; web
+ * clients keep the cookie-only flow they had before.
+ */
+async function signTokenForMobile(
+  kind: 'owner' | 'staff' | 'admin_staff',
+  sub: string,
+): Promise<string> {
+  if (kind === 'owner') return signSessionToken(sub);
+  const secret = new TextEncoder().encode(process.env.AUTH_SECRET || '');
+  return new SignJWT({ kind, sub })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime(`${60 * 60 * 24 * 7}s`)
+    .sign(secret);
+}
+
+function isMobileClient(req: Request): boolean {
+  const h = req.headers.get('x-client') || req.headers.get('X-Client');
+  return (h || '').toLowerCase() === 'mobile';
+}
 
 /**
  * Unified login.
@@ -64,12 +90,16 @@ export async function POST(req: Request) {
       await prisma.user.update({ where: { id: owner.id }, data: { lastLoginAt: new Date() } });
       await setOwnerSession(owner.id);
       securityLog({ event: 'LOGIN_SUCCESS', actorId: owner.id, ip, meta: { kind: 'owner' } });
+      const tokenForMobile = isMobileClient(req)
+        ? await signTokenForMobile('owner', owner.id)
+        : undefined;
       return ok({
         kind: 'owner',
         id: owner.id,
         email: owner.email,
         role: owner.role,
         businessType: owner.businessType,
+        ...(tokenForMobile ? { token: tokenForMobile } : {}),
       });
     }
 
@@ -102,12 +132,16 @@ export async function POST(req: Request) {
       });
       await setStaffSession(staff.id);
       securityLog({ event: 'LOGIN_SUCCESS', actorId: staff.id, targetId: staff.userId, ip, meta: { kind: 'staff' } });
+      const tokenForMobile = isMobileClient(req)
+        ? await signTokenForMobile('staff', staff.id)
+        : undefined;
       return ok({
         kind: 'staff',
         id: staff.id,
         email: staff.email,
         accessRole: staff.accessRole,
         businessType: ownerAcct.businessType,
+        ...(tokenForMobile ? { token: tokenForMobile } : {}),
       });
     }
 
@@ -126,12 +160,16 @@ export async function POST(req: Request) {
         data: { lastLoginAt: new Date() },
       });
       await setAdminStaffSession(adminStaff.id);
+      const tokenForMobile = isMobileClient(req)
+        ? await signTokenForMobile('admin_staff', adminStaff.id)
+        : undefined;
       return ok({
         kind: 'admin_staff',
         id: adminStaff.id,
         email: adminStaff.email,
         adminRole: adminStaff.adminRole,
         redirectTo: '/admin/dashboard',
+        ...(tokenForMobile ? { token: tokenForMobile } : {}),
       });
     }
 

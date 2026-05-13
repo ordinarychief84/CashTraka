@@ -63,14 +63,32 @@ type InitTxResponse = {
 export const paystackService = {
   /**
    * Initialize a hosted checkout. Returns an authorization_url we redirect to.
+   *
+   * Two gates protect real card charges:
+   *   1. `PAYSTACK_SECRET_KEY` must be set.
+   *   2. When the key is `sk_live_*`, the `feature.paystack_live` flag
+   *      must be ON in SystemSetting. Operators toggle the flag from
+   *      /admin/feature-flags to enable real money flow without a redeploy.
+   *      With a `sk_test_*` key the flag is ignored — sandbox always works.
    */
-  initTransaction(args: {
+  async initTransaction(args: {
     email: string;
     amountKobo: number;
     reference: string;
     callbackUrl: string;
     metadata?: Record<string, unknown>;
   }): Promise<PaystackResult<InitTxResponse>> {
+    const key = secret();
+    if (key && key.startsWith('sk_live_')) {
+      const { isFeatureEnabled } = await import('@/lib/feature-flags');
+      const liveOn = await isFeatureEnabled('feature.paystack_live');
+      if (!liveOn) {
+        return {
+          ok: false,
+          error: 'Live Paystack is currently disabled by the platform operator. Try again later.',
+        };
+      }
+    }
     return request<InitTxResponse>('/transaction/initialize', {
       method: 'POST',
       body: JSON.stringify({

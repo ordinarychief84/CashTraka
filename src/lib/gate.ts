@@ -126,32 +126,11 @@ export async function enforceQuota(
       }
       return null;
     }
-    case 'create_property': {
-      if (limits.properties === null) return null;
-      const count = await prisma.property.count({ where: { userId: user.id } });
-      if (count >= limits.properties) {
-        return denyQuota(
-          user,
-          `Your plan is capped at ${limits.properties} ${
-            limits.properties === 1 ? 'property' : 'properties'
-          }. Upgrade to manage more.`,
-        );
-      }
+    case 'create_property':
+    case 'create_tenant':
+      // Landlord vertical removed — these gate actions no longer exist
+      // but the case labels stay so any in-flight callers compile.
       return null;
-    }
-    case 'create_tenant': {
-      if (limits.tenants === null) return null;
-      const count = await prisma.tenant.count({
-        where: { userId: user.id, status: 'active' },
-      });
-      if (count >= limits.tenants) {
-        return denyQuota(
-          user,
-          `Your plan is capped at ${limits.tenants} active tenants. Upgrade to add more.`,
-        );
-      }
-      return null;
-    }
     case 'create_staff': {
       if (limits.teamMembers === null) return null;
       const count = await prisma.staffMember.count({

@@ -178,48 +178,6 @@ async function generateCsv(userId: string, kind: string, from?: string, to?: str
         ]),
       ]);
     }
-    case 'tenants': {
-      const rows = await prisma.tenant.findMany({
-        where: { userId, ...dateRangeFilter(from, to, 'createdAt') },
-        include: { property: { select: { name: true } } },
-        orderBy: { name: 'asc' },
-      });
-      return toCsv([
-        ['Name', 'Phone', 'Property', 'Unit', 'Monthly Rent', 'Due Day', 'Frequency', 'Status', 'Lease Start', 'Lease End'],
-        ...rows.map((r) => [
-          r.name, r.phone, r.property.name, r.unitLabel || '', r.rentAmount, r.rentDueDay,
-          r.rentFrequency, r.status, r.leaseStart ? isoDate(r.leaseStart) : '', r.leaseEnd ? isoDate(r.leaseEnd) : '',
-        ]),
-      ]);
-    }
-    case 'properties': {
-      const rows = await prisma.property.findMany({
-        where: { userId },
-        include: { tenants: { where: { status: 'active' }, select: { id: true, rentAmount: true } } },
-        orderBy: { name: 'asc' },
-      });
-      return toCsv([
-        ['Name', 'Address', 'Units', 'Active Tenants', 'Monthly Expected Rent', 'Note'],
-        ...rows.map((r) => [
-          r.name, r.address || '', r.unitCount, r.tenants.length,
-          r.tenants.reduce((s, t) => s + t.rentAmount, 0), r.note || '',
-        ]),
-      ]);
-    }
-    case 'rent-payments': {
-      const rows = await prisma.rentPayment.findMany({
-        where: { userId, ...dateRangeFilter(from, to, 'paidAt') },
-        include: { tenant: { select: { name: true, property: { select: { name: true } } } } },
-        orderBy: { paidAt: 'asc' },
-      });
-      return toCsv([
-        ['Date', 'Tenant', 'Property', 'Amount', 'Method', 'Period', 'Note'],
-        ...rows.map((r) => [
-          isoDate(r.paidAt), r.tenant.name, r.tenant.property.name,
-          r.amount, r.method || '', r.periodLabel || '', r.note || '',
-        ]),
-      ]);
-    }
     default:
       return '';
   }

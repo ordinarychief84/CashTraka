@@ -54,20 +54,8 @@ export default async function SearchPage({ searchParams }: { searchParams: { q?:
           orderBy: { lastActivityAt: 'desc' },
           take: 20,
         }),
-    isPm
-      ? prisma.tenant.findMany({
-          where: {
-            userId: user.id,
-            OR: [
-              { name: { contains: q } },
-              ...(digits ? [{ phone: { contains: digits } }] : []),
-            ],
-          },
-          include: { property: { select: { name: true } } },
-          orderBy: { updatedAt: 'desc' },
-          take: 20,
-        })
-      : Promise.resolve([] as any[]),
+    // Landlord vertical removed — tenant search no longer applies.
+    Promise.resolve([] as any[]),
     prisma.payment.findMany({
       where: {
         userId: user.id,

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
-import { BUSINESS_TYPES, type BusinessType } from '@/lib/business-type';
+import { type BusinessType } from '@/lib/business-type';
 import { cn } from '@/lib/utils';
 
 type Mode = 'login' | 'signup';
@@ -13,17 +13,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = params.get('next') || '/dashboard';
-  const initialType =
-    (params.get('type') as BusinessType) ||
-    (params.get('ic') as BusinessType) ||
-    'seller';
+  // Landlord vertical removed — businessType is always 'seller'. The
+  // ?type= / ?ic= params are accepted but ignored.
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [businessType, setBusinessType] = useState<BusinessType>(
-    initialType === 'property_manager' ? 'property_manager' : 'seller',
-  );
+  const [businessType, setBusinessType] = useState<BusinessType>('seller');
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -94,48 +90,10 @@ export function AuthForm({ mode }: { mode: Mode }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === 'signup' && (
-        <>
-          <div>
-            <label className="label">Choose your solution</label>
-            <p className="mb-2 text-xs text-slate-500">
-              Pick the product that matches what you do. You can change it later.
-            </p>
-            <div className="grid grid-cols-1 gap-2">
-              {BUSINESS_TYPES.map((bt) => (
-                <button
-                  key={bt.value}
-                  type="button"
-                  onClick={() => setBusinessType(bt.value)}
-                  className={cn(
-                    'flex items-start gap-3 rounded-lg border p-3 text-left transition',
-                    businessType === bt.value
-                      ? 'border-brand-500 bg-brand-50/60 ring-1 ring-brand-500'
-                      : 'border-border bg-white hover:border-brand-300 hover:bg-brand-50/20',
-                  )}
-                >
-                  <span className="text-2xl leading-none">{bt.emoji}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-semibold text-ink">{bt.productName}</span>
-                    <span className="block text-xs text-slate-500">{bt.description}</span>
-                  </span>
-                  <span
-                    className={cn(
-                      'mt-1 h-4 w-4 shrink-0 rounded-full border-2',
-                      businessType === bt.value
-                        ? 'border-brand-500 bg-brand-500 ring-2 ring-brand-100'
-                        : 'border-slate-300',
-                    )}
-                    aria-hidden
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label htmlFor="name" className="label">Full name</label>
-            <input id="name" name="name" className="input" required placeholder="e.g. Ada Eze" />
-          </div>
-        </>
+        <div>
+          <label htmlFor="name" className="label">Full name</label>
+          <input id="name" name="name" className="input" required placeholder="e.g. Ada Eze" />
+        </div>
       )}
       <div>
         <label htmlFor="email" className="label">Email</label>

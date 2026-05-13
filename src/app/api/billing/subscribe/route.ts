@@ -13,8 +13,6 @@ const schema = z.object({
     // Legacy keys - still accepted for backwards compat
     'business',
     'business_plus',
-    'landlord',
-    'estate_manager',
   ]),
 });
 

@@ -14,8 +14,6 @@ const schema = z.object({
     // Legacy keys
     'business',
     'business_plus',
-    'landlord',
-    'estate_manager',
   ]),
 });
 

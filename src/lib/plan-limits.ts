@@ -29,9 +29,7 @@ export type PlanName =
   | 'tax_plus_yearly'
   // Legacy keys, kept for existing DB rows
   | 'business'
-  | 'business_plus'
-  | 'landlord'
-  | 'estate_manager';
+  | 'business_plus';
 
 export type SubscriptionStatus =
   | 'free'
@@ -198,24 +196,6 @@ const BUSINESS_PLUS: Limits = {
   maxReminderRules: null,
 };
 
-const LANDLORD: Limits = {
-  ...BUSINESS,
-  properties: null,
-  tenants: null,
-  products: false,
-  checklists: false,
-  suggestions: false,
-};
-
-const ESTATE_MANAGER: Limits = {
-  ...LANDLORD,
-  teamMembers: null,
-  checklists: true,
-  tasks: true,
-  customBranding: true,
-  prioritySupport: true,
-};
-
 /** Starter plan, full access to the core product. */
 const STARTER: Limits = {
   ...BUSINESS_PLUS,
@@ -248,8 +228,6 @@ const PLAN_LIMITS: Record<PlanName, Limits> = {
   // Legacy plans, kept for existing DB rows
   business: BUSINESS,
   business_plus: BUSINESS_PLUS,
-  landlord: LANDLORD,
-  estate_manager: ESTATE_MANAGER,
 };
 
 export function limitsFor(plan: string | null | undefined): Limits {
@@ -267,8 +245,6 @@ export const PLAN_LABELS: Record<PlanName, string> = {
   // Legacy
   business: 'Business',
   business_plus: 'Business Plus',
-  landlord: 'Landlord',
-  estate_manager: 'Estate Manager',
 };
 
 export function suggestUpgrade(plan: string, _businessType: string): PlanName {

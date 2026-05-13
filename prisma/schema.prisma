@@ -177,9 +177,6 @@ model User {
   fraudReports        FraudReport[]
   invoices            Invoice[]
   reminderSchedules   ReminderSchedule[]
-  properties          Property[]
-  tenants             Tenant[]
-  rentPayments        RentPayment[]
   customRoles         CustomRole[]
   staffMembers        StaffMember[]
   attendance          Attendance[]
@@ -193,7 +190,6 @@ model User {
   adminNotesReceived  AdminNote[]            @relation("AdminNoteTarget")
   paymentAttempts     PaymentAttempt[]
   passwordResetTokens PasswordResetToken[]
-  leaseReminders      LeaseReminder[]
   supportTickets      SupportTicket[]        @relation("UserTickets")
   assignedTickets     SupportTicket[]        @relation("AssignedTickets")
   ticketReplies       TicketReply[]
@@ -1003,100 +999,6 @@ model ReminderSchedule {
   debt Debt @relation(fields: [debtId], references: [id], onDelete: Cascade)
 
   @@index([userId, nextDueAt])
-}
-
-// ---------- PROPERTY MANAGEMENT ----------
-
-/// A property (building / compound) owned or managed by the user.
-model Property {
-  id        String   @id @default(cuid())
-  userId    String
-  name      String
-  address   String?
-  unitCount Int      @default(0)
-  note      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenants Tenant[]
-
-  @@index([userId])
-}
-
-/// A tenant occupying a unit in a Property.
-model Tenant {
-  id             String    @id @default(cuid())
-  userId         String
-  propertyId     String
-  name           String
-  phone          String
-  unitLabel      String?
-  /// Monthly rent in Naira.
-  rentAmount     Int
-  /// Kobo sibling — Phase 3 of the kobo migration.
-  rentAmountKobo Int       @default(0)
-  /// Day of month rent is due (1-28).
-  rentDueDay     Int       @default(1)
-  /// "monthly" | "quarterly" | "yearly"
-  rentFrequency  String    @default("monthly")
-  leaseStart     DateTime?
-  leaseEnd       DateTime?
-  /// "active" | "moved_out" | "evicted"
-  status         String    @default("active")
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  property       Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  rentPayments   RentPayment[]
-  leaseReminders LeaseReminder[]
-
-  @@index([userId, status])
-}
-
-/// Tracks each rent payment (or partial) for a tenant in a given period.
-model RentPayment {
-  id         String    @id @default(cuid())
-  userId     String
-  tenantId   String
-  amount     Int
-  /// Kobo sibling — Phase 3 of the kobo migration.
-  amountKobo Int       @default(0)
-  /// The calendar month this covers, e.g. "2026-04".
-  period     String
-  /// "PAID" | "PARTIAL" | "PENDING" | "OVERDUE"
-  status     String    @default("PENDING")
-  verified   Boolean   @default(false)
-  paidAt     DateTime?
-  note       String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@unique([tenantId, period])
-  @@index([userId, period])
-}
-
-/// Tracks lease-lifecycle reminders so the cron never double-sends.
-/// One row per (tenant x reminder type). Created lazily by the cron route.
-model LeaseReminder {
-  id       String   @id @default(cuid())
-  userId   String
-  tenantId String
-  /// "30_day_warning" | "expiry_day" | "post_expiry" | "notice_to_quit"
-  kind     String
-  sentAt   DateTime @default(now())
-  /// "email" | "whatsapp" | "both"
-  channel  String   @default("email")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@unique([tenantId, kind])
-  @@index([userId])
 }
 
 // ---------- TEAM, ATTENDANCE & PAYROLL ----------

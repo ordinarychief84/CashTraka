@@ -125,7 +125,7 @@ export default async function PromiseDetailPage({ params }: { params: { id: stri
                     <p className="text-sm text-slate-700">
                       {c.commitmentType === 'PAY_NOW' && 'Customer chose to pay now'}
                       {c.commitmentType === 'PAY_PART' && `Customer chose to pay ${formatNaira(c.committedAmount || 0)}`}
-                      {c.commitmentType === 'PAY_ON_DATE' && `Customer promised to pay on ${formatDate(c.promisedDate)}`}
+                      {c.commitmentType === 'PAY_ON_DATE' && c.promisedDate && `Customer promised to pay on ${formatDate(c.promisedDate)}`}
                     </p>
                     {c.message && <p className="text-xs text-slate-500 mt-0.5">"{c.message}"</p>}
                     <p className="text-xs text-slate-400">{formatDateTime(c.createdAt)}</p>

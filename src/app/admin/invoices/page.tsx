@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, FileText, AlertTriangle, CheckCircle2, Clock, FilePlus2, ShieldAlert } from 'lucide-react';
+import { Search, FileText, AlertTriangle, CheckCircle2, Clock, FilePlus2, ShieldAlert, type LucideIcon } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { prisma } from '@/lib/prisma';
@@ -290,7 +290,7 @@ export default async function AdminInvoicesPage({ searchParams }: { searchParams
 function StatCard({
   icon: Icon, label, value, color,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: string;
   color?: 'success' | 'danger' | 'brand';

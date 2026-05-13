@@ -390,7 +390,7 @@ export const PRICING_FAQS: { q: string; a: string }[] = [
 
 export const SOLUTIONS_PAGE = {
   metaTitle:
-    'Production Planning, Inventory, Orders, Invoices and Receipts | CashTraka',
+    'Production Planning, Inventory, Orders, Invoices and Receipts',
   metaDescription:
     'CashTraka brings customer orders, production planning, raw materials, inventory, purchase orders, invoices, and receipts into one simple operational system for small batch businesses.',
   h1: 'One system for orders, production, materials, inventory, invoices, and receipts.',
@@ -438,7 +438,7 @@ export const SOLUTIONS_PAGE = {
 
 export const INDUSTRIES_PAGE = {
   metaTitle:
-    'Production Planning Software for Skincare, Food, Fashion, Furniture and Small Factories | CashTraka',
+    'Production Planning Software for Skincare, Food, Fashion, Furniture and Small Factories',
   metaDescription:
     'CashTraka is built for small batch businesses that make, assemble, package, or process products — skincare, food, fashion, furniture, printing, agro-processing, and small factories.',
   h1: 'Built for small batch businesses that make, assemble, package, or process products.',

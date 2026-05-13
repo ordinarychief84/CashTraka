@@ -3,27 +3,23 @@
  * POST   /api/installments/[id], Cancel an installment plan.
  */
 
-import { NextResponse } from 'next/server';
-import { getAuthContext } from '@/lib/auth';
-import { handled } from '@/lib/api-response';
+import { requireAuth } from '@/lib/auth';
+import { handled, ok, fail } from '@/lib/api-response';
 import { installmentService } from '@/lib/services/installment.service';
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(_req: Request, ctx: Ctx) {
   return handled(async () => {
-    const auth = await getAuthContext();
+    const auth = await requireAuth();
     const { id } = await ctx.params;
 
-    const plan = await installmentService.getById(id, auth.userId);
+    const plan = await installmentService.getById(id, auth.owner.id);
     if (!plan) {
-      return NextResponse.json(
-        { success: false, error: 'Installment plan not found' },
-        { status: 404 },
-      );
+      return fail('Installment plan not found', 404);
     }
 
-    return NextResponse.json({ success: true, data: plan });
+    return ok(plan);
   });
 }
 
@@ -33,21 +29,17 @@ export async function GET(_req: Request, ctx: Ctx) {
  */
 export async function POST(req: Request, ctx: Ctx) {
   return handled(async () => {
-    const auth = await getAuthContext();
+    const auth = await requireAuth();
     const { id } = await ctx.params;
     const body = await req.json();
 
     if (body.action !== 'cancel') {
-      return NextResponse.json(
-        { success: false, error: 'Unknown action. Supported: "cancel"' },
-        { status: 400 },
-      );
+      return fail('Unknown action. Supported: "cancel"', 400);
     }
 
-    await installmentService.cancel(id, auth.userId);
+    await installmentService.cancel(id, auth.owner.id);
 
-    return NextResponse.json({
-      success: true,
+    return ok({
       message: 'Installment plan cancelled. No further charges will be made.',
     });
   });

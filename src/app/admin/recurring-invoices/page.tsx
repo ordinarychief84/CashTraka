@@ -1,4 +1,4 @@
-import { RefreshCw, Play, Pause, X, AlertTriangle, CalendarClock } from 'lucide-react';
+import { RefreshCw, Play, Pause, X, AlertTriangle, CalendarClock, type LucideIcon } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { AdminRecurringActions } from '@/components/admin/AdminRecurringActions';
@@ -124,7 +124,7 @@ export default async function AdminRecurringInvoicesPage() {
 function StatCard({
   icon: Icon, label, value, color,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: number;
   color?: 'success' | 'danger' | 'brand';

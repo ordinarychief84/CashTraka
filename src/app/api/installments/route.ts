@@ -3,10 +3,8 @@
  * POST /api/installments, Create a new installment plan.
  */
 
-import { NextResponse } from 'next/server';
-import { getAuthContext } from '@/lib/auth';
-import { handled } from '@/lib/api-response';
-import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/auth';
+import { handled, ok } from '@/lib/api-response';
 import { installmentService, type InstallmentInterval } from '@/lib/services/installment.service';
 import { z } from 'zod';
 
@@ -29,24 +27,24 @@ const createSchema = z.object({
 
 export async function GET() {
   return handled(async () => {
-    const auth = await getAuthContext();
-    const plans = await installmentService.listForUser(auth.userId);
-    return NextResponse.json({ success: true, data: plans });
+    const auth = await requireAuth();
+    const plans = await installmentService.listForUser(auth.owner.id);
+    return ok(plans);
   });
 }
 
 export async function POST(req: Request) {
   return handled(async () => {
-    const auth = await getAuthContext();
+    const auth = await requireAuth();
     const body = await req.json();
     const input = createSchema.parse(body);
 
     const plan = await installmentService.create({
-      userId: auth.userId,
+      userId: auth.owner.id,
       ...input,
       interval: input.interval as InstallmentInterval,
     });
 
-    return NextResponse.json({ success: true, data: plan }, { status: 201 });
+    return ok(plan, 201);
   });
 }

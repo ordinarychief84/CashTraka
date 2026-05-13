@@ -9,6 +9,7 @@ import {
   UserPlus,
   ArrowUpRight,
   ShieldAlert,
+  type LucideIcon,
 } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
@@ -332,7 +333,7 @@ function Stat({
   value,
   color,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: string;
   color?: 'brand' | 'danger';

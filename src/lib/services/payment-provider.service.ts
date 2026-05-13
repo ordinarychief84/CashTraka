@@ -52,8 +52,26 @@ export type ProviderResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: string; details?: unknown };
 
+export type ChargeAuthorizationArgs = {
+  /** Reusable authorization_code returned by an earlier successful charge. */
+  authorizationCode: string;
+  /** Email registered with the authorization (Paystack requires this). */
+  email: string;
+  /** Amount in naira. The adapter multiplies by 100 before calling the provider. */
+  amount: number;
+  /** Idempotency key — the same reference will not be charged twice. */
+  reference: string;
+  /** Pass-through metadata persisted on the provider side. */
+  metadata?: Record<string, unknown>;
+};
+
 /**
  * Every payment provider must implement this interface.
+ *
+ * `chargeAuthorization` is optional — only providers that support
+ * server-side off-session charges (e.g. Paystack with a stored
+ * authorization code, used by recurring invoices and installment
+ * plans) implement it. Call sites must check before invoking.
  */
 export interface PaymentProviderAdapter {
   readonly name: PaymentProvider;
@@ -61,6 +79,7 @@ export interface PaymentProviderAdapter {
   initTransaction(args: InitPaymentArgs): Promise<ProviderResult<InitPaymentResult>>;
   verifyTransaction(referenceOrId: string): Promise<ProviderResult<VerifyPaymentResult>>;
   verifyWebhookSignature(rawBody: string, headers: Record<string, string>): boolean;
+  chargeAuthorization?(args: ChargeAuthorizationArgs): Promise<ProviderResult<VerifyPaymentResult>>;
 }
 
 // Registry of adapters keyed by provider name

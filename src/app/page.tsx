@@ -31,7 +31,12 @@ import {
 } from '@/lib/marketing-content';
 
 export const metadata: Metadata = {
-  title: 'CashTraka | Production Planning Software for Small Batch Businesses',
+  // Use absolute so the layout's "%s | CashTraka" template does not
+  // append another suffix on the homepage. Other pages let the template
+  // handle the suffix automatically.
+  title: {
+    absolute: 'CashTraka | Production Planning Software for Small Batch Businesses',
+  },
   description:
     'CashTraka helps small batch businesses plan production, track raw materials, avoid shortages, manage orders, and generate invoices and receipts from one simple system.',
   alternates: { canonical: 'https://www.cashtraka.co/' },

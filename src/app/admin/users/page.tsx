@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, Users, UserCheck, UserX, Crown, UserPlus, Download } from 'lucide-react';
+import { Search, Users, UserCheck, UserX, Crown, UserPlus, Download, type LucideIcon } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { adminService } from '@/lib/services/admin.service';
@@ -161,7 +161,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
   );
 }
 
-function StatCard({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: number; color?: 'success' | 'danger' | 'brand' }) {
+function StatCard({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: number; color?: 'success' | 'danger' | 'brand' }) {
   const colors = { success: 'bg-success-50 text-success-700', danger: 'bg-red-50 text-red-700', brand: 'bg-brand-50 text-brand-700' };
   const iconColor = color ? colors[color] : 'bg-slate-100 text-slate-600';
   return (

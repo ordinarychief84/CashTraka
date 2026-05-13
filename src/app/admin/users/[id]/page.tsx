@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, Banknote, Users, FileText, Mail, Phone, Calendar, CreditCard, Shield, Activity, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Banknote, Users, FileText, Mail, Phone, Calendar, CreditCard, Shield, Activity, BarChart3, type LucideIcon } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { SuspendButton } from '@/components/admin/SuspendButton';
@@ -180,7 +180,7 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
   );
 }
 
-function MC({ icon: Icon, label, value, color }: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; value: string; color?: 'brand' | 'danger' }) {
+function MC({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string; color?: 'brand' | 'danger' }) {
   const c = color === 'brand' ? 'text-brand-600' : color === 'danger' ? 'text-red-500' : 'text-slate-500';
   return (
     <div className="rounded-xl border border-border bg-white p-4">

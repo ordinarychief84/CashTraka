@@ -12,6 +12,7 @@ import type {
   InitPaymentResult,
   VerifyPaymentResult,
   ProviderResult,
+  ChargeAuthorizationArgs,
 } from './payment-provider.service';
 
 const BASE = 'https://api.paystack.co';
@@ -131,6 +132,66 @@ export const paystackCustomerAdapter: PaymentProviderAdapter = {
               cardType: authData.card_type,
               expMonth: authData.exp_month,
               expYear: authData.exp_year,
+              customerCode: d.customer?.customer_code,
+            }
+          : undefined,
+      },
+    };
+  },
+
+  /**
+   * Off-session charge against a previously-stored card authorization.
+   * Used by recurring invoices and installment plans where the customer
+   * already paid once via /transaction/initialize and Paystack returned
+   * a reusable authorization_code in the verify response.
+   *
+   * If Paystack rejects the charge (card declined, insufficient funds,
+   * authorization revoked), the result is { ok: false, error } and the
+   * caller should mark the corresponding charge attempt as FAILED.
+   */
+  async chargeAuthorization(args: ChargeAuthorizationArgs): Promise<ProviderResult<VerifyPaymentResult>> {
+    const result = await apiRequest<{
+      status: string;
+      reference: string;
+      amount: number;
+      currency: string;
+      id: number;
+      paid_at?: string;
+      customer?: { email: string; customer_code?: string };
+      authorization?: {
+        authorization_code: string;
+        reusable: boolean;
+      };
+      metadata?: Record<string, unknown>;
+    }>('/transaction/charge_authorization', {
+      method: 'POST',
+      body: JSON.stringify({
+        authorization_code: args.authorizationCode,
+        email: args.email,
+        amount: args.amount * 100, // Naira → kobo
+        reference: args.reference,
+        metadata: args.metadata,
+      }),
+    });
+
+    if (!result.ok) return result;
+    const d = result.data;
+    return {
+      ok: true,
+      data: {
+        success: d.status === 'success',
+        reference: d.reference,
+        amount: d.amount / 100,
+        currency: d.currency,
+        providerTransactionId: String(d.id),
+        customerEmail: d.customer?.email,
+        status: d.status,
+        metadata: d.metadata,
+        paidAt: d.paid_at,
+        authorization: d.authorization
+          ? {
+              authorizationCode: d.authorization.authorization_code,
+              reusable: d.authorization.reusable,
               customerCode: d.customer?.customer_code,
             }
           : undefined,

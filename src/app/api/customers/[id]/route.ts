@@ -1,7 +1,7 @@
 import { requireUser } from '@/lib/auth';
 import { customerService } from '@/lib/services/customer.service';
 import { prisma } from '@/lib/prisma';
-import { handled, ok } from '@/lib/api-response';
+import { handled, ok, fail } from '@/lib/api-response';
 
 /** GET /api/customers/[id], customer profile + recent payments + debts. */
 export const GET = (_req: Request, ctx: { params: { id: string } }) =>
@@ -27,7 +27,7 @@ export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
       data: update,
     });
     if (customer.count === 0) {
-      return new Response(JSON.stringify({ success: false, error: 'Customer not found' }), { status: 404 });
+      return fail('Customer not found', 404);
     }
     const updated = await prisma.customer.findFirst({ where: { id: ctx.params.id, userId: user.id } });
     return ok(updated);

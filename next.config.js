@@ -92,4 +92,15 @@ module.exports = withSentryConfig(nextConfig, {
   hideSourceMaps: true,
   disableLogger: true,
   automaticVercelMonitors: false,
+  // Critical: a Sentry outage (sentry-cli release-finalize returns 504)
+  // must NOT take down a deploy. Source maps will be missing for that
+  // release, which is fine — the runtime SDK still captures errors;
+  // they just won't have minified-line resolution until the next deploy.
+  errorHandler: (err) => {
+    // eslint-disable-next-line no-console
+    console.warn('[sentry] release upload skipped:', err?.message || err);
+  },
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
 });

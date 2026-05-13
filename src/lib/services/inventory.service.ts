@@ -54,49 +54,75 @@ export const inventoryService = {
       throw Err.validation('Stock movement delta must be a non-zero integer.');
     }
 
-    const runner = tx ?? prisma;
     const exec = async (client: PrismaTx) => {
-      // 1. Load the item (scoped to this user) and lock the row for the duration
-      //    of the transaction. We rely on Postgres SELECT FOR UPDATE via a
-      //    transactional read-then-write — Prisma surfaces this implicitly when
-      //    update follows findUnique inside a $transaction.
+      // Update the stock in a SINGLE atomic SQL statement so two
+      // simultaneous movements cannot both read the same starting value
+      // and trample each other. We use a conditional UPDATE that returns
+      // the new stock — Postgres locks the row for the duration of the
+      // statement, so concurrent calls serialise correctly.
+      //
+      // Read-then-write via Prisma's update was NOT enough here: Prisma
+      // does not emit SELECT FOR UPDATE, and `prisma.$transaction` does
+      // not lock rows it has merely read with findUnique. We could add
+      // an advisory lock, but a self-referential UPDATE is simpler and
+      // also serves as the negative-stock guard in one shot.
+      const safeUserId = input.userId;
+      const safeItemId = input.itemId;
+      const delta = input.delta;
       let balanceAfter: number;
+
       if (input.itemType === 'PRODUCT') {
-        const product = await client.product.findUnique({
-          where: { id: input.itemId },
-          select: { id: true, userId: true, stock: true, archived: true },
-        });
-        if (!product || product.userId !== input.userId) {
-          throw Err.notFound('Product not found');
-        }
-        balanceAfter = product.stock + input.delta;
-        if (balanceAfter < 0) {
+        const rows = await client.$queryRaw<Array<{ stock: number }>>`
+          UPDATE "Product"
+          SET "stock" = "stock" + ${delta}
+          WHERE "id" = ${safeItemId}
+            AND "userId" = ${safeUserId}
+            AND "archived" = false
+            AND ("stock" + ${delta}) >= 0
+          RETURNING "stock"
+        `;
+        if (rows.length === 0) {
+          // Either the product doesn't exist for this user, is archived,
+          // or the delta would underflow stock. Distinguish so callers
+          // (and tests) get the right error.
+          const exists = await client.product.findUnique({
+            where: { id: safeItemId },
+            select: { userId: true, stock: true, archived: true },
+          });
+          if (!exists || exists.userId !== safeUserId) {
+            throw Err.notFound('Product not found');
+          }
+          if (exists.archived) {
+            throw Err.validation('Cannot move stock on an archived product.');
+          }
           throw Err.validation(
-            `Stock would go negative for product ${input.itemId} (current ${product.stock}, delta ${input.delta}).`,
+            `Stock would go negative for product ${safeItemId} (current ${exists.stock}, delta ${delta}).`,
           );
         }
-        await client.product.update({
-          where: { id: input.itemId },
-          data: { stock: balanceAfter },
-        });
+        balanceAfter = rows[0].stock;
       } else {
-        const material = await client.rawMaterial.findUnique({
-          where: { id: input.itemId },
-          select: { id: true, userId: true, stock: true, deletedAt: true },
-        });
-        if (!material || material.userId !== input.userId || material.deletedAt) {
-          throw Err.notFound('Material not found');
-        }
-        balanceAfter = material.stock + input.delta;
-        if (balanceAfter < 0) {
+        const rows = await client.$queryRaw<Array<{ stock: number }>>`
+          UPDATE "RawMaterial"
+          SET "stock" = "stock" + ${delta}
+          WHERE "id" = ${safeItemId}
+            AND "userId" = ${safeUserId}
+            AND "deletedAt" IS NULL
+            AND ("stock" + ${delta}) >= 0
+          RETURNING "stock"
+        `;
+        if (rows.length === 0) {
+          const exists = await client.rawMaterial.findUnique({
+            where: { id: safeItemId },
+            select: { userId: true, stock: true, deletedAt: true },
+          });
+          if (!exists || exists.userId !== safeUserId || exists.deletedAt) {
+            throw Err.notFound('Material not found');
+          }
           throw Err.validation(
-            `Stock would go negative for material ${input.itemId} (current ${material.stock}, delta ${input.delta}).`,
+            `Stock would go negative for material ${safeItemId} (current ${exists.stock}, delta ${delta}).`,
           );
         }
-        await client.rawMaterial.update({
-          where: { id: input.itemId },
-          data: { stock: balanceAfter },
-        });
+        balanceAfter = rows[0].stock;
       }
 
       const movement = await client.stockMovement.create({

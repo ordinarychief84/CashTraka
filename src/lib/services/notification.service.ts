@@ -137,4 +137,56 @@ export const notificationService = {
       details: args.reason,
     });
   },
+
+  // ── Read paths used by the in-app inbox + bell ─────────────────
+
+  /**
+   * Paginated list for the user's inbox. Newest first.
+   * `unreadOnly` filters out read items — used by the bell preview.
+   */
+  async listForUser(
+    userId: string,
+    opts?: { unreadOnly?: boolean; take?: number; skip?: number },
+  ) {
+    const take = Math.min(opts?.take ?? 50, 200);
+    const skip = Math.max(opts?.skip ?? 0, 0);
+    const where = {
+      userId,
+      ...(opts?.unreadOnly ? { isRead: false } : {}),
+    };
+    const [rows, total, unread] = await Promise.all([
+      prisma.notification.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take,
+        skip,
+      }),
+      prisma.notification.count({ where }),
+      prisma.notification.count({ where: { userId, isRead: false } }),
+    ]);
+    return { rows, total, unread };
+  },
+
+  /** Fast unread count for the bell badge. Indexed query. */
+  async unreadCount(userId: string): Promise<number> {
+    return prisma.notification.count({ where: { userId, isRead: false } });
+  },
+
+  /** Mark a single notification read. Tenant-scoped — no cross-user leak. */
+  async markRead(userId: string, notificationId: string) {
+    const result = await prisma.notification.updateMany({
+      where: { id: notificationId, userId },
+      data: { isRead: true },
+    });
+    return { updated: result.count };
+  },
+
+  /** Mark every unread notification read in one trip. */
+  async markAllRead(userId: string) {
+    const result = await prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+    return { updated: result.count };
+  },
 };

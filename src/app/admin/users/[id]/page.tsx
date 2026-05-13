@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { SuspendButton } from '@/components/admin/SuspendButton';
 import { DeleteUserButton } from '@/components/admin/DeleteUserButton';
+import { ImpersonateButton } from '@/components/admin/ImpersonateButton';
 import { AddNoteForm } from '@/components/admin/AddNoteForm';
 import { PlanOverride } from '@/components/admin/PlanOverride';
 import { SubscriptionPanel } from '@/components/admin/SubscriptionPanel';
@@ -78,6 +79,12 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
           </div>
           {user.role !== 'ADMIN' && (
             <div className="flex flex-wrap gap-2">
+              <ImpersonateButton
+                userId={user.id}
+                userEmail={user.email}
+                disabled={user.isSuspended}
+                disabledReason="Cannot impersonate a suspended user — reactivate first."
+              />
               <SuspendButton userId={user.id} isSuspended={user.isSuspended} />
               <DeleteUserButton userId={user.id} userName={user.name} userEmail={user.email} />
             </div>

@@ -30,7 +30,10 @@ export type AdminSection =
   | 'recurring'
   | 'firs'
   | 'docAudit'
-  | 'feedback';
+  | 'feedback'
+  | 'ops'
+  | 'health'
+  | 'flags';
 
 /** Which admin sections each role can access */
 const ADMIN_MATRIX: Record<AdminRole, AdminSection[]> = {
@@ -38,12 +41,13 @@ const ADMIN_MATRIX: Record<AdminRole, AdminSection[]> = {
     'dashboard', 'users', 'roles', 'support', 'refunds', 'subscriptions',
     'notifications', 'analytics', 'emails', 'blog', 'audit', 'settings',
     'invoices', 'recurring', 'firs', 'docAudit', 'feedback',
+    'ops', 'health', 'flags',
   ],
   BLOG_MANAGER: ['dashboard', 'blog'],
   BILLING_MANAGER: ['dashboard', 'refunds', 'subscriptions', 'analytics', 'invoices', 'firs'],
-  SUPPORT_AGENT: ['dashboard', 'users', 'support', 'notifications', 'emails', 'invoices', 'docAudit'],
+  SUPPORT_AGENT: ['dashboard', 'users', 'support', 'notifications', 'emails', 'invoices', 'docAudit', 'ops'],
   PROPERTY_MANAGER: ['dashboard', 'users'],
-  REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit', 'feedback'],
+  REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit', 'feedback', 'ops', 'health'],
 };
 
 /** Check if a role can access a section */
@@ -75,6 +79,9 @@ export const PATH_TO_SECTION: Record<string, AdminSection> = {
   '/admin/firs': 'firs',
   '/admin/document-audit': 'docAudit',
   '/admin/feedback': 'feedback',
+  '/admin/ops': 'ops',
+  '/admin/health': 'health',
+  '/admin/feature-flags': 'flags',
 };
 
 /** Human-readable labels */

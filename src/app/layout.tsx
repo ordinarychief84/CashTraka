@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
+import { ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.cashtraka.co'),
@@ -87,6 +88,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
+        {/* Renders nothing for normal sessions; renders a sticky banner
+            whenever an admin is impersonating a user. Server component,
+            so it can't be bypassed by client-side state. */}
+        <ImpersonationBanner />
         {children}
         <RegisterSW />
       </body>

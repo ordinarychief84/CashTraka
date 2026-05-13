@@ -17,6 +17,9 @@ import {
   FileText,
   Heart,
   CircleDollarSign,
+  Factory,
+  Activity,
+  ToggleLeft,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import type { AdminSection } from '@/lib/admin-rbac';
@@ -40,6 +43,9 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard', section: 'dashboard' },
   { href: '/admin/users', icon: Users2, label: 'Users', section: 'users' },
+  { href: '/admin/ops', icon: Factory, label: 'Ops records', section: 'ops' },
+  { href: '/admin/health', icon: Activity, label: 'System health', section: 'health' },
+  { href: '/admin/feature-flags', icon: ToggleLeft, label: 'Feature flags', section: 'flags' },
   { href: '/admin/roles', icon: Shield, label: 'Roles', section: 'roles' },
   { href: '/admin/support', icon: Headphones, label: 'Support', section: 'support' },
   { href: '/admin/refunds', icon: RefreshCw, label: 'Refunds', section: 'refunds' },

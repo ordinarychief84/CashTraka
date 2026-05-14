@@ -130,7 +130,7 @@ export function ProductsTable({ rows }: { rows: ProductRow[] }) {
                   <Th onClick={() => toggleSort('id')} active={sortBy === 'id'} dir={sortDir}>
                     ID
                   </Th>
-                  <th className="px-3 py-2.5">Image</th>
+                  <th className="px-3 py-2">Image</th>
                   <Th
                     onClick={() => toggleSort('group')}
                     active={sortBy === 'group'}
@@ -160,8 +160,8 @@ export function ProductsTable({ rows }: { rows: ProductRow[] }) {
                   >
                     Stock
                   </Th>
-                  <th className="px-3 py-2.5 text-center">Active</th>
-                  <th className="px-3 py-2.5" />
+                  <th className="px-3 py-2 text-center">Active</th>
+                  <th className="px-3 py-2" />
                 </tr>
                 {/* Inline filter row */}
                 <tr className="border-b border-border bg-slate-50/50">
@@ -391,7 +391,7 @@ function Th({
   align?: 'right';
 }) {
   return (
-    <th className={cn('px-3 py-2.5', align === 'right' && 'text-right')}>
+    <th className={cn('px-3 py-2', align === 'right' && 'text-right')}>
       <button
         type="button"
         onClick={onClick}

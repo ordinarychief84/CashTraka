@@ -113,7 +113,7 @@ export default async function SupplierDetailPage({
             )}
             <Link
               href={`/purchase-orders/new?supplierId=${supplier.id}`}
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
+              className="btn-pill-primary"
             >
               <FileText size={14} />
               New PO

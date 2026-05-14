@@ -32,18 +32,12 @@ export default async function ProductsPage() {
         subtitle={`${visible.length} active · ${products.length - visible.length} archived`}
         action={
           <div className="flex items-center gap-2">
-            <a
-              href="/api/products/export"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              <Download size={16} />
+            <a href="/api/products/export" className="btn-pill-ghost">
+              <Download size={14} />
               Export
             </a>
-            <Link
-              href="/products/new"
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              <Plus size={16} />
+            <Link href="/products/new" className="btn-pill-primary">
+              <Plus size={14} />
               Add product
             </Link>
           </div>

@@ -12,6 +12,7 @@ import {
 import { formatKobo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { StatusFilterSelect } from '@/components/ui/StatusFilterSelect';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export type OrderRow = {
   id: string;
@@ -46,15 +47,6 @@ const STATUS_LABEL: Record<string, string> = {
   READY: 'READY',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
-};
-
-const STATUS_TONE: Record<string, string> = {
-  NEW: 'bg-slate-100 text-slate-700',
-  CONFIRMED: 'bg-orange-100 text-orange-700',
-  IN_PRODUCTION: 'bg-amber-100 text-amber-700',
-  READY: 'bg-emerald-100 text-emerald-700',
-  DELIVERED: 'bg-emerald-200 text-emerald-900',
-  CANCELLED: 'bg-rose-100 text-rose-700',
 };
 
 function daysLeft(iso: string | null): number | null {
@@ -183,7 +175,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-border bg-white">
                 <tr className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <th className="w-10 px-3 py-2.5">
+                  <th className="w-10 px-3 py-2">
                     <input
                       type="checkbox"
                       checked={filtered.length > 0 && selected.size === filtered.length}
@@ -213,7 +205,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   >
                     Customer
                   </Th>
-                  <th className="px-3 py-2.5">Product</th>
+                  <th className="px-3 py-2">Product</th>
                   <Th
                     onClick={() => toggleSort('dueAt')}
                     active={sortBy === 'dueAt'}
@@ -221,8 +213,8 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   >
                     Days left
                   </Th>
-                  <th className="px-3 py-2.5">Due date</th>
-                  <th className="px-3 py-2.5">Notes</th>
+                  <th className="px-3 py-2">Due date</th>
+                  <th className="px-3 py-2">Notes</th>
                   <Th
                     onClick={() => toggleSort('totalKobo')}
                     active={sortBy === 'totalKobo'}
@@ -264,7 +256,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   const dueSoon = d != null && d >= 0 && d <= 3;
                   return (
                     <tr key={o.id} className="hover:bg-slate-50/60">
-                      <td className="px-3 py-2.5 align-middle">
+                      <td className="px-3 py-2 align-middle">
                         <input
                           type="checkbox"
                           checked={selected.has(o.id)}
@@ -273,17 +265,10 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                           aria-label={`Select ${o.orderNumber}`}
                         />
                       </td>
-                      <td className="px-3 py-2.5 align-middle">
-                        <span
-                          className={cn(
-                            'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                            STATUS_TONE[o.status] ?? 'bg-slate-100 text-slate-700',
-                          )}
-                        >
-                          {STATUS_LABEL[o.status] ?? o.status}
-                        </span>
+                      <td className="px-3 py-2 align-middle">
+                        <StatusBadge status={o.status} />
                       </td>
-                      <td className="px-3 py-2.5 align-middle">
+                      <td className="px-3 py-2 align-middle">
                         <Link
                           href={`/orders/${o.id}`}
                           className="font-mono text-xs font-semibold text-brand-700 hover:underline"
@@ -291,19 +276,19 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                           {o.orderNumber}
                         </Link>
                       </td>
-                      <td className="px-3 py-2.5 align-middle">
+                      <td className="px-3 py-2 align-middle">
                         <div className="font-semibold text-ink">{o.customerName}</div>
                         {o.customerPhone ? (
                           <div className="text-xs text-slate-500">{o.customerPhone}</div>
                         ) : null}
                       </td>
-                      <td className="px-3 py-2.5 align-middle">
+                      <td className="px-3 py-2 align-middle">
                         <div className="text-sm text-slate-700">{o.productSummary || '—'}</div>
                         <div className="text-xs text-slate-500">
                           {o.itemCount} {o.itemCount === 1 ? 'item' : 'items'}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 align-middle">
+                      <td className="px-3 py-2 align-middle">
                         {d == null ? (
                           <span className="text-xs text-slate-400">—</span>
                         ) : (
@@ -321,16 +306,16 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 align-middle text-xs text-slate-600">
+                      <td className="px-3 py-2 align-middle text-xs text-slate-600">
                         <div className="inline-flex items-center gap-1">
                           <Calendar size={12} className="text-slate-400" />
                           {formatDate(o.dueAt)}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 align-middle text-xs text-slate-500">
+                      <td className="px-3 py-2 align-middle text-xs text-slate-500">
                         <span className="line-clamp-1">{o.notes ?? ''}</span>
                       </td>
-                      <td className="px-3 py-2.5 align-middle text-right">
+                      <td className="px-3 py-2 align-middle text-right">
                         <span className="num text-sm font-bold text-ink">
                           {formatKobo(o.totalKobo)}
                         </span>
@@ -352,12 +337,12 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
               {filtered.length > 0 && (
                 <tfoot>
                   <tr className="border-t border-border bg-amber-50/60">
-                    <td className="px-3 py-2.5" colSpan={8}>
+                    <td className="px-3 py-2" colSpan={8}>
                       <span className="text-xs font-semibold uppercase text-slate-600">
                         Page summary
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
+                    <td className="px-3 py-2 text-right">
                       <span className="num text-sm font-black text-ink">
                         {formatKobo(filtered.reduce((s, o) => s + o.totalKobo, 0))}
                       </span>
@@ -381,14 +366,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                   className="flex flex-col gap-1 px-4 py-3"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={cn(
-                        'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
-                        STATUS_TONE[o.status],
-                      )}
-                    >
-                      {STATUS_LABEL[o.status] ?? o.status}
-                    </span>
+                    <StatusBadge status={o.status} />
                     <span className="font-mono text-xs font-semibold text-brand-700">
                       {o.orderNumber}
                     </span>
@@ -442,7 +420,7 @@ function Th({
   align?: 'right';
 }) {
   return (
-    <th className={cn('px-3 py-2.5', align === 'right' && 'text-right')}>
+    <th className={cn('px-3 py-2', align === 'right' && 'text-right')}>
       <button
         type="button"
         onClick={onClick}

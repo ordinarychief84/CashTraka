@@ -117,7 +117,7 @@ export function ProductionOrderActions({
         <button
           onClick={() => setShowCompleteForm(true)}
           disabled={busy !== null}
-          className="inline-flex w-full items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="btn-pill-success w-full !py-2"
         >
           <CheckCircle2 size={14} />
           Mark complete
@@ -166,7 +166,7 @@ export function ProductionOrderActions({
               type="button"
               onClick={complete}
               disabled={busy !== null}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="btn-pill-success flex-1"
             >
               <CheckCircle2 size={14} />
               {busy === 'complete' ? 'Completing…' : 'Confirm complete'}

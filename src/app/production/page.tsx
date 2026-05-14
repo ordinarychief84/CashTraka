@@ -9,6 +9,7 @@ import { productionOrdersService } from '@/lib/services/production-orders.servic
 import { formatDate, timeAgo } from '@/lib/format';
 import { ShareScheduleButton } from '@/components/ops/ShareScheduleButton';
 import { StatusFilterNavSelect } from '@/components/ui/StatusFilterNavSelect';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -49,13 +50,13 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
         }`}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex overflow-hidden rounded-md border border-border">
+            <div className="inline-flex overflow-hidden rounded-full border border-border">
               <Link
                 href="/production?view=board"
                 className={cn(
-                  'inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold',
+                  'inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold uppercase tracking-wide',
                   view === 'board'
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-brand-500 text-white'
                     : 'bg-white text-slate-700 hover:bg-slate-50',
                 )}
               >
@@ -65,9 +66,9 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
               <Link
                 href="/production?view=list"
                 className={cn(
-                  'inline-flex items-center gap-1 border-l border-border px-2.5 py-1.5 text-xs font-semibold',
+                  'inline-flex items-center gap-1 border-l border-border px-3 py-1.5 text-xs font-bold uppercase tracking-wide',
                   view === 'list'
-                    ? 'bg-brand-600 text-white'
+                    ? 'bg-brand-500 text-white'
                     : 'bg-white text-slate-700 hover:bg-slate-50',
                 )}
               >
@@ -75,25 +76,16 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
                 List
               </Link>
             </div>
-            <Link
-              href="/production/schedule"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
+            <Link href="/production/schedule" className="btn-pill-ghost">
               <CalendarRange size={14} />
               Calendar
             </Link>
-            <Link
-              href="/production/history"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
+            <Link href="/production/history" className="btn-pill-ghost">
               <History size={14} />
               Work history
             </Link>
             <ShareScheduleButton />
-            <Link
-              href="/production/new"
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
+            <Link href="/production/new" className="btn-pill-primary">
               <Plus size={14} />
               Add task
             </Link>
@@ -168,13 +160,7 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
                       <span className="font-mono text-sm font-bold text-slate-900">
                         {o.productionNumber}
                       </span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          STATUS_COLOURS[o.status] ?? 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {o.status.replace('_', ' ')}
-                      </span>
+                      <StatusBadge status={o.status} />
                     </div>
                     <p className="mt-0.5 truncate text-sm text-slate-600">
                       {o.items

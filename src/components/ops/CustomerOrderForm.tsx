@@ -612,16 +612,12 @@ export function CustomerOrderForm({
             type="button"
             onClick={() => submit(true)}
             disabled={submitting}
-            className="inline-flex items-center gap-1.5 rounded-md border border-brand-200 bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-60"
+            className="btn-pill-ghost"
           >
             <Save size={14} />
             Save and stay
           </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
+          <button type="submit" disabled={submitting} className="btn-pill-primary">
             {submitting ? 'Saving…' : 'Save'}
           </button>
         </div>

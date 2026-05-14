@@ -32,6 +32,8 @@ export type CustomerOrderCreateItem = {
   description: string;
   quantity: number;
   unitPriceKobo: number;
+  discountKobo?: number;
+  lineNotes?: string | null;
 };
 
 export type CustomerOrderCreateInput = {
@@ -41,6 +43,15 @@ export type CustomerOrderCreateInput = {
   dueAt?: Date | null;
   notes?: string | null;
   items: CustomerOrderCreateItem[];
+  /** Bundle B: operational meta */
+  priority?: 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
+  paymentStatus?: 'UNPAID' | 'PART_PAID' | 'PAID';
+  source?: 'WHATSAPP' | 'WALK_IN' | 'INSTAGRAM' | 'WEBSITE' | 'REFERRAL' | 'OTHER';
+  deliveryMethod?: 'PICKUP' | 'DELIVERY' | 'DISPATCH' | 'THIRD_PARTY';
+  deliveryAddress?: string | null;
+  deliveryNote?: string | null;
+  assignedTo?: string | null;
+  internalNote?: string | null;
 };
 
 export const customerOrdersService = {
@@ -132,12 +143,16 @@ export const customerOrdersService = {
     const lines = input.items.map((it) => {
       const quantity = Math.max(1, Math.floor(it.quantity));
       const unitPriceKobo = Math.max(0, Math.floor(it.unitPriceKobo));
+      const discountKobo = Math.max(0, Math.floor(it.discountKobo ?? 0));
+      const gross = unitPriceKobo * quantity;
       return {
         productId: it.productId ?? null,
         description: it.description.trim(),
         quantity,
         unitPriceKobo,
-        totalKobo: unitPriceKobo * quantity,
+        discountKobo,
+        totalKobo: Math.max(0, gross - discountKobo),
+        lineNotes: it.lineNotes?.trim() || null,
       };
     });
     const totalKobo = lines.reduce((sum, l) => sum + l.totalKobo, 0);
@@ -152,6 +167,14 @@ export const customerOrdersService = {
         customerPhone: input.customerPhone?.trim() || null,
         orderNumber,
         status: 'NEW',
+        priority: input.priority ?? 'NORMAL',
+        paymentStatus: input.paymentStatus ?? 'UNPAID',
+        source: input.source ?? null,
+        deliveryMethod: input.deliveryMethod ?? null,
+        deliveryAddress: input.deliveryAddress?.trim() || null,
+        deliveryNote: input.deliveryNote?.trim() || null,
+        assignedTo: input.assignedTo ?? null,
+        internalNote: input.internalNote?.trim() || null,
         dueAt: input.dueAt ?? null,
         notes: input.notes?.trim() || null,
         totalKobo,

@@ -70,35 +70,119 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
 
           <div className="card p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-              <AlertTriangle size={14} /> Material shortages
+              <AlertTriangle size={14} /> Material readiness
             </h2>
             {shortages.length === 0 ? (
-              <p className="text-sm text-emerald-700">Every material is available.</p>
+              <p className="text-sm text-emerald-700">
+                Every material is available.
+              </p>
             ) : (
-              <ul className="divide-y divide-slate-100">
-                {shortages.map((s) => (
-                  <li key={s.materialId} className="py-2 flex items-center justify-between gap-2 text-sm">
-                    <div>
-                      <p className="font-medium text-slate-900">{s.materialName}</p>
-                      <p className="text-xs text-slate-500">
-                        Need {s.required} {s.unit}, have {s.onHand}
-                      </p>
-                    </div>
-                    {s.shortBy > 0 ? (
-                      <Link
-                        href={`/purchase-orders/new?materialId=${s.materialId}&qty=${s.shortBy}`}
-                        className="rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100"
-                      >
-                        Short {s.shortBy} — buy
-                      </Link>
-                    ) : (
-                      <span className="text-xs font-semibold text-emerald-600">OK</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-2 py-1.5">Material</th>
+                      <th className="px-2 py-1.5 text-right">Required</th>
+                      <th className="px-2 py-1.5 text-right">On hand</th>
+                      <th className="px-2 py-1.5 text-right">Short</th>
+                      <th className="px-2 py-1.5" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {shortages.map((s) => {
+                      const short = s.shortBy > 0;
+                      return (
+                        <tr key={s.materialId}>
+                          <td className="px-2 py-2 font-medium text-slate-900">
+                            {s.materialName}
+                          </td>
+                          <td className="num px-2 py-2 text-right text-slate-600">
+                            {s.required} {s.unit}
+                          </td>
+                          <td className="num px-2 py-2 text-right text-slate-600">
+                            {s.onHand} {s.unit}
+                          </td>
+                          <td className="num px-2 py-2 text-right">
+                            <span
+                              className={
+                                short
+                                  ? 'font-bold text-rose-600'
+                                  : 'text-emerald-600'
+                              }
+                            >
+                              {short ? s.shortBy : 'OK'}
+                            </span>
+                          </td>
+                          <td className="px-2 py-2 text-right">
+                            {short && (
+                              <Link
+                                href={`/purchase-orders/new?materialId=${s.materialId}&qty=${s.shortBy}`}
+                                className="rounded-full bg-rose-50 px-2.5 py-0.5 text-[10px] font-bold text-rose-700 hover:bg-rose-100"
+                              >
+                                Buy
+                              </Link>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
+
+          {/* QC summary panel — only after completion. */}
+          {order.status === 'COMPLETED' &&
+            (order.quantityProduced != null ||
+              order.quantityDamaged != null ||
+              order.quantityAccepted != null) && (
+              <div className="card p-5">
+                <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+                  Quality check
+                </h2>
+                <dl className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-slate-200 bg-white p-3">
+                    <dt className="text-[10px] font-bold uppercase text-slate-500">
+                      Produced
+                    </dt>
+                    <dd className="num mt-0.5 text-xl font-black text-slate-800">
+                      {order.quantityProduced ?? '—'}
+                    </dd>
+                  </div>
+                  <div className="rounded-lg border border-rose-100 bg-rose-50 p-3">
+                    <dt className="text-[10px] font-bold uppercase text-rose-700">
+                      Damaged
+                    </dt>
+                    <dd className="num mt-0.5 text-xl font-black text-rose-700">
+                      {order.quantityDamaged ?? 0}
+                    </dd>
+                  </div>
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
+                    <dt className="text-[10px] font-bold uppercase text-emerald-700">
+                      Accepted (to stock)
+                    </dt>
+                    <dd className="num mt-0.5 text-xl font-black text-emerald-700">
+                      {order.quantityAccepted ?? '—'}
+                    </dd>
+                  </div>
+                </dl>
+                {order.quantityProduced != null &&
+                  order.quantityProduced > 0 && (
+                    <p className="mt-3 text-xs text-slate-500">
+                      Yield:{' '}
+                      <strong>
+                        {Math.round(
+                          ((order.quantityAccepted ?? 0) /
+                            order.quantityProduced) *
+                            100,
+                        )}
+                        %
+                      </strong>
+                    </p>
+                  )}
+              </div>
+            )}
 
           {order.customerOrder && (
             <div className="card p-5">
@@ -124,6 +208,10 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
               orderId={order.id}
               status={order.status}
               hasShortages={hasShortages}
+              plannedQuantity={order.items.reduce(
+                (s, it) => s + it.quantity,
+                0,
+              )}
             />
           </div>
           <div className="card p-5">

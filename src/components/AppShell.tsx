@@ -28,6 +28,7 @@ import {
   PackageSearch,
   ShieldCheck,
   History,
+  AlertTriangle,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -103,6 +104,11 @@ export function AppShell({
           <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />
           <SideLink href="/suppliers" icon={<Truck size={18} />} label="Suppliers" />
           <SideLink href="/inventory" icon={<PackageSearch size={18} />} label="Inventory" />
+          <SideLink
+            href="/shortages"
+            icon={<AlertTriangle size={18} />}
+            label="Shortages"
+          />
 
           {/* Money — the by-products of the operational loop. */}
           <GroupLabel>Money</GroupLabel>

@@ -25,7 +25,16 @@ export default async function RecipesPage({ searchParams }: { searchParams: SP }
         ...(q ? { name: { contains: q, mode: 'insensitive' } } : {}),
       },
       orderBy: { name: 'asc' },
-      include: { recipe: { select: { id: true, yieldQty: true } } },
+      include: {
+        recipe: {
+          select: {
+            id: true,
+            yieldQty: true,
+            status: true,
+            versionNumber: true,
+          },
+        },
+      },
       take: 200,
     }),
   ]);
@@ -67,29 +76,43 @@ export default async function RecipesPage({ searchParams }: { searchParams: SP }
         />
       ) : (
         <ul className="space-y-2">
-          {products.map((p) => (
-            <li key={p.id}>
-              <Link href={`/recipes/${p.id}`} className="card flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-semibold text-slate-900">{p.name}</p>
-                  <p className="mt-0.5 truncate text-sm text-slate-500">
-                    {p.recipe
-                      ? `Recipe set · ${p.recipe.yieldQty} per batch`
-                      : 'No recipe yet — tap to add'}
-                  </p>
-                </div>
-                <span
-                  className={
-                    p.recipe
-                      ? 'rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700'
-                      : 'rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500'
-                  }
+          {products.map((p) => {
+            const recipeStatus = p.recipe?.status ?? null;
+            const statusTone =
+              recipeStatus === 'ACTIVE'
+                ? 'bg-emerald-50 text-emerald-700'
+                : recipeStatus === 'DRAFT'
+                  ? 'bg-amber-50 text-amber-700'
+                  : recipeStatus === 'ARCHIVED'
+                    ? 'bg-slate-200 text-slate-600'
+                    : 'bg-slate-100 text-slate-500';
+            return (
+              <li key={p.id}>
+                <Link
+                  href={`/recipes/${p.id}`}
+                  className="card flex items-center justify-between gap-3 p-4"
                 >
-                  {p.recipe ? 'Linked' : 'Missing'}
-                </span>
-              </Link>
-            </li>
-          ))}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-semibold text-slate-900">
+                      {p.name}
+                    </p>
+                    <p className="mt-0.5 truncate text-sm text-slate-500">
+                      {p.recipe
+                        ? `${p.recipe.yieldQty} per batch · v${p.recipe.versionNumber}`
+                        : 'No recipe yet — tap to add'}
+                    </p>
+                  </div>
+                  <span
+                    className={
+                      'rounded-full px-2.5 py-1 text-xs font-semibold ' + statusTone
+                    }
+                  >
+                    {p.recipe ? (recipeStatus ?? 'Linked') : 'Missing'}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </AppShell>

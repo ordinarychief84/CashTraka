@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { ReorderNudgeButton } from '@/components/customers/ReorderNudgeButton';
+import { CustomerSubscriptions } from '@/components/customers/CustomerSubscriptions';
 import { StatCard } from '@/components/StatCard';
 import { FraudWarning } from '@/components/FraudWarning';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
@@ -27,30 +28,35 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
   });
   if (!customer) notFound();
 
-  const [payments, debts, feedbackRows, unresolvedNegativeCount] = await Promise.all([
-    prisma.payment.findMany({
-      where: { customerId: customer.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.debt.findMany({
-      where: { customerId: customer.id },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.feedback.findMany({
-      where: { userId: user.id, customerId: customer.id, submittedAt: { not: null } },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-    }),
-    prisma.feedback.count({
-      where: {
-        userId: user.id,
-        customerId: customer.id,
-        isNegative: true,
-        isResolved: false,
-        submittedAt: { not: null },
-      },
-    }),
-  ]);
+  const [payments, debts, feedbackRows, unresolvedNegativeCount, subscriptions] =
+    await Promise.all([
+      prisma.payment.findMany({
+        where: { customerId: customer.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.debt.findMany({
+        where: { customerId: customer.id },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.feedback.findMany({
+        where: { userId: user.id, customerId: customer.id, submittedAt: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+      prisma.feedback.count({
+        where: {
+          userId: user.id,
+          customerId: customer.id,
+          isNegative: true,
+          isResolved: false,
+          submittedAt: { not: null },
+        },
+      }),
+      prisma.customerOrderSubscription.findMany({
+        where: { userId: user.id, customerId: customer.id },
+        orderBy: [{ status: 'asc' }, { nextRunAt: 'asc' }],
+      }),
+    ]);
 
   const RATING_LABEL: Record<string, { label: string; cls: string }> = {
     VERY_HAPPY: { label: 'Very happy', cls: 'bg-success-100 text-success-800' },
@@ -120,6 +126,20 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
           </div>
         </div>
       ) : null}
+
+      <CustomerSubscriptions
+        customerId={customer.id}
+        initial={subscriptions.map((s) => ({
+          id: s.id,
+          cadence: s.cadence,
+          status: s.status,
+          nextRunAt: s.nextRunAt.toISOString(),
+          lastRunAt: s.lastRunAt ? s.lastRunAt.toISOString() : null,
+          endsAt: s.endsAt ? s.endsAt.toISOString() : null,
+          itemsJson: s.itemsJson,
+          notes: s.notes,
+        }))}
+      />
 
       <section className="mb-5">
         <div className="mb-2 flex items-center justify-between">

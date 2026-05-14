@@ -26,6 +26,7 @@ import {
   BookOpen,
   Truck,
   PackageSearch,
+  ShieldCheck,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -125,6 +126,13 @@ export function AppShell({
           {(show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
           {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expenses" />}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
+          {show.settings && (
+            <SideLink
+              href="/settings/certificates"
+              icon={<ShieldCheck size={18} />}
+              label="Certificates"
+            />
+          )}
 
           {/* Intentionally removed from nav post-pivot (PR-A):
               /debts (Money Owed) — folded into Customer detail

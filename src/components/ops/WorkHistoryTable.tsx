@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Search, ChevronDown, ChevronUp, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export type WorkHistoryRow = {
   id: string;
@@ -30,15 +31,6 @@ type SortKey =
   | 'durationMs'
   | 'startedAt'
   | 'completedAt';
-
-const STATUS_TONE: Record<string, string> = {
-  PLANNED: 'bg-slate-100 text-slate-700',
-  MATERIALS_NEEDED: 'bg-amber-100 text-amber-800',
-  IN_PRODUCTION: 'bg-blue-100 text-blue-700',
-  COMPLETED: 'bg-emerald-100 text-emerald-700',
-  DELAYED: 'bg-rose-100 text-rose-700',
-  CANCELLED: 'bg-rose-100 text-rose-700',
-};
 
 function formatDuration(ms: number | null): string {
   if (ms == null) return '—';
@@ -188,8 +180,8 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
                 <Th onClick={() => toggleSort('customerName')} active={sortBy === 'customerName'} dir={sortDir}>
                   Customer
                 </Th>
-                <th className="px-3 py-2.5">Product</th>
-                <th className="px-3 py-2.5 text-center">Status</th>
+                <th className="px-3 py-2">Product</th>
+                <th className="px-3 py-2 text-center">Status</th>
                 <Th onClick={() => toggleSort('totalQty')} active={sortBy === 'totalQty'} dir={sortDir} align="right">
                   Total
                 </Th>
@@ -202,8 +194,8 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
                 <Th onClick={() => toggleSort('durationMs')} active={sortBy === 'durationMs'} dir={sortDir}>
                   Time
                 </Th>
-                <th className="px-3 py-2.5 text-right">Cost</th>
-                <th className="px-3 py-2.5">Batch</th>
+                <th className="px-3 py-2 text-right">Cost</th>
+                <th className="px-3 py-2">Batch</th>
               </tr>
               <tr className="border-b border-border bg-slate-50/50">
                 <td className="px-3 py-2" colSpan={3}>
@@ -228,7 +220,14 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
                     className="w-full rounded-md border border-border bg-white px-2 py-1 text-xs"
                   >
                     <option value="">All status</option>
-                    {Object.keys(STATUS_TONE).map((s) => (
+                    {[
+                      'PLANNED',
+                      'MATERIALS_NEEDED',
+                      'IN_PRODUCTION',
+                      'COMPLETED',
+                      'DELAYED',
+                      'CANCELLED',
+                    ].map((s) => (
                       <option key={s} value={s}>
                         {s.replace(/_/g, ' ')}
                       </option>
@@ -267,15 +266,8 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
                       {r.productNames.join(', ') || <span className="text-slate-400">—</span>}
                     </div>
                   </td>
-                  <td className="px-3 py-2 align-middle text-center">
-                    <span
-                      className={cn(
-                        'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                        STATUS_TONE[r.status] ?? 'bg-slate-100 text-slate-700',
-                      )}
-                    >
-                      {r.status.replace(/_/g, ' ')}
-                    </span>
+                  <td className="px-3 py-1.5 align-middle text-center">
+                    <StatusBadge status={r.status} />
                   </td>
                   <td className="px-3 py-2 align-middle text-right num">
                     {r.totalQty.toLocaleString('en-NG')}
@@ -311,19 +303,19 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
             {filtered.length > 0 && (
               <tfoot>
                 <tr className="border-t border-border bg-amber-50/70">
-                  <td className="px-3 py-2.5" colSpan={5}>
+                  <td className="px-3 py-2" colSpan={5}>
                     <span className="text-xs font-bold uppercase text-slate-600">
                       Page summary
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 text-right num text-sm font-black text-ink">
+                  <td className="px-3 py-2 text-right num text-sm font-black text-ink">
                     {totalQty.toLocaleString('en-NG')}
                   </td>
-                  <td className="px-3 py-2.5" colSpan={2} />
-                  <td className="px-3 py-2.5 font-mono text-sm font-black text-ink">
+                  <td className="px-3 py-2" colSpan={2} />
+                  <td className="px-3 py-2 font-mono text-sm font-black text-ink">
                     {formatDuration(totalDurationMs)}
                   </td>
-                  <td className="px-3 py-2.5 text-right num text-sm font-black text-ink">
+                  <td className="px-3 py-2 text-right num text-sm font-black text-ink">
                     {totalCostKobo > 0 ? formatKobo(totalCostKobo) : '—'}
                   </td>
                   <td />
@@ -343,14 +335,7 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
                 <span className="font-mono text-xs font-semibold text-brand-700">
                   {r.productionNumber}
                 </span>
-                <span
-                  className={cn(
-                    'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
-                    STATUS_TONE[r.status] ?? 'bg-slate-100 text-slate-700',
-                  )}
-                >
-                  {r.status.replace(/_/g, ' ')}
-                </span>
+                <StatusBadge status={r.status} />
               </div>
               <div className="text-sm font-semibold text-ink">
                 {r.customerName ?? '—'}
@@ -389,7 +374,7 @@ function Th({
   align?: 'right';
 }) {
   return (
-    <th className={cn('px-3 py-2.5', align === 'right' && 'text-right')}>
+    <th className={cn('px-3 py-2', align === 'right' && 'text-right')}>
       <button
         type="button"
         onClick={onClick}

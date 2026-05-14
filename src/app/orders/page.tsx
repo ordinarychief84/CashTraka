@@ -32,18 +32,12 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
         subtitle={`${total} customer order${total === 1 ? '' : 's'}`}
         action={
           <div className="flex items-center gap-2">
-            <Link
-              href="/production"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-            >
-              <Layers size={16} />
+            <Link href="/production" className="btn-pill-ghost">
+              <Layers size={14} />
               Production
             </Link>
-            <Link
-              href="/orders/new"
-              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              <Plus size={16} />
+            <Link href="/orders/new" className="btn-pill-primary">
+              <Plus size={14} />
               Add order
             </Link>
           </div>

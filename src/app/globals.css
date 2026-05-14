@@ -191,6 +191,45 @@ button.card:hover {
   @apply btn bg-[#25D366] text-white hover:bg-[#1fbd5b];
 }
 
+/*
+ * Pill variants — compact, dense action buttons for tables, toolbars,
+ * and inline contexts. Same brand palette as .btn-primary but with
+ * rounded-full and tighter padding to match the dense Prodio aesthetic.
+ * Use these for "Add product", "New PO", in-row "Buy", "Resolve",
+ * status-flip actions, etc.
+ */
+.btn-pill {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5
+    text-xs font-bold uppercase tracking-wide transition active:scale-[0.98]
+    disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-pill-primary {
+  @apply btn-pill bg-brand-500 text-white hover:bg-brand-400;
+}
+
+/* Confirm-received pill (lime). Match-pair with .btn-success for explicit
+ * "money is in / job is done" moments inside dense surfaces. */
+.btn-pill-success {
+  @apply btn-pill bg-success-500 text-ink hover:bg-success-600 hover:text-white;
+}
+
+/* "Dark tool" pill — matches Prodio's "STAGES / GROUPED VIEW / ADJUST"
+ * toolbar buttons, but in CashTraka's ink (not Prodio black). */
+.btn-pill-ink {
+  @apply btn-pill bg-ink text-white hover:bg-slate-700;
+}
+
+/* Outline / ghost pill — sits next to the primary pill in toolbars. */
+.btn-pill-ghost {
+  @apply btn-pill bg-white text-slate-700 border border-border hover:bg-slate-50;
+}
+
+/* Destructive pill (owed-amber). */
+.btn-pill-danger {
+  @apply btn-pill bg-owed-500 text-white hover:bg-owed-600;
+}
+
 .badge {
   @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
 }

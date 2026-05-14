@@ -429,11 +429,7 @@ export function RecipeEditor({
           <ShieldCheck size={12} />
           Only <strong>Active</strong> recipes feed the shortage engine.
         </div>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-        >
+        <button type="submit" disabled={submitting} className="btn-pill-primary">
           {submitting ? 'Saving…' : 'Save recipe'}
         </button>
       </div>

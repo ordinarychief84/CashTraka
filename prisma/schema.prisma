@@ -229,6 +229,7 @@ model User {
   productionOrders ProductionOrder[]
   purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
+  orderSubscriptions CustomerOrderSubscription[]
   certificates     Certificate[]
 
   @@index([role])
@@ -294,6 +295,7 @@ model Customer {
   orderConfirmations OrderConfirmation[]
   feedbacks          Feedback[]
   customerOrders     CustomerOrder[]
+  orderSubscriptions CustomerOrderSubscription[]
 
   @@unique([userId, phone])
   @@index([userId])
@@ -2322,6 +2324,41 @@ model StockMovement {
   @@index([userId, itemType, itemId, createdAt])
   @@index([userId, reason, createdAt])
   @@index([userId, refType, refId])
+}
+
+/// Recurring customer subscription — e.g. "monthly cleansing balm box for
+/// Adaeze". A daily cron materialises the next CustomerOrder when due.
+/// Pause / cancel from the customer detail page; we never delete history.
+model CustomerOrderSubscription {
+  id         String    @id @default(cuid())
+  userId     String
+  customerId String
+  /// "weekly" | "biweekly" | "monthly" | "quarterly". Free-form so we
+  /// can add new cadences without a migration.
+  cadence    String
+  /// Snapshot of the items at subscription time. JSON-encoded array of
+  /// { productId?, description, quantity, unitPriceKobo }.
+  itemsJson  String
+  /// When the next CustomerOrder should be materialised. Cron compares
+  /// `nextRunAt <= now` to decide. Updated forward by `cadence` on each
+  /// successful run.
+  nextRunAt  DateTime
+  /// "active" | "paused" | "cancelled". Only `active` materialises.
+  status     String    @default("active")
+  /// Optional. After this date the subscription auto-completes.
+  endsAt     DateTime?
+  /// Last time the cron successfully spawned a CustomerOrder.
+  lastRunAt  DateTime?
+  /// Free-form note shown on the customer detail page.
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status, nextRunAt])
+  @@index([customerId])
 }
 
 /// Storage for regulatory + trust documents a business holds (NAFDAC

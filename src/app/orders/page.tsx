@@ -1,22 +1,13 @@
 import Link from 'next/link';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus, Layers } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { OrdersTable } from '@/components/ops/OrdersTable';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
-import { formatKobo, timeAgo } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
-
-const STATUS_COLOURS: Record<string, string> = {
-  NEW: 'bg-slate-100 text-slate-700',
-  CONFIRMED: 'bg-blue-100 text-blue-700',
-  IN_PRODUCTION: 'bg-amber-100 text-amber-700',
-  READY: 'bg-emerald-100 text-emerald-700',
-  DELIVERED: 'bg-slate-200 text-slate-600',
-  CANCELLED: 'bg-rose-100 text-rose-700',
-};
 
 type SP = { status?: string };
 
@@ -37,30 +28,27 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
       principalName={user.principalName}
     >
       <PageHeader
-        title="Customer orders"
-        subtitle={`${total} order${total === 1 ? '' : 's'}`}
+        title="Orders"
+        subtitle={`${total} customer order${total === 1 ? '' : 's'}`}
         action={
-          <Link href="/orders/new" className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} />
-            New order
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/production"
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Layers size={16} />
+              Production
+            </Link>
+            <Link
+              href="/orders/new"
+              className="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+            >
+              <Plus size={16} />
+              Add order
+            </Link>
+          </div>
         }
       />
-
-      <div className="mb-4 flex flex-wrap gap-2 text-sm">
-        {['NEW', 'CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED'].map((s) => (
-          <Link
-            key={s}
-            href={`/orders?status=${s}`}
-            className={`rounded-full px-3 py-1 ${STATUS_COLOURS[s]} ${searchParams.status === s ? 'ring-2 ring-offset-1 ring-brand-400' : ''}`}
-          >
-            {s.replace('_', ' ')}
-          </Link>
-        ))}
-        <Link href="/orders" className="rounded-full px-3 py-1 text-slate-500 hover:underline">
-          All
-        </Link>
-      </div>
 
       {orders.length === 0 ? (
         <EmptyState
@@ -71,31 +59,26 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
           actionLabel="Create your first order"
         />
       ) : (
-        <ul className="space-y-2">
-          {orders.map((o) => (
-            <li key={o.id}>
-              <Link href={`/orders/${o.id}`} className="card flex items-center justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold text-slate-900">{o.orderNumber}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_COLOURS[o.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                      {o.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 truncate text-sm text-slate-600">
-                    {o.customerName}
-                    {o.customerPhone ? ` · ${o.customerPhone}` : ''}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-400">
-                    {timeAgo(o.createdAt)}
-                    {o.dueAt ? ` · due ${new Date(o.dueAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}` : ''}
-                  </p>
-                </div>
-                <p className="font-bold text-slate-900">{formatKobo(o.totalKobo)}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <OrdersTable
+          rows={orders.map((o: any) => ({
+            id: o.id,
+            orderNumber: o.orderNumber,
+            status: o.status,
+            customerName: o.customerName,
+            customerPhone: o.customerPhone ?? null,
+            totalKobo: o.totalKobo,
+            dueAt: o.dueAt ? o.dueAt.toISOString() : null,
+            createdAt: o.createdAt.toISOString(),
+            notes: o.notes,
+            itemCount: o.items?.length ?? 0,
+            productSummary:
+              (o.items ?? [])
+                .map((it: any) => `${it.quantity}× ${it.description}`)
+                .slice(0, 2)
+                .join(', ') || '',
+            productionStatus: o.productionOrder?.status ?? null,
+          }))}
+        />
       )}
     </AppShell>
   );

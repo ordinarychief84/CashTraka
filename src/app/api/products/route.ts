@@ -30,7 +30,20 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  const { name, price, cost, stock, trackStock, lowStockAt, note, images } = parsed.data;
+  const {
+    name,
+    price,
+    cost,
+    stock,
+    trackStock,
+    lowStockAt,
+    note,
+    images,
+    sku,
+    description,
+    nafdacNumber,
+    shelfLifeDays,
+  } = parsed.data;
 
   const product = await prisma.product.create({
     data: {
@@ -45,6 +58,10 @@ export async function POST(req: Request) {
       lowStockAt,
       note: note || null,
       images: images ?? [],
+      sku: sku ? sku : null,
+      description: description ? description : null,
+      nafdacNumber: nafdacNumber ? nafdacNumber : null,
+      shelfLifeDays: shelfLifeDays ?? null,
     },
   });
 

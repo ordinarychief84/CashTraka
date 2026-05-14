@@ -206,6 +206,14 @@ export const productSchema = z.object({
   /// Up to 8 hosted image URLs. Order matters — first is the "main" image
   /// shown as the product card thumbnail.
   images: z.array(z.string().url()).max(8).optional(),
+  /// Optional SKU/EAN code shown on the catalog detail page.
+  sku: z.string().trim().max(64).optional().or(z.literal('')),
+  /// Public-facing description shown on /store/[slug]/[productId].
+  description: z.string().trim().max(2000).optional().or(z.literal('')),
+  /// NAFDAC certification number (printed on label/receipt when set).
+  nafdacNumber: z.string().trim().max(64).optional().or(z.literal('')),
+  /// Default shelf life in days for production-batch expiry stamping.
+  shelfLifeDays: z.coerce.number().int().positive().max(36500).optional(),
 });
 
 export const saleItemSchema = z.object({

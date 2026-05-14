@@ -30,10 +30,8 @@ export default async function NewOrderPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader title="New customer order" backHref="/orders" />
-      <div className="card p-5">
-        <CustomerOrderForm products={products} customers={customers} />
-      </div>
+      <PageHeader title="Add order" backHref="/orders" />
+      <CustomerOrderForm products={products} customers={customers} />
     </AppShell>
   );
 }

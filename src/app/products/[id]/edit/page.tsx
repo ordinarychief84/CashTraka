@@ -17,22 +17,25 @@ export default async function EditProductPage({ params }: { params: { id: string
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Edit product" backHref="/products" />
-      <div className="card p-5">
-        <ProductForm
-          redirectTo="/products"
-          initial={{
-            id: product.id,
-            name: product.name,
-            price: product.price,
-            cost: product.cost,
-            stock: product.stock,
-            trackStock: product.trackStock,
-            lowStockAt: product.lowStockAt,
-            note: product.note ?? '',
-            images: product.images ?? [],
-          }}
-        />
-      </div>
+      <ProductForm
+        redirectTo="/products"
+        initial={{
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          cost: product.cost,
+          stock: product.stock,
+          trackStock: product.trackStock,
+          lowStockAt: product.lowStockAt,
+          note: product.note ?? '',
+          images: product.images ?? [],
+          sku: product.sku,
+          description: product.description,
+          nafdacNumber: product.nafdacNumber,
+          shelfLifeDays: product.shelfLifeDays,
+          archived: product.archived,
+        }}
+      />
     </AppShell>
   );
 }

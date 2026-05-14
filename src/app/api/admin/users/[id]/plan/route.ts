@@ -6,16 +6,16 @@ import { handled, ok, validationFail } from '@/lib/api-response';
 export const runtime = 'nodejs';
 
 const schema = z.object({
+  // Post-pivot plan keys only. `landlord` and `estate_manager` were
+  // removed when the property-manager vertical was killed; one misclick
+  // would silently downgrade a paying user.
   plan: z.enum([
     'free',
     'starter_quarterly',
     'starter_biannually',
     'starter_yearly',
-    // Legacy keys
     'business',
     'business_plus',
-    'landlord',
-    'estate_manager',
   ]),
   status: z
     .enum(['free', 'trialing', 'active', 'past_due', 'cancelled'])

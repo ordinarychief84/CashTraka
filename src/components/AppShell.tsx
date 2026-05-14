@@ -85,77 +85,57 @@ export function AppShell({
         </div>
 
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
+          {/* Operational planning — the product. Lead with what makes us
+              different. Orders → Production → Materials → POs → Inventory. */}
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
-          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
-          {show.payments && (
-            <SideLink
-              href="/payments"
-              icon={<Banknote size={18} />}
-              label={isPropManager ? 'Rent Payments' : 'Payments'}
-            />
-          )}
-          {show.debts && (
-            <SideLink
-              href="/debts"
-              icon={<Clock3 size={18} />}
-              label={isPropManager ? 'Unpaid Rent' : 'Money Owed'}
-            />
-          )}
-          {show.customers && (
-            <SideLink
-              href={isPropManager ? '/tenants' : '/customers'}
-              icon={<Users size={18} />}
-              label={isPropManager ? 'Tenants' : 'Customers'}
-            />
+          <GroupLabel>Operations</GroupLabel>
+          <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
+          <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
+          <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
+          <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
+          <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />
+          <SideLink href="/suppliers" icon={<Truck size={18} />} label="Suppliers" />
+          <SideLink href="/inventory" icon={<PackageSearch size={18} />} label="Inventory" />
+
+          {/* Money — the by-products of the operational loop. */}
+          <GroupLabel>Money</GroupLabel>
+          {show.payments && !isPropManager && (
+            <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
           )}
           {show.payments && !isPropManager && (
             <SideLink href="/receipts" icon={<Receipt size={18} />} label="Receipts" />
           )}
-          {show.payments && !isPropManager && (
-            <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
-          )}
-
-          {/* Operations — small-batch ops pivot. Only shown for sellers; property
-              managers get a different vertical. */}
-          {!isPropManager && show.products && (
-            <>
-              <GroupLabel>Operations</GroupLabel>
-              <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
-              <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
-              <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
-              <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
-              <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />
-              <SideLink href="/suppliers" icon={<Truck size={18} />} label="Suppliers" />
-              <SideLink href="/inventory" icon={<PackageSearch size={18} />} label="Inventory" />
-            </>
-          )}
           {show.payments && (
-            <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />
+            <SideLink
+              href="/payments"
+              icon={<Banknote size={18} />}
+              label="Payments"
+            />
           )}
-          {show.payments && !isPropManager && (
-            <SideLink href="/banks" icon={<Landmark size={18} />} label="Bank sync" />
+          {show.customers && (
+            <SideLink
+              href="/customers"
+              icon={<Users size={18} />}
+              label="Customers"
+            />
           )}
+          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
 
-          {/* Collections */}
-          {!isPropManager && show.payments && (
-            <>
-              <GroupLabel>Collections</GroupLabel>
-              <SideLink href="/paylinks" icon={<Send size={18} />} label="PayLinks" />
-              <SideLink href="/collections" icon={<Target size={18} />} label="Collections" />
-            </>
-          )}
-
+          {/* Business utilities. */}
           {(show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
-          {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expense Mgt" />}
+          {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expenses" />}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
 
-          {isPropManager && show.properties && (
-            <>
-              <GroupLabel>Property</GroupLabel>
-              <SideLink href="/properties" icon={<Building2 size={18} />} label="Properties" />
-              <SideLink href="/rent" icon={<Key size={18} />} label="Rent Tracker" />
-            </>
-          )}
+          {/* Intentionally removed from nav post-pivot (PR-A):
+              /debts (Money Owed) — folded into Customer detail
+              /paylinks — debt collection, off-brand for ops planning
+              /collections — same
+              /banks — Paystack covers settlement
+              /service-check — moved to Pro plan toggle
+              /promises, /recurring-invoices, /installments — niche debt features
+              /showroom — different product (e-commerce)
+              Property/Tenant/Rent nav — dead vertical
+              Routes still exist for deep-links from old emails. */}
 
           <div className="mt-auto" />
           {show.settings && <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />}

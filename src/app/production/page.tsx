@@ -39,6 +39,11 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
       <PageHeader
         title="Production orders"
         subtitle={`${total} order${total === 1 ? '' : 's'}`}
+        action={
+          <Link href="/production/schedule" className="btn-secondary inline-flex items-center gap-2 text-sm">
+            Schedule view
+          </Link>
+        }
       />
 
       <div className="mb-4 flex flex-wrap gap-2 text-sm">

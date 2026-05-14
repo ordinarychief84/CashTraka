@@ -38,7 +38,11 @@ export async function POST(req: Request) {
     const parsed = signupSchema.safeParse(body);
     if (!parsed.success) return validationFail(parsed.error);
 
-    const { name, email, password, businessType, termsAccepted } = parsed.data;
+    const { name, email, password, termsAccepted } = parsed.data;
+    // The landlord vertical was removed post-pivot; every new account is
+    // a seller. The schema column is kept for back-compat but no longer
+    // diverges product behaviour.
+    const businessType = 'seller';
 
     // Terms & Privacy must be accepted
     if (!termsAccepted) {

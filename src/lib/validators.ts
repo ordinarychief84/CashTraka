@@ -5,7 +5,10 @@ export const signupSchema = z.object({
   email: z.string().trim().toLowerCase().email('Enter a valid email'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
-  businessType: z.enum(['seller', 'property_manager']).optional().default('seller'),
+  // Always 'seller' post-pivot. The schema column is retained for
+  // back-compat with old signup forms that may still send the field;
+  // we coerce to 'seller' downstream.
+  businessType: z.literal('seller').optional().default('seller'),
   termsAccepted: z.boolean().optional().default(false),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -64,7 +67,8 @@ export const settingsSchema = z.object({
   bankName: z.string().trim().max(60).optional().or(z.literal('')),
   bankAccountNumber: z.string().trim().max(20).optional().or(z.literal('')),
   bankAccountName: z.string().trim().max(100).optional().or(z.literal('')),
-  businessType: z.enum(['seller', 'property_manager']).optional(),
+  // Always 'seller' post-pivot — see signupSchema above for rationale.
+  businessType: z.literal('seller').optional(),
 
   /// ── Nigerian tax compliance ────────────────────────────────
   /// FIRS-issued TIN. Empty string clears it. Format is typically

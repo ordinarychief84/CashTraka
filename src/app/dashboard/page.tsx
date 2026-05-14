@@ -32,6 +32,7 @@ import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWid
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
+import { TemplateQuickStart } from '@/components/dashboard/TemplateQuickStart';
 import { formatKobo } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
@@ -143,6 +144,7 @@ export default async function DashboardPage() {
     brokenPromiseCount,
     activePromiseCount,
     autoConfirmedTodayAgg,
+    catalogIsEmpty,
   ] = await Promise.all([
     // This week's PAID payments (for hero total + sparkline + transaction count)
     prisma.payment.findMany({
@@ -292,6 +294,16 @@ export default async function DashboardPage() {
       _sum: { amountKobo: true },
       _count: true,
     }).catch(() => ({ _sum: { amountKobo: null }, _count: 0 })),
+    // Has the user got ANY ops catalog yet? If not, the TemplateQuickStart
+    // card shows on the dashboard so the empty-state isn't a dead end.
+    // Two cheap counts in a single batch — gated on `!isPm` because
+    // property managers don't have a catalog.
+    isPm
+      ? Promise.resolve(false)
+      : Promise.all([
+          prisma.rawMaterial.count({ where: { userId: user.id, deletedAt: null } }).catch(() => 0),
+          prisma.product.count({ where: { userId: user.id, archived: false } }).catch(() => 0),
+        ]).then(([m, p]) => m === 0 && p === 0),
   ]);
 
   // ── Derived metrics ────────────────────────────────────────────────────
@@ -478,6 +490,7 @@ export default async function DashboardPage() {
       pendingTaskCount={staffTaskCounts?.pending}
     >
       {/* ───── Operations cards (small-batch ops pivot — auto-hidden if all zero) ───── */}
+      {!isPm && catalogIsEmpty && <TemplateQuickStart />}
       {!isPm && <OpsDashboardCards userId={user.id} />}
 
       {/* ───────── Welcome + primary CTA ───────── */}

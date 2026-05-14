@@ -235,3 +235,44 @@ export function customerReorderNudgeLink(args: {
     `Just reply with what you'd like and we'll prep it for you.\n\n— ${args.businessName}`;
   return whatsappLink(args.phone, msg);
 }
+
+/**
+ * "Here's what we're making this week" — single tap WhatsApp share
+ * intended for team groups or marketing posts. Uses the bare wa.me
+ * URL with no phone so the user can pick the recipient.
+ *
+ * Body is short by design (wa.me silently truncates around 2000 chars);
+ * we cap at 8 lines + a footer.
+ */
+export function productionScheduleShareMessage(args: {
+  businessName: string;
+  windowLabel: string; // e.g. "this week" or "21–27 May"
+  lines: { qty: number; productName: string; whenLabel?: string }[];
+}): string {
+  const top = args.lines.slice(0, 8);
+  const more = args.lines.length > top.length ? args.lines.length - top.length : 0;
+  const bullets = top
+    .map((l) => {
+      const when = l.whenLabel ? ` — ${l.whenLabel}` : '';
+      return `• ${l.qty} × ${l.productName}${when}`;
+    })
+    .join('\n');
+  const moreLine = more > 0 ? `\n…and ${more} more run${more === 1 ? '' : 's'}` : '';
+  return (
+    `${args.businessName} — production plan, ${args.windowLabel}:\n\n` +
+    bullets +
+    moreLine +
+    `\n\nReply if you need to slot in a custom order.`
+  );
+}
+
+/**
+ * Build a wa.me link that opens WhatsApp's "pick recipient" sheet with
+ * the production-schedule body pre-filled. No phone number means the
+ * user can forward to any contact or group.
+ */
+export function productionScheduleShareLink(
+  message: string,
+): string {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}

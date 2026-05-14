@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { productionOrdersService } from '@/lib/services/production-orders.service';
 import { formatDate, timeAgo } from '@/lib/format';
+import { ShareScheduleButton } from '@/components/ops/ShareScheduleButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,9 +41,12 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
         title="Production orders"
         subtitle={`${total} order${total === 1 ? '' : 's'}`}
         action={
-          <Link href="/production/schedule" className="btn-secondary inline-flex items-center gap-2 text-sm">
-            Schedule view
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/production/schedule" className="btn-secondary inline-flex items-center gap-2 text-sm">
+              Schedule view
+            </Link>
+            <ShareScheduleButton />
+          </div>
         }
       />
 

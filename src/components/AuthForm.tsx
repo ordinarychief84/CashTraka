@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff } from 'lucide-react';
+import { Check, Eye, EyeOff, X } from 'lucide-react';
 import { type BusinessType } from '@/lib/business-type';
+import {
+  PASSWORD_RULES,
+  PASSWORD_MAX_LENGTH,
+  checkPasswordRules,
+} from '@/lib/password-policy';
 import { cn } from '@/lib/utils';
 
 type Mode = 'login' | 'signup';
@@ -21,6 +26,13 @@ export function AuthForm({ mode }: { mode: Mode }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [businessType, setBusinessType] = useState<BusinessType>('seller');
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const ruleState = checkPasswordRules(password);
+  const allRulesPass =
+    mode !== 'signup' ||
+    PASSWORD_RULES.every((r) => ruleState[r.key]);
+  const showRules = mode === 'signup' && (passwordFocused || password.length > 0);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -28,6 +40,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
 
     if (mode === 'signup' && !termsAccepted) {
       setError('Please accept the Terms of Service and Privacy Policy to continue.');
+      return;
+    }
+
+    if (mode === 'signup' && !allRulesPass) {
+      setError('Password does not meet all the requirements yet.');
       return;
     }
 
@@ -106,10 +123,22 @@ export function AuthForm({ mode }: { mode: Mode }) {
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
-            className="input pr-10"
+            className={cn(
+              'input pr-10',
+              mode === 'signup' &&
+                password.length > 0 &&
+                !allRulesPass &&
+                'ring-1 ring-rose-300 focus:ring-rose-400',
+            )}
             required
             minLength={mode === 'signup' ? 8 : 1}
+            maxLength={mode === 'signup' ? PASSWORD_MAX_LENGTH : undefined}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setPasswordFocused(true)}
+            onBlur={() => setPasswordFocused(false)}
             placeholder={mode === 'signup' ? 'At least 8 characters' : 'Enter your password'}
+            aria-describedby={mode === 'signup' ? 'password-rules' : undefined}
           />
           <button
             type="button"
@@ -121,6 +150,34 @@ export function AuthForm({ mode }: { mode: Mode }) {
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
+        {showRules && (
+          <ul
+            id="password-rules"
+            className="mt-2 space-y-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs"
+            role="status"
+            aria-live="polite"
+          >
+            {PASSWORD_RULES.map((rule) => {
+              const ok = ruleState[rule.key];
+              return (
+                <li
+                  key={rule.key}
+                  className={cn(
+                    'flex items-start gap-1.5',
+                    ok ? 'text-emerald-700' : 'text-rose-600',
+                  )}
+                >
+                  {ok ? (
+                    <Check size={14} className="mt-0.5 shrink-0" />
+                  ) : (
+                    <X size={14} className="mt-0.5 shrink-0" />
+                  )}
+                  <span>{rule.label}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       {/* Confirm password, signup only */}

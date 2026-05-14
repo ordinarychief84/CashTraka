@@ -10,9 +10,7 @@ export default async function NewProductPage() {
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
       <PageHeader title="Add product" backHref="/products" />
-      <div className="card p-5">
-        <ProductForm redirectTo="/products" />
-      </div>
+      <ProductForm redirectTo="/products" />
     </AppShell>
   );
 }

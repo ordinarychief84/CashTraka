@@ -27,6 +27,7 @@ import {
   Truck,
   PackageSearch,
   ShieldCheck,
+  History,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -92,6 +93,11 @@ export function AppShell({
           <GroupLabel>Operations</GroupLabel>
           <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
           <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
+          <SideLink
+            href="/production/history"
+            icon={<History size={18} />}
+            label="Work history"
+          />
           <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
           <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
           <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />

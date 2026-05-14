@@ -44,15 +44,48 @@ export function isWeakPassword(pw: string): boolean {
 }
 
 /**
- * Password complexity — returns a human-readable error or null if ok.
- * Requires at least 8 chars, 1 uppercase, and 1 digit or special char.
+ * Password complexity rules. Mirrored on the client by `checkPasswordRules`
+ * so the live checklist shown during signup matches what the server will
+ * accept. Keep these two in sync.
+ *
+ * Existing accounts are unaffected — only `/api/auth/signup` re-checks
+ * complexity, login does not.
+ */
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 30;
+
+export type PasswordRuleKey = 'lower' | 'upper' | 'special' | 'min' | 'max';
+
+export const PASSWORD_RULES: { key: PasswordRuleKey; label: string }[] = [
+  { key: 'lower', label: 'Password should contain at least 1 lower letter' },
+  { key: 'upper', label: 'Password should contain at least 1 upper letter' },
+  { key: 'special', label: 'Password should contain at least 1 special sign' },
+  { key: 'min', label: `Password should contain at least ${PASSWORD_MIN_LENGTH} chars` },
+  { key: 'max', label: `Password should contain maximum ${PASSWORD_MAX_LENGTH} chars` },
+];
+
+/**
+ * Run every rule against a candidate password. Returns a map of pass/fail
+ * keyed by rule. Pure function — safe to call from a render path.
+ */
+export function checkPasswordRules(pw: string): Record<PasswordRuleKey, boolean> {
+  return {
+    lower: /[a-z]/.test(pw),
+    upper: /[A-Z]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw),
+    min: pw.length >= PASSWORD_MIN_LENGTH,
+    max: pw.length > 0 && pw.length <= PASSWORD_MAX_LENGTH,
+  };
+}
+
+/**
+ * Server-side gate. Returns a human-readable error string for the first
+ * failed rule (in display order) or null if every rule passes.
  */
 export function checkPasswordComplexity(pw: string): string | null {
-  if (pw.length < 8) return 'Password must be at least 8 characters.';
-  if (pw.length > 128) return 'Password must be 128 characters or fewer.';
-  if (!/[A-Z]/.test(pw)) return 'Include at least one uppercase letter.';
-  if (!/[0-9]/.test(pw) && !/[^A-Za-z0-9]/.test(pw)) {
-    return 'Include at least one number or special character.';
+  const result = checkPasswordRules(pw);
+  for (const rule of PASSWORD_RULES) {
+    if (!result[rule.key]) return rule.label.replace(/^Password should /, 'Password must ');
   }
   return null;
 }

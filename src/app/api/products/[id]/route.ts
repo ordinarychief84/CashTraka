@@ -38,6 +38,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     archived,
     stockDelta,
     images,
+    sku,
+    description,
+    nafdacNumber,
+    shelfLifeDays,
   } = parsed.data;
 
   // stockDelta is a convenience — "add 10 to stock" without having to do math client-side.
@@ -62,6 +66,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       note: note === undefined ? product.note : note || null,
       archived: archived ?? product.archived,
       images: images ?? undefined,
+      sku: sku === undefined ? product.sku : sku || null,
+      description:
+        description === undefined ? product.description : description || null,
+      nafdacNumber:
+        nafdacNumber === undefined ? product.nafdacNumber : nafdacNumber || null,
+      shelfLifeDays:
+        shelfLifeDays === undefined ? product.shelfLifeDays : shelfLifeDays ?? null,
     },
   });
 

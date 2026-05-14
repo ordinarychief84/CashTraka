@@ -32,6 +32,10 @@ import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWid
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
+import { OpsKpiStrip } from '@/components/dashboard/OpsKpiStrip';
+import { DailyActionPanel } from '@/components/dashboard/DailyActionPanel';
+import { OperationalRiskPanel } from '@/components/dashboard/OperationalRiskPanel';
+import { ProductionPipeline } from '@/components/dashboard/ProductionPipeline';
 import { TemplateQuickStart } from '@/components/dashboard/TemplateQuickStart';
 import { formatKobo } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
@@ -491,6 +495,19 @@ export default async function DashboardPage() {
     >
       {/* ───── Operations cards (small-batch ops pivot — auto-hidden if all zero) ───── */}
       {!isPm && catalogIsEmpty && <TemplateQuickStart />}
+
+      {/* Bundle C — world-class ops dashboard. Lead with KPIs, then the
+          two action panels (Today + Risk), then the production pipeline.
+          The legacy OpsDashboardCards stays underneath for the deeper
+          breakdown (shortages, low materials, etc.). */}
+      {!isPm && (
+        <>
+          <OpsKpiStrip userId={user.id} />
+          <DailyActionPanel userId={user.id} />
+          <OperationalRiskPanel userId={user.id} />
+          <ProductionPipeline userId={user.id} />
+        </>
+      )}
       {!isPm && <OpsDashboardCards userId={user.id} />}
 
       {/* ───────── Welcome + primary CTA ───────── */}

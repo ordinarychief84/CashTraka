@@ -99,6 +99,9 @@ export function AppShell({
             icon={<History size={18} />}
             label="Work history"
           />
+          {show.products && !isPropManager && (
+            <SideLink href="/products" icon={<ShoppingBag size={18} />} label="Products" />
+          )}
           <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
           <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
           <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />

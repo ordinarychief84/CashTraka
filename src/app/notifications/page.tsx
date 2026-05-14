@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { notificationService } from '@/lib/services/notification.service';
 import { MarkAllReadButton } from '@/components/MarkAllReadButton';
+import { StatusFilterNavSelect } from '@/components/ui/StatusFilterNavSelect';
 import { formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -38,19 +39,17 @@ export default async function NotificationsPage({ searchParams }: { searchParams
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-2 text-sm">
-        <Link
-          href="/notifications"
-          className={`rounded-full px-3 py-1 ${!unreadOnly ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          All
-        </Link>
-        <Link
-          href="/notifications?filter=unread"
-          className={`rounded-full px-3 py-1 ${unreadOnly ? 'bg-brand-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Unread {unread > 0 && <span className="ml-1 rounded-full bg-rose-500 px-1.5 text-[10px] font-bold text-white">{unread}</span>}
-        </Link>
+      <div className="mb-4">
+        <StatusFilterNavSelect
+          label="Show"
+          current={unreadOnly ? 'unread' : ''}
+          baseHref="/notifications"
+          paramName="filter"
+          options={[
+            { value: '', label: 'All notifications' },
+            { value: 'unread', label: `Unread${unread > 0 ? ` (${unread})` : ''}` },
+          ]}
+        />
       </div>
 
       {notifications.length === 0 ? (

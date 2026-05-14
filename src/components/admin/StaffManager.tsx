@@ -22,6 +22,7 @@ import {
   ChevronUp,
   Info,
 } from 'lucide-react';
+import { StatusFilterSelect } from '@/components/ui/StatusFilterSelect';
 
 type Staff = {
   id: string;
@@ -426,24 +427,21 @@ export function StaffManager({ staff, superAdmins, currentAdminId }: Props) {
                 value={search} onChange={(e) => setSearch(e.target.value)}
                 className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm focus:border-slate-400 focus:ring-1 focus:ring-slate-400 focus:outline-none" />
             </div>
-            {/* Status tabs */}
-            <div className="flex flex-wrap gap-1">
-              {(['all', 'active', 'invited', 'suspended', 'revoked'] as StatusFilter[]).map((s) => {
+            {/* Status filter */}
+            <StatusFilterSelect
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as StatusFilter)}
+              size="sm"
+              options={(
+                ['all', 'active', 'invited', 'suspended', 'revoked'] as StatusFilter[]
+              ).map((s) => {
                 const count = counts[s];
-                const isActive = statusFilter === s;
-                return (
-                  <button key={s} onClick={() => setStatusFilter(s)}
-                    className={'rounded-full px-3 py-1.5 text-xs font-semibold transition ' +
-                      (isActive
-                        ? 'bg-slate-900 text-white'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
-                    }>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                    {count > 0 && <span className="ml-1.5 opacity-70">{count}</span>}
-                  </button>
-                );
+                const label =
+                  s.charAt(0).toUpperCase() + s.slice(1) +
+                  (count > 0 ? ` (${count})` : '');
+                return { value: s, label };
               })}
-            </div>
+            />
           </div>
         )}
 

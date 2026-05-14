@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { formatKobo } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { StatusFilterSelect } from '@/components/ui/StatusFilterSelect';
 
 export type OrderRow = {
   id: string;
@@ -160,35 +161,20 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
           </div>
         </div>
 
-        {/* Status tabs */}
-        <div className="flex flex-wrap gap-1 border-b border-border px-3 py-2 text-xs">
-          <button
-            type="button"
-            onClick={() => setStatusFilter('')}
-            className={cn(
-              'rounded-full px-2.5 py-1 font-semibold',
-              statusFilter === ''
-                ? 'bg-brand-600 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-            )}
-          >
-            All
-          </button>
-          {STATUSES.map((s) => (
-            <button
-              type="button"
-              key={s}
-              onClick={() => setStatusFilter(s === statusFilter ? '' : s)}
-              className={cn(
-                'rounded-full px-2.5 py-1 font-semibold',
-                statusFilter === s
-                  ? STATUS_TONE[s] + ' ring-1 ring-offset-1 ring-current'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-              )}
-            >
-              {STATUS_LABEL[s]}
-            </button>
-          ))}
+        {/* Filter bar */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+          <StatusFilterSelect
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={[
+              { value: '', label: 'All' },
+              ...STATUSES.map((s) => ({
+                value: s,
+                label: STATUS_LABEL[s] ?? s,
+              })),
+            ]}
+            size="sm"
+          />
         </div>
 
         {/* Desktop table */}

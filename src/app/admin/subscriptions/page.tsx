@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { requireAdminSection } from '@/lib/admin-auth';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { StatusFilterNavSelect } from '@/components/ui/StatusFilterNavSelect';
 import { prisma } from '@/lib/prisma';
 import { getSubscriptionStats } from '@/lib/services/subscription-metrics.service';
 import { formatPriceNaira } from '@/lib/billing/pricing';
@@ -149,34 +150,21 @@ export default async function AdminSubscriptionsPage({
         <input type="hidden" name="filter" value={filter} />
       </form>
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        {(
-          [
-            ['all', 'All'],
-            ['active', 'Active'],
-            ['trialing', 'Trialing'],
-            ['past_due', 'Past due'],
-            ['cancelled', 'Cancelled'],
-            ['override', 'Has override'],
-          ] as const
-        ).map(([key, label]) => (
-          <Link
-            key={key}
-            href={
-              '/admin/subscriptions?filter=' +
-              key +
-              (searchParams.q ? '&q=' + encodeURIComponent(searchParams.q) : '')
-            }
-            className={cn(
-              'rounded-full px-3 py-1 text-xs font-bold transition',
-              filter === key
-                ? 'bg-brand-500 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-            )}
-          >
-            {label}
-          </Link>
-        ))}
+      <div className="mb-3">
+        <StatusFilterNavSelect
+          current={filter === 'all' ? '' : filter}
+          baseHref="/admin/subscriptions"
+          paramName="filter"
+          extraParams={searchParams.q ? { q: searchParams.q } : undefined}
+          options={[
+            { value: '', label: 'All' },
+            { value: 'active', label: 'Active' },
+            { value: 'trialing', label: 'Trialing' },
+            { value: 'past_due', label: 'Past due' },
+            { value: 'cancelled', label: 'Cancelled' },
+            { value: 'override', label: 'Has override' },
+          ]}
+        />
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-white">

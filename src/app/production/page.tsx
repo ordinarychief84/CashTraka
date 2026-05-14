@@ -8,6 +8,7 @@ import { ProductionKanban } from '@/components/ops/ProductionKanban';
 import { productionOrdersService } from '@/lib/services/production-orders.service';
 import { formatDate, timeAgo } from '@/lib/format';
 import { ShareScheduleButton } from '@/components/ops/ShareScheduleButton';
+import { StatusFilterNavSelect } from '@/components/ui/StatusFilterNavSelect';
 import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -137,21 +138,22 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
         />
       ) : (
         <>
-          <div className="mb-4 flex flex-wrap gap-2 text-sm">
-            {['PLANNED', 'MATERIALS_NEEDED', 'IN_PRODUCTION', 'COMPLETED'].map((s) => (
-              <Link
-                key={s}
-                href={`/production?view=list&status=${s}`}
-                className={`rounded-full px-3 py-1 ${STATUS_COLOURS[s]} ${
-                  searchParams.status === s ? 'ring-2 ring-offset-1 ring-brand-400' : ''
-                }`}
-              >
-                {s.replace('_', ' ')}
-              </Link>
-            ))}
-            <Link href="/production?view=list" className="rounded-full px-3 py-1 text-slate-500 hover:underline">
-              All
-            </Link>
+          <div className="mb-4">
+            <StatusFilterNavSelect
+              current={searchParams.status ?? ''}
+              baseHref="/production"
+              extraParams={{ view: 'list' }}
+              options={[
+                { value: '', label: 'All' },
+                { value: 'PLANNED', label: 'Planned' },
+                { value: 'MATERIALS_NEEDED', label: 'Materials needed' },
+                { value: 'READY_TO_PRODUCE', label: 'Ready to produce' },
+                { value: 'IN_PRODUCTION', label: 'In production' },
+                { value: 'COMPLETED', label: 'Completed' },
+                { value: 'DELAYED', label: 'Delayed' },
+                { value: 'CANCELLED', label: 'Cancelled' },
+              ]}
+            />
           </div>
 
           <ul className="space-y-2">

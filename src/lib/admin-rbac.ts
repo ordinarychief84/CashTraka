@@ -10,8 +10,9 @@ export type AdminRole =
   | 'BLOG_MANAGER'
   | 'BILLING_MANAGER'
   | 'SUPPORT_AGENT'
-  | 'PROPERTY_MANAGER'
   | 'REPORTS_VIEWER';
+// `PROPERTY_MANAGER` removed post-pivot (no landlord vertical to manage).
+// The DB migration in this PR drops any AdminStaff rows holding that role.
 
 export type AdminSection =
   | 'dashboard'
@@ -46,7 +47,6 @@ const ADMIN_MATRIX: Record<AdminRole, AdminSection[]> = {
   BLOG_MANAGER: ['dashboard', 'blog'],
   BILLING_MANAGER: ['dashboard', 'refunds', 'subscriptions', 'analytics', 'invoices', 'firs'],
   SUPPORT_AGENT: ['dashboard', 'users', 'support', 'notifications', 'emails', 'invoices', 'docAudit', 'ops'],
-  PROPERTY_MANAGER: ['dashboard', 'users'],
   REPORTS_VIEWER: ['dashboard', 'analytics', 'audit', 'invoices', 'recurring', 'firs', 'docAudit', 'feedback', 'ops', 'health'],
 };
 
@@ -90,7 +90,6 @@ export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
   BLOG_MANAGER: 'Blog Manager',
   BILLING_MANAGER: 'Billing Manager',
   SUPPORT_AGENT: 'Support Agent',
-  PROPERTY_MANAGER: 'Property Manager',
   REPORTS_VIEWER: 'Reports Viewer',
 };
 
@@ -99,7 +98,6 @@ export const ADMIN_ROLE_DESCRIPTIONS: Record<AdminRole, string> = {
   BLOG_MANAGER: 'Create, edit, and publish blog posts. No access to user data or settings.',
   BILLING_MANAGER: 'Manage refunds, view analytics, and handle billing issues.',
   SUPPORT_AGENT: 'Handle support tickets, manage users, send notifications and emails.',
-  PROPERTY_MANAGER: 'Oversee property-related users and data.',
   REPORTS_VIEWER: 'View-only access to analytics, reports, and audit logs.',
 };
 
@@ -108,7 +106,6 @@ export const ASSIGNABLE_ADMIN_ROLES: AdminRole[] = [
   'BLOG_MANAGER',
   'BILLING_MANAGER',
   'SUPPORT_AGENT',
-  'PROPERTY_MANAGER',
   'REPORTS_VIEWER',
 ];
 

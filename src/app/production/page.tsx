@@ -40,7 +40,14 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
       <PageHeader
         title="Production orders"
         subtitle={`${total} order${total === 1 ? '' : 's'}`}
-        action={<ShareScheduleButton />}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/production/schedule" className="btn-secondary inline-flex items-center gap-2 text-sm">
+              Schedule view
+            </Link>
+            <ShareScheduleButton />
+          </div>
+        }
       />
 
       <div className="mb-4 flex flex-wrap gap-2 text-sm">

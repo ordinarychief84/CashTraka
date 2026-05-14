@@ -162,6 +162,57 @@ export const purchaseOrdersService = {
   },
 
   /**
+   * One-click "draft a PO from a shortage row".
+   *
+   * Takes a single materialId — picks the material's supplier (errors
+   * if the material has no supplier assigned), computes the shortage
+   * across all active production runs via `inventoryService`, and drafts
+   * a PO for `shortBy` units. Quantity rounds up so we never under-buy.
+   *
+   * Returns the new PO. Caller can redirect to /purchase-orders/[id].
+   */
+  async createFromShortage(
+    userId: string,
+    materialId: string,
+    actorId?: string | null,
+  ) {
+    const material = await prisma.rawMaterial.findFirst({
+      where: { id: materialId, userId, deletedAt: null },
+    });
+    if (!material) throw Err.notFound('Material not found');
+    if (!material.supplierId) {
+      throw Err.validation(
+        `${material.name} has no supplier assigned. Open the material and set one before drafting a PO.`,
+      );
+    }
+    // Reuse the shortage engine so the quantity we draft is exactly
+    // what's needed for the active production runs, not a guess.
+    const { inventoryService } = await import('./inventory.service');
+    const shortages = await inventoryService.computeShortages(userId);
+    const row = shortages.find((s) => s.materialId === materialId);
+    // If no shortage today, default to topping back up to reorderLevel
+    // so users can still draft a PO proactively when they spot a low row.
+    const quantity =
+      row && row.shortBy > 0
+        ? Math.max(1, row.shortBy)
+        : Math.max(1, material.reorderLevel - material.stock);
+    if (quantity <= 0) {
+      throw Err.validation(
+        `${material.name} is already at or above its reorder level. Nothing to order.`,
+      );
+    }
+    return this.create(
+      userId,
+      {
+        supplierId: material.supplierId,
+        items: [{ materialId, quantity }],
+        notes: `Auto-drafted from shortage: ${quantity} ${material.unit} of ${material.name}.`,
+      },
+      actorId,
+    );
+  },
+
+  /**
    * Flip a DRAFT to SENT. Returns the wa.me link (if supplier phone known)
    * and fires a Resend email (best-effort) if the supplier has one. The
    * caller chooses how to surface either to the user.

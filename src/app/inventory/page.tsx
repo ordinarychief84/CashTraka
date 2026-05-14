@@ -4,6 +4,7 @@ import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { inventoryService } from '@/lib/services/inventory.service';
+import { DraftPOFromShortageButton } from '@/components/ops/DraftPOFromShortageButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,13 +45,14 @@ export default async function InventoryOverviewPage() {
           ) : (
             <ul className="divide-y divide-slate-100">
               {lowMaterials.map((m) => (
-                <li key={m.id} className="py-2 flex items-center justify-between text-sm">
-                  <Link href={`/materials/${m.id}`} className="font-medium text-slate-900 hover:underline">
+                <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-sm">
+                  <Link href={`/materials/${m.id}`} className="min-w-0 flex-1 font-medium text-slate-900 hover:underline">
                     {m.name}
                   </Link>
-                  <span className="text-rose-600 font-bold">
+                  <span className="shrink-0 text-rose-600 font-bold">
                     {m.stock} / {m.reorderLevel} {m.unit}
                   </span>
+                  <DraftPOFromShortageButton materialId={m.id} />
                 </li>
               ))}
             </ul>
@@ -87,13 +89,16 @@ export default async function InventoryOverviewPage() {
             <ul className="divide-y divide-slate-100">
               {shortages.map((s) => (
                 <li key={s.materialId} className="py-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-900">{s.materialName}</span>
-                    <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0 flex-1 font-medium text-slate-900">
+                      {s.materialName}
+                    </span>
+                    <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
                       short {s.shortBy} {s.unit}
                     </span>
+                    <DraftPOFromShortageButton materialId={s.materialId} />
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="mt-0.5 text-xs text-slate-500">
                     Needed for {s.productionNumbers.join(', ')}
                   </p>
                 </li>

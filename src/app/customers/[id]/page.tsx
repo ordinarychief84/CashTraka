@@ -5,6 +5,7 @@ import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
+import { ReorderNudgeButton } from '@/components/customers/ReorderNudgeButton';
 import { StatCard } from '@/components/StatCard';
 import { FraudWarning } from '@/components/FraudWarning';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
@@ -86,13 +87,16 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
         subtitle={displayPhone(customer.phone)}
         backHref="/customers"
         action={
-          <Link
-            href={`/follow-up?customerId=${customer.id}`}
-            className="btn-wa text-sm"
-          >
-            <MessageCircle size={16} />
-            Follow up
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <ReorderNudgeButton customerId={customer.id} />
+            <Link
+              href={`/follow-up?customerId=${customer.id}`}
+              className="btn-wa text-sm"
+            >
+              <MessageCircle size={16} />
+              Follow up
+            </Link>
+          </div>
         }
       />
 

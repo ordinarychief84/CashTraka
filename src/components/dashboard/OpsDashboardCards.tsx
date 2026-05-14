@@ -1,26 +1,43 @@
 import Link from 'next/link';
-import { AlertTriangle, Boxes, ClipboardList, Factory, Truck } from 'lucide-react';
+import {
+  AlertTriangle,
+  Boxes,
+  ClipboardList,
+  Factory,
+  Repeat2,
+  ShieldCheck,
+  Truck,
+} from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/lib/services/inventory.service';
 
+const CERT_EXPIRY_WINDOW_DAYS = 60;
+
 /**
  * Server-component island that surfaces the operational-planning state
- * on the main dashboard. Five small cards:
+ * on the main dashboard. Seven small cards:
  *   - Orders Pending          (NEW + CONFIRMED customer orders)
  *   - Production In Progress  (status=IN_PRODUCTION)
  *   - Low Materials           (count of materials at/below reorder level)
  *   - Material Shortages      (computed across active production runs)
  *   - Purchase Orders Pending (DRAFT/SENT/ORDERED/PARTIALLY_RECEIVED)
+ *   - Active Subscriptions    (recurring orders driven by the daily cron)
+ *   - Certs Expiring Soon     (within CERT_EXPIRY_WINDOW_DAYS)
  *
  * Each card links to the relevant page so users can drill in fast.
  */
 export async function OpsDashboardCards({ userId }: { userId: string }) {
+  const certExpiryHorizon = new Date(
+    Date.now() + CERT_EXPIRY_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+  );
   const [
     ordersPending,
     productionInProgress,
     purchaseOrdersPending,
     lowMaterials,
     shortages,
+    activeSubscriptions,
+    expiringCerts,
   ] = await Promise.all([
     prisma.customerOrder.count({
       where: {
@@ -45,6 +62,16 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
     }),
     inventoryService.computeLowStockMaterials(userId),
     inventoryService.computeShortages(userId),
+    prisma.customerOrderSubscription.count({
+      where: { userId, status: 'active' },
+    }),
+    prisma.certificate.count({
+      where: {
+        userId,
+        deletedAt: null,
+        expiresAt: { not: null, lte: certExpiryHorizon },
+      },
+    }),
   ]);
 
   const lowMaterialsCount = lowMaterials.length;
@@ -94,6 +121,22 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
       Icon: Truck,
       accent: 'text-indigo-700',
     },
+    {
+      label: 'Active subscriptions',
+      value: activeSubscriptions,
+      href: '/customers',
+      Icon: Repeat2,
+      accent: 'text-emerald-700',
+      subtitle: activeSubscriptions > 0 ? 'Recurring customer orders' : undefined,
+    },
+    {
+      label: 'Certs expiring',
+      value: expiringCerts,
+      href: '/settings/certificates',
+      Icon: ShieldCheck,
+      accent: expiringCerts > 0 ? 'text-amber-700' : 'text-slate-700',
+      subtitle: expiringCerts > 0 ? `Within ${CERT_EXPIRY_WINDOW_DAYS} days` : undefined,
+    },
   ];
 
   // Hide the section entirely if every value is zero — keeps the
@@ -109,7 +152,7 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
           Open orders →
         </Link>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {cards.map((c) => (
           <Link
             key={c.label}

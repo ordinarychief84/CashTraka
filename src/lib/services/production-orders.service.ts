@@ -252,6 +252,29 @@ export const productionOrdersService = {
       }
     }
 
+    // Stamp the batch. We auto-generate a batchNumber if the user
+    // didn't already set one (most won't on the first run). Shape:
+    // "BTH-YYYY-MM-DD-<lastSixOfProductionNumber>" so it's sortable
+    // and links back to the order number visually. Users can edit it
+    // post-start from the order detail page.
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const tail = order.productionNumber.slice(-6).toUpperCase();
+    const autoBatch = order.batchNumber ?? `BTH-${dateStr}-${tail}`;
+
+    // Pick the shortest shelfLifeDays across all items in the run so
+    // the stamped expiresAt is the most conservative date — never claim
+    // a product is good for longer than its weakest input allows.
+    const shelfLives = order.items
+      .map((it) => it.product.shelfLifeDays)
+      .filter((d): d is number => typeof d === 'number' && d > 0);
+    const minShelfLifeDays = shelfLives.length > 0 ? Math.min(...shelfLives) : null;
+    const autoExpiresAt =
+      order.expiresAt ??
+      (minShelfLifeDays
+        ? new Date(now.getTime() + minShelfLifeDays * 24 * 60 * 60 * 1000)
+        : null);
+
     const result = await prisma.$transaction(async (tx) => {
       for (const [materialId, qty] of required.entries()) {
         await inventoryService.recordMovement(
@@ -269,7 +292,13 @@ export const productionOrdersService = {
       }
       return tx.productionOrder.update({
         where: { id: order.id },
-        data: { status: 'IN_PRODUCTION', startedAt: new Date() },
+        data: {
+          status: 'IN_PRODUCTION',
+          startedAt: now,
+          batchNumber: autoBatch,
+          manufacturedAt: order.manufacturedAt ?? now,
+          expiresAt: autoExpiresAt,
+        },
         include: { items: true },
       });
     });

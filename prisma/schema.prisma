@@ -230,6 +230,7 @@ model User {
   purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
   orderSubscriptions CustomerOrderSubscription[]
+  certificates     Certificate[]
 
   @@index([role])
   @@index([businessType])
@@ -437,6 +438,14 @@ model Product {
   /// "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" — manual override used only when trackStock=false.
   catalogStatus String   @default("AVAILABLE")
 
+  /// NAFDAC certification number for the product (Nigerian food/cosmetic
+  /// regulator). Printed on labels + customer-facing receipts when set.
+  nafdacNumber  String?
+  /// Default shelf life in days. When a ProductionOrder is started for
+  /// this product, the run's `expiresAt` is auto-set to
+  /// `startedAt + shelfLifeDays` if the user didn't pick a date.
+  shelfLifeDays Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -451,6 +460,7 @@ model Product {
   recipe               Recipe?
   customerOrderItems   CustomerOrderItem[]
   productionOrderItems ProductionOrderItem[]
+  certificates         Certificate[]
 
   @@index([userId, archived])
   @@index([userId, isPublished])
@@ -2193,6 +2203,16 @@ model ProductionOrder {
   startedAt        DateTime?
   completedAt      DateTime?
   notes            String?
+  /// Batch / lot identifier printed on every unit of this run. Set when
+  /// the run starts. Required for NAFDAC traceability on food + cosmetics.
+  /// Free-text so businesses keep whatever lot scheme they use today.
+  batchNumber      String?
+  /// Manufacture date stamped on every unit. Defaults to `startedAt`
+  /// when not overridden.
+  manufacturedAt   DateTime?
+  /// Earliest expiry stamped on every unit of this run. For shelf-stable
+  /// goods (soap, fabric) leave null.
+  expiresAt        DateTime?
   deletedAt        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -2204,6 +2224,8 @@ model ProductionOrder {
   @@index([userId, status, createdAt])
   @@index([userId, plannedEndAt])
   @@index([userId, deletedAt])
+  @@index([userId, batchNumber])
+  @@index([userId, expiresAt])
 }
 
 /// One product line in a ProductionOrder.
@@ -2337,4 +2359,52 @@ model CustomerOrderSubscription {
 
   @@index([userId, status, nextRunAt])
   @@index([customerId])
+}
+
+/// Storage for regulatory + trust documents a business holds (NAFDAC
+/// registration, CAC/RC certificate, FDA, SON product cert, TIN
+/// certificate, organic cert, halal cert, etc.). Uploaded to Uploadcare
+/// and the hosted URL stored here. Used to:
+///   1. Surface expiry reminders in /notifications.
+///   2. Generate a single share-link customers/distributors can verify.
+///
+/// Soft-delete via `deletedAt` since we never want to lose audit history
+/// of "this product was once NAFDAC-certified".
+model Certificate {
+  id            String    @id @default(cuid())
+  userId        String
+  /// Document kind. Free-form short label, e.g.:
+  ///   "NAFDAC" | "CAC" | "TIN" | "FDA" | "SON" | "HALAL" | "ORGANIC" | "OTHER"
+  kind          String
+  /// Optional product binding. Some certs (NAFDAC) are per-product;
+  /// others (CAC) are business-wide. Null = applies to the whole business.
+  productId     String?
+  /// User-readable name displayed in the vault list.
+  label         String
+  /// Certificate number issued by the regulator (printed on the doc).
+  certificateNumber String?
+  /// Date the regulator issued the cert.
+  issuedAt      DateTime?
+  /// Date the cert expires. Drives the 30/60/90-day reminder cron.
+  expiresAt     DateTime?
+  /// Hosted Uploadcare URL. PDF or image.
+  fileUrl       String
+  /// MIME type detected at upload, e.g. application/pdf, image/jpeg.
+  mimeType      String?
+  /// Free-form notes the user wants to keep alongside the doc.
+  notes         String?
+  /// Public share token. When set, GET /c/[token] serves a read-only
+  /// view of the cert (no auth required) so the business can prove
+  /// authenticity to distributors and customers.
+  publicToken   String?   @unique
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId, deletedAt])
+  @@index([userId, expiresAt])
+  @@index([userId, productId])
 }

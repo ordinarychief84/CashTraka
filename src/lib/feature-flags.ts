@@ -20,7 +20,8 @@ export type FeatureFlagKey =
   | 'feature.paystack_live'
   | 'feature.show_pricing_page'
   | 'feature.allow_new_purchases'
-  | 'feature.maintenance_banner';
+  | 'feature.maintenance_banner'
+  | 'feature.whatsapp_business_api';
 
 type FlagDef = {
   key: FeatureFlagKey;
@@ -88,6 +89,14 @@ export const FEATURE_FLAGS: FlagDef[] = [
       'When ON, a yellow banner is shown on every authenticated page. The banner text lives in the matching SystemSetting value (set it to the message you want).',
     default: false,
     group: 'site',
+  },
+  {
+    key: 'feature.whatsapp_business_api',
+    label: 'WhatsApp Business API intake',
+    description:
+      'When ON, /api/webhooks/whatsapp accepts inbound messages from Meta and creates draft customer orders. Also requires WHATSAPP_VERIFY_TOKEN, WHATSAPP_APP_SECRET, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_CLOUD_API_TOKEN env vars. Default OFF — turn on AFTER your number is approved by Meta.',
+    default: false,
+    group: 'integrations',
   },
 ];
 

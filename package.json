@@ -14,6 +14,7 @@
     "db:reset": "prisma migrate reset --force",
     "users:cleanup": "tsx scripts/cleanup-users.ts",
     "ops:migrate": "tsx scripts/migrate-ops-tables.ts",
+    "schema:clean": "tsx scripts/drop-dead-schema.ts",
     "icons": "node scripts/generate-icons.mjs",
     "migrate:prod": "node scripts/post-deploy-migrate.mjs"
   },

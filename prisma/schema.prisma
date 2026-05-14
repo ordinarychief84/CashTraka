@@ -435,6 +435,14 @@ model Product {
   /// "AVAILABLE" | "LOW_STOCK" | "SOLD_OUT" — manual override used only when trackStock=false.
   catalogStatus String   @default("AVAILABLE")
 
+  /// NAFDAC certification number for the product (Nigerian food/cosmetic
+  /// regulator). Printed on labels + customer-facing receipts when set.
+  nafdacNumber  String?
+  /// Default shelf life in days. When a ProductionOrder is started for
+  /// this product, the run's `expiresAt` is auto-set to
+  /// `startedAt + shelfLifeDays` if the user didn't pick a date.
+  shelfLifeDays Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2191,6 +2199,16 @@ model ProductionOrder {
   startedAt        DateTime?
   completedAt      DateTime?
   notes            String?
+  /// Batch / lot identifier printed on every unit of this run. Set when
+  /// the run starts. Required for NAFDAC traceability on food + cosmetics.
+  /// Free-text so businesses keep whatever lot scheme they use today.
+  batchNumber      String?
+  /// Manufacture date stamped on every unit. Defaults to `startedAt`
+  /// when not overridden.
+  manufacturedAt   DateTime?
+  /// Earliest expiry stamped on every unit of this run. For shelf-stable
+  /// goods (soap, fabric) leave null.
+  expiresAt        DateTime?
   deletedAt        DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -2202,6 +2220,8 @@ model ProductionOrder {
   @@index([userId, status, createdAt])
   @@index([userId, plannedEndAt])
   @@index([userId, deletedAt])
+  @@index([userId, batchNumber])
+  @@index([userId, expiresAt])
 }
 
 /// One product line in a ProductionOrder.

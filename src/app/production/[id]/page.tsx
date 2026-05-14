@@ -136,6 +136,41 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
               {order.completedAt && <li>Completed {formatDateTime(order.completedAt)}</li>}
             </ul>
           </div>
+          {(order.batchNumber || order.manufacturedAt || order.expiresAt) ? (
+            <div className="card p-5">
+              <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">
+                Batch / lot
+              </h2>
+              <ul className="space-y-2 text-sm">
+                {order.batchNumber ? (
+                  <li>
+                    <span className="text-slate-500">Batch # </span>
+                    <span className="font-mono font-bold text-ink">{order.batchNumber}</span>
+                  </li>
+                ) : null}
+                {order.manufacturedAt ? (
+                  <li>
+                    <span className="text-slate-500">Manufactured </span>
+                    <span className="font-semibold text-ink">
+                      {new Date(order.manufacturedAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </li>
+                ) : null}
+                {order.expiresAt ? (
+                  <li>
+                    <span className="text-slate-500">Best before </span>
+                    <span className="font-semibold text-ink">
+                      {new Date(order.expiresAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </li>
+                ) : null}
+              </ul>
+              <p className="mt-3 text-[11px] text-slate-500">
+                Print these on every unit. NAFDAC requires lot + manufacturing
+                + expiry on food + cosmetics labels.
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     </AppShell>

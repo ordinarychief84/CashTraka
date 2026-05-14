@@ -101,16 +101,16 @@ export async function OperationalRiskPanel({ userId }: { userId: string }) {
   if (totalIssues === 0) return null;
 
   return (
-    <section className="mb-6 rounded-2xl border border-rose-200 bg-rose-50/40 p-4">
+    <section className="rounded-2xl border border-rose-200 bg-rose-50/40 p-4">
       <header className="mb-3 flex items-center justify-between gap-2">
         <h2 className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-rose-700">
           <ShieldAlert size={14} />
-          Risk panel
+          At risk
         </h2>
         <span className="num text-xs font-bold text-rose-700">{totalIssues}</span>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-2 sm:grid-cols-2">
         {criticalShortages.length > 0 && (
           <RiskGroup
             icon={AlertTriangle}

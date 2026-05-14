@@ -32,7 +32,7 @@ import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWid
 import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
-import { OpsKpiStrip } from '@/components/dashboard/OpsKpiStrip';
+import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
 import { DailyActionPanel } from '@/components/dashboard/DailyActionPanel';
 import { OperationalRiskPanel } from '@/components/dashboard/OperationalRiskPanel';
 import { ProductionPipeline } from '@/components/dashboard/ProductionPipeline';
@@ -493,65 +493,58 @@ export default async function DashboardPage() {
       principalName={user.principalName}
       pendingTaskCount={staffTaskCounts?.pending}
     >
-      {/* ───── Operations cards (small-batch ops pivot — auto-hidden if all zero) ───── */}
-      {!isPm && catalogIsEmpty && <TemplateQuickStart />}
-
-      {/* Bundle C — world-class ops dashboard. Lead with KPIs, then the
-          two action panels (Today + Risk), then the production pipeline.
-          The legacy OpsDashboardCards stays underneath for the deeper
-          breakdown (shortages, low materials, etc.). */}
-      {!isPm && (
-        <>
-          <OpsKpiStrip userId={user.id} />
-          <DailyActionPanel userId={user.id} />
-          <OperationalRiskPanel userId={user.id} />
-          <ProductionPipeline userId={user.id} />
-        </>
-      )}
-      {!isPm && <OpsDashboardCards userId={user.id} />}
-
-      {/* ───────── Welcome + primary CTA ───────── */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-4">
+      {/* ───────── Greeting + primary CTAs (lead the dashboard) ───────── */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-ink md:text-2xl">
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
             {greetingFor()}, {firstName}
           </h1>
-          <p className="mt-0.5 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500">
             {isStaffPrincipal
               ? `Signed in to ${user.businessName || 'the team'}.`
               : copy.greetingSub}
           </p>
         </div>
         {canWrite && !isStaffPrincipal && (
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/payments/new"
-              className="btn-primary text-sm"
-            >
-              <Banknote size={15} />
-              Add payment
-            </Link>
+          <div className="flex flex-wrap items-center gap-2">
             {planLimits.invoices && (
-              <Link
-                href="/invoices/new"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-brand-500 bg-white px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
-              >
-                <ReceiptText size={15} />
-                Create invoice
+              <Link href="/invoices/new" className="btn-pill-ghost">
+                <ReceiptText size={14} />
+                Invoice
               </Link>
             )}
             {showExpenses && (
-              <Link
-                href="/expenses/new"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-2 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
-              >
-                <ReceiptText size={15} />
-                Add expense
+              <Link href="/expenses/new" className="btn-pill-ghost">
+                <ReceiptText size={14} />
+                Expense
               </Link>
             )}
+            <Link href="/payments/new" className="btn-pill-primary">
+              <Banknote size={14} />
+              Record payment
+            </Link>
           </div>
         )}
       </div>
+
+      {/* Empty-catalog onboarding nudge — only when catalog is empty. */}
+      {!isPm && catalogIsEmpty && <TemplateQuickStart />}
+
+      {/* Hero KPIs · 4 large primary numbers. Replaces the prior 8-card
+          strip + OpsDashboardCards block. */}
+      {!isPm && <HeroKpiCards userId={user.id} />}
+
+      {/* Today + At risk — side by side on desktop, stacked on mobile.
+          Both panels self-hide when empty so quiet days stay clean. */}
+      {!isPm && (
+        <div className="mb-6 grid gap-3 lg:grid-cols-2">
+          <DailyActionPanel userId={user.id} />
+          <OperationalRiskPanel userId={user.id} />
+        </div>
+      )}
+
+      {/* Production pipeline — prominent full-width strip. */}
+      {!isPm && <ProductionPipeline userId={user.id} />}
 
       {/* ─── STAFF PRINCIPAL: My-tasks hero card ─── */}
       {isStaffPrincipal && staffTaskCounts && (

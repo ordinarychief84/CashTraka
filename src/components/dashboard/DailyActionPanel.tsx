@@ -110,10 +110,10 @@ export async function DailyActionPanel({ userId }: { userId: string }) {
 
   if (!hasAny) {
     return (
-      <section className="card mb-6 flex items-center gap-3 p-4">
-        <CalendarCheck className="text-emerald-600" size={20} />
+      <section className="card flex items-center gap-3 p-4">
+        <CalendarCheck className="text-success-600" size={20} />
         <div>
-          <div className="text-sm font-bold text-emerald-700">
+          <div className="text-sm font-bold text-success-700">
             Nothing on fire today
           </div>
           <p className="text-xs text-slate-500">
@@ -126,12 +126,21 @@ export async function DailyActionPanel({ userId }: { userId: string }) {
   }
 
   return (
-    <section className="mb-6">
-      <h2 className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-        <CalendarCheck size={14} />
-        Today
-      </h2>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section className="card p-4">
+      <header className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-brand-700">
+          <CalendarCheck size={14} />
+          Today
+        </h2>
+        <span className="num text-xs font-bold text-brand-700">
+          {ordersDueToday.length +
+            productionDueToday.length +
+            lowMaterialsToday.length +
+            posExpectedToday.length +
+            overdueInvoices.length}
+        </span>
+      </header>
+      <div className="grid gap-2 sm:grid-cols-2">
         {ordersDueToday.length > 0 && (
           <Cluster
             icon={ClipboardList}

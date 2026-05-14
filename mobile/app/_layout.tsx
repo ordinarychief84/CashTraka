@@ -23,6 +23,8 @@ import { initSentry, Sentry } from '@/lib/sentry';
 import { makeQueryClient } from '@/api/query-client';
 import { useAuthStore, wireAuthListener } from '@/stores/auth.store';
 import { GlobalErrorBoundary } from '@/components/feature/GlobalErrorBoundary';
+import { OfflineQueueBanner } from '@/components/feature/OfflineQueueBanner';
+import { useOfflineQueueFlusher } from '@/api/offline-flush';
 import { colors } from '@/theme';
 import { analytics } from '@/lib/analytics';
 
@@ -33,10 +35,14 @@ wireAuthListener();
 
 function App() {
   const [queryClient] = useState(() => makeQueryClient());
+  // Flushes the offline write queue when connectivity returns + on
+  // foreground + every 30s. Mounted once, cleaned up on unmount.
+  useOfflineQueueFlusher();
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <GlobalErrorBoundary>
+          <OfflineQueueBanner />
           <RouteGate />
         </GlobalErrorBoundary>
         <StatusBar style="dark" />

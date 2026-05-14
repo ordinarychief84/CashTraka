@@ -6,12 +6,20 @@ export type RecipeUpsertItem = {
   materialId: string;
   quantity: number;
   notes?: string | null;
+  wastageAllowancePercent?: number;
+  substituteAllowed?: boolean;
+  substituteMaterialId?: string | null;
 };
 
 export type RecipeUpsertInput = {
   yieldQty?: number;
   notes?: string | null;
   items: RecipeUpsertItem[];
+  recipeName?: string | null;
+  outputUnit?: string | null;
+  status?: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+  /** When true, bump versionNumber by 1 on save (audit trail). */
+  bumpVersion?: boolean;
 };
 
 export const recipesService = {
@@ -84,11 +92,20 @@ export const recipesService = {
 
     const recipe = await prisma.$transaction(async (tx) => {
       const existing = await tx.recipe.findUnique({ where: { productId } });
+      const nextVersion = existing
+        ? input.bumpVersion
+          ? existing.versionNumber + 1
+          : existing.versionNumber
+        : 1;
       const saved = existing
         ? await tx.recipe.update({
             where: { productId },
             data: {
               yieldQty,
+              recipeName: input.recipeName?.trim() || null,
+              outputUnit: input.outputUnit?.trim() || null,
+              status: input.status ?? existing.status,
+              versionNumber: nextVersion,
               notes: input.notes?.trim() || null,
               deletedAt: null,
             },
@@ -98,6 +115,10 @@ export const recipesService = {
               userId,
               productId,
               yieldQty,
+              recipeName: input.recipeName?.trim() || null,
+              outputUnit: input.outputUnit?.trim() || null,
+              status: input.status ?? 'ACTIVE',
+              versionNumber: 1,
               notes: input.notes?.trim() || null,
             },
           });
@@ -111,6 +132,12 @@ export const recipesService = {
           materialId: item.materialId,
           quantity: Math.max(1, Math.floor(item.quantity)),
           notes: item.notes?.trim() || null,
+          wastageAllowancePercent: Math.max(
+            0,
+            Math.min(100, Math.floor(item.wastageAllowancePercent ?? 0)),
+          ),
+          substituteAllowed: item.substituteAllowed ?? false,
+          substituteMaterialId: item.substituteMaterialId ?? null,
         })),
       });
 
@@ -151,5 +178,37 @@ export const recipesService = {
       entityId: recipe.id,
       action: 'CANCELLED',
     });
+  },
+
+  /**
+   * Flip lifecycle status (DRAFT / ACTIVE / ARCHIVED). Only ACTIVE recipes
+   * are consumed by `inventory.service.computeShortages*` and production
+   * material checks — so flipping to DRAFT or ARCHIVED is a soft pause.
+   */
+  async setStatus(
+    userId: string,
+    productId: string,
+    status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED',
+    actorId?: string | null,
+  ) {
+    const recipe = await prisma.recipe.findUnique({ where: { productId } });
+    if (!recipe || recipe.userId !== userId || recipe.deletedAt) {
+      throw Err.notFound('Recipe not found');
+    }
+    const updated = await prisma.recipe.update({
+      where: { id: recipe.id },
+      data: { status },
+    });
+    await documentAudit
+      .log({
+        userId,
+        actorId: actorId ?? null,
+        entityType: 'RECIPE',
+        entityId: recipe.id,
+        action: 'STATUS_CHANGED' as any,
+        metadata: { status },
+      })
+      .catch(() => {});
+    return updated;
   },
 };

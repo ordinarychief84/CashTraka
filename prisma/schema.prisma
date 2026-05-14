@@ -231,6 +231,7 @@ model User {
   stockMovements   StockMovement[]
   orderSubscriptions CustomerOrderSubscription[]
   certificates     Certificate[]
+  shortageAlerts   MaterialShortageAlert[]
 
   @@index([role])
   @@index([businessType])
@@ -423,8 +424,35 @@ model Product {
   stock      Int     @default(0)
   trackStock Boolean @default(true)
   lowStockAt Int     @default(3)
+  /// Buffer below `lowStockAt`. When stock drops below this the alert is
+  /// upgraded from "low" → "critical".
+  safetyStock Int?
   note       String?
   archived   Boolean @default(false)
+  /// "ACTIVE" | "INACTIVE" | "DISCONTINUED" — operational status separate
+  /// from `archived` (legacy delete flag). Default ACTIVE; new code reads
+  /// this, legacy code keeps reading `archived`.
+  status     String  @default("ACTIVE")
+
+  /// Free-form category for filter UI (e.g. "Soap", "Cake", "Furniture").
+  category    String?
+  /// Unit of sale label (e.g. "bottle", "pack", "kg", "metre"). Display only.
+  unitOfSale  String?
+  /// Minimum quantity a single order line can buy (bulk-only items).
+  minimumSellingQuantity Int?
+  /// Suggested batch size for production-planning UI.
+  defaultBatchSize Int?
+  /// Typical lead time from production start → ready, used by the order form.
+  defaultProductionLeadTimeDays Int?
+  /// Flag whether this product can be produced in-house (vs resold).
+  canBeProduced Boolean @default(false)
+  /// Per-unit batch tracking — when true, the production form must collect
+  /// a batch number before completing.
+  batchTracking Boolean @default(false)
+  /// When true, every unit carries an expiry stamped at production complete.
+  expiryTracking Boolean @default(false)
+  /// Optional barcode value (EAN/UPC/QR) for label printing.
+  barcodeValue   String?
 
   /// Catalog (Sell) fields.
   /// Up to 8 Uploadcare image URLs (validator enforces the cap).
@@ -464,6 +492,9 @@ model Product {
 
   @@index([userId, archived])
   @@index([userId, isPublished])
+  @@index([userId, status])
+  @@index([userId, category])
+  @@index([userId, canBeProduced])
 }
 
 // ---------- SALES (Walk-in POS) ----------
@@ -2042,17 +2073,43 @@ model VirtualAccount {
 
 /// A vendor that supplies raw materials. Distinct from Customer.
 model Supplier {
-  id            String    @id @default(cuid())
-  userId        String
-  name          String
-  contactPerson String?
-  phone         String?
-  email         String?
-  address       String?
-  notes         String?
-  deletedAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                     String    @id @default(cuid())
+  userId                 String
+  name                   String
+  contactPerson          String?
+  phone                  String?
+  /// Optional dedicated WhatsApp number — falls back to `phone` when null.
+  whatsappNumber         String?
+  email                  String?
+  address                String?
+  /// Free-form classification for filter UI: e.g. "Packaging", "Ingredients".
+  supplierCategory       String?
+  /// Free-form list of materials this supplier provides.
+  materialsSupplied      String?
+  /// Net payment terms, e.g. "Net 30", "COD", "50% deposit".
+  paymentTerms           String?
+  /// Typical lead time in days from PO sent → goods received.
+  /// Used to default new PurchaseOrder.expectedAt.
+  leadTimeDays           Int?
+  /// Minimum order quantity the supplier accepts.
+  minimumOrderQuantity   Int?
+  /// "DELIVERY" | "PICKUP" | "THIRD_PARTY"
+  deliveryMethod         String?
+  /// Stamped on every PurchaseOrder receive — drives "supplier last seen" UI.
+  lastPurchaseAt         DateTime?
+  /// Total kobo amount of the most recent received PO.
+  lastPurchaseAmountKobo Int?
+  /// Rolling 0–100 on-time-delivery rating, recomputed after each PO receive.
+  onTimeDeliveryRating   Int?
+  /// Rolling 0–100 quality rating (1 − rejection rate × 100), recomputed
+  /// after each PO receive.
+  qualityRating          Int?
+  /// "ACTIVE" | "INACTIVE" | "BLACKLISTED"
+  status                 String    @default("ACTIVE")
+  notes                  String?
+  deletedAt              DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   rawMaterials   RawMaterial[]
@@ -2060,72 +2117,120 @@ model Supplier {
 
   @@index([userId, deletedAt])
   @@index([userId, name])
+  @@index([userId, status])
 }
 
 /// A raw material consumed during production. Distinct from Product
 /// (Product = finished good with selling price; RawMaterial = input).
 model RawMaterial {
-  id           String    @id @default(cuid())
-  userId       String
-  name         String
-  sku          String?
+  id                       String    @id @default(cuid())
+  userId                   String
+  name                     String
+  sku                      String?
+  /// Free-form classification (e.g. "Oils", "Bottles", "Labels").
+  category                 String?
+  /// "INGREDIENT" | "PACKAGING" | "FABRIC" | "COMPONENT" | "CHEMICAL" | "CONSUMABLE" | "OTHER"
+  materialType             String?
   /// Unit of measure label, e.g. "kg" | "g" | "l" | "ml" | "unit" | "m" | "pack".
   /// Stock is stored as an Int in this single base unit; no multi-unit math.
-  unit         String    @default("unit")
-  stock        Int       @default(0)
-  reorderLevel Int       @default(0)
+  unit                     String    @default("unit")
+  stock                    Int       @default(0)
+  reorderLevel             Int       @default(0)
+  /// Optional safety-stock buffer below reorderLevel — when stock hits
+  /// safetyStock the alert is upgraded from "low" to "critical".
+  safetyStock              Int?
+  /// Minimum quantity to order when reordering from the preferred supplier.
+  minimumPurchaseQuantity  Int?
+  /// Expected lead time in days from PO sent → goods received.
+  expectedLeadTimeDays     Int?
+  /// Supplier's own SKU for this material (printed on POs).
+  supplierSku              String?
+  /// Free-text storage location (e.g. "Shelf B3", "Cold room").
+  storageLocation          String?
+  /// Most recent batch / lot number received (helps reconcile receives).
+  batchNumber              String?
   /// Last known cost per unit (kobo). Used by production-costing.
-  unitCostKobo Int       @default(0)
-  supplierId   String?
+  unitCostKobo             Int       @default(0)
+  /// Snapshot of the last received PO's unit cost — separate from the
+  /// `unitCostKobo` rolling average so cost-trend reports can detect spikes.
+  lastPurchasePriceKobo    Int?
+  /// "APPROVED" | "PENDING_INSPECTION" | "REJECTED" | "EXPIRED"
+  qualityStatus            String    @default("APPROVED")
+  /// "ACTIVE" | "LOW_STOCK" | "OUT_OF_STOCK" | "DISCONTINUED" — computed and
+  /// cached on writes for fast filter UIs.
+  status                   String    @default("ACTIVE")
+  supplierId               String?
   /// Optional expiry hint for the nearest-expiring batch.
-  expiresAt    DateTime?
-  notes        String?
-  deletedAt    DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  expiresAt                DateTime?
+  notes                    String?
+  deletedAt                DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   supplier Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
 
-  recipeItems        RecipeItem[]
-  purchaseOrderItems PurchaseOrderItem[]
+  recipeItems            RecipeItem[]
+  purchaseOrderItems     PurchaseOrderItem[]
+  recipeSubstitutes      RecipeItem[] @relation("RecipeItemSubstitute")
+  shortageAlerts         MaterialShortageAlert[]
 
   @@index([userId, deletedAt])
   @@index([userId, supplierId])
   @@index([userId, expiresAt])
+  @@index([userId, status])
+  @@index([userId, materialType])
 }
 
 /// Recipe (a.k.a. "Materials Needed") for one finished Product.
 /// Simple single-level BOM — no phantom or sub-assembly recipes.
 model Recipe {
-  id        String    @id @default(cuid())
-  userId    String
-  productId String    @unique
+  id                   String    @id @default(cuid())
+  userId               String
+  productId            String    @unique
+  /// Display name for the recipe (defaults to the product name when blank).
+  recipeName           String?
+  /// Manually-bumped version counter. Helps audit who changed what when.
+  versionNumber        Int       @default(1)
+  /// "DRAFT" | "ACTIVE" | "ARCHIVED" — only ACTIVE is consumed by production
+  /// material checks; DRAFT lets you stage a change without disrupting runs.
+  status               String    @default("ACTIVE")
   /// One batch of this recipe yields N units of the product.
-  yieldQty  Int       @default(1)
-  notes     String?
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  yieldQty             Int       @default(1)
+  /// Output unit label printed on production paperwork ("bottles", "pieces").
+  outputUnit           String?
+  notes                String?
+  deletedAt            DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   items   RecipeItem[]
 
   @@index([userId, deletedAt])
+  @@index([userId, status])
 }
 
 /// One material line in a Recipe.
 model RecipeItem {
-  id         String  @id @default(cuid())
-  recipeId   String
-  materialId String
+  id                       String   @id @default(cuid())
+  recipeId                 String
+  materialId               String
   /// Quantity of the material consumed to produce one full yieldQty batch.
-  quantity   Int
-  notes      String?
+  quantity                 Int
+  /// Wastage buffer applied during material-check (e.g. 5 = inflate required
+  /// qty by 5% to account for spillage / trim). Stored as integer percent.
+  wastageAllowancePercent  Int      @default(0)
+  /// If true, `substituteMaterialId` may be consumed when the primary is short.
+  substituteAllowed        Boolean  @default(false)
+  /// Optional fallback material that can be swapped in if primary is short.
+  substituteMaterialId     String?
+  notes                    String?
 
-  recipe   Recipe      @relation(fields: [recipeId], references: [id], onDelete: Cascade)
-  material RawMaterial @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  recipe              Recipe       @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  material            RawMaterial  @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  substituteMaterial  RawMaterial? @relation("RecipeItemSubstitute", fields: [substituteMaterialId], references: [id], onDelete: SetNull)
 
   @@unique([recipeId, materialId])
   @@index([materialId])
@@ -2145,6 +2250,22 @@ model CustomerOrder {
   orderNumber         String    @unique
   /// "NEW" | "CONFIRMED" | "IN_PRODUCTION" | "READY" | "DELIVERED" | "CANCELLED"
   status              String    @default("NEW")
+  /// "UNPAID" | "PART_PAID" | "PAID" — distinct from the production lifecycle.
+  paymentStatus       String    @default("UNPAID")
+  /// "LOW" | "NORMAL" | "HIGH" | "URGENT" — drives dashboard sort.
+  priority            String    @default("NORMAL")
+  /// "WHATSAPP" | "WALK_IN" | "INSTAGRAM" | "WEBSITE" | "REFERRAL" | "OTHER"
+  source              String?
+  /// "PICKUP" | "DELIVERY" | "DISPATCH" | "THIRD_PARTY"
+  deliveryMethod      String?
+  /// Free-text address for DELIVERY / DISPATCH.
+  deliveryAddress     String?
+  /// Free-text dispatch note shown to courier / packer.
+  deliveryNote        String?
+  /// User ID of the staff member responsible for fulfilment.
+  assignedTo          String?
+  /// Internal note hidden from customer-facing documents.
+  internalNote        String?
   dueAt               DateTime?
   totalKobo           Int       @default(0)
   notes               String?
@@ -2169,6 +2290,8 @@ model CustomerOrder {
   @@index([userId, customerId, createdAt])
   @@index([userId, dueAt])
   @@index([userId, deletedAt])
+  @@index([userId, paymentStatus])
+  @@index([userId, priority, dueAt])
 }
 
 /// Line item on a CustomerOrder.
@@ -2179,7 +2302,11 @@ model CustomerOrderItem {
   description     String
   quantity        Int     @default(1)
   unitPriceKobo   Int     @default(0)
+  /// Per-line discount in kobo. Reduces `totalKobo`.
+  discountKobo    Int     @default(0)
   totalKobo       Int     @default(0)
+  /// Per-line note carried onto the production / packing slip.
+  lineNotes       String?
 
   customerOrder CustomerOrder @relation(fields: [customerOrderId], references: [id], onDelete: Cascade)
   product       Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
@@ -2189,43 +2316,59 @@ model CustomerOrderItem {
 }
 
 /// Internal production run for one or more finished products.
-/// Lifecycle: PLANNED → MATERIALS_NEEDED → IN_PRODUCTION → COMPLETED
-///            (or → DELAYED / CANCELLED from any state).
+/// Lifecycle: PLANNED → MATERIALS_NEEDED → READY_TO_PRODUCE → IN_PRODUCTION
+///            → COMPLETED (or → DELAYED / CANCELLED from any state).
 model ProductionOrder {
-  id               String    @id @default(cuid())
-  userId           String
+  id                 String    @id @default(cuid())
+  userId             String
   /// Human-readable e.g. "PRD-00042".
-  productionNumber String    @unique
-  /// "PLANNED" | "MATERIALS_NEEDED" | "IN_PRODUCTION" | "COMPLETED" | "DELAYED" | "CANCELLED"
-  status           String    @default("PLANNED")
-  plannedStartAt   DateTime?
-  plannedEndAt     DateTime?
-  startedAt        DateTime?
-  completedAt      DateTime?
-  notes            String?
+  productionNumber   String    @unique
+  /// Optional display title (defaults to product name when blank).
+  title              String?
+  /// "PLANNED" | "MATERIALS_NEEDED" | "READY_TO_PRODUCE" | "IN_PRODUCTION" |
+  /// "COMPLETED" | "DELAYED" | "CANCELLED"
+  status             String    @default("PLANNED")
+  /// "LOW" | "NORMAL" | "HIGH" | "URGENT" — drives Kanban sort.
+  priority           String    @default("NORMAL")
+  /// User ID of the staff member responsible for executing the run.
+  assignedTo         String?
+  plannedStartAt     DateTime?
+  plannedEndAt       DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  /// QC: total quantity actually produced across all items in this run.
+  quantityProduced   Int?
+  /// QC: quantity rejected during inspection (broken / off-spec).
+  quantityDamaged    Int?
+  /// QC: quantity that passed inspection and moved to finished-goods stock.
+  /// Should equal `quantityProduced - quantityDamaged` when both are set.
+  quantityAccepted   Int?
+  notes              String?
   /// Batch / lot identifier printed on every unit of this run. Set when
   /// the run starts. Required for NAFDAC traceability on food + cosmetics.
   /// Free-text so businesses keep whatever lot scheme they use today.
-  batchNumber      String?
+  batchNumber        String?
   /// Manufacture date stamped on every unit. Defaults to `startedAt`
   /// when not overridden.
-  manufacturedAt   DateTime?
+  manufacturedAt     DateTime?
   /// Earliest expiry stamped on every unit of this run. For shelf-stable
   /// goods (soap, fabric) leave null.
-  expiresAt        DateTime?
-  deletedAt        DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  expiresAt          DateTime?
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
-  user          User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customerOrder CustomerOrder?
-  items         ProductionOrderItem[]
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerOrder  CustomerOrder?
+  items          ProductionOrderItem[]
+  shortageAlerts MaterialShortageAlert[]
 
   @@index([userId, status, createdAt])
   @@index([userId, plannedEndAt])
   @@index([userId, deletedAt])
   @@index([userId, batchNumber])
   @@index([userId, expiresAt])
+  @@index([userId, priority, plannedEndAt])
 }
 
 /// One product line in a ProductionOrder.
@@ -2249,21 +2392,27 @@ model ProductionOrderItem {
 /// Lifecycle: DRAFT → SENT → ORDERED → PARTIALLY_RECEIVED → RECEIVED
 ///            (or → CANCELLED from any state).
 model PurchaseOrder {
-  id         String    @id @default(cuid())
-  userId     String
-  supplierId String
+  id              String    @id @default(cuid())
+  userId          String
+  supplierId      String
   /// Human-readable e.g. "PO-00042".
-  poNumber   String    @unique
+  poNumber        String    @unique
   /// "DRAFT" | "SENT" | "ORDERED" | "PARTIALLY_RECEIVED" | "RECEIVED" | "CANCELLED"
-  status     String    @default("DRAFT")
-  expectedAt DateTime?
-  receivedAt DateTime?
-  totalKobo  Int       @default(0)
-  notes      String?
-  pdfUrl     String?
-  deletedAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  status          String    @default("DRAFT")
+  /// "UNPAID" | "PART_PAID" | "PAID"
+  paymentStatus   String    @default("UNPAID")
+  /// Kobo amount already paid to the supplier (rolled up from payments).
+  amountPaidKobo  Int       @default(0)
+  /// "LOW" | "NORMAL" | "HIGH" | "URGENT"
+  priority        String    @default("NORMAL")
+  expectedAt      DateTime? // When the supplier promised delivery.
+  receivedAt      DateTime? // When all items were received.
+  totalKobo       Int       @default(0)
+  notes           String?
+  pdfUrl          String?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   supplier Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
@@ -2273,18 +2422,30 @@ model PurchaseOrder {
   @@index([userId, supplierId])
   @@index([userId, expectedAt])
   @@index([userId, deletedAt])
+  @@index([userId, paymentStatus])
+  @@index([userId, priority, expectedAt])
 }
 
 /// One material line in a PurchaseOrder.
 model PurchaseOrderItem {
-  id               String @id @default(cuid())
-  purchaseOrderId  String
-  materialId       String
-  quantity         Int
+  id                  String    @id @default(cuid())
+  purchaseOrderId     String
+  materialId          String
+  quantity            Int
   /// How many units have been received so far (drives partial-receipt flow).
-  quantityReceived Int    @default(0)
-  unitCostKobo     Int    @default(0)
-  totalKobo        Int    @default(0)
+  quantityReceived    Int       @default(0)
+  /// How many units were rejected on inspection (damaged / off-spec).
+  /// Stays on the doc for supplier-quality scoring; not added to stock.
+  quantityRejected    Int       @default(0)
+  unitCostKobo        Int       @default(0)
+  totalKobo           Int       @default(0)
+  /// Optional per-line expected delivery date when a PO spans multiple
+  /// drop-off dates from the same supplier.
+  expectedDeliveryAt  DateTime?
+  /// "APPROVED" | "PENDING_INSPECTION" | "REJECTED" | null (not yet received)
+  qualityStatus       String?
+  /// Per-line note shown to the supplier and on the receive screen.
+  lineNotes           String?
 
   purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
   material      RawMaterial   @relation(fields: [materialId], references: [id], onDelete: Restrict)
@@ -2407,4 +2568,50 @@ model Certificate {
   @@index([userId, deletedAt])
   @@index([userId, expiresAt])
   @@index([userId, productId])
+}
+
+
+/// A persisted material shortage detected when a ProductionOrder was
+/// created (or refreshed) and the recipe demanded more material than
+/// the tenant had in stock. Unlike the compute-on-the-fly shortages in
+/// inventory.service, these rows survive past the production run and
+/// drive the dashboard “Shortage alerts” card + the shortage-trend report.
+///
+/// Lifecycle: OPEN → RESOLVED (PO received OR substitute used OR stock
+/// replenished by adjustment) or → IGNORED (operator dismissed).
+model MaterialShortageAlert {
+  id                  String   @id @default(cuid())
+  userId              String
+  productionOrderId   String
+  materialId          String
+  /// Required quantity from the recipe + wastage allowance.
+  requiredQuantity    Int
+  /// Stock available at the time the alert was generated.
+  availableQuantity   Int
+  /// Difference (required − available). Always positive on OPEN alerts.
+  shortageQuantity    Int
+  /// "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" — derived from shortage size
+  /// relative to safetyStock + lead-time pressure.
+  severity            String   @default("MEDIUM")
+  /// "BUY_MATERIAL" | "REDUCE_PRODUCTION" | "USE_SUBSTITUTE" | "DELAY_PRODUCTION"
+  recommendedAction   String   @default("BUY_MATERIAL")
+  /// Deadline by which the shortage must be resolved to hit the
+  /// production order's planned end date.
+  neededByDate        DateTime?
+  /// "OPEN" | "RESOLVED" | "IGNORED"
+  status              String   @default("OPEN")
+  /// Free-form note (e.g. "covered by PO-00042", "substitute confirmed").
+  resolutionNote      String?
+  resolvedAt          DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productionOrder  ProductionOrder  @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  material         RawMaterial      @relation(fields: [materialId], references: [id], onDelete: Restrict)
+
+  @@unique([productionOrderId, materialId])
+  @@index([userId, status, createdAt])
+  @@index([userId, severity])
+  @@index([userId, materialId])
 }

@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { Err } from '@/lib/errors';
 import { documentAudit } from '@/lib/services/document-audit.service';
 import { inventoryService } from '@/lib/services/inventory.service';
+import { shortageService } from '@/lib/services/shortage.service';
 import { nextProductionNumber } from '@/lib/op-numbers';
 
 export type ProductionOrderCreateItem = {
@@ -19,6 +20,7 @@ export type ProductionOrderCreateInput = {
 type ProductionStatus =
   | 'PLANNED'
   | 'MATERIALS_NEEDED'
+  | 'READY_TO_PRODUCE'
   | 'IN_PRODUCTION'
   | 'COMPLETED'
   | 'DELAYED'
@@ -29,10 +31,11 @@ type ProductionStatus =
  * is enforced so we don't accidentally re-start a completed run.
  */
 const ALLOWED_TRANSITIONS: Record<ProductionStatus, ProductionStatus[]> = {
-  PLANNED: ['MATERIALS_NEEDED', 'IN_PRODUCTION', 'DELAYED', 'CANCELLED'],
-  MATERIALS_NEEDED: ['PLANNED', 'IN_PRODUCTION', 'DELAYED', 'CANCELLED'],
+  PLANNED: ['MATERIALS_NEEDED', 'READY_TO_PRODUCE', 'IN_PRODUCTION', 'DELAYED', 'CANCELLED'],
+  MATERIALS_NEEDED: ['PLANNED', 'READY_TO_PRODUCE', 'IN_PRODUCTION', 'DELAYED', 'CANCELLED'],
+  READY_TO_PRODUCE: ['MATERIALS_NEEDED', 'IN_PRODUCTION', 'DELAYED', 'CANCELLED'],
   IN_PRODUCTION: ['COMPLETED', 'DELAYED', 'CANCELLED'],
-  DELAYED: ['PLANNED', 'MATERIALS_NEEDED', 'IN_PRODUCTION', 'CANCELLED'],
+  DELAYED: ['PLANNED', 'MATERIALS_NEEDED', 'READY_TO_PRODUCE', 'IN_PRODUCTION', 'CANCELLED'],
   COMPLETED: [],
   CANCELLED: [],
 };
@@ -137,6 +140,11 @@ export const productionOrdersService = {
             include: { items: true },
           })
         : order;
+
+    // Persist shortage alerts (fire-and-forget so create() stays fast).
+    void shortageService
+      .syncForProductionOrder(userId, saved.id)
+      .catch((e) => console.warn('[production-orders] shortage sync failed', e));
 
     await documentAudit.log({
       userId,
@@ -312,15 +320,70 @@ export const productionOrdersService = {
       metadata: { materialsConsumed: required.size },
     });
 
+    // Materials just got consumed — resync shortage alerts so they close.
+    void shortageService
+      .syncForProductionOrder(userId, order.id)
+      .catch((e) => console.warn('[production-orders] shortage sync failed', e));
+
     return result;
+  },
+
+  /**
+   * Mark a production run READY_TO_PRODUCE — operator's signal that
+   * materials check passed and all kit is gathered. Optional gate that
+   * sits between MATERIALS_NEEDED and IN_PRODUCTION.
+   */
+  async markReady(
+    userId: string,
+    productionOrderId: string,
+    actorId?: string | null,
+  ) {
+    const order = await prisma.productionOrder.findFirst({
+      where: { id: productionOrderId, userId, deletedAt: null },
+    });
+    if (!order) throw Err.notFound('Production order not found');
+    if (!ALLOWED_TRANSITIONS[order.status as ProductionStatus]?.includes('READY_TO_PRODUCE')) {
+      throw Err.conflict(
+        `Cannot mark a production order ready from status ${order.status}.`,
+      );
+    }
+    const updated = await prisma.productionOrder.update({
+      where: { id: productionOrderId },
+      data: { status: 'READY_TO_PRODUCE' },
+    });
+    await documentAudit
+      .log({
+        userId,
+        actorId: actorId ?? null,
+        entityType: 'PRODUCTION_ORDER',
+        entityId: productionOrderId,
+        action: 'STATUS_CHANGED' as any,
+        metadata: { status: 'READY_TO_PRODUCE' },
+      })
+      .catch(() => {});
+    return updated;
   },
 
   /**
    * Complete production. Writes PRODUCTION_PRODUCE movements for each
    * finished product line, snapshots unit cost into ProductionOrderItem,
    * and transitions any linked CustomerOrder to READY.
+   *
+   * Optional QC quantities: when `quantityProduced` is supplied, the
+   * actual stock movement uses it instead of the planned quantity. Damaged
+   * units are subtracted (recorded as WRITE_OFF) and only `quantityAccepted`
+   * lands as finished-goods stock.
    */
-  async complete(userId: string, productionOrderId: string, actorId?: string | null) {
+  async complete(
+    userId: string,
+    productionOrderId: string,
+    actorId?: string | null,
+    qc?: {
+      quantityProduced?: number | null;
+      quantityDamaged?: number | null;
+      quantityAccepted?: number | null;
+    },
+  ) {
     const order = await prisma.productionOrder.findUnique({
       where: { id: productionOrderId },
       include: {
@@ -335,6 +398,16 @@ export const productionOrdersService = {
       throw Err.conflict(`Cannot complete a production order in status ${order.status}.`);
     }
 
+    // Derive QC qty. Default to planned qty (sum across items) when no QC
+    // numbers were supplied so legacy callers keep working unchanged.
+    const plannedTotal = order.items.reduce((s, it) => s + it.quantity, 0);
+    const qtyProduced = qc?.quantityProduced ?? plannedTotal;
+    const qtyDamaged = qc?.quantityDamaged ?? 0;
+    const qtyAccepted =
+      qc?.quantityAccepted ?? Math.max(0, qtyProduced - qtyDamaged);
+    // Ratio for distributing across items when a multi-item run partially yields.
+    const acceptedRatio = plannedTotal > 0 ? qtyAccepted / plannedTotal : 1;
+
     const result = await prisma.$transaction(async (tx) => {
       for (const item of order.items) {
         const unitCostKobo = await inventoryService.computeRecipeUnitCostKobo(userId, item.productId);
@@ -342,18 +415,28 @@ export const productionOrdersService = {
           where: { id: item.id },
           data: { unitCostKoboSnapshot: unitCostKobo },
         });
-        await inventoryService.recordMovement(
-          {
-            userId,
-            itemType: 'PRODUCT',
-            itemId: item.productId,
-            reason: 'PRODUCTION_PRODUCE',
-            delta: item.quantity,
-            refType: 'PRODUCTION_ORDER',
-            refId: order.id,
-          },
-          tx,
+        const acceptedForLine = Math.max(
+          0,
+          Math.round(item.quantity * acceptedRatio),
         );
+        if (acceptedForLine > 0) {
+          await inventoryService.recordMovement(
+            {
+              userId,
+              itemType: 'PRODUCT',
+              itemId: item.productId,
+              reason: 'PRODUCTION_PRODUCE',
+              delta: acceptedForLine,
+              refType: 'PRODUCTION_ORDER',
+              refId: order.id,
+              notes:
+                qtyDamaged > 0
+                  ? `Accepted ${acceptedForLine} of planned ${item.quantity}; ${item.quantity - acceptedForLine} not delivered (damaged or short)`
+                  : undefined,
+            },
+            tx,
+          );
+        }
         // Update Product.costKobo to the latest produced cost (rolling snapshot).
         if (unitCostKobo > 0) {
           await tx.product.update({
@@ -365,7 +448,13 @@ export const productionOrdersService = {
 
       const updated = await tx.productionOrder.update({
         where: { id: order.id },
-        data: { status: 'COMPLETED', completedAt: new Date() },
+        data: {
+          status: 'COMPLETED',
+          completedAt: new Date(),
+          quantityProduced: qtyProduced,
+          quantityDamaged: qtyDamaged,
+          quantityAccepted: qtyAccepted,
+        },
         include: { items: true },
       });
 

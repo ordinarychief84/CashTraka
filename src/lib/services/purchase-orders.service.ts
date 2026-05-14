@@ -384,6 +384,36 @@ export const purchaseOrdersService = {
       },
     });
 
+    // Roll supplier performance metrics when a PO is fully received.
+    if (result.status === 'RECEIVED' && result.supplierId) {
+      try {
+        const { suppliersService } = await import('./suppliers.service');
+        const totalReceived = result.items.reduce(
+          (s, it) => s + it.quantityReceived,
+          0,
+        );
+        const totalRejected = result.items.reduce(
+          (s, it) => s + (it.quantityRejected ?? 0),
+          0,
+        );
+        const onTime = po.expectedAt
+          ? new Date() <= new Date(po.expectedAt)
+          : true;
+        await suppliersService.recordPurchaseReceived(
+          userId,
+          result.supplierId,
+          {
+            receivedOnTime: onTime,
+            rejectedRatio:
+              totalReceived === 0 ? 0 : totalRejected / totalReceived,
+            totalKobo: result.totalKobo,
+          },
+        );
+      } catch (e) {
+        console.warn('[purchase-orders] supplier rating update failed', e);
+      }
+    }
+
     return result;
   },
 

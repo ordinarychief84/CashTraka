@@ -229,6 +229,7 @@ model User {
   productionOrders ProductionOrder[]
   purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
+  certificates     Certificate[]
 
   @@index([role])
   @@index([businessType])
@@ -449,6 +450,7 @@ model Product {
   recipe               Recipe?
   customerOrderItems   CustomerOrderItem[]
   productionOrderItems ProductionOrderItem[]
+  certificates         Certificate[]
 
   @@index([userId, archived])
   @@index([userId, isPublished])
@@ -2300,4 +2302,52 @@ model StockMovement {
   @@index([userId, itemType, itemId, createdAt])
   @@index([userId, reason, createdAt])
   @@index([userId, refType, refId])
+}
+
+/// Storage for regulatory + trust documents a business holds (NAFDAC
+/// registration, CAC/RC certificate, FDA, SON product cert, TIN
+/// certificate, organic cert, halal cert, etc.). Uploaded to Uploadcare
+/// and the hosted URL stored here. Used to:
+///   1. Surface expiry reminders in /notifications.
+///   2. Generate a single share-link customers/distributors can verify.
+///
+/// Soft-delete via `deletedAt` since we never want to lose audit history
+/// of "this product was once NAFDAC-certified".
+model Certificate {
+  id            String    @id @default(cuid())
+  userId        String
+  /// Document kind. Free-form short label, e.g.:
+  ///   "NAFDAC" | "CAC" | "TIN" | "FDA" | "SON" | "HALAL" | "ORGANIC" | "OTHER"
+  kind          String
+  /// Optional product binding. Some certs (NAFDAC) are per-product;
+  /// others (CAC) are business-wide. Null = applies to the whole business.
+  productId     String?
+  /// User-readable name displayed in the vault list.
+  label         String
+  /// Certificate number issued by the regulator (printed on the doc).
+  certificateNumber String?
+  /// Date the regulator issued the cert.
+  issuedAt      DateTime?
+  /// Date the cert expires. Drives the 30/60/90-day reminder cron.
+  expiresAt     DateTime?
+  /// Hosted Uploadcare URL. PDF or image.
+  fileUrl       String
+  /// MIME type detected at upload, e.g. application/pdf, image/jpeg.
+  mimeType      String?
+  /// Free-form notes the user wants to keep alongside the doc.
+  notes         String?
+  /// Public share token. When set, GET /c/[token] serves a read-only
+  /// view of the cert (no auth required) so the business can prove
+  /// authenticity to distributors and customers.
+  publicToken   String?   @unique
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([userId, deletedAt])
+  @@index([userId, expiresAt])
+  @@index([userId, productId])
 }

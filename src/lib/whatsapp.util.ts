@@ -204,6 +204,39 @@ export function productionCompletedLink(args: {
 }
 
 /**
+ * Re-order nudge for a returning customer who hasn't ordered in a while.
+ * Mirrors back the items from their last order so they can reply "yes
+ * please, same as last time" without having to remember what they got.
+ *
+ * Repeat customers are the cheapest growth lever; one WhatsApp nudge with
+ * the last order pre-quoted converts much better than a generic "we
+ * miss you" message.
+ */
+export function customerReorderNudgeLink(args: {
+  phone: string;
+  customerName: string;
+  businessName: string;
+  daysSinceLastOrder: number;
+  lastOrderItems?: { description: string; quantity: number }[];
+  lastOrderNumber?: string;
+}): string {
+  const summary = args.lastOrderItems?.length
+    ? '\n\nLast time you ordered:\n' +
+      args.lastOrderItems
+        .slice(0, 6)
+        .map((it) => `• ${it.quantity} × ${it.description}`)
+        .join('\n')
+    : '';
+  const ref = args.lastOrderNumber ? ` (ref ${args.lastOrderNumber})` : '';
+  const msg =
+    `Hi ${args.customerName} 👋\n\n` +
+    `It's been ${args.daysSinceLastOrder} days since you last ordered from ${args.businessName}${ref}. ` +
+    `We'd love to hear from you again.${summary}\n\n` +
+    `Just reply with what you'd like and we'll prep it for you.\n\n— ${args.businessName}`;
+  return whatsappLink(args.phone, msg);
+}
+
+/**
  * "Here's what we're making this week" — single tap WhatsApp share
  * intended for team groups or marketing posts. Uses the bare wa.me
  * URL with no phone so the user can pick the recipient.

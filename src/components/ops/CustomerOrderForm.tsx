@@ -59,6 +59,21 @@ export function CustomerOrderForm({
   const [shippingInfo, setShippingInfo] = useState('');
   const [customerPickup, setCustomerPickup] = useState(false);
 
+  // Bundle B additions — priority / source / delivery / payment status.
+  const [priority, setPriority] = useState<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'>(
+    'NORMAL',
+  );
+  const [source, setSource] = useState<
+    '' | 'WHATSAPP' | 'WALK_IN' | 'INSTAGRAM' | 'WEBSITE' | 'REFERRAL' | 'OTHER'
+  >('');
+  const [deliveryMethod, setDeliveryMethod] = useState<
+    '' | 'PICKUP' | 'DELIVERY' | 'DISPATCH' | 'THIRD_PARTY'
+  >('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<
+    'UNPAID' | 'PART_PAID' | 'PAID'
+  >('UNPAID');
+
   const [items, setItems] = useState<Line[]>([
     { productId: '', description: '', quantity: 1, unitPriceNaira: 0 },
   ]);
@@ -148,6 +163,11 @@ export function CustomerOrderForm({
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim() || undefined,
           dueAt: dueAt || undefined,
+          priority,
+          source: source || undefined,
+          deliveryMethod: deliveryMethod || (customerPickup ? 'PICKUP' : undefined),
+          deliveryAddress: deliveryAddress.trim() || undefined,
+          paymentStatus,
           notes: composedNotes || undefined,
           items: items
             .filter((it) => it.description.trim())
@@ -256,6 +276,110 @@ export function CustomerOrderForm({
                   placeholder="0801…"
                 />
               </div>
+            </div>
+          </section>
+
+          {/* Operational meta — priority + source + delivery + payment */}
+          <section className="card p-5">
+            <div className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
+              Operational details
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Field icon={Package} label="Priority" />
+                <div className="flex flex-wrap gap-1">
+                  {(['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const).map((p) => (
+                    <button
+                      type="button"
+                      key={p}
+                      onClick={() => setPriority(p)}
+                      className={cn(
+                        'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition',
+                        priority === p
+                          ? p === 'URGENT'
+                            ? 'bg-rose-600 text-white'
+                            : p === 'HIGH'
+                              ? 'bg-amber-500 text-white'
+                              : p === 'LOW'
+                                ? 'bg-slate-400 text-white'
+                                : 'bg-brand-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                      )}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Field icon={StickyNote} label="Source" />
+                <select
+                  className="input"
+                  value={source}
+                  onChange={(e) => setSource(e.target.value as typeof source)}
+                >
+                  <option value="">Where did this order come in?</option>
+                  <option value="WHATSAPP">WhatsApp</option>
+                  <option value="WALK_IN">Walk-in</option>
+                  <option value="INSTAGRAM">Instagram</option>
+                  <option value="WEBSITE">Website</option>
+                  <option value="REFERRAL">Referral</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <Field icon={Package} label="Delivery method" />
+                <select
+                  className="input"
+                  value={deliveryMethod}
+                  onChange={(e) =>
+                    setDeliveryMethod(e.target.value as typeof deliveryMethod)
+                  }
+                >
+                  <option value="">—</option>
+                  <option value="PICKUP">Customer pickup</option>
+                  <option value="DELIVERY">We deliver</option>
+                  <option value="DISPATCH">Dispatch rider</option>
+                  <option value="THIRD_PARTY">Third-party courier</option>
+                </select>
+              </div>
+              <div>
+                <Field icon={StickyNote} label="Payment status" />
+                <div className="flex gap-1">
+                  {(['UNPAID', 'PART_PAID', 'PAID'] as const).map((s) => (
+                    <button
+                      type="button"
+                      key={s}
+                      onClick={() => setPaymentStatus(s)}
+                      className={cn(
+                        'flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition',
+                        paymentStatus === s
+                          ? s === 'PAID'
+                            ? 'bg-emerald-600 text-white'
+                            : s === 'PART_PAID'
+                              ? 'bg-amber-500 text-white'
+                              : 'bg-slate-600 text-white'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                      )}
+                    >
+                      {s.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {(deliveryMethod === 'DELIVERY' ||
+                deliveryMethod === 'DISPATCH' ||
+                deliveryMethod === 'THIRD_PARTY') && (
+                <div className="sm:col-span-2">
+                  <Field icon={Package} label="Delivery address" />
+                  <input
+                    className="input"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    placeholder="Street, city — what the courier needs"
+                  />
+                </div>
+              )}
             </div>
           </section>
 

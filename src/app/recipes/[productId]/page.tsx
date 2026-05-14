@@ -54,10 +54,17 @@ export default async function EditRecipePage({ params }: { params: { productId: 
               recipe
                 ? {
                     yieldQty: recipe.yieldQty,
+                    recipeName: recipe.recipeName,
+                    outputUnit: recipe.outputUnit,
+                    status: recipe.status as 'DRAFT' | 'ACTIVE' | 'ARCHIVED',
+                    versionNumber: recipe.versionNumber,
                     notes: recipe.notes,
                     items: recipe.items.map((it) => ({
                       materialId: it.materialId,
                       quantity: it.quantity,
+                      wastageAllowancePercent: it.wastageAllowancePercent,
+                      substituteAllowed: it.substituteAllowed,
+                      substituteMaterialId: it.substituteMaterialId,
                       notes: it.notes,
                     })),
                   }

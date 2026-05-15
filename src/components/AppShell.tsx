@@ -26,10 +26,6 @@ import {
   Boxes,
   BookOpen,
   Truck,
-  PackageSearch,
-  ShieldCheck,
-  History,
-  AlertTriangle,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -94,11 +90,11 @@ export function AppShell({
           </Link>
         </div>
 
-        {/* Flat nav order matches the approved comp. Items conditioned on
-            RBAC permissions stay guarded so non-owners still get the
-            right subset. The dense "extras" (Recipes, Work history,
-            Shortages, Certificates, Expenses) live below the main set
-            so deep links keep working without simplifying the structure. */}
+        {/* Sidebar trimmed to surfaces that were rebuilt or substantively
+            extended in the autopilot release. Inventory is reachable as a
+            route but not in the nav (redundant with Materials). Shortages,
+            Work history and Certificates are reachable via deep links but
+            de-prioritised in the chrome. */}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-3 pb-2">
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
           <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
@@ -107,7 +103,6 @@ export function AppShell({
             <SideLink href="/products" icon={<ShoppingBag size={18} />} label="Products" />
           )}
           <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
-          <SideLink href="/inventory" icon={<PackageSearch size={18} />} label="Inventory" />
           <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchases" />
           <SideLink href="/suppliers" icon={<Users2 size={18} />} label="Suppliers" />
           {show.payments && !isPropManager && (
@@ -122,40 +117,19 @@ export function AppShell({
           {show.customers && (
             <SideLink href="/customers" icon={<Users size={18} />} label="Customers" />
           )}
-          <SideLink href="/feedback" icon={<Heart size={18} />} label="Service Check" />
+          <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
           {show.settings && (
             <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />
           )}
           <SideLink href="/billing" icon={<CreditCard size={18} />} label="Billing" />
 
-          {/* Extras kept reachable but de-prioritised in the chrome. */}
+          {/* Supporting surfaces — extended this session. */}
           <div className="mt-3 border-t border-border/60 pt-3">
             <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               More
             </div>
-            <SideLink
-              href="/shortages"
-              icon={<AlertTriangle size={18} />}
-              label="Shortages"
-            />
-            <SideLink
-              href="/production/history"
-              icon={<History size={18} />}
-              label="Work history"
-            />
-            <SideLink
-              href="/recipes"
-              icon={<BookOpen size={18} />}
-              label="Recipes"
-            />
-            {show.settings && (
-              <SideLink
-                href="/settings/certificates"
-                icon={<ShieldCheck size={18} />}
-                label="Certificates"
-              />
-            )}
+            <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
             {show.expenses && (
               <SideLink href="/expenses" icon={<Banknote size={18} />} label="Expenses" />
             )}

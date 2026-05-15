@@ -3,6 +3,7 @@ import { Boxes, Plus, Download, Upload } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
+import { StarterPackPicker } from '@/components/onboarding/StarterPackPicker';
 import { MaterialsHeroKpis } from '@/components/ops/MaterialsHeroKpis';
 import { MaterialsChartRow } from '@/components/ops/MaterialsChartRow';
 import { MaterialsRightRail } from '@/components/ops/MaterialsRightRail';
@@ -71,25 +72,37 @@ export default async function MaterialsPage({ searchParams }: { searchParams: SP
       <div className="grid gap-5 lg:grid-cols-4">
         <div className="lg:col-span-3">
           {materials.length === 0 ? (
-            <EmptyState
-              icon={Boxes}
-              title={
-                q
-                  ? 'No materials match your search'
-                  : lowStockOnly
-                    ? 'No materials are low'
-                    : 'No raw materials yet'
-              }
-              description={
-                q || lowStockOnly
-                  ? undefined
-                  : 'Add the inputs you use to make your products — flour, fabric, packaging, etc.'
-              }
-              actionHref={q || lowStockOnly ? undefined : '/materials/new'}
-              actionLabel={
-                q || lowStockOnly ? undefined : 'Add your first material'
-              }
-            />
+            q || lowStockOnly ? (
+              <EmptyState
+                icon={Boxes}
+                title={
+                  q ? 'No materials match your search' : 'No materials are low'
+                }
+              />
+            ) : (
+              <div className="space-y-4">
+                {/* Brand-new tenants land here — surface the starter packs
+                    inline so they can seed materials, products, AND recipes
+                    in one tap instead of adding 13 things by hand. */}
+                <div>
+                  <h2 className="mb-3 text-base font-bold text-ink">
+                    Start with a sector pack
+                  </h2>
+                  <p className="mb-4 text-xs text-slate-500">
+                    Pick the closest match — every pack seeds the materials, products, AND recipes in one tap.
+                  </p>
+                  <StarterPackPicker />
+                </div>
+
+                <EmptyState
+                  icon={Boxes}
+                  title="Or add materials one by one"
+                  description="Skip the starter pack if you'd rather build your inputs from scratch."
+                  actionHref="/materials/new"
+                  actionLabel="Add a material"
+                />
+              </div>
+            )
           ) : (
             <MaterialsTable
               rows={materials.map((m: any) => ({

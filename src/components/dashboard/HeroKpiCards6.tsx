@@ -234,7 +234,7 @@ export async function HeroKpiCards6({ userId }: { userId: string }) {
               <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 {t.label}
               </div>
-              <div className="num mt-2 truncate text-2xl font-black text-ink">
+              <div className="num mt-2 truncate text-[26px] font-black leading-tight text-ink md:text-[28px]">
                 {t.value}
               </div>
             </div>

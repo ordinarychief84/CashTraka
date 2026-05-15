@@ -126,14 +126,14 @@ export async function MaterialsHeroKpis({ userId }: { userId: string }) {
       {tiles.map((t) => (
         <div
           key={t.label}
-          className="rounded-2xl border border-border bg-white p-4 shadow-xs"
+          className="rounded-2xl border border-border bg-white p-4 shadow-xs transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
                 {t.label}
               </div>
-              <div className="num mt-2 truncate text-xl font-black text-ink">
+              <div className="num mt-2 truncate text-[26px] font-black leading-tight text-ink md:text-[28px]">
                 {t.value}
               </div>
             </div>

@@ -84,8 +84,11 @@ export function AppShell({
     <div className="min-h-screen">
       <UpgradeBanner />
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-white md:flex">
-        <div className="flex h-16 items-center px-5">
-          <Link href="/dashboard" className="inline-flex items-center gap-2">
+        <div className="flex h-16 items-center border-b border-border/60 px-5">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 rounded-md transition-opacity hover:opacity-90"
+          >
             <Logo size="md" />
           </Link>
         </div>
@@ -95,7 +98,7 @@ export function AppShell({
             right subset. The dense "extras" (Recipes, Work history,
             Shortages, Certificates, Expenses) live below the main set
             so deep links keep working without simplifying the structure. */}
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-2">
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-3 pb-2">
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
           <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
           <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
@@ -125,7 +128,10 @@ export function AppShell({
           )}
 
           {/* Extras kept reachable but de-prioritised in the chrome. */}
-          <div className="mt-2 border-t border-border/60 pt-2">
+          <div className="mt-3 border-t border-border/60 pt-3">
+            <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              More
+            </div>
             <SideLink
               href="/shortages"
               icon={<AlertTriangle size={18} />}
@@ -158,17 +164,20 @@ export function AppShell({
         </nav>
 
         {/* Bottom: Business Plan card — replaces the inline logout
-            (now moved into the top-bar user pill dropdown). */}
-        <SidebarBusinessPlan
-          planLabel={planLabel ?? 'Business Plan'}
-          isActive
-          teamUsed={8}
-          teamMax={20}
-          storagePct={65}
-        />
+            (now moved into the top-bar user pill dropdown). Top divider
+            visually separates the plan card from the nav above. */}
+        <div className="border-t border-border/60">
+          <SidebarBusinessPlan
+            planLabel={planLabel ?? 'Business Plan'}
+            isActive
+            teamUsed={8}
+            teamMax={20}
+            storagePct={65}
+          />
+        </div>
       </aside>
 
-      <header className="sticky top-0 z-20 hidden h-16 border-b border-border bg-white md:block md:pl-60">
+      <header className="sticky top-0 z-20 hidden h-16 border-b border-border bg-white/95 backdrop-blur-sm shadow-[0_1px_0_0_rgba(15,23,42,0.04)] md:block md:pl-60">
         <div className="container-app flex h-16 items-center justify-between gap-3">
           <div className="min-w-0 max-w-md flex-1">
             <GlobalSearch />

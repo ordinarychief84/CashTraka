@@ -8,9 +8,18 @@ type Props = {
   action?: React.ReactNode;
 };
 
+/**
+ * Shared page header used by older dashboard surfaces (forms, settings,
+ * detail pages). Newer list dashboards (Orders, Production, Inventory,
+ * etc.) inline an equivalent layout to compose multiple action pills.
+ *
+ * Typography mirrors the `.page-title` / `.page-subtitle` utilities in
+ * globals.css so the visual feel is uniform regardless of which entry
+ * point you came through.
+ */
 export function PageHeader({ title, subtitle, backHref, action }: Props) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-3 border-b border-border pb-5">
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div className="min-w-0">
         {backHref && (
           <Link
@@ -21,8 +30,8 @@ export function PageHeader({ title, subtitle, backHref, action }: Props) {
             Back
           </Link>
         )}
-        <h1 className="truncate text-2xl font-black tracking-tight text-ink md:text-3xl">{title}</h1>
-        {subtitle && <p className="mt-1.5 text-sm text-slate-600">{subtitle}</p>}
+        <h1 className="page-title truncate">{title}</h1>
+        {subtitle && <p className="page-subtitle">{subtitle}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

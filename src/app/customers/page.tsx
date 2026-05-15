@@ -1,110 +1,133 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Search, Users, MessageCircle } from 'lucide-react';
+import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { EmptyState } from '@/components/EmptyState';
-import { formatKobo, timeAgo } from '@/lib/format';
+import { CustomersHeroKpis } from '@/components/customers/CustomersHeroKpis';
+import { CustomersChartRow } from '@/components/customers/CustomersChartRow';
+import { CustomersTable, type CustomerRow } from '@/components/customers/CustomersTable';
+import { CustomersRightRail } from '@/components/customers/CustomersRightRail';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
 
 type SP = { q?: string };
 
+function deriveStatus(c: {
+  lastActivityAt: Date;
+  totalPaidKobo: number;
+  transactionCount: number;
+  behaviorTag: string | null;
+  activeThresholdMs: number;
+}): string {
+  const tag = (c.behaviorTag ?? '').toUpperCase();
+  if (tag === 'LATE_PAYER' || tag === 'BLOCKED') return 'BLOCKED';
+  if (c.transactionCount === 0 && c.totalPaidKobo === 0) return 'PROSPECT';
+  if (new Date(c.lastActivityAt).getTime() >= c.activeThresholdMs) return 'ACTIVE';
+  return 'INACTIVE';
+}
+
 export default async function CustomersPage({ searchParams }: { searchParams: SP }) {
   const user = await guard();
-  // Property managers don't have customers — send them to tenants.
   if (user.businessType === 'property_manager') {
     const qs = searchParams.q ? `?q=${encodeURIComponent(searchParams.q)}` : '';
     redirect(`/tenants${qs}`);
   }
-  const q = (searchParams.q || '').trim();
 
   const customers = await prisma.customer.findMany({
-    where: {
-      userId: user.id,
-      ...(q
-        ? {
-            OR: [
-              { name: { contains: q } },
-              { phone: { contains: q.replace(/\D/g, '') } },
-            ],
-          }
-        : {}),
-    },
+    where: { userId: user.id },
     orderBy: { lastActivityAt: 'desc' },
     take: 200,
+    select: {
+      id: true,
+      name: true,
+      phone: true,
+      tags: true,
+      notes: true,
+      totalPaidKobo: true,
+      totalOwedKobo: true,
+      transactionCount: true,
+      lastActivityAt: true,
+      behaviorTag: true,
+      createdAt: true,
+    },
+  });
+
+  const activeThresholdMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
+  const rows: CustomerRow[] = customers.map((c) => {
+    const tags = (c.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean);
+    const group = tags[0] ?? '';
+    const location = tags[1] ?? '';
+    return {
+      id: c.id,
+      name: c.name,
+      phone: displayPhone(c.phone),
+      email: null,
+      group,
+      location,
+      dateJoined: c.createdAt.toISOString(),
+      totalSalesKobo: c.totalPaidKobo,
+      outstandingKobo: c.totalOwedKobo,
+      status: deriveStatus({
+        lastActivityAt: c.lastActivityAt,
+        totalPaidKobo: c.totalPaidKobo,
+        transactionCount: c.transactionCount,
+        behaviorTag: c.behaviorTag,
+        activeThresholdMs,
+      }),
+    };
   });
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
-      <PageHeader
-        title="Customers"
-        subtitle="Automatically saved when you add a payment or debt."
-      />
-
-      <form className="mb-4" action="/customers" method="get">
-        <div className="relative">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 z-10 text-slate-400"
-          />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search customers"
-            className="input !pl-11"
-          />
+    <AppShell
+      businessName={user.businessName}
+      userName={user.name}
+      businessType={user.businessType}
+      accessRole={user.accessRole}
+      principalName={user.principalName}
+    >
+      {/* Page header */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Customers
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Manage customer relationships and track sales performance.
+          </p>
         </div>
-      </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <a href="/api/export/customers" download className="btn-pill-ghost">
+            <Download size={14} />
+            Export
+          </a>
+          <Link href="/reports" className="btn-pill-ghost">
+            <BarChart3 size={14} />
+            Reports
+          </Link>
+          <Link href="/payments/new" className="btn-pill-primary">
+            <Plus size={14} />
+            New Customer
+          </Link>
+        </div>
+      </div>
 
-      {customers.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title={q ? 'No customers match your search' : 'No customers yet'}
-          description={
-            q
-              ? 'Try a different name or phone.'
-              : 'Customers will appear automatically when you add payments or debts.'
-          }
-          actionHref={q ? undefined : '/payments/new'}
-          actionLabel={q ? undefined : 'Add your first payment'}
-        />
-      ) : (
-        <ul className="space-y-2">
-          {customers.map((c) => (
-            <li key={c.id} className="card p-4">
-              <div className="flex items-start justify-between gap-3">
-                <Link href={`/customers/${c.id}`} className="min-w-0 flex-1">
-                  <div className="truncate font-semibold text-slate-900">{c.name}</div>
-                  <div className="mt-0.5 text-xs text-slate-500">
-                    {displayPhone(c.phone)} · active {timeAgo(c.lastActivityAt)}
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                    <span className="badge-paid">Paid {formatKobo(c.totalPaidKobo)}</span>
-                    {c.totalOwedKobo > 0 && (
-                      <span className="badge-open">Owes {formatKobo(c.totalOwedKobo)}</span>
-                    )}
-                    <span className="badge bg-slate-100 text-slate-600">
-                      {c.transactionCount} {c.transactionCount === 1 ? 'txn' : 'txns'}
-                    </span>
-                  </div>
-                </Link>
-                <Link
-                  href={`/follow-up?customerId=${c.id}`}
-                  className="btn-wa shrink-0 px-3 py-2 text-xs"
-                  aria-label={`Follow up with ${c.name}`}
-                >
-                  <MessageCircle size={14} />
-                  Follow up
-                </Link>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* 6 KPI tiles */}
+      <CustomersHeroKpis userId={user.id} />
+
+      {/* 3 chart cards */}
+      <CustomersChartRow userId={user.id} />
+
+      {/* 2-col: table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <CustomersTable rows={rows} />
+        </div>
+        <aside className="space-y-4 lg:col-span-1">
+          <CustomersRightRail userId={user.id} />
+        </aside>
+      </div>
     </AppShell>
   );
 }

@@ -64,6 +64,7 @@ export const FEATURE_LABELS: Partial<Record<keyof Limits, string>> = {
   electronicXml: 'XML / e-invoicing',
   multiUserAudit: 'Multi-user audit + accountant role',
   dailySummary: 'Daily WhatsApp summary email',
+  autoPurchaseOrders: 'Auto-drafted purchase orders',
   autoReminders: 'Automatic payment reminders',
   paymentReminders: 'Invoice reminder cadences',
   creditNotes: 'Credit notes',

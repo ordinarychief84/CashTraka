@@ -8,6 +8,8 @@ import { MaterialsChartRow } from '@/components/ops/MaterialsChartRow';
 import { MaterialsRightRail } from '@/components/ops/MaterialsRightRail';
 import { MaterialsTable } from '@/components/ops/MaterialsTable';
 import { rawMaterialsService } from '@/lib/services/raw-materials.service';
+import { AutoPoButton } from '@/components/ops/AutoPoButton';
+import { hasFeature } from '@/lib/gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +53,7 @@ export default async function MaterialsPage({ searchParams }: { searchParams: SP
             <Upload size={14} />
             Import
           </button>
+          <AutoPoButton canUse={hasFeature(user, 'autoPurchaseOrders')} />
           <Link href="/materials/new" className="btn-pill-primary">
             <Plus size={14} />
             New Material

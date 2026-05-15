@@ -114,6 +114,13 @@ export type Limits = {
    * app; they just don't get the 7pm email push.
    */
   dailySummary: boolean;
+  /**
+   * Auto-draft purchase orders when materials cross reorder level. The
+   * cron groups low materials by their preferred supplier, creates one
+   * DRAFT PO per supplier (never auto-sends), and emails the owner a
+   * digest with one-tap links to review + send. Paid feature.
+   */
+  autoPurchaseOrders: boolean;
 };
 
 const FREE: Limits = {
@@ -156,6 +163,7 @@ const FREE: Limits = {
   bankSync: false,
   multiUserAudit: false,
   dailySummary: false,
+  autoPurchaseOrders: false,
 };
 
 const BUSINESS: Limits = {
@@ -198,6 +206,7 @@ const BUSINESS: Limits = {
   bankSync: false,
   multiUserAudit: false,
   dailySummary: true,
+  autoPurchaseOrders: true,
 };
 
 const BUSINESS_PLUS: Limits = {

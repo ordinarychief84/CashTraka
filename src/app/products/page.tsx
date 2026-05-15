@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { Plus, Package, AlertTriangle, Download } from 'lucide-react';
+import { Plus, Package, Download, Upload } from 'lucide-react';
 import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { ProductsTable } from '@/components/products/ProductsTable';
+import { ProductsHeroKpis } from '@/components/products/ProductsHeroKpis';
+import { ProductsChartRow } from '@/components/products/ProductsChartRow';
+import { ProductsRightRail } from '@/components/products/ProductsRightRail';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,9 +18,6 @@ export default async function ProductsPage() {
     orderBy: { name: 'asc' },
   });
 
-  const visible = products.filter((p) => !p.archived);
-  const lowStock = visible.filter((p) => p.trackStock && p.stock <= p.lowStockAt);
-
   return (
     <AppShell
       businessName={user.businessName}
@@ -27,75 +26,78 @@ export default async function ProductsPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="Products"
-        subtitle={`${visible.length} active · ${products.length - visible.length} archived`}
-        action={
-          <div className="flex items-center gap-2">
-            <a href="/api/products/export" className="btn-pill-ghost">
-              <Download size={14} />
-              Export
-            </a>
-            <Link href="/products/new" className="btn-pill-primary">
-              <Plus size={14} />
-              Add product
-            </Link>
-          </div>
-        }
-      />
-
-      {lowStock.length > 0 && (
-        <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={18} className="text-rose-600" />
-            <span className="text-sm font-bold text-rose-700">
-              {lowStock.length}{' '}
-              {lowStock.length === 1 ? 'product is' : 'products are'} low on stock
-            </span>
-          </div>
-          <ul className="mt-2 text-sm text-rose-700/90">
-            {lowStock.slice(0, 5).map((p) => (
-              <li key={p.id}>
-                • {p.name}, <span className="num">{p.stock} left</span>
-              </li>
-            ))}
-          </ul>
+      {/* Page header — matches the approved comp */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Products
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Manage your finished goods, track stock levels, sales performance,
+            and production history.
+          </p>
         </div>
-      )}
+        <div className="flex items-center gap-2">
+          <a href="/api/products/export" className="btn-pill-ghost">
+            <Download size={14} />
+            Export
+          </a>
+          <button type="button" className="btn-pill-ghost" disabled>
+            <Upload size={14} />
+            Import
+          </button>
+          <Link href="/products/new" className="btn-pill-primary">
+            <Plus size={14} />
+            New Product
+          </Link>
+        </div>
+      </div>
 
-      {products.length === 0 ? (
-        <EmptyState
-          icon={Package}
-          title="No products yet"
-          description="Add what you sell so you can track stock, attach items to orders, and see real profit in your reports."
-          actionHref="/products/new"
-          actionLabel="Add your first product"
-        />
-      ) : (
-        <ProductsTable
-          rows={products.map((p) => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            note: p.note,
-            description: p.description,
-            price: p.price,
-            cost: p.cost,
-            stock: p.stock,
-            trackStock: p.trackStock,
-            lowStockAt: p.lowStockAt,
-            archived: p.archived,
-            isPublished: p.isPublished,
-            catalogStatus: p.catalogStatus,
-            nafdacNumber: p.nafdacNumber,
-            shelfLifeDays: p.shelfLifeDays,
-            images: p.images ?? [],
-            // Future-proof: product group concept doesn't exist on the
-            // Product schema yet, so we derive a sensible default per row.
-            group: null,
-          }))}
-        />
-      )}
+      {/* 6 KPI tiles */}
+      <ProductsHeroKpis userId={user.id} />
+
+      {/* 3 chart cards: Stock Status · Top Selling · Stock Value by Category */}
+      <ProductsChartRow userId={user.id} />
+
+      {/* 2-col layout: table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          {products.length === 0 ? (
+            <EmptyState
+              icon={Package}
+              title="No products yet"
+              description="Add what you sell so you can track stock, attach items to orders, and see real profit in your reports."
+              actionHref="/products/new"
+              actionLabel="Add your first product"
+            />
+          ) : (
+            <ProductsTable
+              rows={products.map((p) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                note: p.note,
+                description: p.description,
+                price: p.price,
+                cost: p.cost,
+                stock: p.stock,
+                trackStock: p.trackStock,
+                lowStockAt: p.lowStockAt,
+                archived: p.archived,
+                isPublished: p.isPublished,
+                catalogStatus: p.catalogStatus,
+                nafdacNumber: p.nafdacNumber,
+                shelfLifeDays: p.shelfLifeDays,
+                images: p.images ?? [],
+                group: null,
+              }))}
+            />
+          )}
+        </div>
+        <aside className="lg:col-span-1">
+          <ProductsRightRail userId={user.id} />
+        </aside>
+      </div>
     </AppShell>
   );
 }

@@ -1,286 +1,295 @@
-import {
-  Download,
-  TrendingUp,
-  Users,
-  Package,
-  Receipt,
-  Home,
-  Users2,
-  Building2,
-} from 'lucide-react';
+import Link from 'next/link';
+import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guardWithFeature } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { BarChart, ColumnChart } from '@/components/BarChart';
-import { StatCard } from '@/components/StatCard';
-import { formatKobo } from '@/lib/format';
-import { isPropertyManager } from '@/lib/business-type';
-import { ReportsTabNav } from '@/components/ReportsTabNav';
+import { ReportsHeroKpis } from '@/components/reports/ReportsHeroKpis';
+import { ReportsChartRow } from '@/components/reports/ReportsChartRow';
+import { ReportsTable, type ReportRow } from '@/components/reports/ReportsTable';
+import { ReportsRightRail } from '@/components/reports/ReportsRightRail';
 
 export const dynamic = 'force-dynamic';
 
+function periodLabel(start: Date, end: Date): string {
+  return `${start.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })} – ${end.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+}
+
 export default async function ReportsPage() {
   const user = await guardWithFeature('reports');
-  const isPm = isPropertyManager(user.businessType);
 
-  // Last 6 months (including this month).
   const now = new Date();
-  const monthStarts: Date[] = [];
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    monthStarts.push(d);
-  }
-  const earliest = monthStarts[0];
-  const monthLabels = monthStarts.map((d) =>
-    d.toLocaleDateString('en-NG', { month: 'short' }),
-  );
+  const weekStart = new Date(now);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - 6);
+  const today = new Date(now);
+  today.setHours(23, 59, 59, 999);
+  const period = periodLabel(weekStart, today);
 
-  // Always-fetched: paid payments + expenses (drive revenue/profit charts for both ICPs).
-  const [paidPayments, expenses] = await Promise.all([
-    prisma.payment.findMany({
+  const [
+    salesAgg,
+    expenseAgg,
+    purchasesAgg,
+    productionAgg,
+    customerCount,
+    supplierCount,
+    invoicesTotal,
+    invoicesPaid,
+    outstandingRows,
+    productStockRows,
+    materialStockRows,
+  ] = await Promise.all([
+    prisma.payment.aggregate({
+      where: { userId: user.id, status: 'PAID', createdAt: { gte: weekStart } },
+      _sum: { amountKobo: true },
+      _count: { _all: true },
+    }),
+    prisma.expense.aggregate({
+      where: { userId: user.id, kind: 'business', incurredOn: { gte: weekStart } },
+      _sum: { amountKobo: true },
+      _count: { _all: true },
+    }),
+    prisma.purchaseOrder.aggregate({
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        status: { in: ['RECEIVED', 'PARTIALLY_RECEIVED'] },
+        receivedAt: { gte: weekStart },
+      },
+      _sum: { totalKobo: true },
+      _count: { _all: true },
+    }),
+    prisma.productionOrder.aggregate({
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        status: 'COMPLETED',
+        completedAt: { gte: weekStart },
+      },
+      _count: { _all: true },
+      _sum: { quantityAccepted: true },
+    }),
+    prisma.customer.count({ where: { userId: user.id } }),
+    prisma.supplier.count({ where: { userId: user.id, deletedAt: null } }),
+    prisma.invoice.aggregate({
+      where: {
+        userId: user.id,
+        status: {
+          in: ['DRAFT', 'SENT', 'VIEWED', 'PARTIALLY_PAID', 'PAID', 'OVERDUE'],
+        },
+        createdAt: { gte: weekStart },
+      },
+      _sum: { totalKobo: true },
+      _count: { _all: true },
+    }),
+    prisma.invoice.aggregate({
       where: {
         userId: user.id,
         status: 'PAID',
-        createdAt: { gte: earliest },
+        createdAt: { gte: weekStart },
       },
-      select: { amountKobo: true, createdAt: true },
+      _sum: { totalKobo: true },
+      _count: { _all: true },
     }),
-    prisma.expense.findMany({
-      // Reports show the BUSINESS P&L only — personal spending is private
-      // budgeting data and shouldn't roll into profit trends.
-      where: { userId: user.id, kind: 'business', incurredOn: { gte: earliest } },
-      select: { amountKobo: true, category: true, incurredOn: true },
+    prisma.invoice.findMany({
+      where: {
+        userId: user.id,
+        status: {
+          in: ['DRAFT', 'SENT', 'VIEWED', 'PARTIALLY_PAID', 'OVERDUE'],
+        },
+      },
+      select: { totalKobo: true, amountPaidKobo: true },
+    }),
+    prisma.product.findMany({
+      where: { userId: user.id, archived: false },
+      select: { stock: true, costKobo: true, priceKobo: true },
+    }),
+    prisma.rawMaterial.findMany({
+      where: { userId: user.id, deletedAt: null },
+      select: { stock: true, unitCostKobo: true },
     }),
   ]);
 
-  // All bucketed values are kobo. Display layer formats via formatKobo.
-  function bucket(items: { amount: number; date: Date }[]) {
-    const out = new Array(monthStarts.length).fill(0) as number[];
-    for (const it of items) {
-      for (let i = monthStarts.length - 1; i >= 0; i--) {
-        if (it.date >= monthStarts[i]) {
-          out[i] += it.amount;
-          break;
-        }
-      }
-    }
-    return out;
-  }
-  const revenueByMonth = bucket(
-    paidPayments.map((p) => ({ amount: p.amountKobo, date: p.createdAt })),
+  const salesRevenueKobo = salesAgg._sum.amountKobo ?? 0;
+  const expensesKobo = expenseAgg._sum.amountKobo ?? 0;
+  const purchasesKobo = purchasesAgg._sum.totalKobo ?? 0;
+  const stockValueKobo =
+    productStockRows.reduce(
+      (s, p) => s + p.stock * (p.costKobo ?? p.priceKobo ?? 0),
+      0,
+    ) + materialStockRows.reduce((s, m) => s + m.stock * m.unitCostKobo, 0);
+  const outstandingKobo = outstandingRows.reduce(
+    (s, i) => s + Math.max(0, i.totalKobo - i.amountPaidKobo),
+    0,
   );
-  const expenseByMonth = bucket(
-    expenses.map((e) => ({ amount: e.amountKobo, date: e.incurredOn })),
-  );
-  const profitByMonth = revenueByMonth.map((r, i) => r - expenseByMonth[i]);
+  const productionUnits = productionAgg._sum.quantityAccepted ?? 0;
 
-  const totalRevenue = revenueByMonth.reduce((s, v) => s + v, 0);
-  const totalExpenses = expenseByMonth.reduce((s, v) => s + v, 0);
-  const totalProfit = totalRevenue - totalExpenses;
-
-  const expenseByCategory = new Map<string, number>();
-  for (const e of expenses) {
-    expenseByCategory.set(e.category, (expenseByCategory.get(e.category) ?? 0) + e.amountKobo);
-  }
-  const catEntries = [...expenseByCategory.entries()].sort((a, b) => b[1] - a[1]);
-
-  /* ───── ICP-specific data fetch ───── */
-  // Seller gets "top customers" + "best-selling products".
-  // PM gets "top tenants" (by totalPaid) + "collection by property" (this month).
-  let topCustomersChart: { labels: string[]; values: number[] } | null = null;
-  let topProductsChart: { labels: string[]; values: number[] } | null = null;
-  let topTenantsChart: { labels: string[]; values: number[] } | null = null;
-  let propertyCollectionChart: { labels: string[]; values: number[] } | null = null;
-  let occupancyStat: { occupied: number; total: number } | null = null;
-  let rentThisMonthStat: { expected: number; collected: number; rate: number } | null = null;
-
-  // Landlord vertical removed — the !isPm branch is now the only path.
-  // The PM-specific tenant/property charts and stats were dropped along
-  // with the underlying tables.
-  {
-    const [topCustomers, topProducts] = await Promise.all([
-      prisma.customer.findMany({
-        where: { userId: user.id, totalPaidKobo: { gt: 0 } },
-        orderBy: { totalPaidKobo: 'desc' },
-        take: 5,
-        select: { name: true, totalPaidKobo: true },
+  const rows: ReportRow[] = [
+    {
+      key: 'sales',
+      category: 'sales',
+      label: 'Sales Summary',
+      sublabel: 'sales',
+      period,
+      totalRevenueKobo: salesRevenueKobo,
+      totalCostKobo: 0,
+      grossProfitKobo: salesRevenueKobo,
+      transactions: salesAgg._count._all,
+      status: salesAgg._count._all > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/payments',
+    },
+    {
+      key: 'purchases',
+      category: 'purchases',
+      label: 'Purchase Summary',
+      sublabel: 'purchases',
+      period,
+      totalRevenueKobo: 0,
+      totalCostKobo: purchasesKobo,
+      grossProfitKobo: -purchasesKobo,
+      transactions: purchasesAgg._count._all,
+      status: purchasesAgg._count._all > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/expenses',
+    },
+    {
+      key: 'inventory',
+      category: 'inventory',
+      label: 'Inventory Summary',
+      sublabel: 'inventory',
+      period: today.toLocaleDateString('en-NG', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
       }),
-      prisma.paymentItem.groupBy({
-        by: ['productId', 'description'],
-        where: { payment: { userId: user.id } },
-        _sum: { quantity: true },
-        orderBy: { _sum: { quantity: 'desc' } },
-        take: 5,
+      totalRevenueKobo: null,
+      totalCostKobo: null,
+      grossProfitKobo: null,
+      transactions: productStockRows.length + materialStockRows.length,
+      status: 'GENERATED',
+      exportHref: '/api/export/customers',
+    },
+    {
+      key: 'production',
+      category: 'production',
+      label: 'Production Summary',
+      sublabel: 'production',
+      period,
+      totalRevenueKobo: null,
+      totalCostKobo: 0,
+      grossProfitKobo: null,
+      transactions: productionAgg._count._all,
+      status: productionAgg._count._all > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/payments',
+    },
+    {
+      key: 'customers',
+      category: 'customers',
+      label: 'Customer Summary',
+      sublabel: 'customers',
+      period,
+      totalRevenueKobo: salesRevenueKobo,
+      totalCostKobo: 0,
+      grossProfitKobo: salesRevenueKobo,
+      transactions: customerCount,
+      status: customerCount > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/customers',
+    },
+    {
+      key: 'suppliers',
+      category: 'suppliers',
+      label: 'Supplier Summary',
+      sublabel: 'suppliers',
+      period,
+      totalRevenueKobo: 0,
+      totalCostKobo: purchasesKobo,
+      grossProfitKobo: -purchasesKobo,
+      transactions: supplierCount,
+      status: supplierCount > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/expenses',
+    },
+    {
+      key: 'payments',
+      category: 'payments',
+      label: 'Payment Summary',
+      sublabel: 'invoices & receipts',
+      period,
+      totalRevenueKobo: invoicesTotal._sum.totalKobo ?? 0,
+      totalCostKobo: expensesKobo,
+      grossProfitKobo: (invoicesPaid._sum.totalKobo ?? 0) - expensesKobo,
+      transactions: invoicesTotal._count._all,
+      status: invoicesTotal._count._all > 0 ? 'GENERATED' : 'PENDING',
+      exportHref: '/api/export/payments',
+    },
+    {
+      key: 'aging',
+      category: 'aging',
+      label: 'Aging Report',
+      sublabel: 'receivables & payables',
+      period: today.toLocaleDateString('en-NG', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
       }),
-    ]);
-    topCustomersChart = {
-      labels: topCustomers.map((c) => c.name),
-      values: topCustomers.map((c) => c.totalPaidKobo),
-    };
-    topProductsChart = {
-      labels: topProducts.map((p) => p.description),
-      values: topProducts.map((p) => p._sum.quantity ?? 0),
-    };
-  }
+      totalRevenueKobo: null,
+      totalCostKobo: null,
+      grossProfitKobo: null,
+      transactions: outstandingRows.length,
+      status: outstandingRows.length > 0 ? 'PENDING' : 'GENERATED',
+      exportHref: '/api/export/debts',
+    },
+  ];
 
-  const revenueLabel = 'Revenue (6mo)';
-  const revenueChartTitle = 'Revenue by month';
+  // Drive a hidden "stock value" through to keep KPI strip consistent with comp.
+  void stockValueKobo;
 
   return (
-    <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
-      <PageHeader
-        title="Reports"
-        subtitle="Your business in numbers. Last 6 months."
-      />
-      <ReportsTabNav active="overview" />
-
-      {/* ── Top stats ── */}
-      <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-3">
-        <StatCard label={revenueLabel} value={formatKobo(totalRevenue)} tone="brand" />
-        <StatCard label="Expenses (6mo)" value={formatKobo(totalExpenses)} />
-        <StatCard
-          label="Net profit (6mo)"
-          value={formatKobo(totalProfit)}
-          tone={totalProfit >= 0 ? 'brand' : 'danger'}
-        />
-      </div>
-
-      {/* ── Revenue / Rent trend ── */}
-      <section className="card mb-5 p-5">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
-          <TrendingUp size={16} className="text-brand-600" />
-          {revenueChartTitle}
-        </h2>
-        <ColumnChart
-          labels={monthLabels}
-          values={revenueByMonth}
-          formatValue={formatKobo}
-          height={180}
-        />
-        <div className="mt-4 grid grid-cols-6 gap-2 border-t border-border pt-3">
-          {monthLabels.map((m, i) => (
-            <div key={m} className="text-center">
-              <div className="text-[10px] font-semibold text-slate-500">{m}</div>
-              <div className="num text-xs text-brand-700">
-                {revenueByMonth[i] > 0 ? formatKobo(revenueByMonth[i]) : '—'}
-              </div>
-              <div
-                className={
-                  profitByMonth[i] >= 0
-                    ? 'text-[10px] text-success-700'
-                    : 'text-[10px] text-owed-600'
-                }
-              >
-                {profitByMonth[i] >= 0 ? '+' : ''}
-                {formatKobo(profitByMonth[i])}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
-            <Users size={16} className="text-brand-600" />
-            Top customers by revenue
-          </h2>
-          {!topCustomersChart || topCustomersChart.labels.length === 0 ? (
-            <p className="text-sm text-slate-500">No paid customers yet.</p>
-          ) : (
-            <BarChart
-              labels={topCustomersChart.labels}
-              values={topCustomersChart.values}
-              formatValue={formatKobo}
-            />
-          )}
-        </section>
-
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
-            <Package size={16} className="text-brand-600" />
-            Best-selling products
-          </h2>
-          {!topProductsChart || topProductsChart.labels.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              No product line-items yet. Attach products to a payment to see what's selling.
-            </p>
-          ) : (
-            <BarChart
-              labels={topProductsChart.labels}
-              values={topProductsChart.values}
-              formatValue={(v) => `${v} sold`}
-              barClassName="bg-success-500"
-            />
-          )}
-        </section>
-
-        {/* ── Expenses ── */}
-        <section className="card p-5 md:col-span-2">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink">
-            <Receipt size={16} className="text-owed-600" />
-            Expenses by category
-          </h2>
-          {catEntries.length === 0 ? (
-            <p className="text-sm text-slate-500">No expenses logged yet.</p>
-          ) : (
-            <BarChart
-              labels={catEntries.map((e) => e[0])}
-              values={catEntries.map((e) => e[1])}
-              formatValue={formatKobo}
-              barClassName="bg-owed-500"
-            />
-          )}
-        </section>
-      </div>
-
-      {/* ── Operational reports ── */}
-      <section className="card mt-5 p-5">
-        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink">
-          Operational reports
-        </h2>
-        <p className="mb-4 text-xs text-slate-600">
-          Reports about your production loop. More to come.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <a
-            href="/reports/margins"
-            className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"
-          >
-            Margin per batch
-          </a>
-        </div>
-      </section>
-
-      {/* ── Exports (ICP-filtered) ── */}
-      <section className="card mt-5 p-5">
-        <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink">
-          <Download size={16} className="text-brand-600" />
-          Export your data
-        </h2>
-        <p className="mb-4 text-xs text-slate-600">
-          Download a CSV, open in Excel, Google Sheets, or hand to your bookkeeper.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <ExportLink href="/api/export/payments" label="Payments CSV" />
-          <ExportLink href="/api/export/debts" label="Debts CSV" />
-          <ExportLink href="/api/export/expenses" label="Expenses CSV" />
-          <ExportLink href="/api/export/customers" label="Customers CSV" />
-        </div>
-      </section>
-    </AppShell>
-  );
-}
-
-function ExportLink({ href, label }: { href: string; label: string }) {
-  return (
-    <a
-      href={href}
-      className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-700"
+    <AppShell
+      businessName={user.businessName}
+      userName={user.name}
+      businessType={user.businessType}
+      accessRole={user.accessRole}
+      principalName={user.principalName}
     >
-      <Download size={14} />
-      {label}
-    </a>
+      {/* Page header */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Reports
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Analyze your business performance with real-time reports and insights.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/reports" className="btn-pill-ghost">
+            <Download size={14} />
+            Export
+          </Link>
+          <Link href="/reports/operations" className="btn-pill-ghost">
+            <BarChart3 size={14} />
+            Operations
+          </Link>
+          <Link href="/reports/margins" className="btn-pill-primary">
+            <Plus size={14} />
+            New Report
+          </Link>
+        </div>
+      </div>
+
+      {/* 6 KPI tiles */}
+      <ReportsHeroKpis userId={user.id} />
+
+      {/* 3 chart cards */}
+      <ReportsChartRow userId={user.id} />
+
+      {/* 2-col: reports table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <ReportsTable rows={rows} />
+        </div>
+        <aside className="space-y-4 lg:col-span-1">
+          <ReportsRightRail userId={user.id} />
+        </aside>
+      </div>
+    </AppShell>
   );
 }

@@ -1,21 +1,120 @@
 import Link from 'next/link';
-import { AlertTriangle, Clock, Package } from 'lucide-react';
+import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { inventoryService } from '@/lib/services/inventory.service';
-import { DraftPOFromShortageButton } from '@/components/ops/DraftPOFromShortageButton';
+import { prisma } from '@/lib/prisma';
+import { InventoryHeroKpis } from '@/components/inventory/InventoryHeroKpis';
+import { InventoryChartRow } from '@/components/inventory/InventoryChartRow';
+import {
+  InventoryTable,
+  type InventoryRow,
+  type InventoryItemType,
+} from '@/components/inventory/InventoryTable';
+import { InventoryRightRail } from '@/components/inventory/InventoryRightRail';
 
 export const dynamic = 'force-dynamic';
 
+function classifyMaterial(t: string | null): {
+  type: InventoryItemType;
+  label: string;
+} {
+  const upper = (t ?? '').toUpperCase();
+  if (upper === 'PACKAGING') return { type: 'PACKAGING', label: 'Packaging' };
+  if (upper === 'CONSUMABLE') return { type: 'CONSUMABLE', label: 'Consumable' };
+  return { type: 'RAW_MATERIAL', label: 'Raw Material' };
+}
+
 export default async function InventoryOverviewPage() {
   const user = await guard();
-  const [lowMaterials, lowProducts, shortages, expiring] = await Promise.all([
-    inventoryService.computeLowStockMaterials(user.id),
-    inventoryService.computeLowStockProducts(user.id),
-    inventoryService.computeShortages(user.id),
-    inventoryService.computeExpiringMaterials(user.id, 14),
+
+  // Load products + materials in parallel. Also load active production orders
+  // so we can compute "reserved" stock per product (planned but not produced).
+  const [products, materials, activeOrders] = await Promise.all([
+    prisma.product.findMany({
+      where: { userId: user.id, archived: false },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        stock: true,
+        lowStockAt: true,
+        priceKobo: true,
+        costKobo: true,
+      },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.rawMaterial.findMany({
+      where: { userId: user.id, deletedAt: null },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        category: true,
+        materialType: true,
+        unit: true,
+        stock: true,
+        reorderLevel: true,
+        unitCostKobo: true,
+      },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.productionOrder.findMany({
+      where: {
+        userId: user.id,
+        deletedAt: null,
+        status: { in: ['PLANNED', 'MATERIALS_NEEDED', 'READY_TO_PRODUCE', 'IN_PRODUCTION'] },
+      },
+      select: {
+        items: { select: { productId: true, quantity: true } },
+      },
+    }),
   ]);
+
+  // Reserved per product = sum of quantities across active production orders.
+  // For materials we don't track per-batch reservations on this page; reserved=0.
+  const reservedByProduct = new Map<string, number>();
+  for (const o of activeOrders) {
+    for (const it of o.items) {
+      reservedByProduct.set(
+        it.productId,
+        (reservedByProduct.get(it.productId) ?? 0) + it.quantity,
+      );
+    }
+  }
+
+  const rows: InventoryRow[] = [
+    ...products.map<InventoryRow>((p) => ({
+      id: p.id,
+      detailHref: `/products/${p.id}`,
+      itemType: 'FINISHED_GOOD',
+      itemTypeLabel: 'Finished Good',
+      name: p.name,
+      sku: null,
+      unit: 'pcs',
+      stock: p.stock,
+      reserved: reservedByProduct.get(p.id) ?? 0,
+      reorderLevel: p.lowStockAt,
+      unitCostKobo: p.costKobo ?? p.priceKobo ?? 0,
+      category: p.category,
+    })),
+    ...materials.map<InventoryRow>((m) => {
+      const cls = classifyMaterial(m.materialType);
+      return {
+        id: m.id,
+        detailHref: `/materials/${m.id}`,
+        itemType: cls.type,
+        itemTypeLabel: cls.label,
+        name: m.name,
+        sku: m.sku,
+        unit: m.unit,
+        stock: m.stock,
+        reserved: 0,
+        reorderLevel: m.reorderLevel,
+        unitCostKobo: m.unitCostKobo,
+        category: m.category,
+      };
+    }),
+  ];
 
   return (
     <AppShell
@@ -25,109 +124,47 @@ export default async function InventoryOverviewPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="Inventory"
-        subtitle="What's low, what's needed, what's expiring."
-        action={
-          <Link href="/inventory/movements" className="btn-secondary inline-flex items-center gap-2">
-            View ledger
+      {/* Page header */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Inventory
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            One view of every product, raw material, packaging and consumable
+            on your shelves.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/inventory/movements" className="btn-pill-ghost">
+            <Download size={14} />
+            Export
           </Link>
-        }
-      />
+          <Link href="/reports" className="btn-pill-ghost">
+            <BarChart3 size={14} />
+            Reports
+          </Link>
+          <Link href="/materials/new" className="btn-pill-primary">
+            <Plus size={14} />
+            New Item
+          </Link>
+        </div>
+      </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-            <AlertTriangle size={14} /> Low raw materials
-          </h2>
-          {lowMaterials.length === 0 ? (
-            <p className="text-sm text-emerald-700">Every material is above its reorder level.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {lowMaterials.map((m) => (
-                <li key={m.id} className="py-2 flex items-center justify-between gap-3 text-sm">
-                  <Link href={`/materials/${m.id}`} className="min-w-0 flex-1 font-medium text-slate-900 hover:underline">
-                    {m.name}
-                  </Link>
-                  <span className="shrink-0 text-rose-600 font-bold">
-                    {m.stock} / {m.reorderLevel} {m.unit}
-                  </span>
-                  <DraftPOFromShortageButton materialId={m.id} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {/* 6 KPI tiles */}
+      <InventoryHeroKpis userId={user.id} />
 
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-            <Package size={14} /> Low finished products
-          </h2>
-          {lowProducts.length === 0 ? (
-            <p className="text-sm text-emerald-700">No finished products below threshold.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {lowProducts.map((p) => (
-                <li key={p.id} className="py-2 flex items-center justify-between text-sm">
-                  <Link href={`/products/${p.id}`} className="font-medium text-slate-900 hover:underline">
-                    {p.name}
-                  </Link>
-                  <span className="text-rose-600 font-bold">{p.stock} / {p.lowStockAt}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {/* 3 chart cards */}
+      <InventoryChartRow userId={user.id} />
 
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-            <AlertTriangle size={14} /> Material shortages (active production)
-          </h2>
-          {shortages.length === 0 ? (
-            <p className="text-sm text-emerald-700">All active production runs have enough materials.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {shortages.map((s) => (
-                <li key={s.materialId} className="py-2 text-sm">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="min-w-0 flex-1 font-medium text-slate-900">
-                      {s.materialName}
-                    </span>
-                    <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">
-                      short {s.shortBy} {s.unit}
-                    </span>
-                    <DraftPOFromShortageButton materialId={s.materialId} />
-                  </div>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    Needed for {s.productionNumbers.join(', ')}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="card p-5">
-          <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-            <Clock size={14} /> Expiring within 14 days
-          </h2>
-          {expiring.length === 0 ? (
-            <p className="text-sm text-emerald-700">Nothing expiring soon.</p>
-          ) : (
-            <ul className="divide-y divide-slate-100">
-              {expiring.map((m) => (
-                <li key={m.id} className="py-2 flex items-center justify-between text-sm">
-                  <Link href={`/materials/${m.id}`} className="font-medium text-slate-900 hover:underline">
-                    {m.name}
-                  </Link>
-                  <span className="text-amber-700 font-semibold">
-                    {m.expiresAt ? new Date(m.expiresAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' }) : '—'}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {/* 2-col layout: table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <InventoryTable rows={rows} />
+        </div>
+        <aside className="space-y-4 lg:col-span-1">
+          <InventoryRightRail userId={user.id} />
+        </aside>
       </div>
     </AppShell>
   );

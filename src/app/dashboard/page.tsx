@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import {
   Banknote,
   Clock3,
@@ -78,22 +77,11 @@ const QUIET_THRESHOLD_DAYS = 30;
 export default async function DashboardPage() {
   const user = await guard();
 
-  // First-time gate: brand-new tenants who have completed signup but
-  // haven't seen the starter-pack picker yet, AND don't yet have any
-  // products or materials, get routed to the picker once. Property
-  // managers are out of scope (no production loop).
-  if (
-    user.businessType !== 'property_manager' &&
-    !user.starterPackOfferedAt
-  ) {
-    const [productCount, materialCount] = await Promise.all([
-      prisma.product.count({ where: { userId: user.id, archived: false } }),
-      prisma.rawMaterial.count({ where: { userId: user.id, deletedAt: null } }),
-    ]);
-    if (productCount === 0 && materialCount === 0) {
-      redirect('/onboarding/starter-pack');
-    }
-  }
+  // (Removed: starter-pack first-time gate that read user.starterPackOfferedAt.
+  // The column rollout was the source of a production /dashboard outage —
+  // see HOTFIX commit. The starter-pack picker is still reachable from the
+  // /products and /materials empty states + /onboarding/starter-pack
+  // directly. Re-introduce the gate after the schema has provably landed.)
 
   const now = new Date();
   const copy = copyFor(user.businessType);

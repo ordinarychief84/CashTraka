@@ -114,12 +114,15 @@ export default function AboutPage() {
 
       <div className="mt-10 flex flex-wrap gap-3">
         <Link href="/signup" className="btn-primary">
-          Start free
+          Start 30-day free trial
         </Link>
         <Link href="/solutions" className="btn-secondary">
           See the workflow
         </Link>
       </div>
+      <p className="mt-3 text-xs text-slate-500">
+        Every new account gets 30 days of Pro free. No card required.
+      </p>
     </LegalLayout>
   );
 }

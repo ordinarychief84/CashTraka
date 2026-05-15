@@ -140,7 +140,7 @@ function SolutionSection() {
       </Stagger>
       <div className="mt-10 flex flex-wrap gap-3">
         <Link href="/signup" className="btn-primary text-sm">
-          Start free
+          Start 30-day free trial
           <ArrowRight size={16} />
         </Link>
         <Link href="/solutions" className="btn-secondary text-sm">
@@ -204,7 +204,7 @@ function FeatureGrid() {
       </Stagger>
       <div className="mt-10 flex flex-wrap gap-3">
         <Link href="/signup" className="btn-primary text-sm">
-          Start free
+          Start 30-day free trial
           <ArrowRight size={16} />
         </Link>
         <Link href="/solutions" className="btn-secondary text-sm">
@@ -351,7 +351,7 @@ function IndustriesPreview() {
           <ArrowRight size={16} />
         </Link>
         <Link href="/signup" className="btn-secondary text-sm">
-          Start free
+          Start 30-day free trial
         </Link>
       </div>
     </Section>

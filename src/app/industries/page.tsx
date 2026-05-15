@@ -50,7 +50,7 @@ export default function IndustriesPage() {
           <Reveal from="up" delay={240}>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/signup" className="btn-primary text-sm">
-                Start free
+                Start 30-day free trial
                 <ArrowRight size={16} />
               </Link>
               <Link href="/contact?topic=demo" className="btn-secondary text-sm">
@@ -92,7 +92,7 @@ export default function IndustriesPage() {
                     href="/signup"
                     className="mt-auto inline-flex items-center gap-1 pt-6 text-sm font-semibold text-brand-700 hover:underline"
                   >
-                    Start free
+                    Start 30-day free trial
                     <ArrowRight size={14} />
                   </Link>
                 </article>

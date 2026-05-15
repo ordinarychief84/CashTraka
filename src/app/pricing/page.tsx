@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'CashTraka Pricing | Production Planning Software for Small Businesses',
     description:
-      'Simple pricing for growing production businesses. Start free, upgrade when your operations need more control.',
+      'Simple pricing for growing production businesses. Every new account gets 30 days of Pro free — no card required.',
     url: 'https://www.cashtraka.co/pricing',
     siteName: 'CashTraka',
     type: 'website',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'CashTraka Pricing',
     description:
-      'Simple pricing for growing production businesses. Start free, upgrade when your operations need more control.',
+      'Simple pricing for growing production businesses. Every new account gets 30 days of Pro free — no card required.',
   },
 };
 
@@ -74,11 +74,11 @@ export default function PricingPage() {
 
         <Section
           title="Ready to get organized?"
-          subtitle="Start on the free plan. Move up to Pro when you need shortage alerts, recipes, and purchase orders."
+          subtitle="Start your 30-day Pro trial — shortage alerts, recipes, purchase orders, and the operational recap all included. No card required."
         >
           <div className="flex flex-wrap gap-3">
             <Link href="/signup" className="btn-primary text-sm">
-              Start free
+              Start 30-day free trial
               <ArrowRight size={16} />
             </Link>
             <Link href="/contact?topic=sales" className="btn-secondary text-sm">

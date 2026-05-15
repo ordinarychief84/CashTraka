@@ -133,7 +133,7 @@ export default function ContactPage({
             href="/signup"
             className="font-semibold text-brand-600 hover:underline"
           >
-            Start free
+            Start your 30-day free trial
           </Link>{' '}
           — it takes under five minutes and you can plan your first order
           before you even hear back from us.

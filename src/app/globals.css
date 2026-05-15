@@ -124,8 +124,33 @@ select {
 }
 
 /* Utility helpers */
+/*
+ * Default app content container. Wide enough to do justice to dense
+ * dashboards, tables, and Kanban boards on laptop + desktop screens,
+ * while still keeping comfortable side gutters on every breakpoint.
+ *
+ * Breakpoint progression:
+ *   <  640px (sm-down):  px-4   (16px)
+ *   ≥  640px (sm):       px-6   (24px)
+ *   ≥ 1024px (lg):       px-8   (32px)
+ *   ≥ 1280px (xl):       still capped at max-w-7xl (1280px) — leaves
+ *                        the outer canvas breathing room on huge monitors
+ *
+ * Forms / settings / auth flows that read better at a narrower width
+ * use `.container-narrow` instead (or wrap inner content in max-w-3xl).
+ */
 .container-app {
-  @apply mx-auto w-full max-w-screen-md px-4;
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+/*
+ * Narrow content variant — for forms, settings, signup, single-record
+ * detail screens where readable line length is more important than
+ * dashboard real estate. Caps around 768px so existing single-column
+ * forms keep their feel.
+ */
+.container-narrow {
+  @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
 }
 
 .card {

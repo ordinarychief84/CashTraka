@@ -191,7 +191,7 @@ export function AppShell({
       </aside>
 
       <header className="sticky top-0 z-20 hidden h-14 border-b border-border bg-white/90 backdrop-blur md:block md:pl-56">
-        <div className="flex h-full items-center justify-between px-6">
+        <div className="container-app flex h-14 items-center justify-between">
           <div className="min-w-0 flex-1">
             <GlobalSearch />
           </div>

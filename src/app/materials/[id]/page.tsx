@@ -6,6 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { RawMaterialForm } from '@/components/ops/RawMaterialForm';
 import { AdjustStockButton } from '@/components/ops/AdjustStockButton';
+import { LeadTimeAlertsCard } from '@/components/ops/LeadTimeAlertsCard';
 import { rawMaterialsService } from '@/lib/services/raw-materials.service';
 import { suppliersService } from '@/lib/services/suppliers.service';
 import { inventoryService } from '@/lib/services/inventory.service';
@@ -60,6 +61,13 @@ export default async function MaterialDetailPage({ params }: { params: { id: str
               Reorder from supplier
             </Link>
           </div>
+
+          <LeadTimeAlertsCard
+            userId={user.id}
+            materialId={material.id}
+            showAllLink={false}
+            limit={10}
+          />
 
           <div className="card p-5">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-500">

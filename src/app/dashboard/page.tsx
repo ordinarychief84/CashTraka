@@ -37,6 +37,7 @@ import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
 import { DashboardGreeting } from '@/components/dashboard/DashboardGreeting';
 import { ProductionOverviewCard } from '@/components/dashboard/ProductionOverviewCard';
 import { MaterialShortageAlertsCard } from '@/components/dashboard/MaterialShortageAlertsCard';
+import { LeadTimeAlertsCard } from '@/components/ops/LeadTimeAlertsCard';
 import { DailyActionListCard } from '@/components/dashboard/DailyActionListCard';
 import { RecentOrdersCard } from '@/components/dashboard/RecentOrdersCard';
 import { RecentProductionCard } from '@/components/dashboard/RecentProductionCard';
@@ -520,11 +521,18 @@ export default async function DashboardPage() {
           {/* 6 KPI cards */}
           <HeroKpiCards6 userId={user.id} />
 
-          {/* Row 1: Production Overview + Material Shortage Alerts + Daily Action List */}
+          {/* Row 1: Production Overview + Lead-time Alerts + Daily Action List */}
           <div className="mb-6 grid gap-3 lg:grid-cols-3">
             <ProductionOverviewCard userId={user.id} />
-            <MaterialShortageAlertsCard userId={user.id} />
+            <LeadTimeAlertsCard userId={user.id} limit={4} />
             <DailyActionListCard userId={user.id} />
+          </div>
+
+          {/* Existing severity-tiered shortage list — kept below the new
+              lead-time view so the operator can still resolve / ignore rows
+              from the same surface they used yesterday. */}
+          <div className="mb-6">
+            <MaterialShortageAlertsCard userId={user.id} />
           </div>
 
           {/* Row 2: Recent Orders + Recent Production + Inventory Summary */}

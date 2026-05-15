@@ -3,6 +3,7 @@ import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { ShortageAlertList } from '@/components/ops/ShortageAlertList';
+import { LeadTimeAlertsCard } from '@/components/ops/LeadTimeAlertsCard';
 import { shortageService } from '@/lib/services/shortage.service';
 
 export const dynamic = 'force-dynamic';
@@ -66,7 +67,16 @@ export default async function ShortagesPage() {
           </div>
         </div>
       ) : (
-        <ShortageAlertList rows={rows} />
+        <div className="space-y-5">
+          {/* Lead-time-aware view: tells the owner "when do I need to order?" */}
+          <LeadTimeAlertsCard userId={user.id} limit={20} showAllLink={false} />
+
+          {/* Detailed list — keeps row-actions (resolve / ignore) accessible. */}
+          <div>
+            <h2 className="section-title mb-3">All open alerts</h2>
+            <ShortageAlertList rows={rows} />
+          </div>
+        </div>
       )}
     </AppShell>
   );

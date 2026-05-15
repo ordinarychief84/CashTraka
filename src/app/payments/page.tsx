@@ -61,10 +61,15 @@ export default async function PaymentsPage({ searchParams }: { searchParams: SP 
         title="Payments"
         subtitle="Cash and transfers you've received or are expecting."
         action={
-          <Link href="/payments/new" className="btn-primary">
-            <Plus size={18} />
-            Add payment
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/payments/from-alert" className="btn-pill-ghost">
+              From bank SMS
+            </Link>
+            <Link href="/payments/new" className="btn-primary">
+              <Plus size={18} />
+              Add payment
+            </Link>
+          </div>
         }
       />
 

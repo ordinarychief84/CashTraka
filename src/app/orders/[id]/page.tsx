@@ -5,6 +5,8 @@ import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PageHeader } from '@/components/PageHeader';
 import { CustomerOrderActions } from '@/components/ops/CustomerOrderActions';
+import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
+import { ProductionReadinessCard } from '@/components/ops/ProductionReadinessCard';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
@@ -144,6 +146,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               <p className="text-xs text-slate-400">Due {formatDateTime(order.dueAt)}</p>
             )}
           </div>
+          <ProductionReadinessCard userId={user.id} customerOrderId={order.id} />
+          <CustomerHistoryCard userId={user.id} customerId={order.customerId ?? null} />
         </div>
       </div>
     </AppShell>

@@ -11,6 +11,7 @@ import { StatCard } from '@/components/StatCard';
 import { FraudWarning } from '@/components/FraudWarning';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
 import { CreditScoreBadge } from '@/components/customers/CreditScoreBadge';
+import { CreditLimitCard } from '@/components/customers/CreditLimitCard';
 import { formatNaira, formatDateTime, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -108,6 +109,14 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
 
       <div className="mb-4">
         <CreditScoreBadge customerId={customer.id} userId={user.id} />
+      </div>
+
+      <div className="mb-5">
+        <CreditLimitCard
+          customerId={customer.id}
+          currentLimitKobo={customer.creditLimitKobo}
+          totalOwedKobo={customer.totalOwedKobo}
+        />
       </div>
 
       <div className="mb-4">

@@ -16,8 +16,10 @@ export default async function NewSupplierPage() {
       principalName={user.principalName}
     >
       <PageHeader title="Add supplier" backHref="/suppliers" />
-      <div className="card p-5">
-        <SupplierForm />
+      <div className="mx-auto max-w-3xl">
+        <div className="card p-5">
+          <SupplierForm />
+        </div>
       </div>
     </AppShell>
   );

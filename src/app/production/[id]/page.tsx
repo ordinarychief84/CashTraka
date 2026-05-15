@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/PageHeader';
 import { ProductionOrderActions } from '@/components/ops/ProductionOrderActions';
 import { productionOrdersService } from '@/lib/services/production-orders.service';
 import { inventoryService } from '@/lib/services/inventory.service';
+import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
+import { prisma } from '@/lib/prisma';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -20,11 +22,21 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
     notFound();
   }
 
-  const [shortages, estimatedCostKobo] = await Promise.all([
+  const [shortages, estimatedCostKobo, linkedCustomerOrder] = await Promise.all([
     inventoryService.computeShortagesForOrder(user.id, order.id),
     inventoryService.computeProductionOrderCostKobo(user.id, order.id),
+    // Resolve the linked CustomerOrder's customerId for the history card.
+    // production-orders.service only selects {id, orderNumber, customerName}
+    // so we re-fetch here rather than widening the service contract.
+    order.customerOrder
+      ? prisma.customerOrder.findUnique({
+          where: { id: order.customerOrder.id },
+          select: { customerId: true },
+        })
+      : Promise.resolve(null),
   ]);
   const hasShortages = shortages.some((s) => s.shortBy > 0);
+  const customerId = linkedCustomerOrder?.customerId ?? null;
 
   return (
     <AppShell
@@ -224,6 +236,7 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
               {order.completedAt && <li>Completed {formatDateTime(order.completedAt)}</li>}
             </ul>
           </div>
+          <CustomerHistoryCard userId={user.id} customerId={customerId} />
           {(order.batchNumber || order.manufacturedAt || order.expiresAt) ? (
             <div className="card p-5">
               <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">

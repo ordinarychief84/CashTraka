@@ -33,6 +33,24 @@ export const debtService = {
     const normalizedPhone = normalizeNigerianPhone(phone);
     const customer = await upsertCustomer(userId, customerName, phone);
 
+    // Credit-limit guardrail. If the customer has `creditLimitKobo` set,
+    // refuse to create a debt that would push their total owed above it.
+    // The owner can raise the limit on the customer profile if needed.
+    const amountOwedKobo = nairaToKobo(amountOwed);
+    if (
+      typeof customer.creditLimitKobo === 'number' &&
+      customer.creditLimitKobo > 0 &&
+      customer.totalOwedKobo + amountOwedKobo > customer.creditLimitKobo
+    ) {
+      throw Err.validation(
+        `Credit limit reached for ${customer.name}. Owed ₦${(
+          customer.totalOwedKobo / 100
+        ).toLocaleString('en-NG')} of ₦${(
+          customer.creditLimitKobo / 100
+        ).toLocaleString('en-NG')} allowed. Collect payment or raise the limit on the customer profile.`,
+      );
+    }
+
     const debt = await prisma.debt.create({
       data: {
         userId,
@@ -40,7 +58,7 @@ export const debtService = {
         customerNameSnapshot: customerName.trim(),
         phoneSnapshot: normalizedPhone,
         amountOwed,
-        amountOwedKobo: nairaToKobo(amountOwed),
+        amountOwedKobo,
         dueDate: dueDate ? new Date(dueDate) : null,
       },
     });

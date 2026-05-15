@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { InvoiceDetailActions } from '@/components/invoices/InvoiceDetailActions';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
+import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
 import { formatKobo, formatDate } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -234,6 +235,8 @@ export default async function InvoiceDetailPage({
               publicToken={existingFeedback?.publicToken}
             />
           </div>
+
+          <CustomerHistoryCard userId={user.id} customerId={invoice.customerId ?? null} />
         </div>
       </div>
     </AppShell>

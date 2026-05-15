@@ -283,6 +283,10 @@ model Customer {
   notes String?
   /// Comma-separated custom tags for grouping/filtering
   tags  String?
+  /// Maximum outstanding debt allowed for this customer (kobo). null = no limit.
+  /// Enforced server-side in debts.service when creating a new debt + surfaced
+  /// in the UI as a "near limit" / "over limit" warning chip.
+  creditLimitKobo Int?
 
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments           Payment[]

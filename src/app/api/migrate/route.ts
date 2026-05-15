@@ -93,6 +93,8 @@ export async function GET(req: NextRequest) {
   await addCol('Customer', 'totalReminders', 'INTEGER NOT NULL', '0');
   await addCol('Customer', 'lastRemindedAt', 'TIMESTAMP(3)', 'NULL');
   await addCol('Customer', 'transactionCount', 'INTEGER NOT NULL', '0');
+  // Optional max-outstanding-debt cap per customer (kobo).
+  await addCol('Customer', 'creditLimitKobo', 'INTEGER', 'NULL');
 
   // ===== Payment table =====
   await addCol('Payment', 'notes', 'TEXT', 'NULL');

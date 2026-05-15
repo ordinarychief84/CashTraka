@@ -36,6 +36,9 @@ import { GlobalSearch } from './GlobalSearch';
 import { UpgradeBanner } from './UpgradeBanner';
 import { SideLink } from './SideLink';
 import { NotificationsBell } from './NotificationsBell';
+import { SidebarBusinessPlan } from './dashboard/SidebarBusinessPlan';
+import { TopBarDateRange } from './dashboard/TopBarDateRange';
+import { TopBarUserPill } from './dashboard/TopBarUserPill';
 import { can, type AccessRole, ROLE_LABELS } from '@/lib/rbac';
 
 type Props = {
@@ -80,123 +83,103 @@ export function AppShell({
   return (
     <div className="min-h-screen">
       <UpgradeBanner />
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-56 flex-col border-r border-border bg-white md:flex">
-        <div className="flex h-16 items-center px-5 border-b border-border">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-border bg-white md:flex">
+        <div className="flex h-16 items-center px-5">
           <Link href="/dashboard" className="inline-flex items-center gap-2">
             <Logo size="md" />
           </Link>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-4">
-          {/* Operational planning — the product. Lead with what makes us
-              different. Orders → Production → Materials → POs → Inventory. */}
+        {/* Flat nav order matches the approved comp. Items conditioned on
+            RBAC permissions stay guarded so non-owners still get the
+            right subset. The dense "extras" (Recipes, Work history,
+            Shortages, Certificates, Expenses) live below the main set
+            so deep links keep working without simplifying the structure. */}
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-2">
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
-          <GroupLabel>Operations</GroupLabel>
           <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
           <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
-          <SideLink
-            href="/production/history"
-            icon={<History size={18} />}
-            label="Work history"
-          />
           {show.products && !isPropManager && (
             <SideLink href="/products" icon={<ShoppingBag size={18} />} label="Products" />
           )}
           <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
-          <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
-          <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchase Orders" />
-          <SideLink href="/suppliers" icon={<Truck size={18} />} label="Suppliers" />
           <SideLink href="/inventory" icon={<PackageSearch size={18} />} label="Inventory" />
-          <SideLink
-            href="/shortages"
-            icon={<AlertTriangle size={18} />}
-            label="Shortages"
-          />
-
-          {/* Money — the by-products of the operational loop. */}
-          <GroupLabel>Money</GroupLabel>
+          <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchases" />
+          <SideLink href="/suppliers" icon={<Users2 size={18} />} label="Suppliers" />
           {show.payments && !isPropManager && (
             <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
           )}
           {show.payments && !isPropManager && (
             <SideLink href="/receipts" icon={<Receipt size={18} />} label="Receipts" />
           )}
-          {show.payments && (
-            <SideLink
-              href="/payments"
-              icon={<Banknote size={18} />}
-              label="Payments"
-            />
+          {show.reports && (
+            <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />
           )}
           {show.customers && (
-            <SideLink
-              href="/customers"
-              icon={<Users size={18} />}
-              label="Customers"
-            />
+            <SideLink href="/customers" icon={<Users size={18} />} label="Customers" />
           )}
-          {show.reports && <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />}
-
-          {/* Business utilities. */}
-          {(show.expenses || show.team) && <GroupLabel>Business</GroupLabel>}
-          {show.expenses && <SideLink href="/expenses" icon={<Receipt size={18} />} label="Expenses" />}
+          <SideLink href="/feedback" icon={<Heart size={18} />} label="Service Check" />
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
           {show.settings && (
-            <SideLink
-              href="/settings/certificates"
-              icon={<ShieldCheck size={18} />}
-              label="Certificates"
-            />
+            <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />
           )}
 
-          {/* Intentionally removed from nav post-pivot (PR-A):
-              /debts (Money Owed) — folded into Customer detail
-              /paylinks — debt collection, off-brand for ops planning
-              /collections — same
-              /banks — Paystack covers settlement
-              /service-check — moved to Pro plan toggle
-              /promises, /recurring-invoices, /installments — niche debt features
-              /showroom — different product (e-commerce)
-              Property/Tenant/Rent nav — dead vertical
-              Routes still exist for deep-links from old emails. */}
-
-          <div className="mt-auto" />
-          {show.settings && <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />}
+          {/* Extras kept reachable but de-prioritised in the chrome. */}
+          <div className="mt-2 border-t border-border/60 pt-2">
+            <SideLink
+              href="/shortages"
+              icon={<AlertTriangle size={18} />}
+              label="Shortages"
+            />
+            <SideLink
+              href="/production/history"
+              icon={<History size={18} />}
+              label="Work history"
+            />
+            <SideLink
+              href="/recipes"
+              icon={<BookOpen size={18} />}
+              label="Recipes"
+            />
+            {show.settings && (
+              <SideLink
+                href="/settings/certificates"
+                icon={<ShieldCheck size={18} />}
+                label="Certificates"
+              />
+            )}
+            {show.expenses && (
+              <SideLink href="/expenses" icon={<Banknote size={18} />} label="Expenses" />
+            )}
+            {show.payments && (
+              <SideLink href="/payments" icon={<Banknote size={18} />} label="Payments" />
+            )}
+          </div>
         </nav>
 
-        <div className="border-t border-border p-4">
-          {businessName && (
-            <div className="mb-1 truncate text-xs font-medium text-slate-700">{businessName}</div>
-          )}
-          {(principalName || userName) && (
-            <div className="mb-1 truncate text-xs text-slate-500">
-              Signed in as {principalName ?? userName}
-            </div>
-          )}
-          {accessRole !== 'OWNER' && (
-            <div className="mb-3 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-              {ROLE_LABELS[accessRole]}
-            </div>
-          )}
-          <form action="/api/auth/logout" method="post">
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-ink"
-            >
-              <LogOut size={14} />
-              Log out
-            </button>
-          </form>
-        </div>
+        {/* Bottom: Business Plan card — replaces the inline logout
+            (now moved into the top-bar user pill dropdown). */}
+        <SidebarBusinessPlan
+          planLabel={planLabel ?? 'Business Plan'}
+          isActive
+          teamUsed={8}
+          teamMax={20}
+          storagePct={65}
+        />
       </aside>
 
-      <header className="sticky top-0 z-20 hidden h-14 border-b border-border bg-white/90 backdrop-blur md:block md:pl-56">
-        <div className="container-app flex h-14 items-center justify-between">
-          <div className="min-w-0 flex-1">
+      <header className="sticky top-0 z-20 hidden h-16 border-b border-border bg-white md:block md:pl-60">
+        <div className="container-app flex h-16 items-center justify-between gap-3">
+          <div className="min-w-0 max-w-md flex-1">
             <GlobalSearch />
           </div>
-          <div className="ml-3 flex shrink-0 items-center">
+          <div className="flex shrink-0 items-center gap-2">
+            <TopBarDateRange />
             <NotificationsBell />
+            <TopBarUserPill
+              name={principalName ?? userName ?? 'You'}
+              role={ROLE_LABELS[accessRole] ?? 'Admin'}
+            />
           </div>
         </div>
       </header>
@@ -233,7 +216,7 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="md:pl-56 pb-24 md:pb-10">
+      <main className="md:pl-60 pb-24 md:pb-10">
         <div className="container-app py-5 md:py-8">{children}</div>
       </main>
 
@@ -248,10 +231,3 @@ export function AppShell({
 }
 
 
-function GroupLabel({ children }: { children: string }) {
-  return (
-    <div className="mt-4 px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-      {children}
-    </div>
-  );
-}

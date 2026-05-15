@@ -8,6 +8,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
+import { creditLimitService } from '@/lib/services/credit-limit.service';
 import { formatKobo, timeAgo } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +51,12 @@ export async function CustomerHistoryCard({
   });
   if (!customer) return null;
 
+  // "Currently owed" must include unpaid invoice balances, not just open
+  // debts (Customer.totalOwedKobo is debt-only — see customers.ts).
+  // creditLimitService.currentOwedKobo is the shared source of truth used
+  // by the credit-limit gate on both debt and invoice creation.
+  const trueOwedKobo = await creditLimitService.currentOwedKobo(customer.id);
+
   const [lastPayment, recentInvoices, recentOrders] = await Promise.all([
     prisma.payment.findFirst({
       where: { userId, customerId, status: 'PAID' },
@@ -86,9 +93,9 @@ export async function CustomerHistoryCard({
   const creditLimitKobo = customer.creditLimitKobo;
   const owedPct =
     creditLimitKobo && creditLimitKobo > 0
-      ? Math.round((customer.totalOwedKobo / creditLimitKobo) * 100)
+      ? Math.round((trueOwedKobo / creditLimitKobo) * 100)
       : null;
-  const overLimit = creditLimitKobo != null && customer.totalOwedKobo > creditLimitKobo;
+  const overLimit = creditLimitKobo != null && trueOwedKobo > creditLimitKobo;
   const nearLimit = !overLimit && owedPct !== null && owedPct >= 75;
 
   return (
@@ -120,7 +127,7 @@ export async function CustomerHistoryCard({
           <AlertTriangle size={14} className="mt-0.5 shrink-0" />
           <span>
             {overLimit
-              ? `Over credit limit · ${formatKobo(customer.totalOwedKobo)} owed of ${formatKobo(creditLimitKobo!)} allowed`
+              ? `Over credit limit · ${formatKobo(trueOwedKobo)} owed of ${formatKobo(creditLimitKobo!)} allowed`
               : `Near credit limit · ${owedPct}% of ${formatKobo(creditLimitKobo!)} used`}
           </span>
         </div>
@@ -136,8 +143,8 @@ export async function CustomerHistoryCard({
         <Stat
           Icon={Wallet}
           label="Currently owed"
-          value={formatKobo(customer.totalOwedKobo)}
-          tone={customer.totalOwedKobo > 0 ? 'rose' : 'slate'}
+          value={formatKobo(trueOwedKobo)}
+          tone={trueOwedKobo > 0 ? 'rose' : 'slate'}
         />
         <Stat
           Icon={TrendingUp}

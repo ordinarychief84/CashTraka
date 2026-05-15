@@ -14,6 +14,8 @@ import {
 } from '@/lib/invoice-helpers';
 import { documentAudit } from '@/lib/services/document-audit.service';
 import { nairaToKobo } from '@/lib/money';
+import { creditLimitService } from '@/lib/services/credit-limit.service';
+import { ServiceError } from '@/lib/errors';
 
 /**
  * GET /api/invoices?q=
@@ -146,6 +148,25 @@ export async function POST(req: Request) {
         const disc = Math.max(0, Math.min(discount, sub));
         return { subtotal: sub, discount: disc, tax, total: sub - disc + tax, vatRate: 0 };
       })();
+
+  // Credit-limit guardrail (parity with debtService.create). Counts
+  // open debts + unpaid invoice balances toward the customer's cap so
+  // a single overdue invoice doesn't dodge the gate. Surfaces the
+  // friendly error from creditLimitService as 422, since the data is
+  // valid but business rules disallow the action.
+  try {
+    await creditLimitService.check({
+      userId: user.id,
+      customerId: customer.id,
+      additionalKobo: nairaToKobo(totals.total),
+      actionLabel: 'Issuing this invoice',
+    });
+  } catch (e) {
+    if (e instanceof ServiceError && e.code === 'VALIDATION') {
+      return NextResponse.json({ error: e.message }, { status: 422 });
+    }
+    throw e;
+  }
 
   const prefix =
     user.invoicePrefix?.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') || 'INV';

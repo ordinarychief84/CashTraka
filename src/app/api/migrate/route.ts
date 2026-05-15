@@ -81,6 +81,8 @@ export async function GET(req: NextRequest) {
   await addCol('User', 'pendingPlan', 'TEXT', 'NULL');
   await addCol('User', 'personalBudgetWeekly', 'INTEGER', 'NULL');
   await addCol('User', 'personalBudgetMonthly', 'INTEGER', 'NULL');
+  // First-time starter-pack offer stamp — guards the dashboard redirect.
+  await addCol('User', 'starterPackOfferedAt', 'TIMESTAMP(3)', 'NULL');
 
   // ===== Customer table =====
   await addCol('Customer', 'totalPaid', 'INTEGER NOT NULL', '0');

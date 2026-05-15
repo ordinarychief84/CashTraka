@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -13,11 +13,24 @@ export const dynamic = 'force-dynamic';
  * brand-new tenant (or one returning after applying skincare and
  * wanting to add packaging) can browse every option in one place.
  *
- * Surfaces what's already populated in their tenant so they can
- * make an informed decision before re-applying.
+ * On first visit, stamps `User.starterPackOfferedAt` so the dashboard
+ * first-time gate doesn't keep redirecting after the user picks (or
+ * skips) the picker.
  */
 export default async function StarterPackPickerPage() {
   const user = await guard();
+
+  // Stamp the first-time-seen marker so the dashboard gate doesn't loop.
+  // Fire-and-forget: the stamp's only consumer is the dashboard redirect,
+  // and the user is already on the picker, so we don't need to await it.
+  if (!user.starterPackOfferedAt) {
+    void prisma.user
+      .update({
+        where: { id: user.id },
+        data: { starterPackOfferedAt: new Date() },
+      })
+      .catch(() => null);
+  }
 
   const [productCount, materialCount, recipeCount] = await Promise.all([
     prisma.product.count({ where: { userId: user.id, archived: false } }),
@@ -26,6 +39,7 @@ export default async function StarterPackPickerPage() {
   ]);
 
   const hasAnyData = productCount > 0 || materialCount > 0 || recipeCount > 0;
+  const isFirstTime = !user.starterPackOfferedAt;
 
   return (
     <AppShell
@@ -36,9 +50,13 @@ export default async function StarterPackPickerPage() {
       principalName={user.principalName}
     >
       <PageHeader
-        title="Starter packs"
-        subtitle="Pre-baked products, materials, and recipes for your sector. Pick one — re-running later only adds what you don't already have."
-        backHref="/dashboard"
+        title={isFirstTime ? 'Welcome to CashTraka' : 'Starter packs'}
+        subtitle={
+          isFirstTime
+            ? 'Pick the sector that matches your business — we\'ll seed products, materials, and recipes so the dashboards are useful from day one.'
+            : "Pre-baked products, materials, and recipes for your sector. Pick one — re-running later only adds what you don't already have."
+        }
+        backHref={isFirstTime ? undefined : '/dashboard'}
       />
 
       {hasAnyData && (
@@ -66,14 +84,32 @@ export default async function StarterPackPickerPage() {
 
       <StarterPackPicker />
 
-      <p className="mt-6 text-center text-[11px] text-slate-500">
-        Don&apos;t see your sector?{' '}
-        <Link href="/products/new" className="font-semibold text-brand-700 hover:underline">
-          Add products manually
-        </Link>
-        {' · '}
-        We&apos;re adding more packs based on what new signups ask for.
-      </p>
+      {/* First-time path: an explicit "Skip" gives the owner an exit without
+          ever applying a pack. The starterPackOfferedAt stamp at the top of
+          this page ensures the dashboard won't loop them back. */}
+      {isFirstTime ? (
+        <div className="mt-6 flex flex-col items-center gap-2">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700"
+          >
+            Skip for now — I&apos;ll add products manually
+            <ArrowRight size={12} />
+          </Link>
+          <p className="text-[11px] text-slate-400">
+            You can revisit this page anytime from the products / materials empty states.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-6 text-center text-[11px] text-slate-500">
+          Don&apos;t see your sector?{' '}
+          <Link href="/products/new" className="font-semibold text-brand-700 hover:underline">
+            Add products manually
+          </Link>
+          {' · '}
+          We&apos;re adding more packs based on what new signups ask for.
+        </p>
+      )}
     </AppShell>
   );
 }

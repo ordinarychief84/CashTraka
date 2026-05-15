@@ -4,6 +4,8 @@ import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
+import { StarterPackCta } from '@/components/onboarding/StarterPackCta';
+import { listPacks } from '@/lib/vertical-seeds';
 import { ProductsTable } from '@/components/products/ProductsTable';
 import { ProductsHeroKpis } from '@/components/products/ProductsHeroKpis';
 import { ProductsChartRow } from '@/components/products/ProductsChartRow';
@@ -63,13 +65,32 @@ export default async function ProductsPage() {
       <div className="grid gap-5 lg:grid-cols-4">
         <div className="lg:col-span-3">
           {products.length === 0 ? (
-            <EmptyState
-              icon={Package}
-              title="No products yet"
-              description="Add what you sell so you can track stock, attach items to orders, and see real profit in your reports."
-              actionHref="/products/new"
-              actionLabel="Add your first product"
-            />
+            <div className="space-y-4">
+              {/* Vertical starter packs — picker UI lands in PR B; for now we
+                  surface the first available pack as a one-tap CTA so brand-new
+                  tenants don't stare at an empty grid. */}
+              {listPacks().slice(0, 1).map((p) => (
+                <StarterPackCta
+                  key={p.id}
+                  pack={{
+                    id: p.id,
+                    label: p.label,
+                    description: p.description,
+                    emoji: p.emoji ?? null,
+                    materials: p.materials.length,
+                    products: p.products.length,
+                    recipes: p.recipes.length,
+                  }}
+                />
+              ))}
+              <EmptyState
+                icon={Package}
+                title="Or add products one by one"
+                description="Skip the starter pack if your catalogue doesn't match — you can add each product manually."
+                actionHref="/products/new"
+                actionLabel="Add a product"
+              />
+            </div>
           ) : (
             <ProductsTable
               rows={products.map((p) => ({

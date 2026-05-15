@@ -14,8 +14,8 @@ import { FAQ } from '@/components/marketing/FAQ';
 import { Reveal } from '@/components/marketing/Reveal';
 import { Stagger } from '@/components/marketing/Stagger';
 import { ScrollProgress } from '@/components/marketing/ScrollProgress';
+import { MarketingHero } from '@/components/marketing/MarketingHero';
 import {
-  HERO,
   PROBLEM,
   SOLUTION,
   HOW_IT_WORKS,
@@ -66,7 +66,7 @@ export default function LandingPage() {
       <ScrollProgress />
       <Navbar />
       <main>
-        <Hero />
+        <MarketingHero />
         <ProblemSection />
         <SolutionSection />
         <HowItWorksSection />
@@ -81,55 +81,6 @@ export default function LandingPage() {
       </main>
       <Footer />
     </div>
-  );
-}
-
-/* ============== HERO ============== */
-
-function Hero() {
-  return (
-    <section className="relative overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          backgroundImage:
-            'radial-gradient(60% 80% at 50% 0%, rgba(31,193,238,0.18), transparent 70%),' +
-            'radial-gradient(40% 60% at 80% 20%, rgba(139,217,30,0.10), transparent 70%)',
-        }}
-      />
-      <div className="container-app pt-14 pb-16 md:pt-20 md:pb-24">
-        <Reveal from="up">
-          <span className="inline-block rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand-700">
-            {HERO.eyebrow}
-          </span>
-        </Reveal>
-        <Reveal from="up" delay={80}>
-          <h1 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-ink md:text-6xl md:leading-[1.05]">
-            {HERO.h1}
-          </h1>
-        </Reveal>
-        <Reveal from="up" delay={160}>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 md:text-xl">
-            {HERO.sub}
-          </p>
-        </Reveal>
-        <Reveal from="up" delay={240}>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <Link href={HERO.primaryCta.href} className="btn-primary text-sm md:text-base">
-              {HERO.primaryCta.label}
-              <ArrowRight size={16} />
-            </Link>
-            <Link href={HERO.secondaryCta.href} className="btn-secondary text-sm md:text-base">
-              {HERO.secondaryCta.label}
-            </Link>
-          </div>
-        </Reveal>
-        <Reveal from="up" delay={320}>
-          <p className="mt-6 max-w-3xl text-sm text-slate-500">{HERO.support}</p>
-        </Reveal>
-      </div>
-    </section>
   );
 }
 

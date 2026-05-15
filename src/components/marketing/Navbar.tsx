@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { label: 'Solutions', href: '/solutions' },
   { label: 'Industries', href: '/industries' },
   { label: 'Pricing', href: '/pricing' },
-  { label: 'FAQs', href: '/faqs' },
+  { label: 'Resources', href: '/faqs' },
 ];
 
 export function Navbar() {

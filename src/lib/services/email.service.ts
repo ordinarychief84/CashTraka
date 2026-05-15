@@ -1698,5 +1698,96 @@ export const emailService = {
     });
   },
 
+  /* ══════════════════════════════════════════════════════════════════════
+   *  AUTO-PO DIGEST
+   *  Sent after the auto-PO cron drafts purchase orders. Lists the
+   *  newly-drafted POs with totals + a WhatsApp share button so the
+   *  owner can review on phone and tap-send. Never auto-sends the POs.
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendAutoPoDigest(args: {
+    to: string;
+    name: string;
+    businessName?: string | null;
+    draftsCreated: number;
+    materialsCovered: number;
+    skippedNoSupplier: number;
+    pos: {
+      id: string;
+      poNumber: string;
+      supplierName: string;
+      totalKobo: number;
+      lineCount: number;
+    }[];
+    whatsappShareUrl: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
+    const firstName = args.name.split(' ')[0];
+    const naira = (k: number) => '₦' + Math.round(k / 100).toLocaleString('en-NG');
+    const totalKobo = args.pos.reduce((s, p) => s + p.totalKobo, 0);
+
+    const noSupplierBlock = args.skippedNoSupplier > 0 ? `
+      <div style="background:#FEF3C7;border-radius:10px;padding:14px 16px;margin-top:16px;">
+        <p style="margin:0;font-size:12px;color:#78350F;line-height:1.5;">
+          ${args.skippedNoSupplier} material${args.skippedNoSupplier === 1 ? '' : 's'} ${args.skippedNoSupplier === 1 ? 'was' : 'were'} skipped — no supplier assigned. Set a preferred supplier to auto-draft next time.
+        </p>
+      </div>` : '';
+
+    const poList = args.pos.map((p) => `
+      <tr>
+        <td style="padding:10px 0;border-bottom:1px solid #F1F5F9;">
+          <a href="${appUrl}/purchase-orders/${esc(p.id)}" style="text-decoration:none;color:#1A1A1A;">
+            <div style="font-family:monospace;font-size:14px;font-weight:700;color:#1A1A1A;">${esc(p.poNumber)}</div>
+            <div style="font-size:12px;color:#64748B;margin-top:2px;">${esc(p.supplierName)} · ${p.lineCount} item${p.lineCount === 1 ? '' : 's'}</div>
+          </a>
+        </td>
+        <td style="padding:10px 0;text-align:right;border-bottom:1px solid #F1F5F9;font-size:14px;font-weight:700;color:#1A1A1A;">${naira(p.totalKobo)}</td>
+      </tr>`).join('');
+
+    const body = `
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">
+        ${args.draftsCreated} purchase order${args.draftsCreated === 1 ? '' : 's'} ready, ${esc(firstName)}
+      </h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#94A3B8;">${fmtDate(new Date())}</p>
+
+      <div style="background:#EFF6FF;border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:13px;color:#1E40AF;">Total to spend</p>
+        <p style="margin:0;font-size:30px;font-weight:800;color:#1A1A1A;letter-spacing:-0.5px;">${naira(totalKobo)}</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#475569;">
+          Covers ${args.materialsCovered} low-stock material${args.materialsCovered === 1 ? '' : 's'}
+        </p>
+      </div>
+
+      <p style="margin:0 0 8px;font-size:12px;font-weight:700;color:#1A1A1A;text-transform:uppercase;letter-spacing:0.5px;">Drafted POs</p>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:8px;">
+        ${poList}
+      </table>
+
+      ${noSupplierBlock}
+
+      <p style="margin:20px 0 12px;font-size:13px;color:#475569;line-height:1.6;">
+        These are <strong>drafts</strong> — they haven't been sent to your suppliers yet. Open each one, adjust quantity if needed, then tap "Send".
+      </p>
+
+      <table cellpadding="0" cellspacing="0" border="0" style="margin:16px 0 8px;">
+        <tr>
+          <td style="background:#25D366;border-radius:10px;padding:14px 24px;">
+            <a href="${esc(args.whatsappShareUrl)}" style="color:#FFFFFF;text-decoration:none;font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;font-weight:700;display:inline-block;">
+              Share recap on WhatsApp
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      ${ctaButton('Review purchase orders', appUrl + '/purchase-orders?status=DRAFT')}`;
+
+    return send({
+      to: args.to,
+      subject: `${args.draftsCreated} PO${args.draftsCreated === 1 ? '' : 's'} drafted — ${naira(totalKobo)} ready to send`,
+      html: layout(body, {
+        preheader: `${args.draftsCreated} draft${args.draftsCreated === 1 ? '' : 's'} · ${args.materialsCovered} material${args.materialsCovered === 1 ? '' : 's'} covered`,
+      }),
+    });
+  },
+
   raw: send,
 };

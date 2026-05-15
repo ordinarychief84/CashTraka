@@ -33,6 +33,16 @@ import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
 import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
+import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
+import { DashboardGreeting } from '@/components/dashboard/DashboardGreeting';
+import { ProductionOverviewCard } from '@/components/dashboard/ProductionOverviewCard';
+import { MaterialShortageAlertsCard } from '@/components/dashboard/MaterialShortageAlertsCard';
+import { DailyActionListCard } from '@/components/dashboard/DailyActionListCard';
+import { RecentOrdersCard } from '@/components/dashboard/RecentOrdersCard';
+import { RecentProductionCard } from '@/components/dashboard/RecentProductionCard';
+import { InventorySummaryCard } from '@/components/dashboard/InventorySummaryCard';
+import { CashFlowOverviewCard } from '@/components/dashboard/CashFlowOverviewCard';
+import { RecentActivitiesCard } from '@/components/dashboard/RecentActivitiesCard';
 import { DailyActionPanel } from '@/components/dashboard/DailyActionPanel';
 import { OperationalRiskPanel } from '@/components/dashboard/OperationalRiskPanel';
 import { ProductionPipeline } from '@/components/dashboard/ProductionPipeline';
@@ -493,58 +503,97 @@ export default async function DashboardPage() {
       principalName={user.principalName}
       pendingTaskCount={staffTaskCounts?.pending}
     >
-      {/* ───────── Greeting + primary CTAs (lead the dashboard) ───────── */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
-            {greetingFor()}, {firstName}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            {isStaffPrincipal
-              ? `Signed in to ${user.businessName || 'the team'}.`
-              : copy.greetingSub}
-          </p>
-        </div>
-        {canWrite && !isStaffPrincipal && (
-          <div className="flex flex-wrap items-center gap-2">
-            {planLimits.invoices && (
-              <Link href="/invoices/new" className="btn-pill-ghost">
-                <ReceiptText size={14} />
-                Invoice
-              </Link>
-            )}
-            {showExpenses && (
-              <Link href="/expenses/new" className="btn-pill-ghost">
-                <ReceiptText size={14} />
-                Expense
-              </Link>
-            )}
-            <Link href="/payments/new" className="btn-pill-primary">
-              <Banknote size={14} />
-              Record payment
-            </Link>
+      {/* ─────────────────────────────────────────────────────────────
+          NEW comp-driven dashboard for sellers (non-PM, non-staff).
+          The legacy zones (TodayTriage / Pulse / Activity) are wrapped
+          further below in a !showCompDashboard guard so they keep
+          working for property-manager + staff-principal flows.
+          ───────────────────────────────────────────────────────────── */}
+      {(() => null)()}
+      {!isPm && !isStaffPrincipal && (
+        <>
+          <DashboardGreeting firstName={firstName} />
+
+          {/* Empty-catalog onboarding nudge */}
+          {catalogIsEmpty && <TemplateQuickStart />}
+
+          {/* 6 KPI cards */}
+          <HeroKpiCards6 userId={user.id} />
+
+          {/* Row 1: Production Overview + Material Shortage Alerts + Daily Action List */}
+          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+            <ProductionOverviewCard userId={user.id} />
+            <MaterialShortageAlertsCard userId={user.id} />
+            <DailyActionListCard userId={user.id} />
           </div>
-        )}
-      </div>
 
-      {/* Empty-catalog onboarding nudge — only when catalog is empty. */}
-      {!isPm && catalogIsEmpty && <TemplateQuickStart />}
+          {/* Row 2: Recent Orders + Recent Production + Inventory Summary */}
+          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+            <RecentOrdersCard userId={user.id} />
+            <RecentProductionCard userId={user.id} />
+            <InventorySummaryCard userId={user.id} />
+          </div>
 
-      {/* Hero KPIs · 4 large primary numbers. Replaces the prior 8-card
-          strip + OpsDashboardCards block. */}
-      {!isPm && <HeroKpiCards userId={user.id} />}
-
-      {/* Today + At risk — side by side on desktop, stacked on mobile.
-          Both panels self-hide when empty so quiet days stay clean. */}
-      {!isPm && (
-        <div className="mb-6 grid gap-3 lg:grid-cols-2">
-          <DailyActionPanel userId={user.id} />
-          <OperationalRiskPanel userId={user.id} />
-        </div>
+          {/* Row 3: Cash Flow Overview (2/3) + Recent Activities (1/3) */}
+          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <CashFlowOverviewCard userId={user.id} />
+            </div>
+            <RecentActivitiesCard userId={user.id} />
+          </div>
+        </>
       )}
 
-      {/* Production pipeline — prominent full-width strip. */}
-      {!isPm && <ProductionPipeline userId={user.id} />}
+      {/* ─────────────────────────────────────────────────────────────
+          LEGACY greeting + ops block — kept for PMs and staff. The
+          seller path uses the comp layout above instead.
+          ───────────────────────────────────────────────────────────── */}
+      {(isPm || isStaffPrincipal) && (
+        <>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-ink md:text-3xl">
+                {greetingFor()}, {firstName}
+              </h1>
+              <p className="mt-1 text-sm text-slate-500">
+                {isStaffPrincipal
+                  ? `Signed in to ${user.businessName || 'the team'}.`
+                  : copy.greetingSub}
+              </p>
+            </div>
+            {canWrite && !isStaffPrincipal && (
+              <div className="flex flex-wrap items-center gap-2">
+                {planLimits.invoices && (
+                  <Link href="/invoices/new" className="btn-pill-ghost">
+                    <ReceiptText size={14} />
+                    Invoice
+                  </Link>
+                )}
+                {showExpenses && (
+                  <Link href="/expenses/new" className="btn-pill-ghost">
+                    <ReceiptText size={14} />
+                    Expense
+                  </Link>
+                )}
+                <Link href="/payments/new" className="btn-pill-primary">
+                  <Banknote size={14} />
+                  Record payment
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {!isPm && catalogIsEmpty && <TemplateQuickStart />}
+          {!isPm && <HeroKpiCards userId={user.id} />}
+          {!isPm && (
+            <div className="mb-6 grid gap-3 lg:grid-cols-2">
+              <DailyActionPanel userId={user.id} />
+              <OperationalRiskPanel userId={user.id} />
+            </div>
+          )}
+          {!isPm && <ProductionPipeline userId={user.id} />}
+        </>
+      )}
 
       {/* ─── STAFF PRINCIPAL: My-tasks hero card ─── */}
       {isStaffPrincipal && staffTaskCounts && (
@@ -597,6 +646,10 @@ export default async function DashboardPage() {
         </Link>
       )}
 
+      {/* Legacy zones — hidden for sellers (who now have the comp layout
+          above), shown for PMs + staff. */}
+      {(isPm || isStaffPrincipal) && (
+      <>
       {/* ─────────────────── ZONE 1 · TODAY ─────────────────── */}
       <TodayTriage items={triage} />
 
@@ -771,6 +824,8 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
+      </>
+      )}
 
       <InstallPrompt />
     </AppShell>

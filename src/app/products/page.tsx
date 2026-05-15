@@ -4,8 +4,7 @@ import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
-import { StarterPackCta } from '@/components/onboarding/StarterPackCta';
-import { listPacks } from '@/lib/vertical-seeds';
+import { StarterPackPicker } from '@/components/onboarding/StarterPackPicker';
 import { ProductsTable } from '@/components/products/ProductsTable';
 import { ProductsHeroKpis } from '@/components/products/ProductsHeroKpis';
 import { ProductsChartRow } from '@/components/products/ProductsChartRow';
@@ -66,23 +65,20 @@ export default async function ProductsPage() {
         <div className="lg:col-span-3">
           {products.length === 0 ? (
             <div className="space-y-4">
-              {/* Vertical starter packs — picker UI lands in PR B; for now we
-                  surface the first available pack as a one-tap CTA so brand-new
-                  tenants don't stare at an empty grid. */}
-              {listPacks().slice(0, 1).map((p) => (
-                <StarterPackCta
-                  key={p.id}
-                  pack={{
-                    id: p.id,
-                    label: p.label,
-                    description: p.description,
-                    emoji: p.emoji ?? null,
-                    materials: p.materials.length,
-                    products: p.products.length,
-                    recipes: p.recipes.length,
-                  }}
-                />
-              ))}
+              {/* Vertical starter packs — pick one to seed materials, products
+                  and recipes in one tap. Renders every registered pack via
+                  the central registry so adding a new vertical is a single
+                  file change. */}
+              <div>
+                <h2 className="mb-3 text-base font-bold text-ink">
+                  Start with a sector pack
+                </h2>
+                <p className="mb-4 text-xs text-slate-500">
+                  Pick the closest match. Re-running later only adds missing pieces.
+                </p>
+                <StarterPackPicker />
+              </div>
+
               <EmptyState
                 icon={Package}
                 title="Or add products one by one"

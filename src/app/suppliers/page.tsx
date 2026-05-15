@@ -1,22 +1,60 @@
 import Link from 'next/link';
-import { Plus, Search, Truck } from 'lucide-react';
+import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { EmptyState } from '@/components/EmptyState';
-import { suppliersService } from '@/lib/services/suppliers.service';
+import { prisma } from '@/lib/prisma';
+import { SuppliersHeroKpis } from '@/components/suppliers/SuppliersHeroKpis';
+import { SuppliersChartRow } from '@/components/suppliers/SuppliersChartRow';
+import { SuppliersTable, type SupplierRow } from '@/components/suppliers/SuppliersTable';
+import { SuppliersRightRail } from '@/components/suppliers/SuppliersRightRail';
 
 export const dynamic = 'force-dynamic';
 
-type SP = { q?: string };
-
-export default async function SuppliersPage({ searchParams }: { searchParams: SP }) {
+export default async function SuppliersPage() {
   const user = await guard();
-  const q = (searchParams.q || '').trim();
-  const { rows: suppliers, total } = await suppliersService.listForUser(user.id, {
-    q,
-    take: 200,
+
+  const suppliers = await prisma.supplier.findMany({
+    where: { userId: user.id, deletedAt: null },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      contactPerson: true,
+      phone: true,
+      email: true,
+      supplierCategory: true,
+      status: true,
+      lastPurchaseAt: true,
+      onTimeDeliveryRating: true,
+      qualityRating: true,
+    },
   });
+
+  // Roll up total spend per supplier from received POs (kobo).
+  const spendGroup = await prisma.purchaseOrder.groupBy({
+    by: ['supplierId'],
+    where: {
+      userId: user.id,
+      deletedAt: null,
+      status: { in: ['RECEIVED', 'PARTIALLY_RECEIVED'] },
+    },
+    _sum: { totalKobo: true },
+  });
+  const spendBy = new Map(spendGroup.map((g) => [g.supplierId, g._sum.totalKobo ?? 0]));
+
+  const rows: SupplierRow[] = suppliers.map((s) => ({
+    id: s.id,
+    name: s.name,
+    contactPerson: s.contactPerson,
+    phone: s.phone,
+    email: s.email,
+    category: s.supplierCategory,
+    status: s.status,
+    totalSpendKobo: spendBy.get(s.id) ?? 0,
+    lastPurchaseAt: s.lastPurchaseAt ? s.lastPurchaseAt.toISOString() : null,
+    onTimeDeliveryRating: s.onTimeDeliveryRating,
+    qualityRating: s.qualityRating,
+  }));
 
   return (
     <AppShell
@@ -26,60 +64,47 @@ export default async function SuppliersPage({ searchParams }: { searchParams: SP
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="Suppliers"
-        subtitle={`${total} supplier${total === 1 ? '' : 's'}`}
-        action={
-          <Link href="/suppliers/new" className="btn-primary inline-flex items-center gap-2">
-            <Plus size={16} />
-            New supplier
-          </Link>
-        }
-      />
-
-      <form className="mb-4" action="/suppliers" method="get">
-        <div className="relative">
-          <Search
-            size={16}
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 z-10 text-slate-400"
-          />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search suppliers"
-            className="input !pl-11"
-          />
+      {/* Page header */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Suppliers
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            The businesses you buy from, ranked by spend, reliability and quality.
+          </p>
         </div>
-      </form>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link href="/suppliers" className="btn-pill-ghost">
+            <Download size={14} />
+            Export
+          </Link>
+          <Link href="/reports" className="btn-pill-ghost">
+            <BarChart3 size={14} />
+            Reports
+          </Link>
+          <Link href="/suppliers/new" className="btn-pill-primary">
+            <Plus size={14} />
+            New Supplier
+          </Link>
+        </div>
+      </div>
 
-      {suppliers.length === 0 ? (
-        <EmptyState
-          icon={Truck}
-          title={q ? 'No suppliers match your search' : 'No suppliers yet'}
-          description={
-            q
-              ? 'Try a different name.'
-              : 'Add the businesses you buy raw materials from. We use this to route purchase orders.'
-          }
-          actionHref={q ? undefined : '/suppliers/new'}
-          actionLabel={q ? undefined : 'Add your first supplier'}
-        />
-      ) : (
-        <ul className="space-y-2">
-          {suppliers.map((s) => (
-            <li key={s.id}>
-              <Link href={`/suppliers/${s.id}`} className="card flex items-start justify-between gap-3 p-4">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-base font-semibold text-slate-900">{s.name}</p>
-                  <p className="mt-0.5 truncate text-sm text-slate-500">
-                    {[s.contactPerson, s.phone, s.email].filter(Boolean).join(' · ') || 'No contact details'}
-                  </p>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      {/* 6 KPI tiles */}
+      <SuppliersHeroKpis userId={user.id} />
+
+      {/* 3 chart cards */}
+      <SuppliersChartRow userId={user.id} />
+
+      {/* 2-col: table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          <SuppliersTable rows={rows} />
+        </div>
+        <aside className="space-y-4 lg:col-span-1">
+          <SuppliersRightRail userId={user.id} />
+        </aside>
+      </div>
     </AppShell>
   );
 }

@@ -16,6 +16,41 @@ body {
 body {
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
+  /* Better Inter glyphs — opens up "1lI" disambiguation + cleaner zero. */
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+}
+
+/* Premium-feeling keyboard focus: blue ring with offset so it never looks
+   like a 1px hairline. Override Tailwind defaults globally. */
+*:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(0, 184, 232, 0.55);
+  border-radius: 8px;
+}
+
+/* Quieter custom scrollbar — Stripe/Linear-style. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.55);
+  background-clip: padding-box;
 }
 
 /* Form controls: big, tappable defaults */
@@ -161,6 +196,75 @@ select {
 a.card:hover,
 button.card:hover {
   @apply shadow-md;
+}
+
+/* ─── Dashboard primitives ───────────────────────────────────────────
+ *
+ * Shared utilities that every dashboard surface should use instead of
+ * hand-rolling the same Tailwind chains. Keeps headers, KPI tiles,
+ * section labels and dividers visually identical across modules.
+ */
+
+/* Page-level chrome */
+.page-title {
+  @apply text-2xl font-black tracking-tight text-ink md:text-[28px];
+}
+.page-subtitle {
+  @apply mt-1 text-sm text-slate-500;
+}
+
+/* Section labels (used above chart rows, tables, etc.) */
+.section-title {
+  @apply text-base font-bold text-ink md:text-lg;
+}
+.section-sub {
+  @apply mt-0.5 text-xs text-slate-500;
+}
+
+/* KPI tile shell + value typography. Existing HeroKpis inline the same
+ * shell — these utilities give us a single place to upgrade the
+ * spacing/elevation/typography for every dashboard at once. */
+.kpi-tile {
+  @apply flex flex-col gap-2 rounded-2xl border border-border bg-white p-4 shadow-xs
+    transition hover:-translate-y-0.5 hover:shadow-md;
+  min-height: 124px;
+}
+.kpi-label {
+  @apply text-[10px] font-bold uppercase tracking-wide text-slate-500;
+}
+.kpi-value {
+  @apply num truncate text-[26px] font-black leading-tight text-ink md:text-[28px];
+}
+.kpi-sub {
+  @apply text-[11px] font-medium text-slate-500;
+}
+.kpi-trend-up {
+  @apply inline-flex items-center gap-0.5 text-[11px] font-semibold text-success-700;
+}
+.kpi-trend-down {
+  @apply inline-flex items-center gap-0.5 text-[11px] font-semibold text-rose-600;
+}
+.kpi-icon {
+  @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-xl;
+}
+
+/* Section spacing between Hero KPIs → Chart row → Table → Right rail.
+ * Use this on the wrapping page sections so every dashboard breathes
+ * the same way. (Existing inline `mb-5` stays valid; new pages should
+ * reach for this token instead.) */
+.dashboard-stack > * + * {
+  @apply mt-6;
+}
+
+/* Table polish — sits on top of existing inline table classes. */
+.table-cell {
+  @apply px-3 py-2.5 align-middle;
+}
+.table-row {
+  @apply transition-colors hover:bg-slate-50/60;
+}
+.table-head th {
+  @apply px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
 }
 
 .input {

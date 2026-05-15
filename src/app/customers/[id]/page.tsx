@@ -12,6 +12,7 @@ import { FraudWarning } from '@/components/FraudWarning';
 import { SendServiceCheckButton } from '@/components/feedback/SendServiceCheckButton';
 import { CreditScoreBadge } from '@/components/customers/CreditScoreBadge';
 import { CreditLimitCard } from '@/components/customers/CreditLimitCard';
+import { creditLimitService } from '@/lib/services/credit-limit.service';
 import { formatNaira, formatDateTime, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
 
@@ -58,6 +59,10 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
         orderBy: [{ status: 'asc' }, { nextRunAt: 'asc' }],
       }),
     ]);
+
+  // True outstanding (debts + unpaid invoices) drives the credit-limit
+  // warning chip — same source the server-side gate uses.
+  const trueOwedKobo = await creditLimitService.currentOwedKobo(customer.id);
 
   const RATING_LABEL: Record<string, { label: string; cls: string }> = {
     VERY_HAPPY: { label: 'Very happy', cls: 'bg-success-100 text-success-800' },
@@ -115,7 +120,7 @@ export default async function CustomerDetailPage({ params }: { params: { id: str
         <CreditLimitCard
           customerId={customer.id}
           currentLimitKobo={customer.creditLimitKobo}
-          totalOwedKobo={customer.totalOwedKobo}
+          totalOwedKobo={trueOwedKobo}
         />
       </div>
 

@@ -5,6 +5,7 @@ import { upsertCustomer, recomputeCustomerTotals } from '@/lib/customers';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 import { debtRepo } from '@/lib/repositories/debt.repository';
 import { nairaToKobo } from '@/lib/money';
+import { creditLimitService } from '@/lib/services/credit-limit.service';
 
 export const debtService = {
   listForUser: async (
@@ -33,23 +34,17 @@ export const debtService = {
     const normalizedPhone = normalizeNigerianPhone(phone);
     const customer = await upsertCustomer(userId, customerName, phone);
 
-    // Credit-limit guardrail. If the customer has `creditLimitKobo` set,
-    // refuse to create a debt that would push their total owed above it.
-    // The owner can raise the limit on the customer profile if needed.
+    // Credit-limit guardrail (shared with invoice creation). Counts BOTH
+    // open debts AND unpaid invoice balances toward the limit so an SME
+    // can't unknowingly hand a customer ₦50k of inventory on debt + ₦50k
+    // on an unpaid invoice when their cap is ₦80k. Throws when blocked.
     const amountOwedKobo = nairaToKobo(amountOwed);
-    if (
-      typeof customer.creditLimitKobo === 'number' &&
-      customer.creditLimitKobo > 0 &&
-      customer.totalOwedKobo + amountOwedKobo > customer.creditLimitKobo
-    ) {
-      throw Err.validation(
-        `Credit limit reached for ${customer.name}. Owed ₦${(
-          customer.totalOwedKobo / 100
-        ).toLocaleString('en-NG')} of ₦${(
-          customer.creditLimitKobo / 100
-        ).toLocaleString('en-NG')} allowed. Collect payment or raise the limit on the customer profile.`,
-      );
-    }
+    await creditLimitService.check({
+      userId,
+      customerId: customer.id,
+      additionalKobo: amountOwedKobo,
+      actionLabel: 'Adding this debt',
+    });
 
     const debt = await prisma.debt.create({
       data: {

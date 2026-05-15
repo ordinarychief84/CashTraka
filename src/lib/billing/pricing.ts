@@ -9,7 +9,7 @@
  * Pricing model:
  * - One plan: "Starter" — full feature access
  * - Three billing frequencies: Quarterly, Biannually, Yearly
- * - Each frequency has a free trial period (7 days)
+ * - Each frequency has a free trial period (30 days)
  * - Longer commitments get better per-month rates
  */
 
@@ -48,7 +48,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'quarterly',
     amountKobo: 12_000 * 100, // ₦12,000 every 3 months
     cycleDays: 90,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 4_000 * 100, // ₦4,000/mo
     savingsPercent: 0,
   },
@@ -58,7 +58,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'biannually',
     amountKobo: 20_000 * 100, // ₦20,000 every 6 months
     cycleDays: 180,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 3_333 * 100, // ~₦3,333/mo
     savingsPercent: 17,
   },
@@ -68,7 +68,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'yearly',
     amountKobo: 36_000 * 100, // ₦36,000/year
     cycleDays: 365,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 3_000 * 100, // ₦3,000/mo
     savingsPercent: 25,
   },
@@ -78,7 +78,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'quarterly',
     amountKobo: 75_000 * 100, // ₦75,000 every 3 months
     cycleDays: 90,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 25_000 * 100, // ₦25,000/mo
     savingsPercent: 0,
   },
@@ -88,7 +88,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'biannually',
     amountKobo: 135_000 * 100, // ₦135,000 every 6 months
     cycleDays: 180,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 22_500 * 100, // ₦22,500/mo
     savingsPercent: 10,
   },
@@ -98,7 +98,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'yearly',
     amountKobo: 240_000 * 100, // ₦240,000/year
     cycleDays: 365,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 20_000 * 100, // ₦20,000/mo
     savingsPercent: 20,
   },
@@ -111,7 +111,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'quarterly', // closest cycle bucket; cycleDays is the source of truth
     amountKobo: 12_000 * 100, // ₦12,000/month
     cycleDays: 30,
-    trialDays: 7,
+    trialDays: 30,
     perMonthKobo: 12_000 * 100,
     savingsPercent: 0,
   },
@@ -121,7 +121,7 @@ export const PLAN_PRICING: Record<PaidPlanKey, PlanPricing> = {
     frequency: 'quarterly',
     amountKobo: 35_000 * 100, // ₦35,000/month
     cycleDays: 30,
-    trialDays: 14, // longer trial for the team tier
+    trialDays: 30,
     perMonthKobo: 35_000 * 100,
     savingsPercent: 0,
   },

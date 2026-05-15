@@ -120,7 +120,7 @@ model User {
   /// the subscription lifecycle around that tier.
   /// "free" | "trialing" | "active" | "past_due" | "cancelled"
   subscriptionStatus       String    @default("free")
-  /// End of the 14-day trial, if we started one. null if never trialled.
+  /// End of the 30-day trial, if we started one. null if never trialled.
   trialEndsAt              DateTime?
   /// End of the current paid period (renewal date, or cancelled-grace boundary).
   currentPeriodEnd         DateTime?

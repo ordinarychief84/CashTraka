@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { CustomerOrderActions } from '@/components/ops/CustomerOrderActions';
 import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
 import { ProductionReadinessCard } from '@/components/ops/ProductionReadinessCard';
+import { OrderMarginCard } from '@/components/orders/OrderMarginCard';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
@@ -146,6 +147,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               <p className="text-xs text-slate-400">Due {formatDateTime(order.dueAt)}</p>
             )}
           </div>
+          <OrderMarginCard userId={user.id} customerOrderId={order.id} />
           <ProductionReadinessCard userId={user.id} customerOrderId={order.id} />
           <CustomerHistoryCard userId={user.id} customerId={order.customerId ?? null} />
         </div>

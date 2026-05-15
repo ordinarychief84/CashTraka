@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CalendarRange, Factory, History, List, Plus } from 'lucide-react';
+import { CalendarRange, Factory, History, List, Plus, Repeat } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
@@ -83,6 +83,10 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
           <Link href="/production/history" className="btn-pill-ghost">
             <History size={14} />
             Work history
+          </Link>
+          <Link href="/production/templates" className="btn-pill-ghost">
+            <Repeat size={14} />
+            Templates
           </Link>
           <ShareScheduleButton />
           <Link href="/production/new" className="btn-pill-primary">

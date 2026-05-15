@@ -1028,6 +1028,49 @@ export async function GET(req: NextRequest) {
   await addCol('InstallmentPlan', 'recurringAmountKobo', 'INTEGER NOT NULL', '0');
   await addCol('InstallmentCharge', 'amountKobo', 'INTEGER NOT NULL', '0');
 
+  // ===== ProductionTemplate (recurring production rules) =====
+  // Idempotent fallback for environments that don't run the SQL migration
+  // file directly. Safe to re-run.
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ProductionTemplate" (
+        "id"         TEXT         NOT NULL PRIMARY KEY,
+        "userId"     TEXT         NOT NULL,
+        "title"      TEXT         NOT NULL,
+        "cadence"    TEXT         NOT NULL DEFAULT 'weekly',
+        "dayOfWeek"  INTEGER,
+        "dayOfMonth" INTEGER,
+        "hourOfDay"  INTEGER      NOT NULL DEFAULT 9,
+        "nextRunAt"  TIMESTAMP(3) NOT NULL,
+        "lastRunAt"  TIMESTAMP(3),
+        "status"     TEXT         NOT NULL DEFAULT 'active',
+        "notes"      TEXT,
+        "deletedAt"  TIMESTAMP(3),
+        "createdAt"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"  TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "ProductionTemplate_userId_status_nextRunAt_idx"
+        ON "ProductionTemplate"("userId", "status", "nextRunAt")
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ProductionTemplateItem" (
+        "id"         TEXT    NOT NULL PRIMARY KEY,
+        "templateId" TEXT    NOT NULL,
+        "productId"  TEXT    NOT NULL,
+        "quantity"   INTEGER NOT NULL
+      )
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE UNIQUE INDEX IF NOT EXISTS "ProductionTemplateItem_templateId_productId_key"
+        ON "ProductionTemplateItem"("templateId", "productId")
+    `);
+    results.push('OK: ProductionTemplate + ProductionTemplateItem');
+  } catch (e: any) {
+    results.push(`FAIL: ProductionTemplate - ${e.message?.substring(0, 100)}`);
+  }
+
   // Final test: try creating and deleting a user
   let finalTest = 'NOT_RUN';
   try {

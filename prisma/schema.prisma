@@ -227,6 +227,7 @@ model User {
   recipes          Recipe[]
   customerOrders   CustomerOrder[]
   productionOrders ProductionOrder[]
+  productionTemplates ProductionTemplate[]
   purchaseOrders   PurchaseOrder[]
   stockMovements   StockMovement[]
   orderSubscriptions CustomerOrderSubscription[]
@@ -492,6 +493,7 @@ model Product {
   recipe               Recipe?
   customerOrderItems   CustomerOrderItem[]
   productionOrderItems ProductionOrderItem[]
+  productionTemplateItems ProductionTemplateItem[]
   certificates         Certificate[]
 
   @@index([userId, archived])
@@ -2494,6 +2496,61 @@ model StockMovement {
 /// Recurring customer subscription — e.g. "monthly cleansing balm box for
 /// Adaeze". A daily cron materialises the next CustomerOrder when due.
 /// Pause / cancel from the customer detail page; we never delete history.
+/// Recurring production template — "every Monday make 50 black soaps".
+/// A daily cron compares `nextRunAt <= now`, spawns a ProductionOrder
+/// from the template's items, then advances `nextRunAt` by `cadence`.
+/// Tenant-scoped (userId). Items live in `ProductionTemplateItem`.
+model ProductionTemplate {
+  id          String    @id @default(cuid())
+  userId      String
+  /// Short label shown in the UI (e.g. "Weekly black soap batch").
+  title       String
+  /// "weekly" | "biweekly" | "monthly". Free-form so we can extend
+  /// without a migration (same convention as CustomerOrderSubscription).
+  cadence     String    @default("weekly")
+  /// For weekly/biweekly cadences: 0=Sunday, 6=Saturday. Ignored for monthly.
+  dayOfWeek   Int?
+  /// For monthly cadence: 1-28. Ignored for weekly/biweekly. Capped at 28
+  /// so February never silently skips.
+  dayOfMonth  Int?
+  /// Optional planned start offset (hours of day) — defaults to 9am.
+  hourOfDay   Int       @default(9)
+  /// When the next ProductionOrder should be spawned. Cron compares
+  /// `nextRunAt <= now` and advances forward by `cadence` on success.
+  nextRunAt   DateTime
+  /// Last time the cron successfully spawned a ProductionOrder from this template.
+  lastRunAt   DateTime?
+  /// "active" | "paused" | "cancelled". Only `active` materialises.
+  status      String    @default("active")
+  /// Optional free-form note copied into the spawned ProductionOrder.
+  notes       String?
+  /// Soft-delete marker.
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user  User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ProductionTemplateItem[]
+
+  @@index([userId, status, nextRunAt])
+  @@index([userId, deletedAt])
+}
+
+/// One product + quantity inside a ProductionTemplate. Quantity is the
+/// per-run size (e.g. "50 bars per Monday run").
+model ProductionTemplateItem {
+  id         String @id @default(cuid())
+  templateId String
+  productId  String
+  quantity   Int
+
+  template ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  product  Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@unique([templateId, productId])
+  @@index([productId])
+}
+
 model CustomerOrderSubscription {
   id         String    @id @default(cuid())
   userId     String

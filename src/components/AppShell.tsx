@@ -14,6 +14,7 @@ import {
   Building2,
   Key,
   Settings as SettingsIcon,
+  CreditCard,
   Send,
   Target,
   FileText,
@@ -126,6 +127,7 @@ export function AppShell({
           {show.settings && (
             <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />
           )}
+          <SideLink href="/billing" icon={<CreditCard size={18} />} label="Billing" />
 
           {/* Extras kept reachable but de-prioritised in the chrome. */}
           <div className="mt-3 border-t border-border/60 pt-3">

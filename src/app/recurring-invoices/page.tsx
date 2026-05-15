@@ -7,6 +7,8 @@ import { EmptyState } from '@/components/EmptyState';
 import { formatDate } from '@/lib/format';
 import { RecurringRuleRow } from './RecurringRuleRow';
 import { NewRecurringRuleForm } from './NewRecurringRuleForm';
+import { hasFeature, suggestedUpgradeFor } from '@/lib/gate';
+import { UpgradeChip } from '@/components/billing/UpgradeChip';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,6 +28,8 @@ function parseTemplate(raw: string | null): Template {
 
 export default async function RecurringInvoicesPage() {
   const user = await guard();
+  const canUseRecurring = hasFeature(user, 'recurringInvoices');
+  const upgrade = suggestedUpgradeFor(user);
   const rules = await prisma.recurringInvoiceRule.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: 'desc' },
@@ -58,9 +62,19 @@ export default async function RecurringInvoicesPage() {
         subtitle="Generate the same invoice on a schedule. Pause or cancel any time."
       />
 
-      <div className="mb-6">
-        <NewRecurringRuleForm />
-      </div>
+      {canUseRecurring ? (
+        <div className="mb-6">
+          <NewRecurringRuleForm />
+        </div>
+      ) : (
+        <div className="mb-6">
+          <UpgradeChip
+            feature="recurringInvoices"
+            suggestedPlanLabel={upgrade.suggestedPlanLabel}
+            variant="block"
+          />
+        </div>
+      )}
 
       {enriched.length === 0 ? (
         <EmptyState

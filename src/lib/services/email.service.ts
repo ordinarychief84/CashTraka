@@ -1590,5 +1590,113 @@ export const emailService = {
     });
   },
 
+  /* ══════════════════════════════════════════════════════════════════════
+   *  END-OF-DAY OPERATIONAL SUMMARY (7pm Lagos)
+   *  Aggregates the day across orders / production / cash / materials so
+   *  the owner gets one glanceable recap. Includes a WhatsApp share
+   *  button so they can forward the same recap to a partner / spouse /
+   *  business manager in one tap.
+   * ══════════════════════════════════════════════════════════════════════ */
+  async sendDailySummary(args: {
+    to: string;
+    name: string;
+    businessName?: string | null;
+    ordersReceived: number;
+    productionCompleted: number;
+    productionInProgress: number;
+    cashReceivedKobo: number;
+    outstandingKobo: number;
+    lowMaterials: { name: string; stock: number; reorderLevel: number; unit: string }[];
+    lowMaterialsCount: number;
+    topDebtors: { name: string; amountKobo: number }[];
+    /** wa.me link the owner can tap to forward the same recap. */
+    whatsappShareUrl: string;
+  }): Promise<SendResult> {
+    const appUrl = process.env.APP_URL || 'https://cashtraka.co';
+    const today = fmtDate(new Date());
+    const firstName = args.name.split(' ')[0];
+    const naira = (k: number) => '₦' + Math.round(k / 100).toLocaleString('en-NG');
+
+    const lowMatBlock = args.lowMaterialsCount > 0 ? `
+      <div style="background:#FEF3C7;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+        <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#92400E;text-transform:uppercase;letter-spacing:0.5px;">
+          ⚠️ ${args.lowMaterialsCount} material${args.lowMaterialsCount === 1 ? '' : 's'} low
+        </p>
+        <p style="margin:0;font-size:13px;color:#78350F;line-height:1.5;">
+          ${args.lowMaterials
+            .map((m) => `${esc(m.name)} (${m.stock} ${esc(m.unit)})`)
+            .join(' · ')}
+        </p>
+      </div>` : '';
+
+    const debtorBlock = args.topDebtors.length > 0 ? `
+      ${DIVIDER}
+      <p style="margin:0 0 10px;font-size:12px;font-weight:700;color:#1A1A1A;text-transform:uppercase;letter-spacing:0.5px;">Top debtors</p>
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        ${args.topDebtors.map((d) => `
+        <tr>
+          <td style="padding:6px 0;font-size:13px;color:#475569;">${esc(d.name)}</td>
+          <td style="padding:6px 0;font-size:13px;font-weight:700;color:#1A1A1A;text-align:right;">${naira(d.amountKobo)}</td>
+        </tr>`).join('')}
+      </table>` : '';
+
+    const body = `
+      <h1 style="margin:0 0 4px;font-size:22px;font-weight:800;color:#1A1A1A;">
+        Today's recap, ${esc(firstName)}
+      </h1>
+      <p style="margin:0 0 20px;font-size:14px;color:#94A3B8;">${today}</p>
+
+      <div style="background:#ECFDF5;border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;">
+        <p style="margin:0 0 4px;font-size:13px;color:#065F46;">Cash received today</p>
+        <p style="margin:0;font-size:32px;font-weight:800;color:#065F46;letter-spacing:-0.5px;">${naira(args.cashReceivedKobo)}</p>
+        <p style="margin:6px 0 0;font-size:13px;color:#475569;">
+          ${args.ordersReceived} order${args.ordersReceived === 1 ? '' : 's'} · ${args.productionCompleted} production run${args.productionCompleted === 1 ? '' : 's'} done
+        </p>
+      </div>
+
+      ${lowMatBlock}
+
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:16px;">
+        <tr>
+          <td style="padding:10px 0;font-size:14px;color:#475569;border-bottom:1px solid #F1F5F9;">Orders received</td>
+          <td style="padding:10px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;border-bottom:1px solid #F1F5F9;">${args.ordersReceived}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-size:14px;color:#475569;border-bottom:1px solid #F1F5F9;">Production completed</td>
+          <td style="padding:10px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;border-bottom:1px solid #F1F5F9;">${args.productionCompleted}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-size:14px;color:#475569;border-bottom:1px solid #F1F5F9;">In production</td>
+          <td style="padding:10px 0;font-size:14px;font-weight:700;color:#1A1A1A;text-align:right;border-bottom:1px solid #F1F5F9;">${args.productionInProgress}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 0;font-size:14px;color:#475569;">Still owed to you</td>
+          <td style="padding:10px 0;font-size:14px;font-weight:700;color:${args.outstandingKobo > 0 ? '#DC2626' : '#1A1A1A'};text-align:right;">${naira(args.outstandingKobo)}</td>
+        </tr>
+      </table>
+
+      ${debtorBlock}
+
+      <table cellpadding="0" cellspacing="0" border="0" style="margin:20px 0 8px;">
+        <tr>
+          <td style="background:#25D366;border-radius:10px;padding:14px 24px;">
+            <a href="${esc(args.whatsappShareUrl)}" style="color:#FFFFFF;text-decoration:none;font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:14px;font-weight:700;display:inline-block;">
+              Share recap on WhatsApp
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      ${ctaButton('Open Dashboard', appUrl + '/dashboard')}`;
+
+    return send({
+      to: args.to,
+      subject: `Today's recap — ${naira(args.cashReceivedKobo)} in, ${args.ordersReceived} orders`,
+      html: layout(body, {
+        preheader: `${naira(args.cashReceivedKobo)} received · ${args.lowMaterialsCount} materials low`,
+      }),
+    });
+  },
+
   raw: send,
 };

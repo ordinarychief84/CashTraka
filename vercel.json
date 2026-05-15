@@ -12,6 +12,7 @@
     { "path": "/api/cron/low-stock-check",         "schedule": "15 7 * * *"  },
     { "path": "/api/cron/expiring-materials",      "schedule": "45 7 * * *"  },
     { "path": "/api/cron/overdue-production",      "schedule": "30 9 * * *"  },
-    { "path": "/api/cron/run-subscriptions",       "schedule": "0 4 * * *"   }
+    { "path": "/api/cron/run-subscriptions",       "schedule": "0 4 * * *"   },
+    { "path": "/api/cron/daily-summary",           "schedule": "0 18 * * *"  }
   ]
 }

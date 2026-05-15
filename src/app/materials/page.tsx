@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { AlertTriangle, Boxes, Plus, Search } from 'lucide-react';
+import { Boxes, Plus, Download, Upload } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { MaterialsHeroKpis } from '@/components/ops/MaterialsHeroKpis';
+import { MaterialsChartRow } from '@/components/ops/MaterialsChartRow';
+import { MaterialsRightRail } from '@/components/ops/MaterialsRightRail';
+import { MaterialsTable } from '@/components/ops/MaterialsTable';
 import { rawMaterialsService } from '@/lib/services/raw-materials.service';
-import { MaterialScanLookup } from '@/components/ops/MaterialScanLookup';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,15 +17,11 @@ export default async function MaterialsPage({ searchParams }: { searchParams: SP
   const user = await guard();
   const q = (searchParams.q || '').trim();
   const lowStockOnly = searchParams.lowStock === '1';
-  const { rows: materials, total } = await rawMaterialsService.listForUser(user.id, {
+  const { rows: materials } = await rawMaterialsService.listForUser(user.id, {
     q,
     lowStockOnly,
     take: 200,
   });
-
-  const lowCount = lowStockOnly
-    ? total
-    : materials.filter((m) => m.stock <= m.reorderLevel).length;
 
   return (
     <AppShell
@@ -33,84 +31,86 @@ export default async function MaterialsPage({ searchParams }: { searchParams: SP
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="Raw materials"
-        subtitle={`${total} material${total === 1 ? '' : 's'}${lowCount > 0 ? ` · ${lowCount} low` : ''}`}
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <MaterialScanLookup />
-            <Link href="/materials/new" className="btn-primary inline-flex items-center gap-2">
-              <Plus size={16} />
-              New material
-            </Link>
-          </div>
-        }
-      />
-
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-        <form className="flex-1" action="/materials" method="get">
-          <div className="relative">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 z-10 text-slate-400"
-            />
-            <input name="q" defaultValue={q} placeholder="Search materials" className="input !pl-11" />
-            {lowStockOnly && <input type="hidden" name="lowStock" value="1" />}
-          </div>
-        </form>
-        <Link
-          href={lowStockOnly ? '/materials' : '/materials?lowStock=1'}
-          className={
-            lowStockOnly
-              ? 'btn-primary inline-flex items-center justify-center gap-2'
-              : 'btn-secondary inline-flex items-center justify-center gap-2'
-          }
-        >
-          <AlertTriangle size={14} />
-          {lowStockOnly ? 'Showing low stock' : 'Show low stock'}
-        </Link>
+      {/* Page header — matches the approved comp */}
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
+            Materials
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Track and manage raw materials, stock levels, usage, and supplier
+            information.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" className="btn-pill-ghost" disabled>
+            <Download size={14} />
+            Export
+          </button>
+          <button type="button" className="btn-pill-ghost" disabled>
+            <Upload size={14} />
+            Import
+          </button>
+          <Link href="/materials/new" className="btn-pill-primary">
+            <Plus size={14} />
+            New Material
+          </Link>
+        </div>
       </div>
 
-      {materials.length === 0 ? (
-        <EmptyState
-          icon={Boxes}
-          title={q ? 'No materials match your search' : lowStockOnly ? 'No materials are low' : 'No raw materials yet'}
-          description={
-            q || lowStockOnly
-              ? undefined
-              : 'Add the inputs you use to make your products — flour, fabric, packaging, etc.'
-          }
-          actionHref={q || lowStockOnly ? undefined : '/materials/new'}
-          actionLabel={q || lowStockOnly ? undefined : 'Add your first material'}
-        />
-      ) : (
-        <ul className="space-y-2">
-          {materials.map((m) => {
-            const low = m.stock <= m.reorderLevel;
-            return (
-              <li key={m.id}>
-                <Link href={`/materials/${m.id}`} className="card flex items-center justify-between gap-3 p-4">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-semibold text-slate-900">{m.name}</p>
-                    <p className="mt-0.5 truncate text-sm text-slate-500">
-                      {m.supplier?.name ? `${m.supplier.name} · ` : ''}
-                      {m.sku ? `SKU ${m.sku}` : 'No SKU'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-base font-bold ${low ? 'text-rose-600' : 'text-slate-900'}`}>
-                      {m.stock} {m.unit}
-                    </p>
-                    {m.reorderLevel > 0 && (
-                      <p className="text-xs text-slate-400">reorder at {m.reorderLevel}</p>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {/* 6 KPI tiles */}
+      <MaterialsHeroKpis userId={user.id} />
+
+      {/* 3 chart cards: Stock Status · Top Used · Materials by Category */}
+      <MaterialsChartRow userId={user.id} />
+
+      {/* 2-col layout: table (3/4) + right rail (1/4) */}
+      <div className="grid gap-5 lg:grid-cols-4">
+        <div className="lg:col-span-3">
+          {materials.length === 0 ? (
+            <EmptyState
+              icon={Boxes}
+              title={
+                q
+                  ? 'No materials match your search'
+                  : lowStockOnly
+                    ? 'No materials are low'
+                    : 'No raw materials yet'
+              }
+              description={
+                q || lowStockOnly
+                  ? undefined
+                  : 'Add the inputs you use to make your products — flour, fabric, packaging, etc.'
+              }
+              actionHref={q || lowStockOnly ? undefined : '/materials/new'}
+              actionLabel={
+                q || lowStockOnly ? undefined : 'Add your first material'
+              }
+            />
+          ) : (
+            <MaterialsTable
+              rows={materials.map((m: any) => ({
+                id: m.id,
+                name: m.name,
+                sku: m.sku ?? null,
+                category: m.category ?? null,
+                unit: m.unit,
+                stock: m.stock,
+                reorderLevel: m.reorderLevel,
+                unitCostKobo: m.unitCostKobo,
+                status: m.status ?? 'ACTIVE',
+                supplierName: m.supplier?.name ?? null,
+                lastPurchaseAt: m.supplier?.lastPurchaseAt
+                  ? new Date(m.supplier.lastPurchaseAt).toISOString()
+                  : null,
+              }))}
+            />
+          )}
+        </div>
+        <aside className="lg:col-span-1">
+          <MaterialsRightRail userId={user.id} />
+        </aside>
+      </div>
     </AppShell>
   );
 }

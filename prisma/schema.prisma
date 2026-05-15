@@ -159,6 +159,11 @@ model User {
   platformFeeOptIn Boolean @default(false)
 
   onboardingCompleted Boolean   @default(false)
+  /// Timestamp the starter-pack picker was shown for the first time.
+  /// Set on first visit to /onboarding/starter-pack regardless of whether
+  /// the user actually applied a pack. Prevents the dashboard from looping
+  /// the redirect after the user skips.
+  starterPackOfferedAt DateTime?
   /// Whether the user has verified their email via OTP.
   emailVerified       Boolean   @default(false)
   /// Timestamp when user accepted Terms & Privacy Policy.

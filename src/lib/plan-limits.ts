@@ -107,6 +107,13 @@ export type Limits = {
    * "Invite accountant" CTA on the Team page.
    */
   multiUserAudit: boolean;
+  /**
+   * Auto-emailed end-of-day operational summary (orders, production,
+   * materials, cash). Builds the daily habit loop — paid feature on
+   * Pro and above. Free users can still view today's stats inside the
+   * app; they just don't get the 7pm email push.
+   */
+  dailySummary: boolean;
 };
 
 const FREE: Limits = {
@@ -148,6 +155,7 @@ const FREE: Limits = {
   yearEndPack: false,
   bankSync: false,
   multiUserAudit: false,
+  dailySummary: false,
 };
 
 const BUSINESS: Limits = {
@@ -189,6 +197,7 @@ const BUSINESS: Limits = {
   yearEndPack: false,
   bankSync: false,
   multiUserAudit: false,
+  dailySummary: true,
 };
 
 const BUSINESS_PLUS: Limits = {

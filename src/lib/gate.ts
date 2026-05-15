@@ -2,12 +2,88 @@ import { NextResponse } from 'next/server';
 import { prisma } from './prisma';
 import {
   PLAN_LABELS,
+  limitsFor,
   suggestUpgrade,
   effectivePlan,
   isSubscriptionLapsed,
   type Limits,
 } from './plan-limits';
 import { getEffectiveLimits } from './services/user-override.service';
+
+/* ─── UI-side helpers (no DB lookups, no NextResponse) ──────────────────
+ * These are for React server components and client components that need
+ * to decide whether to render an action button vs. an upgrade chip. They
+ * intentionally ignore per-user UserOverride rows because UI rendering
+ * happens often and we can't afford a DB call per check; quotas and
+ * feature flags get re-validated by `requireFeature` / `enforceQuota`
+ * server-side before the action actually runs.
+ */
+
+type FeatureUser = {
+  plan: string;
+  businessType?: string | null;
+  subscriptionStatus?: string | null;
+  trialEndsAt?: Date | null;
+  currentPeriodEnd?: Date | null;
+};
+
+/** Boolean feature check for UI rendering. */
+export function hasFeature(user: FeatureUser, feature: keyof Limits): boolean {
+  const { plan } = effectivePlan(user);
+  return Boolean(limitsFor(plan)[feature]);
+}
+
+/** Effective limits row for the user — useful for "X of Y remaining" UI. */
+export function planLimitsFor(user: FeatureUser): Limits {
+  const { plan } = effectivePlan(user);
+  return limitsFor(plan);
+}
+
+/** Resolves the suggested upgrade plan label, ready to drop into UI. */
+export function suggestedUpgradeFor(user: FeatureUser): {
+  currentPlan: string;
+  currentPlanLabel: string;
+  suggestedPlan: string;
+  suggestedPlanLabel: string;
+} {
+  const { plan } = effectivePlan(user);
+  const suggested = suggestUpgrade(plan, user.businessType ?? 'seller');
+  return {
+    currentPlan: plan,
+    currentPlanLabel: PLAN_LABELS[plan as keyof typeof PLAN_LABELS] ?? plan,
+    suggestedPlan: suggested,
+    suggestedPlanLabel: PLAN_LABELS[suggested] ?? suggested,
+  };
+}
+
+/** Human-readable label for one capability. Used in upgrade prompts. */
+export const FEATURE_LABELS: Partial<Record<keyof Limits, string>> = {
+  invoices: 'Invoices',
+  recurringInvoices: 'Recurring invoices',
+  firsCompliance: 'FIRS tax-invoice submission',
+  electronicXml: 'XML / e-invoicing',
+  multiUserAudit: 'Multi-user audit + accountant role',
+  dailySummary: 'Daily WhatsApp summary email',
+  autoReminders: 'Automatic payment reminders',
+  paymentReminders: 'Invoice reminder cadences',
+  creditNotes: 'Credit notes',
+  deliveryNotes: 'Delivery notes',
+  offers: 'Quotes / offers',
+  customBranding: 'Custom branding on PDFs',
+  attendance: 'Attendance tracking',
+  payroll: 'Payroll',
+  checklists: 'Checklists',
+  behaviorTracking: 'Customer behaviour tags',
+  collectionScore: 'Collection score',
+  suggestions: 'Smart suggestions',
+  documentAudit: 'Per-document audit trail',
+  paystackPay: 'Paystack public-pay button',
+  serviceCheck: 'Service Check (feedback)',
+  vatReturns: 'Automated VAT returns',
+  yearEndPack: 'Year-end accountant pack',
+  bankSync: 'Bank sync',
+};
+
 
 /**
  * Feature/quota enforcement. All checks route through `effectivePlan()` so

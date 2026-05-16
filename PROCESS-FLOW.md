@@ -144,9 +144,8 @@ Customer pays via Paystack ────────►  Webhook verified
 | 07:45      | expiring-materials           | Materials expiring within 14 days                     |
 | 08:00      | auto-po-draft                | Build POs from shortages                              |
 | 08:00 Mon  | weekly-summary               | Revenue + activity rollup                             |
-| 09:00      | run-reminders                | Invoice nudges                                        |
+| 09:00      | run-reminders                | Invoice nudges + broken-promise notifications         |
 | 09:30      | overdue-production           | Flip status to DELAYED + audit log                    |
-| 10:00      | broken-promises              | Missed promise-to-pay follow-up                       |
 | 18:00      | daily-summary                | 7pm Lagos recap (Pro+ only) with WhatsApp share link  |
 
 Each cron is guarded by `isAuthorizedCronRequest()` (Bearer `CRON_SECRET`). Idempotent per UTC day via a `Notification` row keyed by `(userId, type, today)` — re-runs no-op.

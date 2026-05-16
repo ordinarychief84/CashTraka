@@ -8,7 +8,9 @@ import { CustomerOrderActions } from '@/components/ops/CustomerOrderActions';
 import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
 import { ProductionReadinessCard } from '@/components/ops/ProductionReadinessCard';
 import { OrderMarginCard } from '@/components/orders/OrderMarginCard';
+import { WaCustomerNotifyButton } from '@/components/orders/WaCustomerNotifyButton';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
+import { whatsappSendService } from '@/lib/services/whatsapp-send.service';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -26,6 +28,21 @@ export default async function OrderDetailPage({ params }: { params: { id: string
 
   const currentIdx = STATUS_TIMELINE.indexOf(order.status);
   const isCancelled = order.status === 'CANCELLED';
+
+  // Decision 5 — lookup latest WhatsApp confirmation sends so the buttons
+  // render their "sent {date}" state on first paint instead of the idle
+  // "not yet notified" state when one has already gone out.
+  const [confirmationSentAt, readySentAt] = await Promise.all([
+    whatsappSendService.latestSentAt(user.id, order.id, 'order_confirmed'),
+    order.productionOrderId
+      ? whatsappSendService.latestSentAt(user.id, order.productionOrderId, 'production_done')
+      : Promise.resolve(null),
+  ]);
+  const hasPhone = Boolean(order.customerPhone);
+  const showConfirmationButton =
+    hasPhone && !isCancelled && order.status !== 'NEW';
+  const showReadyButton =
+    hasPhone && order.productionOrderId && (order.status === 'READY' || order.status === 'DELIVERED');
 
   return (
     <AppShell
@@ -137,6 +154,32 @@ export default async function OrderDetailPage({ params }: { params: { id: string
               hasProductionOrder={Boolean(order.productionOrderId)}
               hasInvoice={Boolean(order.invoiceId)}
             />
+            {showConfirmationButton ? (
+              <div className="mt-3 border-t border-border pt-3">
+                <WaCustomerNotifyButton
+                  customerOrderId={order.id}
+                  kind="CONFIRMATION"
+                  entityType="order"
+                  entityId={order.id}
+                  touchpointType="order_confirmed"
+                  label="Send order confirmation"
+                  lastSentAt={confirmationSentAt ? confirmationSentAt.toISOString() : null}
+                />
+              </div>
+            ) : null}
+            {showReadyButton && order.productionOrderId ? (
+              <div className="mt-3 border-t border-border pt-3">
+                <WaCustomerNotifyButton
+                  customerOrderId={order.id}
+                  kind="READY"
+                  entityType="production"
+                  entityId={order.productionOrderId}
+                  touchpointType="production_done"
+                  label="Send 'ready for pickup'"
+                  lastSentAt={readySentAt ? readySentAt.toISOString() : null}
+                />
+              </div>
+            ) : null}
           </div>
           <div className="card p-5">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">Customer</h2>

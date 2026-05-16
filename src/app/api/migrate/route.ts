@@ -1074,6 +1074,49 @@ export async function GET(req: NextRequest) {
     results.push(`FAIL: ProductionTemplate - ${e.message?.substring(0, 100)}`);
   }
 
+  // ===== WhatsAppSendLog (Decision 5 of 5 — append-only send log) =====
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "WhatsAppSendLog" (
+        "id"             TEXT         NOT NULL,
+        "userId"         TEXT         NOT NULL,
+        "entityType"     TEXT         NOT NULL,
+        "entityId"       TEXT         NOT NULL,
+        "touchpointType" TEXT         NOT NULL,
+        "sentAt"         TIMESTAMP(3) NOT NULL,
+        "createdAt"      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "WhatsAppSendLog_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "WhatsAppSendLog_userId_entityId_touchpointType_idx"
+        ON "WhatsAppSendLog" ("userId", "entityId", "touchpointType")
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "WhatsAppSendLog_userId_createdAt_idx"
+        ON "WhatsAppSendLog" ("userId", "createdAt")
+    `);
+    // FK to User — best-effort. Skipped on the in-memory shadow DBs.
+    await prisma.$executeRawUnsafe(`
+      DO $do$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+           WHERE constraint_name = 'WhatsAppSendLog_userId_fkey'
+        ) THEN
+          ALTER TABLE "WhatsAppSendLog"
+            ADD CONSTRAINT "WhatsAppSendLog_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id")
+            ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END
+      $do$;
+    `).catch(() => null);
+    results.push('OK: WhatsAppSendLog table');
+  } catch (e: any) {
+    results.push('FAIL: WhatsAppSendLog table - ' + e.message?.substring(0, 100));
+  }
+
   // Final test: try creating and deleting a user
   let finalTest = 'NOT_RUN';
   try {

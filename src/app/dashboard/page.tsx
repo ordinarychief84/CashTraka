@@ -33,6 +33,7 @@ import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCar
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
 import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
 import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
+import { NotYetNotifiedRail } from '@/components/dashboard/NotYetNotifiedRail';
 import { DashboardGreeting } from '@/components/dashboard/DashboardGreeting';
 import { ProductionOverviewCard } from '@/components/dashboard/ProductionOverviewCard';
 import { MaterialShortageAlertsCard } from '@/components/dashboard/MaterialShortageAlertsCard';
@@ -526,6 +527,11 @@ export default async function DashboardPage() {
 
           {/* 6 KPI cards */}
           <HeroKpiCards6 userId={user.id} />
+
+          {/* Decision 5 — customers awaiting WhatsApp confirmation */}
+          <div className="mb-6">
+            <NotYetNotifiedRail userId={user.id} />
+          </div>
 
           {/* Row 1: Production Overview + Lead-time Alerts + Daily Action List */}
           <div className="mb-6 grid gap-3 lg:grid-cols-3">

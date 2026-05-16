@@ -9,6 +9,7 @@ import { ReceiptActions } from '@/components/ReceiptActions';
 import { FirsCompliancePanel } from '@/components/invoices/FirsCompliancePanel';
 import { formatKobo, formatDateTime } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
+import { whatsappSendService } from '@/lib/services/whatsapp-send.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,12 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
   const balance = receipt.balanceRemainingKobo ?? 0;
 
   const businessName = user.businessName || user.name || 'Business';
+
+  const lastWaSentAt = await whatsappSendService.latestSentAt(
+    user.id,
+    receipt.id,
+    'payment_received',
+  );
 
   return (
     <AppShell
@@ -188,6 +195,7 @@ export default async function ReceiptDetailPage({ params }: { params: { id: stri
               // kobo from the Phase 6 read-flip. Convert at the boundary.
               amount={Math.round(amount / 100)}
               businessName={businessName}
+              lastSentAt={lastWaSentAt ? lastWaSentAt.toISOString() : null}
             />
           </div>
 

@@ -17,7 +17,7 @@ import {
  *
  * Opens when the URL has `?upgrade=<plan>`. Shows the plan summary + amount
  * and offers two paths:
- *   - "Start 7-day free trial" → POST /api/billing/trial
+ *   - "Start 30-day free trial" → POST /api/billing/trial
  *   - "Pay with Paystack"      → POST /api/billing/subscribe → redirect
  *
  * After a successful trial start we refresh the page so the Billing card and

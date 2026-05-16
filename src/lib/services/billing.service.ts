@@ -19,10 +19,10 @@ import { PLAN_LABELS } from '@/lib/plan-limits';
  * layer needed for billing — these are simple atomic updates).
  */
 
-const DEFAULT_TRIAL_DAYS = 7;
+const DEFAULT_TRIAL_DAYS = 30;
 const DEFAULT_CYCLE_DAYS = 30;
 
-/** Read trial length for a plan, defaulting to 7 if the plan key is unknown
+/** Read trial length for a plan, defaulting to 30 if the plan key is unknown
  *  (e.g. FREE). Single source of truth lives in `PLAN_PRICING`. */
 function trialDaysFor(plan: string): number {
   if (plan in PLAN_PRICING) {

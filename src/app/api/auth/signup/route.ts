@@ -7,6 +7,10 @@ import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
 import { emailService } from '@/lib/services/email.service';
 import { securityLog } from '@/lib/security-log';
+import { PLAN_PRICING } from '@/lib/billing/pricing';
+import { PLAN_LABELS } from '@/lib/plan-limits';
+
+const SIGNUP_TRIAL_PLAN = 'pro_monthly' as const;
 
 function sha256(input: string): string {
   return crypto.createHash('sha256').update(input).digest('hex');
@@ -64,6 +68,13 @@ export async function POST(req: Request) {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return fail('Email is already registered', 409);
 
+    // Every new account is auto-enrolled in a 30-day Pro trial. After the
+    // window closes, effectivePlan() drops them back to Free and gates write
+    // actions through enforceQuota / requireFeature.
+    const trialDays = PLAN_PRICING[SIGNUP_TRIAL_PLAN].trialDays;
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);
+
     const user = await prisma.user.create({
       data: {
         name,
@@ -73,6 +84,9 @@ export async function POST(req: Request) {
         lastLoginAt: new Date(),
         termsAcceptedAt: new Date(),
         emailVerified: false,
+        plan: SIGNUP_TRIAL_PLAN,
+        subscriptionStatus: 'trialing',
+        trialEndsAt,
       },
     });
 
@@ -100,6 +114,24 @@ export async function POST(req: Request) {
     if (!emailResult.ok) {
       console.error('OTP_EMAIL_FAILED:', emailResult.error, '| user:', user.email);
     }
+
+    // Trial confirmation runs in parallel; don't block the signup response if
+    // it fails — the user has the verification email and a working session.
+    emailService
+      .sendTrialStarted?.({
+        to: user.email,
+        name: user.name,
+        plan: PLAN_LABELS[SIGNUP_TRIAL_PLAN] ?? SIGNUP_TRIAL_PLAN,
+        trialEndsAt,
+      })
+      .catch((e: unknown) => {
+        console.warn(
+          '[signup] trial-started email failed for',
+          user.id,
+          e instanceof Error ? e.message : 'unknown',
+        );
+        return null;
+      });
 
     securityLog({ event: 'SIGNUP', actorId: user.id, ip, meta: { email: user.email } });
 

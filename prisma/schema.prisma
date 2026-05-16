@@ -194,6 +194,7 @@ model User {
   assignedTickets     SupportTicket[]        @relation("AssignedTickets")
   ticketReplies       TicketReply[]
   notifications       Notification[]
+  whatsappSendLogs    WhatsAppSendLog[]
   refunds             Refund[]               @relation("UserRefunds")
   processedRefunds    Refund[]               @relation("ProcessedRefunds")
   auditLogs           AuditLog[]             @relation("AuditLogAdmin")
@@ -1487,6 +1488,32 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isRead, createdAt])
+}
+
+// ---------- WHATSAPP SEND LOG ----------
+// Append-only log of confirmed WhatsApp customer touchpoints.
+// Decision 5 of 5 — wa.me deep links don't tell us whether the owner
+// actually hit Send. The "Did you send?" inline UI persists a row here
+// when the owner confirms, so dashboards / order detail pages can show
+// "Confirmation sent [date]" vs "Confirmation not yet sent".
+//
+// Append-only: no `deletedAt`, no `updatedAt`, no PATCH / DELETE
+// operations anywhere. Inserts only. Re-sends create another row.
+model WhatsAppSendLog {
+  id             String   @id @default(cuid())
+  userId         String
+  /// "order" | "production" | "invoice" | "receipt"
+  entityType     String
+  entityId       String
+  /// "order_confirmed" | "production_done" | "invoice_issued" | "payment_received"
+  touchpointType String
+  sentAt         DateTime
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, entityId, touchpointType])
+  @@index([userId, createdAt])
 }
 
 // ---------- REFUNDS ----------

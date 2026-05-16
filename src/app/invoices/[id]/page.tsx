@@ -10,6 +10,7 @@ import { InvoiceDetailActions } from '@/components/invoices/InvoiceDetailActions
 import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
 import { formatKobo, formatDate } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
+import { whatsappSendService } from '@/lib/services/whatsapp-send.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,12 @@ export default async function InvoiceDetailPage({
   });
   const creditedTotal = creditAgg._sum.totalKobo ?? 0;
   const outstanding = Math.max(0, invoice.totalKobo - invoice.amountPaidKobo - creditedTotal);
+
+  const lastWaSentAt = await whatsappSendService.latestSentAt(
+    user.id,
+    invoice.id,
+    'invoice_issued',
+  );
 
   return (
     <AppShell
@@ -191,6 +198,7 @@ export default async function InvoiceDetailPage({
             publicToken={invoice.publicToken ?? null}
             hasCustomerEmail={!!invoice.customerEmail}
             hasCustomerPhone={!!invoice.customerPhone}
+            lastSentAt={lastWaSentAt ? lastWaSentAt.toISOString() : null}
           />
 
           <FirsCompliancePanel

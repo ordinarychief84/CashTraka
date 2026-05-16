@@ -12,6 +12,8 @@ import {
   FileCode,
   Link2,
   Loader2,
+  AlertCircle,
+  MessageCircle,
 } from 'lucide-react';
 
 type Props = {
@@ -20,6 +22,8 @@ type Props = {
   publicToken: string | null;
   hasCustomerEmail: boolean;
   hasCustomerPhone: boolean;
+  /** ISO timestamp of the most-recent confirmed WhatsApp send, if any. */
+  lastSentAt?: string | null;
 };
 
 type Busy =
@@ -46,10 +50,19 @@ export function InvoiceDetailActions({
   publicToken,
   hasCustomerEmail,
   hasCustomerPhone,
+  lastSentAt,
 }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState<Busy>(null);
   const [message, setMessage] = useState<string | null>(null);
+  // Decision 5: after /api/invoices/{id}/send returns a waLink we open it
+  // AND prompt "Did you send?" — this state carries the post-open prompt.
+  const [waConfirm, setWaConfirm] = useState<{
+    open: boolean;
+    saving: boolean;
+    error: string | null;
+  }>({ open: false, saving: false, error: null });
+  const [sentAtIso, setSentAtIso] = useState<string | null>(lastSentAt ?? null);
 
   const isTerminal = status === 'CANCELLED' || status === 'CREDITED';
   const isPaid = status === 'PAID';
@@ -84,13 +97,53 @@ export function InvoiceDetailActions({
       } else if (json.data.email?.ok) {
         setMessage('Email sent.');
       }
-      if (json.data.waLink) window.open(json.data.waLink, '_blank');
+      if (json.data.waLink) {
+        window.open(json.data.waLink, '_blank');
+        // Decision 5: prompt "Did you send?" — the wa.me link is open in
+        // a new tab; until the owner clicks Yes/Not yet the prompt
+        // stays visible.
+        setWaConfirm({ open: true, saving: false, error: null });
+      }
       router.refresh();
     } catch {
       setMessage('Network error.');
     } finally {
       setBusy(null);
     }
+  }
+
+  async function confirmWaSent() {
+    setWaConfirm((s) => ({ ...s, saving: true, error: null }));
+    try {
+      const sentAt = new Date().toISOString();
+      const res = await fetch('/api/whatsapp-sends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entityType: 'invoice',
+          entityId: id,
+          touchpointType: 'invoice_issued',
+          sentAt,
+        }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        success?: boolean;
+        data?: { sentAt?: string };
+        error?: string;
+      };
+      if (!res.ok || !json.success) {
+        setWaConfirm({ open: true, saving: false, error: json.error || 'Could not record.' });
+        return;
+      }
+      setSentAtIso(json.data?.sentAt ?? sentAt);
+      setWaConfirm({ open: false, saving: false, error: null });
+    } catch {
+      setWaConfirm({ open: true, saving: false, error: 'Network error.' });
+    }
+  }
+
+  function waNotYet() {
+    setWaConfirm({ open: false, saving: false, error: null });
   }
 
   async function reminder() {
@@ -229,6 +282,53 @@ export function InvoiceDetailActions({
         Actions
       </div>
 
+      {/* Decision 5 — WhatsApp send confirmation state */}
+      {sentAtIso && !waConfirm.open ? (
+        <div className="flex items-center gap-1.5 rounded-lg bg-success-50 px-2.5 py-1.5 text-[11px] font-semibold text-success-700">
+          <Check size={12} />
+          Sent via WhatsApp {fmtSent(sentAtIso)}
+        </div>
+      ) : !sentAtIso && !waConfirm.open && hasCustomerPhone ? (
+        <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] font-medium text-amber-700">
+          <AlertCircle size={12} />
+          Invoice not sent to customer yet
+        </div>
+      ) : null}
+
+      {waConfirm.open ? (
+        <div className="space-y-1.5 rounded-lg border border-brand-200 bg-brand-50 p-2.5">
+          <div className="flex items-start gap-1.5 text-[11px] font-medium text-brand-800">
+            <MessageCircle size={12} className="mt-0.5 shrink-0" />
+            <span>WhatsApp opened. Did you send the message?</span>
+          </div>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={confirmWaSent}
+              disabled={waConfirm.saving}
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-success-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-success-700 disabled:opacity-60"
+            >
+              <Check size={12} />
+              {waConfirm.saving ? 'Saving…' : 'Yes, sent'}
+            </button>
+            <button
+              type="button"
+              onClick={waNotYet}
+              disabled={waConfirm.saving}
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+            >
+              Not yet
+            </button>
+          </div>
+          {waConfirm.error ? (
+            <div className="flex items-start gap-1 text-[11px] text-rose-700">
+              <AlertCircle size={11} className="mt-0.5 shrink-0" />
+              <span>{waConfirm.error}</span>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-2">
         <ActionBtn
           icon={busy === 'send' ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
@@ -288,6 +388,17 @@ export function InvoiceDetailActions({
       ) : null}
     </div>
   );
+}
+
+function fmtSent(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('en-NG', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 function ActionBtn({

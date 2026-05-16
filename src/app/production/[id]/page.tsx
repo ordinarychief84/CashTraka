@@ -8,6 +8,8 @@ import { ProductionOrderActions } from '@/components/ops/ProductionOrderActions'
 import { productionOrdersService } from '@/lib/services/production-orders.service';
 import { inventoryService } from '@/lib/services/inventory.service';
 import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
+import { WaCustomerNotifyButton } from '@/components/orders/WaCustomerNotifyButton';
+import { whatsappSendService } from '@/lib/services/whatsapp-send.service';
 import { prisma } from '@/lib/prisma';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
@@ -37,6 +39,17 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
   ]);
   const hasShortages = shortages.some((s) => s.shortBy > 0);
   const customerId = linkedCustomerOrder?.customerId ?? null;
+
+  // Decision 5 — "Ready for pickup" WhatsApp notification surfaces here
+  // once the production order is COMPLETED and there's a linked customer
+  // order with a phone number. The wa.me URL is minted on click via the
+  // customer-orders /notify endpoint.
+  const waReadySentAt =
+    order.status === 'COMPLETED' && order.customerOrder?.id
+      ? await whatsappSendService.latestSentAt(user.id, order.id, 'production_done')
+      : null;
+  const showReadyButton =
+    order.status === 'COMPLETED' && Boolean(order.customerOrder?.id);
 
   return (
     <AppShell
@@ -225,6 +238,19 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
                 0,
               )}
             />
+            {showReadyButton && order.customerOrder?.id ? (
+              <div className="mt-3 border-t border-border pt-3">
+                <WaCustomerNotifyButton
+                  customerOrderId={order.customerOrder.id}
+                  kind="READY"
+                  entityType="production"
+                  entityId={order.id}
+                  touchpointType="production_done"
+                  label="Send 'ready for pickup'"
+                  lastSentAt={waReadySentAt ? waReadySentAt.toISOString() : null}
+                />
+              </div>
+            ) : null}
           </div>
           <div className="card p-5">
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">Timeline</h2>

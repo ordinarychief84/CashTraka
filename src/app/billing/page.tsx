@@ -49,7 +49,6 @@ const PLANS: PlanCard[] = [
       'Daily 7pm operational recap',
       'Bank-SMS payment ingest',
       'FIRS tax-invoice submission',
-      'Service Check (customer feedback)',
       'Up to 3 team members',
     ],
     ctaLabel: 'Upgrade to Pro',

@@ -326,7 +326,6 @@ export const PRICING_PLANS: PricingPlan[] = [
       'Daily 7pm operational recap (email + WhatsApp share)',
       'Bank-SMS payment ingest',
       'Auto receipts from verified Paystack payments',
-      'Service Check (customer feedback)',
       'PDF invoices, receipts, and FIRS tax-invoice submission',
       '15 operational dashboards',
     ],
@@ -437,11 +436,6 @@ export const SOLUTIONS_PAGE = {
       title: 'Daily Operational Recap',
       body: 'A 7pm WhatsApp-ready summary lands in your inbox — share with your team in one tap.',
     },
-    {
-      icon: ClipboardList,
-      title: 'Service Check',
-      body: 'Send customer feedback requests after delivery and track satisfaction over time.',
-    },
   ],
 };
 
@@ -514,10 +508,6 @@ export const FAQ_ITEMS: { q: string; a: string }[] = [
   {
     q: 'Can CashTraka send daily updates?',
     a: 'Yes. Pro and Business plans get a 7pm operational recap by email — orders today, production complete, low stock, outstanding invoices — with a one-tap WhatsApp share for your team.',
-  },
-  {
-    q: 'Does CashTraka have customer feedback tools?',
-    a: 'Yes. Service Check lets you send a feedback request after delivery and track satisfaction trends over time, included on Pro and above.',
   },
 ];
 

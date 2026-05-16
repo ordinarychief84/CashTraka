@@ -92,8 +92,6 @@ export type Limits = {
   paystackPay: boolean;
   /** Manual + automated invoice reminders (FRIENDLY/OVERDUE/FINAL). */
   paymentReminders: boolean;
-  /** Service Check, collect customer feedback after receipts/payments/invoices. */
-  serviceCheck: boolean;
   /** Tax+ tier, auto-generated FIRS-format VAT returns from invoices and expenses. */
   vatReturns: boolean;
   /** Tax+ tier, year-end accountant pack zip download. */
@@ -157,7 +155,6 @@ const FREE: Limits = {
   documentAudit: false,
   paystackPay: false,
   paymentReminders: false,
-  serviceCheck: false,
   vatReturns: false,
   yearEndPack: false,
   bankSync: false,
@@ -200,7 +197,6 @@ const BUSINESS: Limits = {
   documentAudit: true,
   paystackPay: true,
   paymentReminders: true,
-  serviceCheck: true,
   vatReturns: false,
   yearEndPack: false,
   bankSync: false,

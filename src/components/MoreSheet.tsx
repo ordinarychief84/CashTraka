@@ -30,7 +30,6 @@ import {
   Building2,
   Key,
   Users2,
-  Heart,
   Landmark,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -101,7 +100,6 @@ export function MoreSheet({
       { href: '/customers', icon: Users, label: 'Customers' },
       { href: '/receipts', icon: Receipt, label: 'Receipts' },
       { href: '/invoices', icon: FileText, label: 'Invoices' },
-      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/banks', icon: Landmark, label: 'Bank sync' },
       { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
       {
@@ -126,7 +124,6 @@ export function MoreSheet({
       { href: '/tenants', icon: Users, label: 'Tenants' },
       { href: '/receipts', icon: Receipt, label: 'Receipts' },
       { href: '/invoices', icon: FileText, label: 'Invoices' },
-      { href: '/service-check', icon: Heart, label: 'Service Check' },
       { href: '/expenses', icon: Receipt, label: 'Expenses' },
       { href: '/team', icon: Users2, label: 'Team' },
       { href: '/settings', icon: SettingsIcon, label: 'Settings' },

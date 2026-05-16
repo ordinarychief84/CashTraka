@@ -7,7 +7,6 @@ import { receiptRepo, nextReceiptNumber } from '@/lib/repositories/receipt.repos
 import { RECEIPT_STATUS } from '@/lib/constants/receipt-status';
 import { uploadPdf } from '@/lib/uploadcare/upload';
 import { emailService } from './email.service';
-import { feedbackService } from './feedback.service';
 import { nairaToKobo } from '@/lib/money';
 
 /**
@@ -237,13 +236,6 @@ export const receiptService = {
           return null;
         });
     }
-
-    // Best-effort: mint a Service Check feedback link if the seller has
-    // auto-send enabled. Never bubbles up — the receipt has already been
-    // persisted regardless of what happens here.
-    feedbackService
-      .maybeCreateAfterReceipt(receipt.id, userId)
-      .catch(() => null);
 
     return receipt;
   },

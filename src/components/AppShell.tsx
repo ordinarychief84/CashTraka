@@ -20,7 +20,6 @@ import {
   FileText,
   ShoppingBag,
   GalleryHorizontalEnd,
-  Heart,
   Landmark,
   Factory,
   Boxes,
@@ -117,7 +116,6 @@ export function AppShell({
           {show.customers && (
             <SideLink href="/customers" icon={<Users size={18} />} label="Customers" />
           )}
-          <SideLink href="/service-check" icon={<Heart size={18} />} label="Service Check" />
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
           {show.settings && (
             <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />

@@ -28,6 +28,46 @@ export type ParsedBankAlert = {
   isPaymentCandidate: boolean;
 };
 
+/**
+ * Three-way result for the from-alert flow (Decision 1 of 5).
+ *
+ *   success — we extracted both amount and sender; create Payment as-is.
+ *   partial — we extracted the amount but not the sender; the owner is
+ *             prompted to type the sender then a Payment is created with
+ *             parseSource='PARTIAL'.
+ *   failed  — we could not extract the amount at all; the owner falls
+ *             back to a fully manual entry form and the Payment is
+ *             created with parseSource='MANUAL_ENTERED'.
+ *
+ * The parser NEVER throws. Every code path returns one of these shapes
+ * so the UI can render an unambiguous state and the user never sees a
+ * silent failure.
+ */
+export type BankAlertParseResult =
+  | {
+      status: 'success';
+      amountKobo: number;
+      sender: string;
+      direction: 'credit' | 'debit';
+      bank: string;
+      reference: string | null;
+      balanceKobo: number | null;
+    }
+  | {
+      status: 'partial';
+      amountKobo: number;
+      sender: null;
+      direction: 'credit' | 'debit';
+      bank: string;
+      reference: string | null;
+      balanceKobo: number | null;
+    }
+  | {
+      status: 'failed';
+      amountKobo: null;
+      sender: null;
+    };
+
 /** Strip thousands separators + currency symbol from an amount substring. */
 function parseAmount(raw: string): number | null {
   const cleaned = raw.replace(/[₦NGN, ]/gi, '').replace(/\.00$/, '');
@@ -152,4 +192,65 @@ export function parseBankAlert(raw: string): ParsedBankAlert | null {
     balanceKobo,
     isPaymentCandidate,
   };
+}
+
+/**
+ * Three-way parse used by the from-alert ingest API + UI. NEVER throws —
+ * always returns one of the three discriminated shapes so the caller can
+ * render an unambiguous next step (parsed preview / sender prompt / full
+ * manual entry).
+ *
+ * Discriminator rules:
+ *   - amount missing OR direction missing OR input too short → 'failed'
+ *   - amount present, sender missing                           → 'partial'
+ *   - amount + sender both present                             → 'success'
+ *
+ * A debit-direction SMS still returns 'partial'/'success' so the calling
+ * route can decide what to do with outbound transfers — the from-alert
+ * ingest route rejects non-credit alerts itself.
+ */
+export function parseBankAlertResult(raw: string): BankAlertParseResult {
+  try {
+    if (!raw || typeof raw !== 'string' || raw.length < 12) {
+      return { status: 'failed', amountKobo: null, sender: null };
+    }
+    const text = raw.replace(/\s+/g, ' ').trim();
+
+    const amountKobo = extractAmount(text);
+    const direction = detectDirection(text);
+    if (!amountKobo || !direction) {
+      return { status: 'failed', amountKobo: null, sender: null };
+    }
+
+    const bank = detectBank(text);
+    const payerName = extractPayerName(text);
+    const reference = extractReference(text);
+    const balanceKobo = extractBalance(text);
+
+    if (!payerName) {
+      return {
+        status: 'partial',
+        amountKobo,
+        sender: null,
+        direction,
+        bank,
+        reference,
+        balanceKobo,
+      };
+    }
+
+    return {
+      status: 'success',
+      amountKobo,
+      sender: payerName,
+      direction,
+      bank,
+      reference,
+      balanceKobo,
+    };
+  } catch {
+    // Defensive: any unexpected regex / type error becomes 'failed' so the
+    // caller can fall back to manual entry instead of bubbling a 500.
+    return { status: 'failed', amountKobo: null, sender: null };
+  }
 }

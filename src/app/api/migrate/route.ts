@@ -100,6 +100,9 @@ export async function GET(req: NextRequest) {
   await addCol('Payment', 'notes', 'TEXT', 'NULL');
   await addCol('Payment', 'channel', 'TEXT', 'NULL');
   await addCol('Payment', 'receiptNumber', 'TEXT', 'NULL');
+  // Bank-SMS parser failure-state tracking (Decision 1 of 5). Values:
+  // 'AUTO' (full parse) | 'PARTIAL' (amount auto, sender manual) | 'MANUAL_ENTERED' (all fields manual).
+  await addCol('Payment', 'parseSource', 'TEXT NOT NULL', "'AUTO'");
 
   // ===== Debt table =====
   await addCol('Debt', 'notes', 'TEXT', 'NULL');

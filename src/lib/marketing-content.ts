@@ -40,7 +40,8 @@ export const HERO = {
   sub: 'CashTraka helps small batch businesses manage customer orders, production, raw materials, inventory, purchases, invoices, and receipts from one simple operational system.',
   support:
     'Built for small factories, skincare brands, food processors, fashion workshops, furniture makers, agro-processors, printing shops, and packaging businesses.',
-  primaryCta: { label: 'Start free', href: '/signup' },
+  trialNote: 'Every new account gets 30 days of Pro free. No card required.',
+  primaryCta: { label: 'Start 30-day free trial', href: '/signup' },
   secondaryCta: { label: 'Book demo', href: '/contact?topic=demo' },
 };
 
@@ -127,13 +128,13 @@ export const FEATURES: Feature[] = [
   },
   {
     icon: BookOpen,
-    title: 'Materials Needed',
-    body: 'Create simple recipes for products and know what materials each batch requires.',
+    title: 'Recipes & Materials Needed',
+    body: 'Define what each product takes — CashTraka calculates batch cost and material requirements.',
   },
   {
     icon: AlertTriangle,
     title: 'Shortage Alerts',
-    body: 'See missing raw materials before production starts.',
+    body: 'See missing raw materials before production starts, with supplier lead times factored in.',
   },
   {
     icon: PackageSearch,
@@ -143,7 +144,7 @@ export const FEATURES: Feature[] = [
   {
     icon: Truck,
     title: 'Purchase Orders',
-    body: 'Track supplier purchases and expected deliveries.',
+    body: 'Track supplier purchases — and let CashTraka auto-draft POs for low-stock materials.',
   },
   {
     icon: FileText,
@@ -153,12 +154,12 @@ export const FEATURES: Feature[] = [
   {
     icon: Receipt,
     title: 'Receipts',
-    body: 'Generate and send receipts instantly after payment.',
+    body: 'Auto-generate receipts after verified Paystack payments, or paste a bank-SMS alert to record cash and transfers.',
   },
   {
     icon: BarChart3,
-    title: 'Reports',
-    body: 'View production, sales, inventory, purchases, and estimated profit reports.',
+    title: 'Operational Reports',
+    body: 'Production, sales, inventory, purchases, and estimated profit — all from one report hub.',
   },
 ];
 
@@ -289,7 +290,7 @@ export type PricingPlan = {
 
 export const PRICING_HEADING = 'Simple pricing for growing production businesses.';
 export const PRICING_SUB =
-  'Start free. Upgrade when you need production planning, shortage alerts, purchase orders, reports, and team access.';
+  'Every new account gets 30 days of Pro free — no card required. Stay on Pro, drop to free Starter, or move up to Business when you need team access.';
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
@@ -300,11 +301,9 @@ export const PRICING_PLANS: PricingPlan[] = [
     blurb: 'Best for small businesses starting to organize orders and records.',
     features: [
       'Customer orders',
-      'Products',
-      'Raw materials',
+      'Products & raw materials',
       'Basic inventory tracking',
-      'Manual invoices',
-      'Manual receipts',
+      'Manual invoices & receipts',
       'WhatsApp sharing',
       'Up to 50 orders/month',
     ],
@@ -315,23 +314,23 @@ export const PRICING_PLANS: PricingPlan[] = [
     name: 'Pro',
     priceKobo: 12_000_00,
     priceLabel: '₦12,000',
-    blurb: 'Best for businesses managing daily production and materials.',
+    blurb: 'Best for businesses managing daily production and materials. 30-day free trial included.',
     features: [
-      'Production orders',
-      'Material shortage alerts',
+      'Everything in Starter, unlimited',
+      'Production orders & batch costing',
       'Recipes / Materials Needed',
-      'Purchase orders',
+      'Lead-time aware shortage alerts',
+      'Auto-drafted purchase orders',
+      'Recurring production templates',
       'Supplier management',
-      'Unlimited invoices',
-      'Unlimited receipts',
-      'PDF invoices and receipts',
-      'Production costing',
-      'Inventory alerts',
-      'Paystack integration',
-      'Auto receipt generation',
-      'Operational dashboard',
+      'Daily 7pm operational recap (email + WhatsApp share)',
+      'Bank-SMS payment ingest',
+      'Auto receipts from verified Paystack payments',
+      'Service Check (customer feedback)',
+      'PDF invoices, receipts, and FIRS tax-invoice submission',
+      '15 operational dashboards',
     ],
-    cta: { label: 'Upgrade to Pro', href: '/signup?plan=pro' },
+    cta: { label: 'Start 30-day free trial', href: '/signup?plan=pro' },
     badge: 'Most popular',
   },
   {
@@ -341,13 +340,11 @@ export const PRICING_PLANS: PricingPlan[] = [
     priceLabel: '₦35,000',
     blurb: 'Best for teams and growing production businesses.',
     features: [
-      'Multi-user access',
-      'Role permissions',
-      'Advanced operational reports',
-      'Multiple production teams',
-      'Barcode / QR scanning',
-      'Production history',
-      'Customer order workflows',
+      'Everything in Pro',
+      'Multi-user access with role permissions',
+      'Per-document audit trail',
+      'Custom branding on PDFs',
+      'Automated VAT returns',
       'Priority support',
       'Dedicated onboarding',
     ],
@@ -357,8 +354,12 @@ export const PRICING_PLANS: PricingPlan[] = [
 
 export const PRICING_FAQS: { q: string; a: string }[] = [
   {
+    q: 'How does the free trial work?',
+    a: 'Every new account gets 30 days of Pro free, starting the day you sign up. No card required. When the trial ends you keep your data and drop to the free Starter plan unless you decide to stay on Pro or move to Business.',
+  },
+  {
     q: 'Can I start free?',
-    a: 'Yes. The Starter plan is free and covers customer orders, products, raw materials, basic inventory, and manual invoices/receipts so you can get organized without paying anything.',
+    a: 'Yes. After your 30-day Pro trial, the Starter plan is free and covers customer orders, products, raw materials, basic inventory, and manual invoices/receipts so you can keep running without paying anything.',
   },
   {
     q: 'Can I upgrade later?',
@@ -429,7 +430,17 @@ export const SOLUTIONS_PAGE = {
     {
       icon: BarChart3,
       title: 'Operational Reporting',
-      body: 'See production, inventory, purchases, sales, and estimated profit in simple reports.',
+      body: 'See production, inventory, purchases, sales, and estimated profit across 15 dedicated dashboards.',
+    },
+    {
+      icon: AlertTriangle,
+      title: 'Daily Operational Recap',
+      body: 'A 7pm WhatsApp-ready summary lands in your inbox — share with your team in one tap.',
+    },
+    {
+      icon: ClipboardList,
+      title: 'Service Check',
+      body: 'Send customer feedback requests after delivery and track satisfaction over time.',
     },
   ],
 };
@@ -482,7 +493,7 @@ export const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'Does CashTraka support barcode or QR scanning?',
-    a: 'Yes, on the Business plan. CashTraka supports phone-camera QR or barcode scanning for products and materials.',
+    a: 'Yes. CashTraka supports phone-camera QR and barcode scanning for products and materials — works from any modern phone browser, no app install required.',
   },
   {
     q: 'Does CashTraka work on mobile?',
@@ -494,11 +505,19 @@ export const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'Can multiple staff use CashTraka?',
-    a: 'Yes. The Business plan supports multi-user access and role permissions.',
+    a: 'Yes. The Business plan supports multi-user access with role permissions and a per-document audit trail.',
   },
   {
-    q: 'Can I start free?',
-    a: 'Yes. You can start with the free Starter plan and upgrade when your operations grow.',
+    q: 'Do I get a free trial?',
+    a: 'Yes. Every new account gets 30 days of Pro for free — no card required. After the trial, you can keep Pro, drop to the free Starter plan, or upgrade to Business.',
+  },
+  {
+    q: 'Can CashTraka send daily updates?',
+    a: 'Yes. Pro and Business plans get a 7pm operational recap by email — orders today, production complete, low stock, outstanding invoices — with a one-tap WhatsApp share for your team.',
+  },
+  {
+    q: 'Does CashTraka have customer feedback tools?',
+    a: 'Yes. Service Check lets you send a feedback request after delivery and track satisfaction trends over time, included on Pro and above.',
   },
 ];
 
@@ -544,8 +563,8 @@ export const FOOTER = {
 
 export const FINAL_CTA = {
   heading: 'Run production with more control.',
-  body: 'Stop relying on scattered chats, notebooks, and memory. Start managing orders, production, materials, invoices, and receipts from one simple system.',
-  primaryCta: { label: 'Start free', href: '/signup' },
+  body: 'Stop relying on scattered chats, notebooks, and memory. Start managing orders, production, materials, invoices, and receipts from one simple system — free for 30 days, no card required.',
+  primaryCta: { label: 'Start 30-day free trial', href: '/signup' },
   secondaryCta: { label: 'Book demo', href: '/contact?topic=demo' },
 };
 

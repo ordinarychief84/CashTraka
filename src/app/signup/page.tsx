@@ -10,29 +10,14 @@ type SearchParams = {
 };
 
 /**
- * Signup page, reads `?type=seller | property_manager` from the URL so the
- * headline + subhead match whichever journey the visitor came from. The
- * inline AuthForm also presets the ICP picker to the same value.
+ * Signup page. Every new account is auto-enrolled in a 30-day Pro trial,
+ * so the page leads with that promise. The ICP-specific variants
+ * (?type=seller, ?type=property_manager) were retired during the
+ * small-batch operational pivot.
  */
-export default function SignupPage({
-  searchParams,
-}: {
+export default function SignupPage(_props: {
   searchParams: SearchParams;
 }) {
-  const hinted = (searchParams.type || searchParams.ic || '').toLowerCase();
-  const isPm = hinted === 'property_manager';
-
-  const headline = isPm
-    ? 'Start with CashTraka for Landlords'
-    : hinted === 'seller'
-      ? 'Start with CashTraka for Business'
-      : 'Create your CashTraka account';
-  const sub = isPm
-    ? 'Track rent across every property and tenant in minutes.'
-    : hinted === 'seller'
-      ? 'Track sales, debts, invoices and customers in minutes.'
-      : 'Pick the solution that matches what you do. We\'ll tailor the rest.';
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
       <div className="container-app py-10">
@@ -41,8 +26,11 @@ export default function SignupPage({
         </Link>
         <div className="mx-auto max-w-md">
           <div className="card p-6">
-            <h1 className="text-2xl font-bold text-ink">{headline}</h1>
-            <p className="mt-1 text-sm text-slate-600">{sub}</p>
+            <h1 className="text-2xl font-bold text-ink">Start your 30-day free trial</h1>
+            <p className="mt-1 text-sm text-slate-600">
+              Plan production, track materials, send invoices, and avoid shortages — every new
+              account gets 30 days of Pro free. No card required.
+            </p>
             <div className="mt-5">
               <Suspense>
                 <AuthForm mode="signup" />

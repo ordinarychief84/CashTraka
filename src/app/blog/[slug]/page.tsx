@@ -158,16 +158,17 @@ export default async function BlogPostPage({ params }: Props) {
           {/* CTA */}
           <div className="mt-10 rounded-xl border border-success-200 bg-success-50 p-6 text-center">
             <h3 className="text-lg font-bold text-slate-900">
-              Ready to track your payments?
+              Ready to plan production with more control?
             </h3>
             <p className="mt-1 text-sm text-slate-600">
-              CashTraka helps Nigerian businesses and landlords stay on top of every naira.
+              CashTraka brings orders, production, materials, invoices, and receipts into one
+              simple operational system. Start with 30 days of Pro free.
             </p>
             <Link
               href="/signup"
               className="btn-primary mt-4 inline-flex text-sm"
             >
-              Start free today
+              Start 30-day free trial
             </Link>
           </div>
         </article>

@@ -80,7 +80,7 @@ export default function FAQsPage() {
               <ArrowRight size={16} />
             </Link>
             <Link href="/signup" className="btn-secondary text-sm">
-              Start free
+              Start 30-day free trial
             </Link>
           </div>
         </Section>

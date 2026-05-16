@@ -120,7 +120,7 @@ export function MarketingHero() {
                 href="/signup"
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-400"
               >
-                Start Free
+                Start 30-day free trial
                 <ArrowRight size={16} />
               </Link>
               <Link
@@ -130,6 +130,9 @@ export function MarketingHero() {
                 Book a Demo
               </Link>
             </div>
+            <p className="mt-3 text-xs text-slate-500">
+              Every new account gets 30 days of Pro free. No card required.
+            </p>
 
             {/* Social proof */}
             <div className="mt-6 flex items-center gap-3">

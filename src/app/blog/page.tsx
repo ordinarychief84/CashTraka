@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Blog | CashTraka',
-  description: 'Tips, guides, and product updates for Nigerian small businesses and landlords.',
+  description: 'Tips, guides, and product updates for Nigerian small batch businesses — production planning, inventory, invoicing, and operations.',
 };
 
 export default async function BlogPage() {
@@ -29,7 +29,8 @@ export default async function BlogPage() {
           <div className="mx-auto max-w-5xl px-4 py-16 text-center">
             <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">CashTraka Blog</h1>
             <p className="mt-3 text-lg text-slate-600">
-              Tips, guides, and product updates for Nigerian small businesses and landlords.
+              Tips, guides, and product updates for Nigerian small batch businesses — production
+              planning, inventory, invoicing, and operations.
             </p>
           </div>
         </div>

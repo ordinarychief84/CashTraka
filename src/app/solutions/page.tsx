@@ -60,7 +60,7 @@ export default function SolutionsPage() {
           <Reveal from="up" delay={240}>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/signup" className="btn-primary text-sm">
-                Start free
+                Start 30-day free trial
                 <ArrowRight size={16} />
               </Link>
               <Link href="/contact?topic=demo" className="btn-secondary text-sm">
@@ -96,7 +96,7 @@ export default function SolutionsPage() {
         >
           <div className="flex flex-wrap gap-3">
             <Link href="/signup" className="btn-primary text-sm">
-              Start free
+              Start 30-day free trial
               <ArrowRight size={16} />
             </Link>
             <Link href="/pricing" className="btn-secondary text-sm">

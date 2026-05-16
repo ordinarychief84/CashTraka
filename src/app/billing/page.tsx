@@ -39,14 +39,17 @@ const PLANS: PlanCard[] = [
     id: 'pro_monthly',
     label: 'Pro',
     priceLabel: '₦12,000',
-    priceSub: '/month',
+    priceSub: '/month · 30 days free',
     highlight: true,
     features: [
-      'Unlimited customers, payments, invoices',
-      'Recurring invoices + auto-reminders',
-      'Daily 7pm WhatsApp recap',
+      'Production orders, recipes & batch costing',
+      'Lead-time aware shortage alerts',
+      'Auto-drafted purchase orders',
+      'Recurring production templates',
+      'Daily 7pm operational recap',
+      'Bank-SMS payment ingest',
       'FIRS tax-invoice submission',
-      'Credit notes, delivery notes, offers',
+      'Service Check (customer feedback)',
       'Up to 3 team members',
     ],
     ctaLabel: 'Upgrade to Pro',
@@ -55,14 +58,14 @@ const PLANS: PlanCard[] = [
     id: 'business_monthly',
     label: 'Business',
     priceLabel: '₦35,000',
-    priceSub: '/month',
+    priceSub: '/month · 30 days free',
     features: [
       'Everything in Pro',
       'Unlimited team members',
       'Multi-user audit + accountant role',
       'Custom branding on PDFs',
-      'Priority support',
       'Automated VAT returns',
+      'Priority support',
     ],
     ctaLabel: 'Upgrade to Business',
   },
@@ -89,7 +92,7 @@ export default async function BillingPage({ searchParams }: { searchParams: SP }
         <div className="min-w-0">
           <h1 className="page-title">Billing &amp; plans</h1>
           <p className="page-subtitle">
-            One subscription. Unlocks every dashboard, every workflow, every export.
+            One subscription. Every new account gets 30 days of Pro free — no card required.
           </p>
         </div>
         <div className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">

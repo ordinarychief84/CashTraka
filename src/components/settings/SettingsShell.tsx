@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Shield, CreditCard, Palette, AlertTriangle, Store, FileText, Receipt, Heart } from 'lucide-react';
+import { User, Shield, CreditCard, Palette, AlertTriangle, Store, FileText, Receipt } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AccountTab } from './AccountTab';
 import { BillingTab } from './BillingTab';
@@ -11,9 +11,8 @@ import { DangerZoneTab } from './DangerZoneTab';
 import { StorefrontTab } from './StorefrontTab';
 import { TaxTab } from './TaxTab';
 import { InvoiceTab } from './InvoiceTab';
-import { FeedbackTab } from './FeedbackTab';
 
-type Tab = 'profile' | 'account' | 'storefront' | 'invoice' | 'tax' | 'feedback' | 'billing' | 'appearance' | 'danger';
+type Tab = 'profile' | 'account' | 'storefront' | 'invoice' | 'tax' | 'billing' | 'appearance' | 'danger';
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -21,7 +20,6 @@ const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'storefront', label: 'Storefront', icon: Store },
   { id: 'invoice', label: 'Invoices', icon: Receipt },
   { id: 'tax', label: 'Tax & FIRS', icon: FileText },
-  { id: 'feedback', label: 'Service Check', icon: Heart },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
@@ -127,9 +125,6 @@ export function SettingsShell({
           )}
           {activeTab === 'tax' && (
             <TaxTab initial={initialTax} />
-          )}
-          {activeTab === 'feedback' && (
-            <FeedbackTab />
           )}
           {activeTab === 'billing' && (
             <BillingTab />

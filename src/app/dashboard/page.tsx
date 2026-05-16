@@ -29,7 +29,6 @@ import { UpgradeCard } from '@/components/dashboard/UpgradeCard';
 import { InstallPrompt } from '@/components/InstallPrompt';
 import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
 import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
-import { ServiceCheckCard } from '@/components/dashboard/ServiceCheckCard';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
 import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
 import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
@@ -831,9 +830,6 @@ export default async function DashboardPage() {
           <CollectionScoreWidget isPaid={hasPaidFeatures} />
           <SuggestionsPanel isPaid={hasPaidFeatures} />
 
-          {/* Service Check */}
-          <DashboardFeedbackCard userId={user.id} monthStart={monthStart} />
-
           {user.isOwner && (
             <UpgradeCard plan={user.plan} businessType={user.businessType} />
           )}
@@ -855,38 +851,3 @@ function greetingFor(): string {
   return 'Good evening';
 }
 
-/** Dashboard slot that fetches the seller's feedback metrics for this month. */
-async function DashboardFeedbackCard({
-  userId,
-  monthStart,
-}: {
-  userId: string;
-  monthStart: Date;
-}) {
-  const [totalThisMonth, totalAll, positiveAll, negativeAll] = await Promise.all([
-    prisma.feedback.count({
-      where: { userId, submittedAt: { gte: monthStart } },
-    }).catch(() => 0),
-    prisma.feedback.count({
-      where: { userId, submittedAt: { not: null } },
-    }).catch(() => 0),
-    prisma.feedback.count({
-      where: {
-        userId,
-        rating: { in: ['VERY_HAPPY', 'HAPPY'] },
-        submittedAt: { not: null },
-      },
-    }).catch(() => 0),
-    prisma.feedback.count({
-      where: { userId, isNegative: true, submittedAt: { not: null } },
-    }).catch(() => 0),
-  ]);
-  const positivePct = totalAll > 0 ? Math.round((positiveAll / totalAll) * 100) : 0;
-  return (
-    <ServiceCheckCard
-      total={totalThisMonth}
-      positivePct={positivePct}
-      negative={negativeAll}
-    />
-  );
-}

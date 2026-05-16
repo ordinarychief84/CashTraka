@@ -79,7 +79,6 @@ export const FEATURE_LABELS: Partial<Record<keyof Limits, string>> = {
   suggestions: 'Smart suggestions',
   documentAudit: 'Per-document audit trail',
   paystackPay: 'Paystack public-pay button',
-  serviceCheck: 'Service Check (feedback)',
   vatReturns: 'Automated VAT returns',
   yearEndPack: 'Year-end accountant pack',
   bankSync: 'Bank sync',

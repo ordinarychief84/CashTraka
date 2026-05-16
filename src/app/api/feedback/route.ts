@@ -1,50 +1,20 @@
-import { NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
-import { handled, ok, validationFail } from '@/lib/api-response';
-import { feedbackService } from '@/lib/services/feedback.service';
-import { feedbackFiltersSchema } from '@/lib/feedback-validators';
-
-export const runtime = 'nodejs';
-
 /**
- * GET /api/feedback
- *
- * Owner-scoped paginated list. Stays accessible on the free plan so users
- * who downgrade can still see their existing feedback history.
- *
- * Supports `?format=csv` to stream a CSV download (same filters apply,
- * pagination is ignored, capped at 5000 rows).
+ * Service Check was retired. Owner-facing feedback list / CSV endpoint
+ * returns HTTP 410 Gone. Existing Feedback rows in the DB are preserved
+ * but are no longer accessible via this API.
  */
-export async function GET(req: Request) {
-  return handled(async () => {
-    const user = await getCurrentUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const url = new URL(req.url);
-    const raw = Object.fromEntries(url.searchParams.entries());
-    const parsed = feedbackFiltersSchema.safeParse(raw);
-    if (!parsed.success) return validationFail(parsed.error);
+const body = JSON.stringify({
+  error: 'gone',
+  message: 'The Service Check feature has been retired.',
+});
 
-    if (parsed.data.format === 'csv') {
-      const csv = await feedbackService.exportCsv(user.id, {
-        rating: parsed.data.rating,
-        isNegative: parsed.data.isNegative,
-        isResolved: parsed.data.isResolved,
-        customerId: parsed.data.customerId,
-        from: parsed.data.from,
-        to: parsed.data.to,
-      });
-      const stamp = new Date().toISOString().slice(0, 10);
-      return new NextResponse(csv, {
-        headers: {
-          'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="service-check-${stamp}.csv"`,
-          'Cache-Control': 'private, no-store',
-        },
-      });
-    }
+const headers = { 'Content-Type': 'application/json' } as const;
 
-    const result = await feedbackService.listFeedback(user.id, parsed.data);
-    return ok(result);
-  });
+export function GET() {
+  return new Response(body, { status: 410, headers });
+}
+
+export function POST() {
+  return new Response(body, { status: 410, headers });
 }

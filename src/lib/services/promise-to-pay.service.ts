@@ -251,23 +251,98 @@ export const promiseToPayService = {
   },
 
   /**
-   * Mark promises as BROKEN when promised date passes without payment.
-   * Called by cron job.
+   * Mark promises as BROKEN when promised date passes without payment, and
+   * surface one in-app Notification per broken promise per UTC day.
+   *
+   * Called as a second pass inside the run-reminders cron (Decision 3 of 5
+   * — the dedicated broken-promises cron was retired because adoption was
+   * low and a separate 10:00 UTC job was wasted infrastructure).
+   *
+   * Idempotency is scoped to (userId, promiseToPayId, today) so a missed
+   * promise generates exactly one notification per day even if the cron
+   * fires multiple times. We dedupe via Notification.link which carries
+   * the promise's deep URL.
+   *
+   * No additional email is sent — the standard run-reminders email already
+   * covers overdue receivables. An in-app notification is enough for
+   * promise-to-pay misses.
    */
-  async markBrokenPromises(): Promise<number> {
+  async markBrokenPromisesAndNotify(): Promise<{ flipped: number; notified: number }> {
     const now = new Date();
-    const result = await prisma.$executeRaw`
-      UPDATE "PromiseToPay" p
-      SET status = 'BROKEN', "lastActionAt" = ${now}, "updatedAt" = ${now}
-      WHERE p.status = 'PROMISED'
-        AND EXISTS (
-          SELECT 1 FROM "PromiseCommitment" c
-          WHERE c."promiseToPayId" = p.id
-            AND c."commitmentType" = 'PAY_ON_DATE'
-            AND c."promisedDate" < ${now}
-        )
-    `;
-    return result;
+    const startOfDay = new Date(now);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+
+    // Find promises about to flip — fetch the fields we need to compose the
+    // notification body before we mutate the row.
+    const candidates = await prisma.promiseToPay.findMany({
+      where: {
+        status: 'PROMISED',
+        commitments: {
+          some: {
+            commitmentType: 'PAY_ON_DATE',
+            promisedDate: { lt: now },
+          },
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        customerNameSnapshot: true,
+        commitments: {
+          where: { commitmentType: 'PAY_ON_DATE' },
+          select: { promisedDate: true },
+          orderBy: { promisedDate: 'asc' },
+          take: 1,
+        },
+      },
+    });
+
+    let flipped = 0;
+    let notified = 0;
+
+    for (const p of candidates) {
+      const link = `/promises/${p.id}`;
+      const promisedDate = p.commitments[0]?.promisedDate ?? null;
+
+      // Per-promise-per-day idempotency: skip the notification if one already
+      // exists for this promise today. The status flip is still attempted
+      // under updateMany guard so concurrency is safe.
+      const existing = await prisma.notification.findFirst({
+        where: {
+          userId: p.userId,
+          type: 'broken_promise',
+          link,
+          createdAt: { gte: startOfDay },
+        },
+        select: { id: true },
+      });
+
+      await prisma.$transaction(async (tx) => {
+        const upd = await tx.promiseToPay.updateMany({
+          where: { id: p.id, status: 'PROMISED' },
+          data: { status: 'BROKEN', lastActionAt: now, updatedAt: now },
+        });
+        if (upd.count > 0) flipped++;
+
+        if (!existing && upd.count > 0) {
+          const dateStr = promisedDate
+            ? promisedDate.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })
+            : 'their promised date';
+          await tx.notification.create({
+            data: {
+              userId: p.userId,
+              type: 'broken_promise',
+              title: 'Broken promise to pay',
+              message: `${p.customerNameSnapshot} promised to pay by ${dateStr} — still unpaid`,
+              link,
+            },
+          });
+          notified++;
+        }
+      });
+    }
+
+    return { flipped, notified };
   },
 
   /** Summary stats for Daily Pulse */

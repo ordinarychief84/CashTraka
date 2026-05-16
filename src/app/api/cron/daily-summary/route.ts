@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { isAuthorizedCronRequest } from '@/lib/cron-auth';
 import { dailySummaryService } from '@/lib/services/daily-summary.service';
 import { emailService } from '@/lib/services/email.service';
+import { paylinkService } from '@/lib/services/paylink.service';
 import { hasFeature } from '@/lib/gate';
 import { waLink, normalizeNigerianPhone } from '@/lib/whatsapp';
 
@@ -28,6 +29,17 @@ export async function GET(req: Request) {
 
   const startOfDay = new Date();
   startOfDay.setUTCHours(0, 0, 0, 0);
+
+  // Once-per-day cleanup, formerly run by the daily-pulse cron at 06:00 UTC.
+  // Folded in here so the cron count drops by one without losing the side
+  // effect. Failures are non-fatal — the recap still goes out.
+  let expiredPaylinks = 0;
+  try {
+    const expired = await paylinkService.expireStale();
+    expiredPaylinks = expired.count;
+  } catch (err) {
+    console.warn('[cron.daily-summary] paylink expireStale failed', err);
+  }
 
   try {
     const users = await prisma.user.findMany({
@@ -129,6 +141,7 @@ export async function GET(req: Request) {
       ok: true,
       scanned,
       sent,
+      expiredPaylinks,
       skipped: { noFeature: skippedNoFeature, idempotent: skippedIdempotent, noEmail: skippedNoEmail },
     });
   } catch (e) {

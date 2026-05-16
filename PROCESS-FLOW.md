@@ -137,7 +137,6 @@ Customer pays via Paystack ────────►  Webhook verified
 | 04:00      | run-subscriptions            | Paystack renewals                                     |
 | 05:00      | run-recurring-invoices       | Spawn invoices on recurring schedules                 |
 | 05:00      | run-production-templates     | Spawn recurring production batches                    |
-| 06:00      | daily-pulse                  | Operational digest                                    |
 | 06:00 1,15 | run-installment-charges      | Auto-debit installments                               |
 | 07:00      | trial-check                  | 3-day warning + expiry downgrade                      |
 | 07:15      | low-stock-check              | Notification + email when stock ≤ reorder level       |

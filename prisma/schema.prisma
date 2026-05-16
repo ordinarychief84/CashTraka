@@ -342,6 +342,11 @@ model Payment {
   bankAlertText       String?
   bankAlertSenderName String?
   bankAlertBank       String?
+  /// How the bank-alert payment was created.
+  /// "AUTO"            — parser extracted amount + sender from the SMS.
+  /// "PARTIAL"         — parser found amount, owner typed the sender in.
+  /// "MANUAL_ENTERED"  — parser failed; owner typed every field by hand.
+  parseSource         String    @default("AUTO")
   claimedAt           DateTime?
 
   /// If this payment was created from an invoice, link back.

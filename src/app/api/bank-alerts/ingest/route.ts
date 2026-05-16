@@ -1,48 +1,96 @@
 import { requireAuth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { handled, ok, fail } from '@/lib/api-response';
-import { parseBankAlert } from '@/lib/bank-alert-parser';
+import { parseBankAlertResult } from '@/lib/bank-alert-parser';
 import { normalizeNigerianPhone } from '@/lib/whatsapp';
 
 /**
- * POST /api/bank-alerts/ingest
+ * POST /api/bank-alerts/ingest  (Decision 1 of 5 — failure states wired up)
  *
- * Owner pastes a raw bank-transaction SMS. We parse it (amount, direction,
- * payer name, bank, reference), fuzzy-match the payer to an existing
- * Customer when possible, and create an *unverified* Payment row that
- * the owner can then accept or reject from the payments page.
+ * Owner pastes a raw bank-transaction SMS. We run it through
+ * `parseBankAlertResult()` which never throws and returns one of:
  *
- * Body:
- *   { rawText: string, customerId?: string }
+ *   - { status: 'success' }  → amount + sender extracted. Create Payment
+ *                              with parseSource='AUTO'.
+ *   - { status: 'partial' }  → amount extracted, sender unknown. Return
+ *                              the parse to the client so it can prompt
+ *                              for the sender. If the client also passes
+ *                              a `manualSender` in the body we create the
+ *                              Payment with parseSource='PARTIAL'.
+ *   - { status: 'failed'  }  → couldn't read the SMS at all. The client
+ *                              switches to a fully manual entry form and
+ *                              re-posts with `manualAmountKobo` +
+ *                              `manualSender` + `manualDate` → Payment is
+ *                              created with parseSource='MANUAL_ENTERED'.
  *
- * Returns:
- *   { paymentId, parsed: { amountKobo, payerName, bank, reference }, matchedCustomer? }
- *
- * If the parser can't extract amount/direction, returns 422 with the raw
- * text echoed back so the UI can fall back to manual entry.
- *
- * Verified=false on the created Payment — the owner accepts via the
+ * Verified=false on every created Payment — the owner accepts via the
  * existing Payment verification flow. We never auto-confirm based on an
  * SMS alone; SMS forgery is too easy.
+ *
+ * Request body:
+ *   {
+ *     rawText?: string,            // the pasted SMS (any length, server validates)
+ *     manualAmountKobo?: number,   // integer kobo, only when STATE C falls through
+ *     manualSender?: string,       // owner-typed sender name (STATE B or C)
+ *     manualDate?: string,         // ISO date string (STATE C only)
+ *     customerId?: string,         // optional explicit customer link
+ *   }
+ *
+ * Response (parse-only path, no Payment yet):
+ *   { status: 'partial' | 'failed', amountKobo?, bank?, reference?, balanceKobo? }
+ *
+ * Response (Payment created):
+ *   { paymentId, parseSource, matchedCustomer? }
  */
 export const POST = (req: Request) =>
   handled(async () => {
     const auth = await requireAuth();
     const body = await req.json().catch(() => ({}));
+
     const rawText = typeof body?.rawText === 'string' ? body.rawText.trim() : '';
+    const manualAmountKoboRaw = body?.manualAmountKobo;
+    const manualSenderRaw =
+      typeof body?.manualSender === 'string' ? body.manualSender.trim() : '';
+    const manualDateRaw = typeof body?.manualDate === 'string' ? body.manualDate.trim() : '';
     const passedCustomerId =
-      typeof body?.customerId === 'string' && body.customerId.length > 0 ? body.customerId : null;
+      typeof body?.customerId === 'string' && body.customerId.length > 0
+        ? body.customerId
+        : null;
+
+    const manualAmountKobo =
+      typeof manualAmountKoboRaw === 'number' &&
+      Number.isInteger(manualAmountKoboRaw) &&
+      manualAmountKoboRaw > 0
+        ? manualAmountKoboRaw
+        : null;
+
+    // CASE: STATE C fully manual. Owner typed amount + sender + date.
+    if (manualAmountKobo && manualSenderRaw) {
+      return createManualPayment({
+        userId: auth.owner.id,
+        amountKobo: manualAmountKobo,
+        sender: manualSenderRaw,
+        dateIso: manualDateRaw,
+        rawText,
+        passedCustomerId,
+        parseSource: 'MANUAL_ENTERED',
+      });
+    }
 
     if (!rawText || rawText.length < 12) {
+      // No SMS AND no manual amount → ask for SMS. Distinct from a
+      // parse-failure: this is just a missing input.
       return fail('Paste the full bank SMS — at least 12 characters.', 400);
     }
 
-    const parsed = parseBankAlert(rawText);
-    if (!parsed) {
-      return fail(
-        'Could not read the SMS. Make sure it shows amount and "CR/credit" or "DR/debit".',
-        422,
-      );
+    const parsed = parseBankAlertResult(rawText);
+
+    // STATE C: parser failed completely. Return 200 with status so the UI
+    // can render the manual-entry fallback instead of an error toast.
+    if (parsed.status === 'failed') {
+      return ok({
+        status: 'failed' as const,
+      });
     }
 
     if (parsed.direction !== 'credit') {
@@ -52,77 +100,172 @@ export const POST = (req: Request) =>
       );
     }
 
-    // Try to match a customer.
-    //   1. Explicit `customerId` from the caller wins.
-    //   2. Fall back to fuzzy name match on the parsed payer (case-insensitive contains).
-    let customerId: string | null = passedCustomerId;
-    let matchedBy: 'explicit' | 'name' | 'none' = passedCustomerId ? 'explicit' : 'none';
-
-    if (!customerId && parsed.payerName) {
-      const candidate = await prisma.customer.findFirst({
-        where: {
+    // STATE B: amount auto, sender missing.
+    //   - If the owner typed a manualSender in the same request → create
+    //     the Payment now with parseSource='PARTIAL'.
+    //   - Otherwise return 200 with the partial parse so the UI can
+    //     render the "Who sent this?" prompt.
+    if (parsed.status === 'partial') {
+      if (manualSenderRaw) {
+        return createPaymentFromAlert({
           userId: auth.owner.id,
-          name: { contains: parsed.payerName, mode: 'insensitive' },
-        },
-        select: { id: true, name: true, phone: true },
-      });
-      if (candidate) {
-        customerId = candidate.id;
-        matchedBy = 'name';
+          amountKobo: parsed.amountKobo,
+          sender: manualSenderRaw,
+          rawText,
+          bank: parsed.bank,
+          reference: parsed.reference,
+          passedCustomerId,
+          parseSource: 'PARTIAL',
+        });
       }
-    }
-
-    if (!customerId) {
-      // Create a stub "Unknown Sender" customer so the payment still attaches
-      // to something. The owner can re-link from the payments page.
-      const stub = await prisma.customer.create({
-        data: {
-          userId: auth.owner.id,
-          name: parsed.payerName ?? 'Unknown sender (bank alert)',
-          phone: '',
-        },
-        select: { id: true, name: true, phone: true },
-      });
-      customerId = stub.id;
-    }
-
-    const customer = await prisma.customer.findUnique({
-      where: { id: customerId },
-      select: { id: true, name: true, phone: true },
-    });
-    if (!customer) {
-      return fail('Customer could not be resolved.', 500);
-    }
-
-    const phoneSnapshot = customer.phone ? normalizeNigerianPhone(customer.phone) : '';
-
-    const payment = await prisma.payment.create({
-      data: {
-        userId: auth.owner.id,
-        customerId: customer.id,
-        customerNameSnapshot: customer.name,
-        phoneSnapshot,
-        amount: Math.round(parsed.amountKobo / 100),
+      return ok({
+        status: 'partial' as const,
         amountKobo: parsed.amountKobo,
-        status: 'PAID',
-        verified: false,
-        verificationMethod: 'BANK_ALERT_SMS',
-        bankAlertText: rawText,
-        bankAlertSenderName: parsed.payerName,
-        bankAlertBank: parsed.bank,
-        referenceCode: parsed.reference,
-      },
-      select: { id: true },
-    });
-
-    return ok({
-      paymentId: payment.id,
-      parsed: {
-        amountKobo: parsed.amountKobo,
-        payerName: parsed.payerName,
         bank: parsed.bank,
         reference: parsed.reference,
-      },
-      matchedCustomer: { id: customer.id, name: customer.name, matchedBy },
+        balanceKobo: parsed.balanceKobo,
+      });
+    }
+
+    // STATE A: full success.
+    return createPaymentFromAlert({
+      userId: auth.owner.id,
+      amountKobo: parsed.amountKobo,
+      sender: parsed.sender,
+      rawText,
+      bank: parsed.bank,
+      reference: parsed.reference,
+      passedCustomerId,
+      parseSource: 'AUTO',
     });
   });
+
+/* ─── Helpers ─────────────────────────────────────────────────────────── */
+
+type AlertPaymentArgs = {
+  userId: string;
+  amountKobo: number;
+  sender: string;
+  rawText: string;
+  bank: string;
+  reference: string | null;
+  passedCustomerId: string | null;
+  parseSource: 'AUTO' | 'PARTIAL';
+};
+
+async function createPaymentFromAlert(args: AlertPaymentArgs) {
+  const customer = await resolveOrStubCustomer(args.userId, args.sender, args.passedCustomerId);
+  const phoneSnapshot = customer.phone ? normalizeNigerianPhone(customer.phone) : '';
+
+  const payment = await prisma.payment.create({
+    data: {
+      userId: args.userId,
+      customerId: customer.id,
+      customerNameSnapshot: customer.name,
+      phoneSnapshot,
+      amount: Math.round(args.amountKobo / 100),
+      amountKobo: args.amountKobo,
+      status: 'PAID',
+      verified: false,
+      verificationMethod: 'BANK_ALERT_SMS',
+      bankAlertText: args.rawText,
+      bankAlertSenderName: args.sender,
+      bankAlertBank: args.bank,
+      referenceCode: args.reference,
+      parseSource: args.parseSource,
+    },
+    select: { id: true },
+  });
+
+  return ok({
+    paymentId: payment.id,
+    parseSource: args.parseSource,
+    parsed: {
+      amountKobo: args.amountKobo,
+      payerName: args.sender,
+      bank: args.bank,
+      reference: args.reference,
+    },
+    matchedCustomer: { id: customer.id, name: customer.name },
+  });
+}
+
+type ManualPaymentArgs = {
+  userId: string;
+  amountKobo: number;
+  sender: string;
+  dateIso: string;
+  rawText: string;
+  passedCustomerId: string | null;
+  parseSource: 'MANUAL_ENTERED';
+};
+
+async function createManualPayment(args: ManualPaymentArgs) {
+  const createdAt = args.dateIso ? safeParseDate(args.dateIso) : null;
+  const customer = await resolveOrStubCustomer(args.userId, args.sender, args.passedCustomerId);
+  const phoneSnapshot = customer.phone ? normalizeNigerianPhone(customer.phone) : '';
+
+  const payment = await prisma.payment.create({
+    data: {
+      userId: args.userId,
+      customerId: customer.id,
+      customerNameSnapshot: customer.name,
+      phoneSnapshot,
+      amount: Math.round(args.amountKobo / 100),
+      amountKobo: args.amountKobo,
+      status: 'PAID',
+      verified: false,
+      verificationMethod: 'BANK_ALERT_SMS',
+      bankAlertText: args.rawText || null,
+      bankAlertSenderName: args.sender,
+      bankAlertBank: 'Manual entry',
+      referenceCode: null,
+      parseSource: args.parseSource,
+      ...(createdAt ? { createdAt } : {}),
+    },
+    select: { id: true },
+  });
+
+  return ok({
+    paymentId: payment.id,
+    parseSource: args.parseSource,
+    matchedCustomer: { id: customer.id, name: customer.name },
+  });
+}
+
+function safeParseDate(iso: string): Date | null {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Find an existing customer by explicit ID or fuzzy name match, otherwise
+ * create a stub so the Payment always has somewhere to attach.
+ */
+async function resolveOrStubCustomer(
+  userId: string,
+  senderName: string,
+  passedCustomerId: string | null,
+): Promise<{ id: string; name: string; phone: string }> {
+  if (passedCustomerId) {
+    const c = await prisma.customer.findUnique({
+      where: { id: passedCustomerId },
+      select: { id: true, name: true, phone: true, userId: true },
+    });
+    if (c && c.userId === userId) return { id: c.id, name: c.name, phone: c.phone };
+  }
+
+  if (senderName) {
+    const candidate = await prisma.customer.findFirst({
+      where: { userId, name: { contains: senderName, mode: 'insensitive' } },
+      select: { id: true, name: true, phone: true },
+    });
+    if (candidate) return candidate;
+  }
+
+  const stub = await prisma.customer.create({
+    data: { userId, name: senderName || 'Unknown sender (bank alert)', phone: '' },
+    select: { id: true, name: true, phone: true },
+  });
+  return stub;
+}

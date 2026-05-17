@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Check,
   Pencil,
@@ -94,7 +95,7 @@ export function PaymentRowActions({
         const url = `${origin}/pay/${referenceCode}`;
         try {
           await navigator.clipboard.writeText(url);
-          alert('Payment link copied');
+          toast.success('Payment link copied');
         } catch {
           prompt('Copy this payment link:', url);
         }
@@ -113,11 +114,17 @@ export function PaymentRowActions({
       label: 'Mark as paid',
       icon: <Check size={16} />,
       onClick: async () => {
-        await fetch(`/api/payments/${id}`, {
+        const res = await fetch(`/api/payments/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'PAID' }),
         });
+        if (res.ok) {
+          toast.success('Payment marked paid');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not update');
+        }
         router.refresh();
         // After flipping to PAID, open the receipt dialog so the owner can
         // review and send the auto-generated receipt immediately.
@@ -129,11 +136,17 @@ export function PaymentRowActions({
       label: 'Mark as pending',
       icon: <Check size={16} />,
       onClick: async () => {
-        await fetch(`/api/payments/${id}`, {
+        const res = await fetch(`/api/payments/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'PENDING' }),
         });
+        if (res.ok) {
+          toast.success('Payment marked pending');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not update');
+        }
         router.refresh();
       },
     });
@@ -150,7 +163,13 @@ export function PaymentRowActions({
     danger: true,
     onClick: async () => {
       if (!confirm('Delete this payment? This cannot be undone.')) return;
-      await fetch(`/api/payments/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/payments/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Payment deleted');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not delete');
+      }
       router.refresh();
     },
   });

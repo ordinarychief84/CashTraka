@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { MessageCircle, Check, Pencil, Trash2, RotateCcw, Banknote, Bell } from 'lucide-react';
 import { waLink, reminderMessage } from '@/lib/whatsapp';
 import { RowMenu, type RowMenuAction } from './RowMenu';
@@ -28,12 +29,20 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      toast.error(data?.error || 'Could not update debt');
+    }
     router.refresh();
     return data;
   }
 
   async function markPaidAndOfferReceipt() {
     const data = await patch({ status: 'PAID' });
+    if (data?.receiptUrl) {
+      toast.success('Debt marked paid — receipt generated');
+    } else {
+      toast.success('Debt marked paid');
+    }
     if (data?.receiptUrl && typeof window !== 'undefined') {
       const origin = window.location.origin;
       const fullUrl = `${origin}${data.receiptUrl}`;
@@ -68,20 +77,28 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
           'weekly',
         );
         if (!freq) return;
-        await fetch('/api/reminders', {
+        const res = await fetch('/api/reminders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ debtId: id, frequency: freq }),
         });
+        if (res.ok) {
+          toast.success('Reminder scheduled');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not set reminder');
+        }
         router.refresh();
-        alert('Reminder set. Check the Reminders page for your schedule.');
       },
     });
   } else {
     actions.push({
       label: 'Reopen debt',
       icon: <RotateCcw size={16} />,
-      onClick: () => patch({ status: 'OPEN' }),
+      onClick: async () => {
+        await patch({ status: 'OPEN' });
+        toast.success('Debt reopened');
+      },
     });
   }
   actions.push({
@@ -95,7 +112,13 @@ export function DebtActions({ id, name, phone, amountOwed, amountPaid, status }:
     danger: true,
     onClick: async () => {
       if (!confirm('Delete this debt? This cannot be undone.')) return;
-      await fetch(`/api/debts/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/debts/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Debt deleted');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not delete');
+      }
       router.refresh();
     },
   });

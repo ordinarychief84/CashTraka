@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const NEXT_BY_STATUS: Record<string, { label: string; status: string }[]> = {
   NEW: [{ label: 'Confirm order', status: 'CONFIRMED' }],
@@ -41,9 +42,22 @@ export function CustomerOrderActions({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         return;
       }
+      const verb =
+        newStatus === 'CANCELLED'
+          ? 'cancelled'
+          : newStatus === 'DELIVERED'
+            ? 'marked delivered'
+            : newStatus === 'READY'
+              ? 'marked ready'
+              : newStatus === 'IN_PRODUCTION'
+                ? 'moved to production'
+                : 'confirmed';
+      toast.success(`Order ${verb}`);
       router.refresh();
     } finally {
       setBusy(null);
@@ -57,9 +71,12 @@ export function CustomerOrderActions({
       const res = await fetch(`/api/customer-orders/${orderId}/${kind}`, { method: 'POST' });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         return;
       }
+      toast.success(kind === 'produce' ? 'Production order created' : 'Invoice generated');
       router.refresh();
     } finally {
       setBusy(null);

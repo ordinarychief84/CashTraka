@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Pencil, Trash2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 
@@ -18,7 +19,13 @@ export function TemplateRowActions({ id }: { id: string }) {
       danger: true,
       onClick: async () => {
         if (!confirm('Delete this template?')) return;
-        await fetch(`/api/templates/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/templates/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          toast.success('Template deleted');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not delete');
+        }
         router.refresh();
       },
     },

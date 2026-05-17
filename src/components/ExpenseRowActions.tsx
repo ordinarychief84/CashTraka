@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Pencil, Trash2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 
@@ -18,7 +19,13 @@ export function ExpenseRowActions({ id }: { id: string }) {
       danger: true,
       onClick: async () => {
         if (!confirm('Delete this expense? This cannot be undone.')) return;
-        await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          toast.success('Expense deleted');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not delete');
+        }
         router.refresh();
       },
     },

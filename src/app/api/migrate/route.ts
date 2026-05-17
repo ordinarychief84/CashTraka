@@ -1074,6 +1074,83 @@ export async function GET(req: NextRequest) {
     results.push(`FAIL: ProductionTemplate - ${e.message?.substring(0, 100)}`);
   }
 
+  // ===== Batch Cost Intelligence (Pro+ feature) =====
+  // 8 new columns on ProductionOrder + new BatchCostLineItem table.
+  await addCol('ProductionOrder', 'labourCostKobo', 'INTEGER NOT NULL', '0');
+  await addCol('ProductionOrder', 'overheadCostKobo', 'INTEGER NOT NULL', '0');
+  await addCol('ProductionOrder', 'materialCostKobo', 'INTEGER', 'NULL');
+  await addCol('ProductionOrder', 'totalCostKobo', 'INTEGER', 'NULL');
+  await addCol('ProductionOrder', 'revenueKobo', 'INTEGER', 'NULL');
+  await addCol('ProductionOrder', 'grossMarginBps', 'INTEGER', 'NULL');
+  await addCol('ProductionOrder', 'costPerUnitKobo', 'INTEGER', 'NULL');
+  await addCol('ProductionOrder', 'hasUnpricedMaterials', 'BOOLEAN NOT NULL', 'false');
+  await addCol('ProductionOrder', 'batchCostCalculatedAt', 'TIMESTAMP(3)', 'NULL');
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "ProductionOrder_userId_batchCostCalculatedAt_idx"
+        ON "ProductionOrder" ("userId", "batchCostCalculatedAt")
+    `);
+    results.push('OK: ProductionOrder batch-cost index');
+  } catch (e: any) {
+    results.push(`FAIL: ProductionOrder batch-cost index - ${e.message?.substring(0, 100)}`);
+  }
+
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "BatchCostLineItem" (
+        "id"                TEXT          NOT NULL,
+        "userId"            TEXT          NOT NULL,
+        "productionOrderId" TEXT          NOT NULL,
+        "rawMaterialId"     TEXT          NOT NULL,
+        "rawMaterialName"   TEXT          NOT NULL,
+        "qtyNeeded"         DECIMAL(18,4) NOT NULL,
+        "unit"              TEXT          NOT NULL,
+        "unitPriceKobo"     INTEGER       NOT NULL,
+        "totalKobo"         INTEGER       NOT NULL,
+        "isMissing"         BOOLEAN       NOT NULL DEFAULT false,
+        "createdAt"         TIMESTAMP(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "BatchCostLineItem_pkey" PRIMARY KEY ("id")
+      )
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "BatchCostLineItem_productionOrderId_idx"
+        ON "BatchCostLineItem" ("productionOrderId")
+    `);
+    await prisma.$executeRawUnsafe(`
+      CREATE INDEX IF NOT EXISTS "BatchCostLineItem_userId_createdAt_idx"
+        ON "BatchCostLineItem" ("userId", "createdAt")
+    `);
+    // FK to ProductionOrder + User. Cascade so wiping a production order
+    // also wipes its line items.
+    await prisma.$executeRawUnsafe(`
+      DO $do$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+           WHERE constraint_name = 'BatchCostLineItem_productionOrderId_fkey'
+        ) THEN
+          ALTER TABLE "BatchCostLineItem"
+            ADD CONSTRAINT "BatchCostLineItem_productionOrderId_fkey"
+            FOREIGN KEY ("productionOrderId") REFERENCES "ProductionOrder"("id")
+            ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+           WHERE constraint_name = 'BatchCostLineItem_userId_fkey'
+        ) THEN
+          ALTER TABLE "BatchCostLineItem"
+            ADD CONSTRAINT "BatchCostLineItem_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id")
+            ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END
+      $do$;
+    `).catch(() => null);
+    results.push('OK: BatchCostLineItem table');
+  } catch (e: any) {
+    results.push('FAIL: BatchCostLineItem table - ' + e.message?.substring(0, 100));
+  }
+
   // ===== WhatsAppSendLog (Decision 5 of 5 — append-only send log) =====
   try {
     await prisma.$executeRawUnsafe(`

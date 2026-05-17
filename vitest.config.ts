@@ -18,6 +18,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  // Disable Vite's PostCSS pipeline for the unit-test layer. The unit
+  // tests never import stylesheets, and the auto-discovered postcss.config.js
+  // pulls in the Tailwind plugin chain which on some node_modules layouts
+  // hits a stale ts-interface-checker `./util` resolution error.
+  css: { postcss: { plugins: [] } },
   test: {
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     // .next/types pulls in app-router-internal types that fail to

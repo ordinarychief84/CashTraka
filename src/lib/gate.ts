@@ -82,6 +82,7 @@ export const FEATURE_LABELS: Partial<Record<keyof Limits, string>> = {
   vatReturns: 'Automated VAT returns',
   yearEndPack: 'Year-end accountant pack',
   bankSync: 'Bank sync',
+  batchCostIntelligence: 'Batch Cost Intelligence',
 };
 
 

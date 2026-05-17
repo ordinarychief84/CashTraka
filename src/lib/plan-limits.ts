@@ -119,6 +119,13 @@ export type Limits = {
    * digest with one-tap links to review + send. Paid feature.
    */
   autoPurchaseOrders: boolean;
+  /**
+   * Batch Cost Intelligence — auto-computed material + labour + overhead
+   * cost and gross margin per completed production run. Surfaces on the
+   * production detail page and a new /reports/profitability page. Paid
+   * feature (Pro and above).
+   */
+  batchCostIntelligence: boolean;
 };
 
 const FREE: Limits = {
@@ -161,6 +168,7 @@ const FREE: Limits = {
   multiUserAudit: false,
   dailySummary: false,
   autoPurchaseOrders: false,
+  batchCostIntelligence: false,
 };
 
 const BUSINESS: Limits = {
@@ -203,6 +211,7 @@ const BUSINESS: Limits = {
   multiUserAudit: false,
   dailySummary: true,
   autoPurchaseOrders: true,
+  batchCostIntelligence: true,
 };
 
 const BUSINESS_PLUS: Limits = {

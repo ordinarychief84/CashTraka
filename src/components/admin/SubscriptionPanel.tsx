@@ -48,6 +48,7 @@ const BOOLEAN_FLAGS: Array<{ key: keyof Limits; label: string }> = [
   { key: 'offers', label: 'Offers / quotes' },
   { key: 'paystackPay', label: 'Paystack pay button' },
   { key: 'paymentReminders', label: 'Payment reminders' },
+  { key: 'batchCostIntelligence', label: 'Batch Cost Intelligence' },
   { key: 'customBranding', label: 'Custom branding' },
   { key: 'prioritySupport', label: 'Priority support' },
   { key: 'attendance', label: 'Attendance' },

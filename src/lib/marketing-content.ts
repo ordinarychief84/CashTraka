@@ -327,6 +327,7 @@ export const PRICING_PLANS: PricingPlan[] = [
       'Bank-SMS payment ingest',
       'Auto receipts from verified Paystack payments',
       'PDF invoices, receipts, and FIRS tax-invoice submission',
+      'Batch Cost Intelligence — material + labour + overhead per run',
       '15 operational dashboards',
     ],
     cta: { label: 'Start 30-day free trial', href: '/signup?plan=pro' },

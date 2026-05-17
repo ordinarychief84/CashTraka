@@ -483,6 +483,21 @@ export const productionOrdersService = {
       action: 'COMPLETED',
     });
 
+    // Batch Cost Intelligence — fire-and-forget. A failure here MUST NEVER
+    // roll back or undo the COMPLETED status transition. The two operations
+    // are decoupled by design: production completion is a hard business
+    // event, cost calculation is a derived computation that can be retried.
+    // Logged but never re-thrown.
+    void import('./batch-cost.service').then(({ computeAndSaveBatchCost }) =>
+      computeAndSaveBatchCost(order.id).catch((err) => {
+        console.error(
+          '[production.complete] batch cost calculation failed',
+          { productionOrderId: order.id, userId },
+          err,
+        );
+      }),
+    );
+
     return result;
   },
 

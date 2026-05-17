@@ -32,6 +32,7 @@ const ALLOWED_KEYS: ReadonlyArray<keyof Limits> = [
   'offers',
   'paystackPay',
   'paymentReminders',
+  'batchCostIntelligence',
   'customBranding',
   'prioritySupport',
   'attendance',

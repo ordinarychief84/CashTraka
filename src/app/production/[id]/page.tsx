@@ -10,6 +10,8 @@ import { inventoryService } from '@/lib/services/inventory.service';
 import { CustomerHistoryCard } from '@/components/customers/CustomerHistoryCard';
 import { WaCustomerNotifyButton } from '@/components/orders/WaCustomerNotifyButton';
 import { whatsappSendService } from '@/lib/services/whatsapp-send.service';
+import { hasFeature } from '@/lib/gate';
+import { BatchCostPanel } from '@/components/production/BatchCostPanel';
 import { prisma } from '@/lib/prisma';
 import { formatKobo, formatDateTime } from '@/lib/format';
 
@@ -50,6 +52,58 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
       : null;
   const showReadyButton =
     order.status === 'COMPLETED' && Boolean(order.customerOrder?.id);
+
+  // Batch Cost Intelligence — fetch the persisted result when the run is
+  // COMPLETED so the panel can hydrate on first paint. Lines are loaded
+  // here too; the panel polls when nothing has been calculated yet.
+  const batchCostFeature = hasFeature(user, 'batchCostIntelligence');
+  let initialBatchCost: React.ComponentProps<typeof BatchCostPanel>['initial'] = null;
+  if (order.status === 'COMPLETED' && batchCostFeature) {
+    const [costRow, lineRows] = await Promise.all([
+      prisma.productionOrder.findUnique({
+        where: { id: order.id },
+        select: {
+          materialCostKobo: true,
+          labourCostKobo: true,
+          overheadCostKobo: true,
+          totalCostKobo: true,
+          revenueKobo: true,
+          grossMarginBps: true,
+          costPerUnitKobo: true,
+          hasUnpricedMaterials: true,
+          batchCostCalculatedAt: true,
+          customerOrder: { select: { id: true } },
+        },
+      }),
+      prisma.batchCostLineItem.findMany({
+        where: { productionOrderId: order.id, userId: user.id },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+    if (costRow && costRow.batchCostCalculatedAt) {
+      initialBatchCost = {
+        materialCostKobo: costRow.materialCostKobo ?? 0,
+        labourCostKobo: costRow.labourCostKobo,
+        overheadCostKobo: costRow.overheadCostKobo,
+        totalCostKobo: costRow.totalCostKobo ?? 0,
+        revenueKobo: costRow.revenueKobo ?? 0,
+        grossMarginBps: costRow.grossMarginBps ?? 0,
+        costPerUnitKobo: costRow.costPerUnitKobo ?? 0,
+        hasUnpricedMaterials: costRow.hasUnpricedMaterials,
+        batchCostCalculatedAt: costRow.batchCostCalculatedAt.toISOString(),
+        hasLinkedCustomerOrder: Boolean(costRow.customerOrder),
+        lineItems: lineRows.map((l) => ({
+          rawMaterialId: l.rawMaterialId,
+          rawMaterialName: l.rawMaterialName,
+          qtyNeeded: Number(l.qtyNeeded),
+          unit: l.unit,
+          unitPriceKobo: l.unitPriceKobo,
+          totalKobo: l.totalKobo,
+          isMissing: l.isMissing,
+        })),
+      };
+    }
+  }
 
   return (
     <AppShell
@@ -224,6 +278,17 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
               <p className="whitespace-pre-line text-sm text-slate-700">{order.notes}</p>
             </div>
           )}
+
+          {/* Batch Cost Intelligence — only renders for COMPLETED runs.
+              For PLANNED / IN_PRODUCTION runs the panel is hidden entirely.
+              Free users see the UpgradeChip inside the panel. */}
+          {order.status === 'COMPLETED' ? (
+            <BatchCostPanel
+              productionOrderId={order.id}
+              hasFeature={batchCostFeature}
+              initial={initialBatchCost}
+            />
+          ) : null}
         </div>
 
         <div className="space-y-5">

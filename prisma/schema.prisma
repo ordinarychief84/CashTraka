@@ -195,6 +195,7 @@ model User {
   ticketReplies       TicketReply[]
   notifications       Notification[]
   whatsappSendLogs    WhatsAppSendLog[]
+  batchCostLineItems  BatchCostLineItem[]
   refunds             Refund[]               @relation("UserRefunds")
   processedRefunds    Refund[]               @relation("ProcessedRefunds")
   auditLogs           AuditLog[]             @relation("AuditLogAdmin")
@@ -2396,10 +2397,32 @@ model ProductionOrder {
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
-  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  customerOrder  CustomerOrder?
-  items          ProductionOrderItem[]
-  shortageAlerts MaterialShortageAlert[]
+  /// Batch Cost Intelligence — populated by computeAndSaveBatchCost() when
+  /// the run is marked COMPLETED. All money fields are Int kobo.
+  labourCostKobo        Int       @default(0)
+  overheadCostKobo      Int       @default(0)
+  /// Σ (recipe qty × latest PO unit price) across every material in the batch.
+  materialCostKobo      Int?
+  /// materialCostKobo + labourCostKobo + overheadCostKobo.
+  totalCostKobo         Int?
+  /// Revenue snapshot from the linked CustomerOrder at calculation time.
+  /// 0 when there is no linked customer order.
+  revenueKobo           Int?
+  /// Basis points (4000 = 40%). Negative when the batch ran at a loss.
+  /// 0 when revenueKobo === 0 — never divide by zero.
+  grossMarginBps        Int?
+  /// totalCostKobo / quantity, Math.round(). Useful for repricing.
+  costPerUnitKobo       Int?
+  /// True when at least one material had no received PO price on file.
+  hasUnpricedMaterials  Boolean   @default(false)
+  /// Null until the first computeAndSaveBatchCost() succeeds.
+  batchCostCalculatedAt DateTime?
+
+  user             User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customerOrder    CustomerOrder?
+  items            ProductionOrderItem[]
+  shortageAlerts   MaterialShortageAlert[]
+  batchCostItems   BatchCostLineItem[]
 
   @@index([userId, status, createdAt])
   @@index([userId, plannedEndAt])
@@ -2407,6 +2430,39 @@ model ProductionOrder {
   @@index([userId, batchNumber])
   @@index([userId, expiresAt])
   @@index([userId, priority, plannedEndAt])
+  @@index([userId, batchCostCalculatedAt])
+}
+
+/// Per-material breakdown of a batch's material cost, snapshotted at the
+/// time computeAndSaveBatchCost() runs. Cleared and rewritten on every
+/// recalculation — never appended to. `rawMaterialName` is intentionally
+/// denormalised so the cost record reflects the name as it was at the
+/// time of the run, even if the material is later renamed.
+///
+/// No deletedAt — wiped and recreated transactionally with each compute.
+model BatchCostLineItem {
+  id                String   @id @default(cuid())
+  userId            String
+  productionOrderId String
+  rawMaterialId     String
+  rawMaterialName   String
+  /// Recipe qty × ProductionOrder.quantity at calc time (Decimal allowed
+  /// here because units may be fractional — kg, L). Stored as Decimal.
+  qtyNeeded         Decimal  @db.Decimal(18, 4)
+  unit              String
+  /// Latest received-PO price (kobo). 0 when no PO price was found.
+  unitPriceKobo     Int
+  /// qtyNeeded × unitPriceKobo, Math.round() to Int kobo.
+  totalKobo         Int
+  /// True when this material had no received-PO price on record.
+  isMissing         Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+
+  @@index([productionOrderId])
+  @@index([userId, createdAt])
 }
 
 /// One product line in a ProductionOrder.

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Send, MessageCircle, User, Phone, DollarSign, FileText, Link2, Mail, Building2 } from 'lucide-react';
 import { ContactPickerButton } from '@/components/ContactPickerButton';
 
@@ -92,8 +93,11 @@ export function CreatePayLinkForm({ customers, debts, prefill, defaultBusinessNa
 
       const data = await res.json();
       setResult({ token: data.token, linkNumber: data.linkNumber, id: data.id });
+      toast.success('PayLink created');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

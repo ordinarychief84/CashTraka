@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Plus, Trash2, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { formatNaira } from '@/lib/format';
 
@@ -138,10 +139,13 @@ export function InvoiceForm({ redirectTo = '/invoices' }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
+      toast.success('Invoice created');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Plus, Trash2, Factory, AlertTriangle, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,10 +42,12 @@ export function ProductionOrderForm({
 }) {
   const router = useRouter();
 
-  const producableProducts = useMemo(
-    () => products.filter((p) => p.canBeProduced || p.hasRecipe),
-    [products],
-  );
+  // Bug fix: previously gated on `canBeProduced || hasRecipe` but the
+  // canBeProduced flag has no UI to toggle, so users could never escape
+  // the "No producable products" empty state. Allow every non-archived
+  // product into the picker — the inline "(no recipe)" badge below stays
+  // as the soft warning when an active recipe isn't attached.
+  const producableProducts = useMemo(() => products, [products]);
 
   const [title, setTitle] = useState('');
   const [linkedOrderId, setLinkedOrderId] = useState('');
@@ -117,7 +120,9 @@ export function ProductionOrderForm({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to create production order');
+        const msg = body?.error || 'Failed to create production order';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
@@ -127,10 +132,13 @@ export function ProductionOrderForm({
           method: 'POST',
         }).catch(() => null);
       }
+      toast.success('Production order created');
       router.push(`/production/${body.data.order.id}`);
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }
@@ -144,11 +152,10 @@ export function ProductionOrderForm({
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
           <div className="flex items-center gap-2 font-semibold">
             <AlertTriangle size={14} />
-            No producable products
+            No products in your catalog yet
           </div>
           <p className="mt-1 text-xs">
-            Mark a product as <strong>Can be produced</strong> on its detail
-            page or attach an active recipe, then return here.
+            Add a product first, then return here to plan a batch.
           </p>
         </div>
       )}

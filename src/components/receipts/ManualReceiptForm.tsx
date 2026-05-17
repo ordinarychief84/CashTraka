@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import Link from 'next/link';
 import {
   Plus,
@@ -118,10 +119,13 @@ export function ManualReceiptForm({
         data?: { receiptId?: string; invoiceId?: string };
       };
       if (!res.ok) {
-        setError(json.error ?? 'Could not create receipt.');
+        const msg = json.error ?? 'Could not create receipt.';
+        setError(msg);
+        toast.error(msg);
         setSaving(false);
         return;
       }
+      toast.success('Receipt issued');
       const receiptId = json.data?.receiptId;
       if (receiptId) {
         startTransition(() => router.push(`/receipts/${receiptId}`));
@@ -130,6 +134,7 @@ export function ManualReceiptForm({
       }
     } catch {
       setError('Network error.');
+      toast.error('Network error.');
       setSaving(false);
     }
   }

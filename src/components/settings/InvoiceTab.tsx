@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Loader2, Save, Receipt } from 'lucide-react';
 
 type ReminderCadence =
@@ -74,7 +75,14 @@ export function InvoiceTab() {
         body: JSON.stringify(state),
       });
       const j = await res.json();
-      setMessage(res.ok ? 'Saved.' : j.error || 'Failed to save');
+      if (res.ok) {
+        setMessage('Saved.');
+        toast.success('Invoice settings saved');
+      } else {
+        const msg = j.error || 'Failed to save';
+        setMessage(msg);
+        toast.error(msg);
+      }
     } finally {
       setBusy(false);
     }

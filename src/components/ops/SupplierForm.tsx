@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 type Initial = {
   id?: string;
@@ -75,16 +76,21 @@ export function SupplierForm({ initial }: { initial?: Initial }) {
       );
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to save');
+        const msg = body?.error || 'Failed to save';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success(isEdit ? 'Supplier updated' : 'Supplier saved');
       router.push(
         isEdit ? `/suppliers/${initial!.id}` : `/suppliers/${body.data.id}`,
       );
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

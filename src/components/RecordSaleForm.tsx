@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
@@ -118,7 +119,13 @@ export function RecordSaleForm({ businessName }: { businessName?: string }) {
       };
       const res = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const json = await res.json();
-      if (!res.ok) { setError(json.error || 'Failed to record sale'); return; }
+      if (!res.ok) {
+        const msg = json.error || 'Failed to record sale';
+        setError(msg);
+        toast.error(msg);
+        return;
+      }
+      toast.success('Sale recorded');
       const receipt: ReceiptSaleData = {
         id: json.id, saleNumber: json.saleNumber,
         customerName: customerName.trim() || null, customerPhone: customerPhone.trim() || null, customerEmail: customerEmail.trim() || null,
@@ -127,7 +134,11 @@ export function RecordSaleForm({ businessName }: { businessName?: string }) {
         soldAt: new Date().toISOString(), businessName: businessName || 'CashTraka',
       };
       setCompletedSale(receipt);
-    } catch { setError('Something went wrong. Please try again.'); }
+    } catch {
+      const msg = 'Something went wrong. Please try again.';
+      setError(msg);
+      toast.error(msg);
+    }
     finally { setSubmitting(false); }
   }
 

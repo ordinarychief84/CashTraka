@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Store, Building2, Check, CheckCircle2, AlertCircle, MapPin } from "lucide-react";
 
 type Props = {
@@ -86,9 +87,12 @@ export function ProfileTab({ initial }: Props) {
       }
 
       setSaved(true);
+      toast.success('Profile updated');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

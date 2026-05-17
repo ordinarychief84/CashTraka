@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { BarcodeScanButton } from './BarcodeScanButton';
 
 type Initial = {
@@ -63,14 +64,19 @@ export function RawMaterialForm({
       );
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to save');
+        const msg = body?.error || 'Failed to save';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success(isEdit ? 'Material updated' : 'Material saved');
       router.push(isEdit ? `/materials/${initial!.id}` : `/materials/${body.data.id}`);
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

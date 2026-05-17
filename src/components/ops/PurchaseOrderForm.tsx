@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
 
 type SupplierOpt = { id: string; name: string };
@@ -88,14 +89,19 @@ export function PurchaseOrderForm({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success('Purchase order created');
       router.push(`/purchase-orders/${body.data.id}`);
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

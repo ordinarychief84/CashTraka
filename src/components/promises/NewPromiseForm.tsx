@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Copy, Send, CheckCircle } from 'lucide-react';
 import { ContactPickerButton } from '@/components/ContactPickerButton';
 import { waLink } from '@/lib/whatsapp';
@@ -33,12 +34,17 @@ export function NewPromiseForm() {
       });
       const json = await res.json();
       if (!json.success) {
-        setError(json.error || 'Failed to create promise');
+        const msg = json.error || 'Failed to create promise';
+        setError(msg);
+        toast.error(msg);
         return;
       }
       setCreated(json.data);
+      toast.success('Promise created');
     } catch {
-      setError('Something went wrong');
+      const msg = 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Plus, Trash2, ShieldCheck, Repeat2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -147,14 +148,19 @@ export function RecipeEditor({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to save');
+        const msg = body?.error || 'Failed to save';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success('Recipe saved');
       router.push(`/recipes`);
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

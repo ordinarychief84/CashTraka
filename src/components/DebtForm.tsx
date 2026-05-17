@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ContactPickerButton } from '@/components/ContactPickerButton';
 
 type Initial = {
@@ -47,11 +48,14 @@ export function DebtForm({ redirectTo = '/debts', onSuccess, initial }: Props) {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
+      toast.success(editing ? 'Debt updated' : 'Debt recorded');
       onSuccess?.();
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

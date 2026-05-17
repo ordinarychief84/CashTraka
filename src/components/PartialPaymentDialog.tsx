@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { formatNaira } from '@/lib/format';
 
@@ -42,10 +43,13 @@ export function PartialPaymentDialog({ open, onClose, debt }: Props) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not record');
+      toast.success(`Payment of ${formatNaira(n)} recorded`);
       onClose();
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }

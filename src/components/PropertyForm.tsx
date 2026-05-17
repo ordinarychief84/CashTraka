@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 type Props = {
   initial?: {
@@ -45,11 +46,14 @@ export function PropertyForm({ initial }: Props) {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Something went wrong');
+        const msg = data.error || 'Something went wrong';
+        setError(msg);
+        toast.error(msg);
         setSaving(false);
         return;
       }
 
+      toast.success(isEdit ? 'Property updated' : 'Property created');
       if (isEdit) {
         router.push(`/properties/${initial.id}`);
         router.refresh();
@@ -59,7 +63,9 @@ export function PropertyForm({ initial }: Props) {
         router.refresh();
       }
     } catch {
-      setError('Network error. Please try again.');
+      const msg = 'Network error. Please try again.';
+      setError(msg);
+      toast.error(msg);
       setSaving(false);
     }
   }

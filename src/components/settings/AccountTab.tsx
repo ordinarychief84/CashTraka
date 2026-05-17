@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Mail,
   Lock,
@@ -95,10 +96,13 @@ export function AccountTab({ initial, businessType }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not update email');
       setEmailMsg({ ok: true, text: 'Email updated successfully.' });
+      toast.success('Email updated');
       setNewEmail('');
       router.refresh();
     } catch (err) {
-      setEmailMsg({ ok: false, text: err instanceof Error ? err.message : 'Failed' });
+      const msg = err instanceof Error ? err.message : 'Failed';
+      setEmailMsg({ ok: false, text: msg });
+      toast.error(msg);
     } finally {
       setEmailSaving(false);
     }
@@ -125,11 +129,14 @@ export function AccountTab({ initial, businessType }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not change password');
       setPwMsg({ ok: true, text: 'Password changed successfully.' });
+      toast.success('Password changed');
       setCurrentPw('');
       setNewPw('');
       setConfirmPw('');
     } catch (err) {
-      setPwMsg({ ok: false, text: err instanceof Error ? err.message : 'Failed' });
+      const msg = err instanceof Error ? err.message : 'Failed';
+      setPwMsg({ ok: false, text: msg });
+      toast.error(msg);
     } finally {
       setPwSaving(false);
     }
@@ -156,9 +163,12 @@ export function AccountTab({ initial, businessType }: Props) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
       setBankMsg({ ok: true, text: 'Bank details saved.' });
+      toast.success('Bank details saved');
       router.refresh();
     } catch (err) {
-      setBankMsg({ ok: false, text: err instanceof Error ? err.message : 'Failed' });
+      const msg = err instanceof Error ? err.message : 'Failed';
+      setBankMsg({ ok: false, text: msg });
+      toast.error(msg);
     } finally {
       setBankSaving(false);
     }

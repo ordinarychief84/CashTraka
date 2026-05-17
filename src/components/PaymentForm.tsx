@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useRef, forwardRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Plus, Trash2, Package } from 'lucide-react';
 import { formatNaira } from '@/lib/format';
 import { ContactPickerButton } from '@/components/ContactPickerButton';
@@ -104,6 +105,7 @@ export function PaymentForm({
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
+      toast.success(editing ? 'Payment updated' : 'Payment saved');
       onSuccess?.();
       // If the save produced a PAID payment the API also auto-generated a
       // receipt. Hint the destination page to open the receipt dialog right
@@ -113,7 +115,9 @@ export function PaymentForm({
       router.push(redirectTo + opened);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

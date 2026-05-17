@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 type Props = {
   propertyId?: string;
@@ -58,11 +59,14 @@ export function TenantForm({ propertyId, properties, prefill, initial }: Props) 
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || 'Something went wrong');
+        const msg = data.error || 'Something went wrong';
+        setError(msg);
+        toast.error(msg);
         setSaving(false);
         return;
       }
 
+      toast.success(isEdit ? 'Tenant updated' : 'Tenant added');
       if (isEdit) {
         router.push(`/tenants/${initial.id}`);
         router.refresh();
@@ -72,7 +76,9 @@ export function TenantForm({ propertyId, properties, prefill, initial }: Props) 
         router.refresh();
       }
     } catch {
-      setError('Network error. Please try again.');
+      const msg = 'Network error. Please try again.';
+      setError(msg);
+      toast.error(msg);
       setSaving(false);
     }
   }

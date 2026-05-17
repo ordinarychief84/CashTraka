@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Briefcase,
   User,
@@ -314,10 +315,13 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Could not save');
+      toast.success(editing ? 'Expense updated' : 'Expense saved');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

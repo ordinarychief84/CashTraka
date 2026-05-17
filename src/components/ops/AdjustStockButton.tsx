@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export function AdjustStockButton({ materialId }: { materialId: string }) {
   const router = useRouter();
@@ -28,16 +29,21 @@ export function AdjustStockButton({ materialId }: { materialId: string }) {
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to adjust stock');
+        const msg = body?.error || 'Failed to adjust stock';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success(n > 0 ? `Added ${n} to stock` : `Removed ${Math.abs(n)} from stock`);
       setOpen(false);
       setDelta('');
       setNotes('');
       router.refresh();
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }

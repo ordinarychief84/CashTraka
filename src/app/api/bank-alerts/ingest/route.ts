@@ -157,24 +157,21 @@ async function createPaymentFromAlert(args: AlertPaymentArgs) {
   const customer = await resolveOrStubCustomer(args.userId, args.sender, args.passedCustomerId);
   const phoneSnapshot = customer.phone ? normalizeNigerianPhone(customer.phone) : '';
 
-  const payment = await prisma.payment.create({
-    data: {
-      userId: args.userId,
-      customerId: customer.id,
-      customerNameSnapshot: customer.name,
-      phoneSnapshot,
-      amount: Math.round(args.amountKobo / 100),
-      amountKobo: args.amountKobo,
-      status: 'PAID',
-      verified: false,
-      verificationMethod: 'BANK_ALERT_SMS',
-      bankAlertText: args.rawText,
-      bankAlertSenderName: args.sender,
-      bankAlertBank: args.bank,
-      referenceCode: args.reference,
-      parseSource: args.parseSource,
-    },
-    select: { id: true },
+  const payment = await createPaymentSchemaResilient({
+    userId: args.userId,
+    customerId: customer.id,
+    customerNameSnapshot: customer.name,
+    phoneSnapshot,
+    amount: Math.round(args.amountKobo / 100),
+    amountKobo: args.amountKobo,
+    status: 'PAID',
+    verified: false,
+    verificationMethod: 'BANK_ALERT_SMS',
+    bankAlertText: args.rawText,
+    bankAlertSenderName: args.sender,
+    bankAlertBank: args.bank,
+    referenceCode: args.reference,
+    parseSource: args.parseSource,
   });
 
   return ok({
@@ -205,25 +202,22 @@ async function createManualPayment(args: ManualPaymentArgs) {
   const customer = await resolveOrStubCustomer(args.userId, args.sender, args.passedCustomerId);
   const phoneSnapshot = customer.phone ? normalizeNigerianPhone(customer.phone) : '';
 
-  const payment = await prisma.payment.create({
-    data: {
-      userId: args.userId,
-      customerId: customer.id,
-      customerNameSnapshot: customer.name,
-      phoneSnapshot,
-      amount: Math.round(args.amountKobo / 100),
-      amountKobo: args.amountKobo,
-      status: 'PAID',
-      verified: false,
-      verificationMethod: 'BANK_ALERT_SMS',
-      bankAlertText: args.rawText || null,
-      bankAlertSenderName: args.sender,
-      bankAlertBank: 'Manual entry',
-      referenceCode: null,
-      parseSource: args.parseSource,
-      ...(createdAt ? { createdAt } : {}),
-    },
-    select: { id: true },
+  const payment = await createPaymentSchemaResilient({
+    userId: args.userId,
+    customerId: customer.id,
+    customerNameSnapshot: customer.name,
+    phoneSnapshot,
+    amount: Math.round(args.amountKobo / 100),
+    amountKobo: args.amountKobo,
+    status: 'PAID',
+    verified: false,
+    verificationMethod: 'BANK_ALERT_SMS',
+    bankAlertText: args.rawText || null,
+    bankAlertSenderName: args.sender,
+    bankAlertBank: 'Manual entry',
+    referenceCode: null,
+    parseSource: args.parseSource,
+    ...(createdAt ? { createdAt } : {}),
   });
 
   return ok({
@@ -231,6 +225,36 @@ async function createManualPayment(args: ManualPaymentArgs) {
     parseSource: args.parseSource,
     matchedCustomer: { id: customer.id, name: customer.name },
   });
+}
+
+/**
+ * Try to create the Payment WITH parseSource; if the live DB doesn't
+ * have that column yet (P2022 — migration not run), retry without it.
+ * Either way the Payment lands and the user flow continues; once
+ * /api/migrate runs the column starts persisting on subsequent inserts.
+ */
+async function createPaymentSchemaResilient(
+  data: Parameters<typeof prisma.payment.create>[0]['data'],
+): Promise<{ id: string }> {
+  try {
+    return await prisma.payment.create({ data, select: { id: true } });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('parseSource') || msg.includes('P2022')) {
+      console.warn(
+        '[bank-alerts.ingest] Payment.parseSource column missing; inserting without it',
+      );
+      const { parseSource: _drop, ...rest } = data as Record<string, unknown> & {
+        parseSource?: string;
+      };
+      void _drop;
+      return await prisma.payment.create({
+        data: rest as Parameters<typeof prisma.payment.create>[0]['data'],
+        select: { id: true },
+      });
+    }
+    throw err;
+  }
 }
 
 function safeParseDate(iso: string): Date | null {

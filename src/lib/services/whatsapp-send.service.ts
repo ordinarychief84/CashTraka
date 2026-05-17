@@ -9,7 +9,13 @@ import { prisma } from '@/lib/prisma';
  * "sent" timestamp.
  */
 export const whatsappSendService = {
-  /** Latest sent timestamp for one (user, entity, touchpoint). */
+  /** Latest sent timestamp for one (user, entity, touchpoint).
+   *
+   *  Wrapped in try/catch so pages that hydrate from this never 500 just
+   *  because the WhatsAppSendLog table hasn't been migrated yet. The
+   *  send-confirmation UI degrades to "not yet sent" — exactly what the
+   *  app would show without any prior send. Errors are logged once so
+   *  ops still sees them. */
   async latestSentAt(
     userId: string,
     entityId: string,
@@ -19,12 +25,20 @@ export const whatsappSendService = {
       | 'invoice_issued'
       | 'payment_received',
   ): Promise<Date | null> {
-    const row = await prisma.whatsAppSendLog.findFirst({
-      where: { userId, entityId, touchpointType },
-      orderBy: { sentAt: 'desc' },
-      select: { sentAt: true },
-    });
-    return row?.sentAt ?? null;
+    try {
+      const row = await prisma.whatsAppSendLog.findFirst({
+        where: { userId, entityId, touchpointType },
+        orderBy: { sentAt: 'desc' },
+        select: { sentAt: true },
+      });
+      return row?.sentAt ?? null;
+    } catch (err) {
+      console.warn(
+        '[whatsappSend.latestSentAt] read failed (table missing? migrate not run?)',
+        err instanceof Error ? err.message : err,
+      );
+      return null;
+    }
   },
 
   /**
@@ -50,10 +64,24 @@ export const whatsappSendService = {
     // Pull entity IDs that already have at least one send-log row, then
     // count entities without one. Cheaper than per-entity joins for the
     // dashboard refresh path.
-    const sentLogs = await prisma.whatsAppSendLog.findMany({
-      where: { userId },
-      select: { entityId: true, touchpointType: true },
-    });
+    //
+    // If the WhatsAppSendLog table doesn't exist yet (migration not run),
+    // treat as "no sends recorded" so the dashboard rail still renders.
+    // The whole method then returns a zero-total which hides the rail —
+    // exactly what we want during a degraded state.
+    let sentLogs: { entityId: string; touchpointType: string }[];
+    try {
+      sentLogs = await prisma.whatsAppSendLog.findMany({
+        where: { userId },
+        select: { entityId: true, touchpointType: true },
+      });
+    } catch (err) {
+      console.warn(
+        '[whatsappSend.unsentCounts] read failed (table missing? migrate not run?)',
+        err instanceof Error ? err.message : err,
+      );
+      return { orderConfirmed: 0, productionDone: 0, invoiceIssued: 0, paymentReceived: 0, total: 0 };
+    }
     const sentSet = new Set(sentLogs.map((l) => `${l.touchpointType}:${l.entityId}`));
 
     const [orders, production, invoices] = await Promise.all([

@@ -59,7 +59,11 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
   const batchCostFeature = hasFeature(user, 'batchCostIntelligence');
   let initialBatchCost: React.ComponentProps<typeof BatchCostPanel>['initial'] = null;
   if (order.status === 'COMPLETED' && batchCostFeature) {
-    const [costRow, lineRows] = await Promise.all([
+    // Wrapped in try/catch so the page never 500s just because the
+    // Batch Cost schema hasn't been migrated yet. When the table /
+    // columns are missing we render the loading state and let the
+    // client poll — once /api/migrate runs the panel hydrates.
+    const batchCostResult = await Promise.all([
       prisma.productionOrder.findUnique({
         where: { id: order.id },
         select: {
@@ -79,7 +83,15 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
         where: { productionOrderId: order.id, userId: user.id },
         orderBy: { createdAt: 'asc' },
       }),
-    ]);
+    ]).catch((err) => {
+      console.warn(
+        '[production.detail] batch-cost read failed (schema not migrated?)',
+        err instanceof Error ? err.message : err,
+      );
+      return null;
+    });
+    const costRow = batchCostResult?.[0] ?? null;
+    const lineRows = batchCostResult?.[1] ?? [];
     if (costRow && costRow.batchCostCalculatedAt) {
       initialBatchCost = {
         materialCostKobo: costRow.materialCostKobo ?? 0,

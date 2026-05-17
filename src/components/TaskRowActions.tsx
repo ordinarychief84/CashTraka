@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Check, RotateCcw, Pencil, Trash2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 
@@ -17,11 +18,17 @@ export function TaskRowActions({ id, status }: Props) {
   async function updateStatus(newStatus: string) {
     setBusy(true);
     try {
-      await fetch(`/api/tasks/${id}`, {
+      const res = await fetch(`/api/tasks/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
+      if (res.ok) {
+        toast.success(newStatus === 'done' ? 'Task marked done' : 'Task reopened');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not update');
+      }
       router.refresh();
     } finally {
       setBusy(false);
@@ -58,7 +65,13 @@ export function TaskRowActions({ id, status }: Props) {
     danger: true,
     onClick: async () => {
       if (!confirm('Delete this task? This cannot be undone.')) return;
-      await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Task deleted');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not delete');
+      }
       router.refresh();
     },
   });

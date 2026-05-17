@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Banknote, MessageCircle, Pencil, Trash2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 import { RentPaymentDialog } from './RentPaymentDialog';
@@ -54,7 +55,13 @@ export function TenantRowActions({
       onClick: async () => {
         if (!confirm(`Delete ${tenantName}? This cannot be undone.`)) return;
         setDeleting(true);
-        await fetch(`/api/tenants/${tenantId}`, { method: 'DELETE' });
+        const res = await fetch(`/api/tenants/${tenantId}`, { method: 'DELETE' });
+        if (res.ok) {
+          toast.success('Tenant deleted');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not delete');
+        }
         router.refresh();
       },
     },

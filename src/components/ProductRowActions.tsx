@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Pencil, Trash2, Plus, Minus } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 
@@ -17,11 +18,17 @@ export function ProductRowActions({ id, trackStock }: Props) {
   async function bumpStock(delta: number) {
     setBusy(true);
     try {
-      await fetch(`/api/products/${id}`, {
+      const res = await fetch(`/api/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stockDelta: delta }),
       });
+      if (res.ok) {
+        toast.success(delta > 0 ? 'Stock +1' : 'Stock -1');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not adjust stock');
+      }
       router.refresh();
     } finally {
       setBusy(false);
@@ -54,7 +61,13 @@ export function ProductRowActions({ id, trackStock }: Props) {
     danger: true,
     onClick: async () => {
       if (!confirm('Archive this product? Past sales keep their records.')) return;
-      await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Product archived');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not archive');
+      }
       router.refresh();
     },
   });

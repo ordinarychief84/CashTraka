@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { MoreVertical, Copy, Send, Eye, XCircle, Bell } from 'lucide-react';
 import { waLink } from '@/lib/whatsapp';
 
@@ -28,6 +29,7 @@ export function PromiseActions({ promise, businessName }: Props) {
   function copyLink() {
     navigator.clipboard.writeText(link);
     setCopied(true);
+    toast.success('Link copied');
     setTimeout(() => setCopied(false), 2000);
     setOpen(false);
   }
@@ -48,7 +50,13 @@ export function PromiseActions({ promise, businessName }: Props) {
 
   async function cancelPromise() {
     if (!confirm('Cancel this promise? The link will stop working.')) return;
-    await fetch(`/api/promises/${promise.id}/cancel`, { method: 'POST' });
+    const res = await fetch(`/api/promises/${promise.id}/cancel`, { method: 'POST' });
+    if (res.ok) {
+      toast.success('Promise cancelled');
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast.error(data?.error || 'Could not cancel');
+    }
     setOpen(false);
     window.location.reload();
   }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { ExternalLink, Send } from 'lucide-react';
 
 type Item = {
@@ -39,11 +40,14 @@ export function PurchaseOrderActions({
       const res = await fetch(`/api/purchase-orders/${orderId}/send`, { method: 'POST' });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         return;
       }
       setWhatsappLink(body.data.whatsappLink ?? null);
       setEmailResult(body.data.emailResult ?? null);
+      toast.success('PO sent to supplier');
       router.refresh();
     } finally {
       setBusy(null);
@@ -68,9 +72,12 @@ export function PurchaseOrderActions({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         return;
       }
+      toast.success('Goods received — stock updated');
       setShowReceive(false);
       router.refresh();
     } finally {
@@ -89,9 +96,12 @@ export function PurchaseOrderActions({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed');
+        const msg = body?.error || 'Failed';
+        setError(msg);
+        toast.error(msg);
         return;
       }
+      toast.success('PO cancelled');
       router.refresh();
     } finally {
       setBusy(null);

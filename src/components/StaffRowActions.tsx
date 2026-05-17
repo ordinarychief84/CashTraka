@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Banknote, Pencil, Trash2, UserMinus, Send, Shield } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 import { StaffPayDialog } from './StaffPayDialog';
@@ -70,7 +71,13 @@ export function StaffRowActions({
     danger: true,
     onClick: async () => {
       if (!confirm(`Remove ${staff.name} from your team? Their history stays.`)) return;
-      await fetch(`/api/team/${staff.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/team/${staff.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success(`${staff.name} removed from team`);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not remove');
+      }
       router.refresh();
     },
   });

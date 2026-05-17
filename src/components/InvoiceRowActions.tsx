@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Send, Eye, Check, XCircle, Trash2, Link2 } from 'lucide-react';
 import { RowMenu, type RowMenuAction } from './RowMenu';
 
@@ -40,9 +41,9 @@ export function InvoiceRowActions({
         try {
           const url = `${window.location.origin}/invoice/${publicToken}`;
           await navigator.clipboard.writeText(url);
-          alert('Public link copied to clipboard');
+          toast.success('Link copied');
         } catch {
-          alert('Could not copy. Long-press to copy from the address bar.');
+          toast.error('Could not copy. Long-press to copy from the address bar.');
         }
       },
     });
@@ -74,20 +75,20 @@ export function InvoiceRowActions({
             error?: string;
           };
           if (!res.ok || !json.data) {
-            alert(json.error || 'Could not send invoice.');
+            toast.error(json.error || 'Could not send invoice.');
             return;
           }
           if (json.data.email && !json.data.email.ok) {
-            alert(`Email: ${json.data.email.error ?? 'failed'}`);
+            toast.error(`Email: ${json.data.email.error ?? 'failed'}`);
           } else if (json.data.email?.ok) {
-            // Fire and forget — silent success on email.
+            toast.success('Invoice sent');
           }
           if (json.data.waLink) {
             window.open(json.data.waLink, '_blank');
           }
           router.refresh();
         } catch {
-          alert('Network error. Please try again.');
+          toast.error('Network error. Please try again.');
         }
       },
     });
@@ -98,11 +99,17 @@ export function InvoiceRowActions({
       label: 'Mark as paid',
       icon: <Check size={16} />,
       onClick: async () => {
-        await fetch(`/api/invoices/${id}`, {
+        const res = await fetch(`/api/invoices/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'PAID' }),
         });
+        if (res.ok) {
+          toast.success('Invoice marked paid');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not update');
+        }
         router.refresh();
       },
     });
@@ -115,11 +122,17 @@ export function InvoiceRowActions({
       danger: true,
       onClick: async () => {
         if (!confirm('Cancel this invoice?')) return;
-        await fetch(`/api/invoices/${id}`, {
+        const res = await fetch(`/api/invoices/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'CANCELLED' }),
         });
+        if (res.ok) {
+          toast.success('Invoice cancelled');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast.error(data?.error || 'Could not cancel');
+        }
         router.refresh();
       },
     });
@@ -131,7 +144,13 @@ export function InvoiceRowActions({
     danger: true,
     onClick: async () => {
       if (!confirm('Delete this invoice permanently?')) return;
-      await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/invoices/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success('Invoice deleted');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data?.error || 'Could not delete');
+      }
       router.refresh();
     },
   });

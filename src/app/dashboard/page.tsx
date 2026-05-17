@@ -35,6 +35,7 @@ import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
 import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
 import { NotYetNotifiedRail } from '@/components/dashboard/NotYetNotifiedRail';
 import { DashboardGreeting } from '@/components/dashboard/DashboardGreeting';
+import { DashboardSectionHeading } from '@/components/dashboard/DashboardSectionHeading';
 import { ProductionOverviewCard } from '@/components/dashboard/ProductionOverviewCard';
 import { MaterialShortageAlertsCard } from '@/components/dashboard/MaterialShortageAlertsCard';
 import { LeadTimeAlertsCard } from '@/components/ops/LeadTimeAlertsCard';
@@ -525,37 +526,46 @@ export default async function DashboardPage() {
           {/* Empty-catalog onboarding nudge */}
           {catalogIsEmpty && <TemplateQuickStart />}
 
-          {/* 6 KPI cards */}
+          {/* ─────────── SECTION 1 · AT A GLANCE ─────────── */}
+          {/* The six top-line KPIs plus the amber "not yet notified"
+              rail. No section heading on this one — it's the page hero
+              so the cards stand on their own. */}
           <HeroKpiCards6 userId={user.id} />
-
-          {/* Decision 5 — customers awaiting WhatsApp confirmation */}
-          <div className="mb-6">
+          <div className="mb-8">
             <NotYetNotifiedRail userId={user.id} />
           </div>
 
-          {/* Row 1: Production Overview + Lead-time Alerts + Daily Action List */}
-          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+          {/* ─────────── SECTION 2 · OPERATIONS TODAY ─────────── */}
+          <DashboardSectionHeading
+            title="Operations today"
+            subtitle="What needs to happen on the floor right now"
+          />
+          <div className="mb-3 grid gap-3 lg:grid-cols-3">
             <ProductionOverviewCard userId={user.id} />
             <LeadTimeAlertsCard userId={user.id} limit={4} />
             <DailyActionListCard userId={user.id} />
           </div>
-
-          {/* Existing severity-tiered shortage list — kept below the new
-              lead-time view so the operator can still resolve / ignore rows
-              from the same surface they used yesterday. */}
-          <div className="mb-6">
+          <div className="mb-8">
             <MaterialShortageAlertsCard userId={user.id} />
           </div>
 
-          {/* Row 2: Recent Orders + Recent Production + Inventory Summary */}
-          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+          {/* ─────────── SECTION 3 · RECENT ACTIVITY ─────────── */}
+          <DashboardSectionHeading
+            title="Recent activity"
+            subtitle="Latest orders, production runs and stock movements"
+          />
+          <div className="mb-8 grid gap-3 lg:grid-cols-3">
             <RecentOrdersCard userId={user.id} />
             <RecentProductionCard userId={user.id} />
             <InventorySummaryCard userId={user.id} />
           </div>
 
-          {/* Row 3: Cash Flow Overview (2/3) + Recent Activities (1/3) */}
-          <div className="mb-6 grid gap-3 lg:grid-cols-3">
+          {/* ─────────── SECTION 4 · CASH FLOW ─────────── */}
+          <DashboardSectionHeading
+            title="Cash flow"
+            subtitle="Money in vs. money out, plus the latest entries"
+          />
+          <div className="mb-8 grid gap-3 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <CashFlowOverviewCard userId={user.id} />
             </div>

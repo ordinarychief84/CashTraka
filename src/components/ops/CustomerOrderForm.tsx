@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
@@ -181,10 +182,13 @@ export function CustomerOrderForm({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        setError(body?.error || 'Failed to create order');
+        const msg = body?.error || 'Failed to create order';
+        setError(msg);
+        toast.error(msg);
         setSubmitting(false);
         return;
       }
+      toast.success('Order saved');
       if (stay) {
         // Reset for next order — keep customer fields, clear items.
         setItems([{ productId: '', description: '', quantity: 1, unitPriceNaira: 0 }]);
@@ -198,7 +202,9 @@ export function CustomerOrderForm({
         router.refresh();
       }
     } catch (e: any) {
-      setError(e?.message ?? 'Network error');
+      const msg = e?.message ?? 'Network error';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

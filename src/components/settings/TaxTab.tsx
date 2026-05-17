@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import {
   Check,
   Loader2,
@@ -67,12 +68,16 @@ export function TaxTab({ initial }: Props) {
       });
       const json = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setMessage({ tone: 'err', text: json.error ?? 'Could not save.' });
+        const msg = json.error ?? 'Could not save.';
+        setMessage({ tone: 'err', text: msg });
+        toast.error(msg);
       } else {
         setMessage({ tone: 'ok', text: 'Tax settings saved.' });
+        toast.success('Tax settings saved');
       }
     } catch {
       setMessage({ tone: 'err', text: 'Network error. Try again.' });
+      toast.error('Network error. Try again.');
     } finally {
       setSaving(false);
     }

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { Info, BookOpen, Factory } from 'lucide-react';
 import { ImageUploader } from '@/components/showroom/ImageUploader';
 import { cn } from '@/lib/utils';
@@ -122,10 +123,13 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
           body: JSON.stringify({ archived: !active }),
         });
       }
+      toast.success(initial?.id ? 'Product updated' : 'Product saved');
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   }

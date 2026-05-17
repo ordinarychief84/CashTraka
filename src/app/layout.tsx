@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Toaster } from 'sonner';
 import './globals.css';
 import { RegisterSW } from '@/components/RegisterSW';
 import { ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
@@ -93,6 +94,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             so it can't be bypassed by client-side state. */}
         <ImpersonationBanner />
         {children}
+        {/* Global toast container — every form's save callback can call
+            `toast.success(...)` / `toast.error(...)` to surface feedback
+            without writing per-page snackbar plumbing. */}
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{ duration: 3500 }}
+        />
         <RegisterSW />
       </body>
     </html>

@@ -16,6 +16,7 @@ import { documentAudit } from '@/lib/services/document-audit.service';
 import { nairaToKobo } from '@/lib/money';
 import { creditLimitService } from '@/lib/services/credit-limit.service';
 import { ServiceError } from '@/lib/errors';
+import { handled } from '@/lib/api-response';
 
 /**
  * GET /api/invoices?q=
@@ -26,34 +27,36 @@ import { ServiceError } from '@/lib/errors';
  * the most recent 10 invoices.
  */
 export async function GET(req: Request) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return handled(async () => {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const url = new URL(req.url);
-  const q = (url.searchParams.get('q') || '').trim();
+    const url = new URL(req.url);
+    const q = (url.searchParams.get('q') || '').trim();
 
-  const where: Record<string, unknown> = { userId: user.id };
-  if (q) {
-    where.OR = [
-      { invoiceNumber: { contains: q, mode: 'insensitive' } },
-      { customerName: { contains: q, mode: 'insensitive' } },
-    ];
-  }
+    const where: Record<string, unknown> = { userId: user.id };
+    if (q) {
+      where.OR = [
+        { invoiceNumber: { contains: q, mode: 'insensitive' } },
+        { customerName: { contains: q, mode: 'insensitive' } },
+      ];
+    }
 
-  const rows = await prisma.invoice.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    select: {
-      id: true,
-      invoiceNumber: true,
-      customerName: true,
-      total: true,
-      status: true,
-      createdAt: true,
-    },
+    const rows = await prisma.invoice.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        invoiceNumber: true,
+        customerName: true,
+        total: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+    return NextResponse.json({ data: rows });
   });
-  return NextResponse.json({ data: rows });
 }
 
 const itemSchema = z.object({
@@ -86,6 +89,7 @@ const invoiceSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -260,4 +264,5 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ id: invoice.id, invoiceNumber, publicToken });
+  });
 }

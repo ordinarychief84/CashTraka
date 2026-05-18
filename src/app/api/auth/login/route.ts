@@ -8,7 +8,7 @@ import {
 } from '@/lib/auth';
 import { SignJWT } from 'jose';
 import { loginSchema } from '@/lib/validators';
-import { ok, fail, unauthorized, forbidden, validationFail } from '@/lib/api-response';
+import { ok, fail, unauthorized, forbidden, validationFail, handled } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { securityLog } from '@/lib/security-log';
 
@@ -48,7 +48,7 @@ function isMobileClient(req: Request): boolean {
  * them apart server-side in tests.
  */
 export async function POST(req: Request) {
-  try {
+  return handled(async () => {
     // Rate limit — 10 attempts per IP per 10 minutes blocks online credential
     // stuffing without hurting legit users who mistyped their password.
     const ip = clientIp(req);
@@ -175,8 +175,5 @@ export async function POST(req: Request) {
 
     securityLog({ event: 'LOGIN_FAILED', ip, meta: { email: email.toLowerCase() } });
     return unauthorized('Invalid email or password');
-  } catch (e) {
-    if (process.env.NODE_ENV !== 'production') console.error(e);
-    return fail('Server error', 500);
-  }
+  });
 }

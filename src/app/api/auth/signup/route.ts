@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, setSessionCookie } from '@/lib/auth';
 import { signupSchema } from '@/lib/validators';
-import { ok, fail, validationFail } from '@/lib/api-response';
+import { ok, fail, validationFail, handled } from '@/lib/api-response';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
 import { isWeakPassword, checkPasswordComplexity } from '@/lib/password-policy';
 import { emailService } from '@/lib/services/email.service';
@@ -27,7 +27,7 @@ function generateOtp(): string {
 }
 
 export async function POST(req: Request) {
-  try {
+  return handled(async () => {
     // Rate limit — 5 new accounts per IP per hour
     const ip = clientIp(req);
     const limited = await rateLimit('signup', ip, { max: 5, windowMs: 60 * 60_000 });
@@ -143,8 +143,5 @@ export async function POST(req: Request) {
       requiresVerification: true,
       emailSent: emailResult.ok,
     });
-  } catch (e) {
-    console.error('SIGNUP_ERROR:', e instanceof Error ? e.message : 'unknown');
-    return fail('Server error', 500);
-  }
+  });
 }

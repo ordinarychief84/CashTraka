@@ -28,6 +28,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -131,18 +132,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     ...(autoReceiptPaymentId ? { receiptUrl: `/r/${autoReceiptPaymentId}` } : {}),
     ...(receiptId ? { receiptId, receiptNumber } : {}),
   });
+  });
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return handled(async () => {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const debt = await prisma.debt.findFirst({
-    where: { id: params.id, userId: user.id },
+    const debt = await prisma.debt.findFirst({
+      where: { id: params.id, userId: user.id },
+    });
+    if (!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    await prisma.debt.delete({ where: { id: debt.id } });
+    await recomputeCustomerTotals(debt.customerId);
+    return NextResponse.json({ ok: true });
   });
-  if (!debt) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-
-  await prisma.debt.delete({ where: { id: debt.id } });
-  await recomputeCustomerTotals(debt.customerId);
-  return NextResponse.json({ ok: true });
 }

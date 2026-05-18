@@ -32,7 +32,7 @@ import { GlobalSearch } from './GlobalSearch';
 import { UpgradeBanner } from './UpgradeBanner';
 import { SideLink } from './SideLink';
 import { NotificationsBell } from './NotificationsBell';
-import { SidebarBusinessPlan } from './dashboard/SidebarBusinessPlan';
+import { SidebarBusinessPlanContainer } from './dashboard/SidebarBusinessPlanContainer';
 import { TopBarDateRange } from './dashboard/TopBarDateRange';
 import { TopBarUserPill } from './dashboard/TopBarUserPill';
 import { can, type AccessRole, ROLE_LABELS } from '@/lib/rbac';
@@ -139,15 +139,12 @@ export function AppShell({
 
         {/* Bottom: Business Plan card — replaces the inline logout
             (now moved into the top-bar user pill dropdown). Top divider
-            visually separates the plan card from the nav above. */}
+            visually separates the plan card from the nav above.
+            Container fetches the principal's REAL plan + team count;
+            see SidebarBusinessPlanContainer for the data plumbing that
+            replaced the earlier hardcoded placeholders. */}
         <div className="border-t border-border/60">
-          <SidebarBusinessPlan
-            planLabel={planLabel ?? 'Business Plan'}
-            isActive
-            teamUsed={8}
-            teamMax={20}
-            storagePct={65}
-          />
+          <SidebarBusinessPlanContainer />
         </div>
       </aside>
 

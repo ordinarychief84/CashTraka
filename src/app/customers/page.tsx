@@ -106,9 +106,15 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
             <BarChart3 size={14} />
             Reports
           </Link>
+          {/* Customers are created implicitly via `upsertCustomer` when
+              the first transaction (payment / debt / invoice) lands.
+              There's no dedicated "Add Customer" form yet, so this
+              button routes to the highest-frequency creator (record
+              payment). Label reflects that so users aren't confused
+              when they don't see a customer form. */}
           <Link href="/payments/new" className="btn-pill-primary">
             <Plus size={14} />
-            New Customer
+            Record payment
           </Link>
         </div>
       </div>

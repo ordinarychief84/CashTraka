@@ -223,7 +223,10 @@ function QuickActionsCard() {
     href: string;
     tone: 'brand' | 'success' | 'owed' | 'rose';
   }[] = [
-    { Icon: Plus, label: 'Add Customer', href: '/customers/new', tone: 'brand' },
+    // Customers are auto-upserted from transactions, so the entrypoint
+    // is "record payment" rather than a standalone customer form (which
+    // doesn't exist). Earlier this linked to `/customers/new` which 404'd.
+    { Icon: Plus, label: 'Record payment', href: '/payments/new', tone: 'brand' },
     { Icon: BarChart3, label: 'Customer Ledger', href: '/reports', tone: 'success' },
     { Icon: Send, label: 'Sales Report', href: '/reports', tone: 'owed' },
     { Icon: Download, label: 'Export Customers', href: '/api/export/customers', tone: 'rose' },

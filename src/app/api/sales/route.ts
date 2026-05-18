@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { recordSaleSchema } from '@/lib/validators';
 import { emailService } from '@/lib/services/email.service';
 import { nairaToKobo } from '@/lib/money';
+import { handled } from '@/lib/api-response';
 
 /** Generate next sale number like SLE-00042 */
 async function nextSaleNumber(userId: string): Promise<string> {
@@ -12,6 +13,7 @@ async function nextSaleNumber(userId: string): Promise<string> {
 }
 
 export async function GET(req: Request) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -61,9 +63,11 @@ export async function GET(req: Request) {
   });
 
   return NextResponse.json(sales);
+  });
 }
 
 export async function POST(req: Request) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -183,4 +187,5 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json({ id: sale.id, saleNumber: sale.saleNumber, total: sale.total });
+  });
 }

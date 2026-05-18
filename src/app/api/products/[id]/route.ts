@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { productSchema } from '@/lib/validators';
 import { nairaToKobo } from '@/lib/money';
+import { handled } from '@/lib/api-response';
 
 const patchSchema = productSchema.partial().extend({
   archived: z.coerce.boolean().optional(),
@@ -11,6 +12,7 @@ const patchSchema = productSchema.partial().extend({
 });
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -77,21 +79,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   });
 
   return NextResponse.json({ ok: true });
+  });
 }
 
 export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return handled(async () => {
+    const user = await getCurrentUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const product = await prisma.product.findFirst({
-    where: { id: params.id, userId: user.id },
-  });
-  if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const product = await prisma.product.findFirst({
+      where: { id: params.id, userId: user.id },
+    });
+    if (!product) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  // Soft delete by archiving — preserves line-item history.
-  await prisma.product.update({
-    where: { id: product.id },
-    data: { archived: true },
+    // Soft delete by archiving — preserves line-item history.
+    await prisma.product.update({
+      where: { id: product.id },
+      data: { archived: true },
+    });
+    return NextResponse.json({ ok: true });
   });
-  return NextResponse.json({ ok: true });
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { isPropertyManager } from '@/lib/business-type';
+import { handled } from '@/lib/api-response';
 
 export const runtime = 'nodejs';
 
@@ -123,6 +124,7 @@ async function aggregateForPeriod(userId: string, start: Date, end: Date, _isPm:
  * GET /api/reports/pnl?period=this_month&from=&to=
  */
 export async function GET(req: Request) {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -196,5 +198,6 @@ export async function GET(req: Request) {
       outstandingDebts: debtsOwed,
       debtCount: outstandingDebts._count,
     },
+  });
   });
 }

@@ -23,7 +23,11 @@ type PlanCard = {
 const PLANS: PlanCard[] = [
   {
     id: 'free',
-    label: 'Starter',
+    // Stay aligned with `PLAN_LABELS['free']` and the sidebar plan card.
+    // Earlier this card showed "Starter" while the header pill said
+    // "Free" on the same screen — confusing.  "Starter" is reserved
+    // for the paid starter_* tiers in `PLAN_LABELS`.
+    label: 'Free',
     priceLabel: '₦0',
     priceSub: '/month · always free',
     features: [

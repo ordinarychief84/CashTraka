@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { handled } from '@/lib/api-response';
 
 export async function GET() {
+  return handled(async () => {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -32,5 +34,6 @@ export async function GET() {
     tenants: 0,
     latestProperty: null,
     latestTenant: null,
+  });
   });
 }

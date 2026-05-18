@@ -3,13 +3,14 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { rateLimit, clientIp } from '@/lib/rate-limit';
+import { handled } from '@/lib/api-response';
 
 function sha256(input: string): string {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
 export async function POST(req: Request) {
-  try {
+  return handled(async () => {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
@@ -87,8 +88,5 @@ export async function POST(req: Request) {
     ]);
 
     return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error('VERIFY_OTP_ERROR:', e instanceof Error ? e.message : 'unknown');
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+  });
 }

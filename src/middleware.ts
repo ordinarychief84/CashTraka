@@ -82,7 +82,7 @@ const MAX_BODY_BYTES = 1_048_576; // 1 MB
  * handler, so we skip the global body-size check for them.
  */
 const LARGE_BODY_PREFIXES = [
-  '/api/showroom/upload', // catalog + album image upload, 5 MB × 8 = 40 MB
+  '/api/uploads/image',   // product image upload, 5 MB × 8 = 40 MB
   '/api/settings/logo',   // logo upload, 2 MB
 ];
 
@@ -99,7 +99,6 @@ const PROTECTED_PREFIXES = [
   '/expenses',
   '/products',
   '/sales',
-  '/showroom',
   '/receipts',
   '/reports',
   '/templates',
@@ -164,10 +163,6 @@ const CSRF_EXEMPT_PREFIXES = [
   '/api/payments/claim/',
   '/api/pay/',
   '/api/cron/',
-  // Public storefront — unauthenticated browsers click "Order on WhatsApp"
-  // and POST to /api/store/[slug]/order. Per-IP rate limit lives inside the
-  // route handler (CATALOG_LIMITS.ORDER_RATE_PER_MIN, default 30/min).
-  '/api/store/',
   // One-shot maintenance endpoints called server-to-server with CRON_SECRET.
   '/api/cleanup-broken-uploads',
   '/api/migrate',

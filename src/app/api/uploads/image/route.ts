@@ -14,11 +14,14 @@ const ALLOWED = new Set([
 ]);
 
 /**
- * POST /api/showroom/upload, multipart/form-data, field "files" (one or many).
+ * POST /api/uploads/image, multipart/form-data, field "files" (one or many).
  *
  * Streams each image to Uploadcare and returns the hosted URLs in the same
- * order they were submitted. Used by the catalog (product images) and the
- * album editor (cover image).
+ * order they were submitted. Used by `ProductForm` for product photos.
+ *
+ * (Previously lived at /api/showroom/upload — moved here when the
+ * Storefront/Showroom features were retired. The route itself is a
+ * generic image upload, not storefront-specific.)
  *
  * Why server-side instead of direct browser → Uploadcare:
  *   - Keeps UPLOADCARE_PUBLIC_KEY off the client (one less surface).

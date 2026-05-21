@@ -145,7 +145,9 @@ export function MoreSheet({
     { icon: Bell, href: '/follow-up', label: 'Alerts' },
     { icon: ClipboardList, href: '/tasks', label: 'Tasks' },
     { icon: HelpCircle, href: '/contact', label: 'Help' },
-    { icon: ShoppingBag, href: '/showroom', label: 'Storefront' },
+    // 'Storefront → /showroom' link removed: the public catalog +
+    // Showroom admin were retired as out-of-scope for a back-office
+    // production-planning tool.
     { icon: UserCircle2, href: '/settings', label: 'Profile' },
   ];
 

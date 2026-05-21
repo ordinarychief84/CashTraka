@@ -26,14 +26,6 @@ export default async function SettingsPage() {
     bankAccountName: user.bankAccountName || '',
   };
 
-  const initialStorefront = {
-    slug: user.slug || '',
-    catalogEnabled: !!user.catalogEnabled,
-    catalogTagline: user.catalogTagline || '',
-    receiptPrefix: user.receiptPrefix || 'CT',
-    appUrl: process.env.APP_URL || '',
-  };
-
   const initialTax = {
     tin: user.tin || '',
     vatRegistered: !!user.vatRegistered,
@@ -54,7 +46,6 @@ export default async function SettingsPage() {
         <SettingsShell
           initialProfile={initialProfile}
           initialAccount={initialAccount}
-          initialStorefront={initialStorefront}
           initialTax={initialTax}
           businessType={user.businessType || 'seller'}
         />

@@ -2,17 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Shield, CreditCard, Palette, AlertTriangle, Store, FileText, Receipt } from 'lucide-react';
+import { User, Shield, CreditCard, AlertTriangle, Store, FileText, Receipt } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AccountTab } from './AccountTab';
 import { BillingTab } from './BillingTab';
-import { AppearanceTab } from './AppearanceTab';
 import { DangerZoneTab } from './DangerZoneTab';
 import { StorefrontTab } from './StorefrontTab';
 import { TaxTab } from './TaxTab';
 import { InvoiceTab } from './InvoiceTab';
 
-type Tab = 'profile' | 'account' | 'storefront' | 'invoice' | 'tax' | 'billing' | 'appearance' | 'danger';
+// Appearance tab removed: it advertised a theme picker that toggled
+// `document.documentElement.classList.add('dark')` but no Tailwind
+// styles in this codebase respond to the `.dark` class — the UI itself
+// admitted "Dark mode support is coming soon." Resurrect this tab
+// (and AppearanceTab.tsx) when there's an actual dark theme to ship.
+type Tab = 'profile' | 'account' | 'storefront' | 'invoice' | 'tax' | 'billing' | 'danger';
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
@@ -21,7 +25,6 @@ const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'invoice', label: 'Invoices', icon: Receipt },
   { id: 'tax', label: 'Tax & FIRS', icon: FileText },
   { id: 'billing', label: 'Billing', icon: CreditCard },
-  { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'danger', label: 'Danger Zone', icon: AlertTriangle },
 ];
 
@@ -65,13 +68,31 @@ export function SettingsShell({
   businessType,
 }: Props) {
   const search = useSearchParams();
-  const initialTab = ((search.get('tab') as Tab) || 'profile') as Tab;
-  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
+  // Stale `?tab=appearance` bookmarks fall back to Profile so the
+  // right pane never renders empty. Same guard for any future tab
+  // removals.
+  const VALID_TABS: Tab[] = [
+    'profile',
+    'account',
+    'storefront',
+    'invoice',
+    'tax',
+    'billing',
+    'danger',
+  ];
+  const resolveTab = (raw: string | null): Tab => {
+    return raw && (VALID_TABS as string[]).includes(raw)
+      ? (raw as Tab)
+      : 'profile';
+  };
+
+  const [activeTab, setActiveTab] = useState<Tab>(resolveTab(search.get('tab')));
 
   // Update if the URL changes externally (e.g. clicking nav links)
   useEffect(() => {
-    const t = (search.get('tab') as Tab) || 'profile';
-    setActiveTab(t);
+    setActiveTab(resolveTab(search.get('tab')));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   return (
@@ -128,9 +149,6 @@ export function SettingsShell({
           )}
           {activeTab === 'billing' && (
             <BillingTab />
-          )}
-          {activeTab === 'appearance' && (
-            <AppearanceTab />
           )}
           {activeTab === 'danger' && (
             <DangerZoneTab businessType={businessType} />

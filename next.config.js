@@ -74,6 +74,51 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=3600' },
         ],
       },
+
+      // CSO finding #5 — hardened headers for public token-bearing paths.
+      // These routes are accessed via shareable URLs that include a
+      // capability token in the path. If the user clicks an outbound
+      // link (Paystack, bank, etc.), the default `strict-origin-when-
+      // cross-origin` would still send the origin — fine. But intermediary
+      // CDN/proxy caches could retain the response keyed on the URL with
+      // the token. `no-store` keeps it out of every shared cache.
+      // `Referrer-Policy: no-referrer` is the strictest setting and
+      // ensures the token never leaves via Referer header at all.
+      {
+        source: '/invoice/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
+      {
+        source: '/r/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
+      {
+        source: '/pay/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
+      {
+        source: '/promise/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
+      {
+        source: '/staff/invite/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'private, no-store' },
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+        ],
+      },
     ];
   },
 };

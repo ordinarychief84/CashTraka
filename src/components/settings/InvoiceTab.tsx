@@ -17,6 +17,7 @@ type Settings = {
   offerPrefix: string;
   deliveryNotePrefix: string;
   orderPrefix: string;
+  receiptPrefix: string;
   taxEnabled: boolean;
   paymentInstructions: string;
   invoiceAccentColor: string;
@@ -173,6 +174,16 @@ export function InvoiceTab() {
             value={state.orderPrefix}
             onChange={(e) =>
               setState({ ...state, orderPrefix: e.target.value.toUpperCase() })
+            }
+          />
+        </Field>
+        <Field label="Receipt prefix">
+          <input
+            type="text"
+            className="input"
+            value={state.receiptPrefix}
+            onChange={(e) =>
+              setState({ ...state, receiptPrefix: e.target.value.toUpperCase() })
             }
           />
         </Field>

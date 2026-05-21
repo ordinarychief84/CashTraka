@@ -209,7 +209,7 @@ export const productSchema = z.object({
   images: z.array(z.string().url()).max(8).optional(),
   /// Optional SKU/EAN code shown on the catalog detail page.
   sku: z.string().trim().max(64).optional().or(z.literal('')),
-  /// Public-facing description shown on /store/[slug]/[productId].
+  /// Long-form description shown on receipts and invoice line items.
   description: z.string().trim().max(2000).optional().or(z.literal('')),
   /// Category for filter UI.
   category: z.string().trim().max(60).optional().or(z.literal('')),

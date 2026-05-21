@@ -21,6 +21,9 @@ const bodySchema = z.object({
   offerPrefix: z.string().trim().toUpperCase().regex(PREFIX_RE).optional(),
   deliveryNotePrefix: z.string().trim().toUpperCase().regex(PREFIX_RE).optional(),
   orderPrefix: z.string().trim().toUpperCase().regex(PREFIX_RE).optional(),
+  // Receipt prefix was previously edited in the now-removed Storefront tab.
+  // Numbering is an invoice/receipt concern, so it belongs here.
+  receiptPrefix: z.string().trim().toUpperCase().regex(PREFIX_RE).optional(),
   taxEnabled: z.boolean().optional(),
   paymentInstructions: z.string().trim().max(500).optional().or(z.literal('')),
   invoiceAccentColor: z
@@ -54,6 +57,7 @@ export async function GET() {
       offerPrefix: user.offerPrefix ?? 'OFF',
       deliveryNotePrefix: user.deliveryNotePrefix ?? 'DN',
       orderPrefix: user.orderPrefix ?? 'ORD',
+      receiptPrefix: user.receiptPrefix ?? 'CT',
       taxEnabled: user.taxEnabled ?? false,
       paymentInstructions: user.paymentInstructions ?? '',
       invoiceAccentColor: user.invoiceAccentColor ?? '#00B8E8',
@@ -94,6 +98,7 @@ export async function PATCH(req: Request) {
       offerPrefix: parsed.data.offerPrefix ?? undefined,
       deliveryNotePrefix: parsed.data.deliveryNotePrefix ?? undefined,
       orderPrefix: parsed.data.orderPrefix ?? undefined,
+      receiptPrefix: parsed.data.receiptPrefix ?? undefined,
       taxEnabled: parsed.data.taxEnabled ?? undefined,
       paymentInstructions:
         parsed.data.paymentInstructions === undefined
@@ -128,6 +133,7 @@ export async function PATCH(req: Request) {
       offerPrefix: true,
       deliveryNotePrefix: true,
       orderPrefix: true,
+      receiptPrefix: true,
       taxEnabled: true,
       paymentInstructions: true,
       invoiceAccentColor: true,

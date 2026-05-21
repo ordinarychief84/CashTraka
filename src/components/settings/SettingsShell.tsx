@@ -2,26 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Shield, CreditCard, AlertTriangle, Store, FileText, Receipt } from 'lucide-react';
+import { User, Shield, CreditCard, AlertTriangle, FileText, Receipt } from 'lucide-react';
 import { ProfileTab } from './ProfileTab';
 import { AccountTab } from './AccountTab';
 import { BillingTab } from './BillingTab';
 import { DangerZoneTab } from './DangerZoneTab';
-import { StorefrontTab } from './StorefrontTab';
 import { TaxTab } from './TaxTab';
 import { InvoiceTab } from './InvoiceTab';
 
-// Appearance tab removed: it advertised a theme picker that toggled
-// `document.documentElement.classList.add('dark')` but no Tailwind
-// styles in this codebase respond to the `.dark` class — the UI itself
-// admitted "Dark mode support is coming soon." Resurrect this tab
-// (and AppearanceTab.tsx) when there's an actual dark theme to ship.
-type Tab = 'profile' | 'account' | 'storefront' | 'invoice' | 'tax' | 'billing' | 'danger';
+// Removed tabs:
+//   - Appearance: shipped a fake theme picker no Tailwind styles
+//     responded to. Removed in PR #99.
+//   - Storefront: public catalog at /store/<slug> was a Yupoo-style
+//     product gallery that linked to wa.me — it didn't integrate with
+//     the production-planning workflow (no CustomerOrder created, no
+//     production triggered). Out of scope for a back-office ops tool.
+//     Its one survivor — the "Receipt prefix" field — moved into the
+//     Invoices tab next to the other document prefixes.
+type Tab = 'profile' | 'account' | 'invoice' | 'tax' | 'billing' | 'danger';
 
 const TABS: { id: Tab; label: string; icon: typeof User }[] = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'account', label: 'Account', icon: Shield },
-  { id: 'storefront', label: 'Storefront', icon: Store },
   { id: 'invoice', label: 'Invoices', icon: Receipt },
   { id: 'tax', label: 'Tax & FIRS', icon: FileText },
   { id: 'billing', label: 'Billing', icon: CreditCard },
@@ -43,13 +45,6 @@ type Props = {
     bankAccountNumber: string;
     bankAccountName: string;
   };
-  initialStorefront: {
-    slug: string;
-    catalogEnabled: boolean;
-    catalogTagline: string;
-    receiptPrefix: string;
-    appUrl: string;
-  };
   initialTax: {
     tin: string;
     vatRegistered: boolean;
@@ -63,19 +58,17 @@ type Props = {
 export function SettingsShell({
   initialProfile,
   initialAccount,
-  initialStorefront,
   initialTax,
   businessType,
 }: Props) {
   const search = useSearchParams();
 
-  // Stale `?tab=appearance` bookmarks fall back to Profile so the
-  // right pane never renders empty. Same guard for any future tab
-  // removals.
+  // Stale `?tab=appearance` / `?tab=storefront` bookmarks fall back to
+  // Profile so the right pane never renders empty. Same guard for any
+  // future tab removal.
   const VALID_TABS: Tab[] = [
     'profile',
     'account',
-    'storefront',
     'invoice',
     'tax',
     'billing',
@@ -137,9 +130,6 @@ export function SettingsShell({
           )}
           {activeTab === 'account' && (
             <AccountTab initial={initialAccount} businessType={businessType} />
-          )}
-          {activeTab === 'storefront' && (
-            <StorefrontTab initial={initialStorefront} />
           )}
           {activeTab === 'invoice' && (
             <InvoiceTab />

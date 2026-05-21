@@ -78,7 +78,10 @@ export function ImageUploader({
       try {
         const form = new FormData();
         for (const f of files) form.append('files', f);
-        const res = await fetch('/api/showroom/upload', {
+        // Endpoint moved from /api/showroom/upload → /api/uploads/image
+        // when the Storefront/Showroom features were retired. Same
+        // multipart contract, just a more honest path.
+        const res = await fetch('/api/uploads/image', {
           method: 'POST',
           body: form,
         });

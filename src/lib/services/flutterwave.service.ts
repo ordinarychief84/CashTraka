@@ -115,7 +115,22 @@ export const flutterwaveAdapter: PaymentProviderAdapter = {
     const webhookHash = process.env.FLUTTERWAVE_WEBHOOK_HASH;
     const signature = headers['verif-hash'] || '';
     if (!webhookHash || !signature) return false;
-    // Flutterwave uses a simple hash comparison
-    return signature === webhookHash;
+    // Flutterwave's "secret hash" protocol uses a static shared secret —
+    // they don't HMAC the body, so we can't verify body integrity here
+    // (the `reconcile()` step re-verifies the transaction with the
+    // Flutterwave API as defense-in-depth).
+    //
+    // CSO finding #4: switched from `===` to `crypto.timingSafeEqual`
+    // for constant-time comparison. timingSafeEqual throws on length
+    // mismatch — wrap defensively so a wrong-length signature just
+    // returns false (no error spam).
+    try {
+      const a = Buffer.from(webhookHash);
+      const b = Buffer.from(signature);
+      if (a.length !== b.length) return false;
+      return crypto.timingSafeEqual(a, b);
+    } catch {
+      return false;
+    }
   },
 };

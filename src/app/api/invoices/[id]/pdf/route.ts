@@ -145,7 +145,17 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="${filename}"`,
-      'Cache-Control': 'private, max-age=0, must-revalidate',
+      // CSO finding #5 hardening: when the PDF is fetched with a
+      // `?token=...` query string, those tokens leak via Referer
+      // headers if the page links out, via browser cache, and via
+      // shared bookmarks. `no-referrer` keeps the token from being
+      // forwarded; `no-store` keeps the PDF (and its URL) out of
+      // shared/intermediary caches. The token still appears in
+      // server access logs — a follow-up PR will mint short-lived
+      // signed URLs to bound that exposure window too.
+      'Cache-Control': 'private, no-store',
+      'Referrer-Policy': 'no-referrer',
+      'X-Content-Type-Options': 'nosniff',
     },
   });
 }

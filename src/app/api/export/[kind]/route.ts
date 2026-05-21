@@ -13,8 +13,8 @@ function dateRange(url: URL, field = 'createdAt') {
   const from = url.searchParams.get('from');
   const to = url.searchParams.get('to');
   if (!from && !to) return {};
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filter: any = {};
+  // Prisma `where` filter — dynamic field key so we stay generic.
+  const filter: Record<string, unknown> = {};
   filter[field] = {
     ...(from ? { gte: new Date(from) } : {}),
     ...(to ? { lte: new Date(to + 'T23:59:59.999Z') } : {}),

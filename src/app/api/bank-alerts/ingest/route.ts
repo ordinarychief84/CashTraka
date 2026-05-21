@@ -230,8 +230,9 @@ async function createManualPayment(args: ManualPaymentArgs) {
 /**
  * Try to create the Payment WITH parseSource; if the live DB doesn't
  * have that column yet (P2022 — migration not run), retry without it.
- * Either way the Payment lands and the user flow continues; once
- * /api/migrate runs the column starts persisting on subsequent inserts.
+ * Either way the Payment lands and the user flow continues; the next
+ * deploy's `prisma migrate deploy` adds the column and subsequent
+ * inserts start persisting it.
  */
 async function createPaymentSchemaResilient(
   data: Parameters<typeof prisma.payment.create>[0]['data'],

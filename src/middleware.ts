@@ -165,7 +165,6 @@ const CSRF_EXEMPT_PREFIXES = [
   '/api/cron/',
   // One-shot maintenance endpoints called server-to-server with CRON_SECRET.
   '/api/cleanup-broken-uploads',
-  '/api/migrate',
 ];
 
 function sameOriginOk(req: NextRequest): boolean {

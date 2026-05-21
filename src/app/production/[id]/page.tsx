@@ -62,7 +62,8 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
     // Wrapped in try/catch so the page never 500s just because the
     // Batch Cost schema hasn't been migrated yet. When the table /
     // columns are missing we render the loading state and let the
-    // client poll — once /api/migrate runs the panel hydrates.
+    // client poll — the next deploy's `prisma migrate deploy` adds
+    // them and the panel hydrates on the following request.
     const batchCostResult = await Promise.all([
       prisma.productionOrder.findUnique({
         where: { id: order.id },

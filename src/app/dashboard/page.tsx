@@ -36,6 +36,7 @@ import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
 import { NotYetNotifiedRail } from '@/components/dashboard/NotYetNotifiedRail';
 import { DashboardGreeting } from '@/components/dashboard/DashboardGreeting';
 import { DashboardSectionHeading } from '@/components/dashboard/DashboardSectionHeading';
+import { SetupChecklist } from '@/components/dashboard/SetupChecklist';
 import { ProductionOverviewCard } from '@/components/dashboard/ProductionOverviewCard';
 import { MaterialShortageAlertsCard } from '@/components/dashboard/MaterialShortageAlertsCard';
 import { LeadTimeAlertsCard } from '@/components/ops/LeadTimeAlertsCard';
@@ -525,6 +526,13 @@ export default async function DashboardPage() {
 
           {/* Empty-catalog onboarding nudge */}
           {catalogIsEmpty && <TemplateQuickStart />}
+
+          {/* Setup checklist — surfaces profile / bank / recipe / first-sale
+              gaps that materially affect receipts, PayLinks, and margin
+              reports. Self-hides for tenants who've finished setup AND
+              for empty-catalogue tenants (TemplateQuickStart above
+              already owns that case). */}
+          <SetupChecklist userId={user.id} />
 
           {/* ─────────── SECTION 1 · AT A GLANCE ─────────── */}
           {/* The six top-line KPIs plus the amber "not yet notified"

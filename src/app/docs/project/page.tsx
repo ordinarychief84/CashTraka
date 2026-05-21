@@ -38,7 +38,9 @@ export default async function ProjectDocPage() {
         </div>
       </header>
 
-      {/* Article */}
+      {/* Article — content is `marked.parse()` of PROJECT.md from disk;
+          no user input flows in. Safe by construction. */}
+      {/* eslint-disable-next-line react/no-danger */}
       <article
         className="docs-body mx-auto max-w-3xl px-5 py-10 md:py-14"
         dangerouslySetInnerHTML={{ __html: html }}

@@ -1,4 +1,5 @@
 {
+  "buildCommand": "prisma migrate deploy && prisma generate && next build",
   "crons": [
     { "path": "/api/cron/trial-check",             "schedule": "0 7 * * *"   },
     { "path": "/api/cron/run-reminders",           "schedule": "0 9 * * *"   },

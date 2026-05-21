@@ -23,7 +23,8 @@ const FIRS_OPTIONS = ['PENDING', 'SUBMITTED', 'ACCEPTED', 'REJECTED', 'RETRYING'
 
 const PAGE_SIZE = 50;
 
-export default async function AdminInvoicesPage({ searchParams }: { searchParams: SP }) {
+export default async function AdminInvoicesPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const admin = await requireAdminSection('invoices');
 
   const where: Record<string, unknown> = {};

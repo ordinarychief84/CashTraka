@@ -23,7 +23,8 @@ const patchSchema = z.object({
   status: z.enum(['active', 'inactive']).optional(),
 });
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   let user;
   try {
     const ctx = await requirePermission('team.write');
@@ -80,7 +81,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   let user;
   try {
     const ctx = await requirePermission('team.write');

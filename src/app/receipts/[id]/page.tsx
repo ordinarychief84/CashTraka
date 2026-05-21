@@ -22,7 +22,8 @@ const SOURCE_LABEL: Record<string, string> = {
   CATALOG: 'Catalog order',
 };
 
-export default async function ReceiptDetailPage({ params }: { params: { id: string } }) {
+export default async function ReceiptDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
 
   const receipt = await prisma.receipt.findFirst({

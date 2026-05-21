@@ -14,7 +14,8 @@ import { formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-export default async function MaterialDetailPage({ params }: { params: { id: string } }) {
+export default async function MaterialDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   let material;
   try {

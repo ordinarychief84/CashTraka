@@ -8,7 +8,8 @@ import { formatNaira } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditDebtPage({ params }: { params: { id: string } }) {
+export default async function EditDebtPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const debt = await prisma.debt.findFirst({
     where: { id: params.id, userId: user.id },

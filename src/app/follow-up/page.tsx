@@ -6,11 +6,12 @@ import { FollowUpComposer } from '@/components/FollowUpComposer';
 
 export const dynamic = 'force-dynamic';
 
-export default async function FollowUpPage({
-  searchParams,
-}: {
-  searchParams: { customerId?: string };
-}) {
+export default async function FollowUpPage(
+  props: {
+    searchParams: Promise<{ customerId?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const user = await guard();
 
   const [customers, templates] = await Promise.all([

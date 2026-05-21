@@ -18,7 +18,8 @@ type SP = {
   page?: string;
 };
 
-export default async function AdminUsersPage({ searchParams }: { searchParams: SP }) {
+export default async function AdminUsersPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const admin = await requireAdminSection('users');
   const [{ rows, pagination }, stats] = await Promise.all([
     adminService.listUsers(searchParams),

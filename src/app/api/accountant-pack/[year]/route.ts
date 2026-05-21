@@ -20,7 +20,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(
   _req: Request,
-  ctx: { params: { year: string } },
+  ctx: { params: Promise<{ year: string }> },
 ) {
   return handled(async () => {
     const auth = await getAuthContext();
@@ -30,7 +30,7 @@ export async function GET(
     const feature = await requireFeature(user, 'yearEndPack');
     if (feature) return feature;
 
-    const year = parseInt(ctx.params.year, 10);
+    const year = parseInt((await ctx.params).year, 10);
     if (
       !Number.isFinite(year) ||
       year < 2000 ||

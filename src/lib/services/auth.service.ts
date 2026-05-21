@@ -66,7 +66,7 @@ export const authService = {
     };
   },
 
-  logout() {
-    clearSessionCookie();
+  async logout() {
+    await clearSessionCookie();
   },
 };

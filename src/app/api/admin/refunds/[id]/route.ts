@@ -4,11 +4,11 @@ import { paystackService } from '@/lib/services/paystack.service';
 import { NextResponse } from 'next/server';
 
 /** PATCH /api/admin/refunds/[id], Process a refund */
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
 
-    const refundId = ctx.params.id;
+    const refundId = (await ctx.params).id;
     const body = await req.json();
     const { status, adminNote } = body;
 

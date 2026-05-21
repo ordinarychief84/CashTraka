@@ -13,7 +13,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { filter?: string };
 
-export default async function NotificationsPage({ searchParams }: { searchParams: SP }) {
+export default async function NotificationsPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const unreadOnly = searchParams.filter === 'unread';
   const { rows: notifications, total, unread } = await notificationService.listForUser(

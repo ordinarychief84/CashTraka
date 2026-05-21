@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 /** POST /api/admin/support/[id]/reply, Add reply to ticket */
-export async function POST(req: Request, ctx: { params: { id: string } }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
 
-    const ticketId = ctx.params.id;
+    const ticketId = (await ctx.params).id;
     const body = await req.json();
     const { message } = body;
 

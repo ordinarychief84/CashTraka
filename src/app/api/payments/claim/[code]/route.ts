@@ -7,7 +7,8 @@ import { prisma } from '@/lib/prisma';
  * verify with their bank alert before shipping. We explicitly don't let
  * customer input flip `verified`.
  */
-export async function POST(_req: Request, { params }: { params: { code: string } }) {
+export async function POST(_req: Request, props: { params: Promise<{ code: string }> }) {
+  const params = await props.params;
   const payment = await prisma.payment.findUnique({
     where: { referenceCode: params.code },
   });

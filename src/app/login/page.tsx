@@ -6,7 +6,8 @@ import { Logo } from '@/components/Logo';
 
 type SearchParams = { reset?: string };
 
-export default function LoginPage({ searchParams }: { searchParams: SearchParams; }) {
+export default async function LoginPage(props: { searchParams: Promise<SearchParams>; }) {
+  const searchParams = await props.searchParams;
   const justReset = searchParams.reset === '1';
 
   return (

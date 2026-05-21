@@ -14,7 +14,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(
   _req: Request,
-  ctx: { params: { id: string } },
+  ctx: { params: Promise<{ id: string }> },
 ) {
   return handled(async () => {
     const auth = await getAuthContext();
@@ -24,7 +24,7 @@ export async function GET(
     const feature = await requireFeature(user, 'vatReturns');
     if (feature) return feature;
 
-    const result = await vatReturnService.getVatReturn(ctx.params.id, user.id);
+    const result = await vatReturnService.getVatReturn((await ctx.params).id, user.id);
     if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     // Tax+ access audit: record any read by a non-owner principal so the
@@ -35,7 +35,7 @@ export async function GET(
           actorId: auth.principalId,
           userId: user.id,
           entityType: 'VAT_RETURN',
-          entityId: ctx.params.id,
+          entityId: (await ctx.params).id,
           action: 'READ_VAT_RETURN',
           metadata: { role: auth.accessRole },
         });
@@ -53,7 +53,7 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: Request,
-  ctx: { params: { id: string } },
+  ctx: { params: Promise<{ id: string }> },
 ) {
   return handled(async () => {
     const user = await getCurrentUser();
@@ -67,7 +67,7 @@ export async function PATCH(
     if (!parsed.success) return validationFail(parsed.error);
 
     const updated = await vatReturnService.markFiled(
-      ctx.params.id,
+      (await ctx.params).id,
       user.id,
       parsed.data.firsReference,
     );

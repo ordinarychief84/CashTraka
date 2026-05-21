@@ -4,10 +4,10 @@ import { NextResponse } from 'next/server';
 import { ROLES } from '@/lib/constants/roles';
 
 /** DELETE /api/admin/roles/[id], Demote an admin back to USER */
-export async function DELETE(req: Request, ctx: { params: { id: string } }) {
+export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
-    const targetUserId = ctx.params.id;
+    const targetUserId = (await ctx.params).id;
 
     if (!targetUserId) {
       return NextResponse.json(

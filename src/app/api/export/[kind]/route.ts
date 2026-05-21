@@ -22,10 +22,8 @@ function dateRange(url: URL, field = 'createdAt') {
   return filter;
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: { kind: string } },
-) {
+export async function GET(req: Request, props: { params: Promise<{ kind: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

@@ -7,7 +7,8 @@ import { ProductForm } from '@/components/ProductForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
+export default async function EditProductPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guardForBusinessType('products');
   const product = await prisma.product.findFirst({
     where: { id: params.id, userId: user.id },

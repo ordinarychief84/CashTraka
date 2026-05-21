@@ -11,7 +11,8 @@ import { isPropertyManager } from '@/lib/business-type';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
+export default async function SearchPage(props: { searchParams: Promise<{ q?: string }> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const isPm = isPropertyManager(user.businessType);
   const q = (searchParams.q || '').trim();

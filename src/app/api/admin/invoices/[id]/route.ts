@@ -8,7 +8,7 @@ import { nairaToKobo } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** GET /api/admin/invoices/[id], full detail with items, user, credit notes. */
 export async function GET(_req: Request, ctx: Ctx) {
@@ -19,7 +19,7 @@ export async function GET(_req: Request, ctx: Ctx) {
     }
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: ctx.params.id },
+      where: { id: (await ctx.params).id },
       include: {
         items: true,
         user: {
@@ -81,7 +81,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     }
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: ctx.params.id },
+      where: { id: (await ctx.params).id },
       select: { id: true, userId: true, status: true, total: true },
     });
     if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });

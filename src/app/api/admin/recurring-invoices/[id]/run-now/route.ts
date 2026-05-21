@@ -13,7 +13,7 @@ import { nairaToKobo } from '@/lib/money';
 
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 type Template = {
   customerName: string;
@@ -62,7 +62,7 @@ export async function POST(_req: Request, ctx: Ctx) {
     const admin = await requireAdmin();
 
     const rule = await prisma.recurringInvoiceRule.findUnique({
-      where: { id: ctx.params.id },
+      where: { id: (await ctx.params).id },
       include: {
         user: {
           select: { id: true, name: true, businessName: true, invoicePrefix: true },

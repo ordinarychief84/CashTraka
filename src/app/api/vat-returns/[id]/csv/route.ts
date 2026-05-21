@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
  */
 export async function GET(
   _req: Request,
-  ctx: { params: { id: string } },
+  ctx: { params: Promise<{ id: string }> },
 ) {
   return handled(async () => {
     const user = await getCurrentUser();
@@ -22,7 +22,7 @@ export async function GET(
     const feature = await requireFeature(user, 'vatReturns');
     if (feature) return feature;
 
-    const result = await vatReturnService.getVatReturn(ctx.params.id, user.id);
+    const result = await vatReturnService.getVatReturn((await ctx.params).id, user.id);
     if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const csv = vatReturnService.buildCsv({

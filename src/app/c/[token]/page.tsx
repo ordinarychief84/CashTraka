@@ -18,7 +18,8 @@ export const dynamic = 'force-dynamic';
  *   - direct link to the hosted file
  *   - clear EXPIRED banner when past expiresAt
  */
-export default async function CertVerifyPage({ params }: { params: { token: string } }) {
+export default async function CertVerifyPage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const cert = await certificatesService.findPublicByToken(params.token);
   if (!cert) notFound();
 

@@ -42,7 +42,8 @@ const bodySchema = z.object({
  * For WhatsApp the server returns a wa.me link the seller's browser can
  * open — we don't push messages to WA on the seller's behalf.
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
@@ -54,7 +55,8 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   return NextResponse.json({ success: true, data: reminders });
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

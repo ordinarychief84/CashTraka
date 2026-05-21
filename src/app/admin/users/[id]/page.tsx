@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminUserDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminUserDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const admin = await requireAdmin();
   const { user, totals, recentActivity, notes } = await adminService.userDetail(params.id);
   const subscriptionLabel = (user.subscriptionStatus ?? 'free').replace('_', ' ');

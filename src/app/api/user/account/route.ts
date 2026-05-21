@@ -81,7 +81,7 @@ export async function DELETE(req: Request) {
 
     // Clear the session cookie so the browser is logged out immediately.
     const SESSION_COOKIE = 'cashtraka_session';
-    cookies().set({
+    (await cookies()).set({
       name: SESSION_COOKIE,
       value: '',
       path: '/',

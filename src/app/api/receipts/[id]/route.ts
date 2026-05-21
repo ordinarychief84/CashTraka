@@ -10,7 +10,8 @@ export const runtime = 'nodejs';
  * cuid). Accepts either a Receipt.id OR a Payment.id for backward compat with
  * older receipt links.
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   try {
     const { buffer, filename } = await receiptService.streamPdfPublic(params.id);
     return new NextResponse(new Uint8Array(buffer), {

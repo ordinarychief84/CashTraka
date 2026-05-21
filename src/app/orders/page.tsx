@@ -12,7 +12,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { status?: string };
 
-export default async function OrdersPage({ searchParams }: { searchParams: SP }) {
+export default async function OrdersPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const status = (searchParams.status?.split(',') as any) ?? undefined;
   const { rows: orders, total: _total } = await customerOrdersService.listForUser(user.id, {

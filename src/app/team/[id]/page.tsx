@@ -53,7 +53,8 @@ function startOfNextMonthUTC(d = new Date()): Date {
  *   owed = expected(payType, payAmount, daysPresent) - paid(salary/bonus/commission) - advances taken
  *   A negative number means we've overpaid (or they took more advance than they've earned).
  */
-export default async function StaffDetailPage({ params }: { params: { id: string } }) {
+export default async function StaffDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guardWithPermission('team.read');
   const staff = await prisma.staffMember.findFirst({
     where: { id: params.id, userId: user.id },

@@ -7,10 +7,8 @@ import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
  * Initialize a payment for a promise. Public-facing (no auth required).
  * The promise ID comes from the public token lookup.
  */
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return handled(async () => {
     const body = await req.json();
     const data = initPromisePaymentSchema.parse(body);

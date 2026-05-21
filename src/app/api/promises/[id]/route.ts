@@ -3,10 +3,8 @@ import { requireUser } from '@/lib/auth';
 import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 
 /** GET /api/promises/[id], get promise detail */
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return handled(async () => {
     const user = await requireUser();
     const promise = await promiseToPayService.getById(params.id, user.id);

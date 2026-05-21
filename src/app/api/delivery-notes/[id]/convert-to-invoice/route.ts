@@ -31,7 +31,8 @@ const bodySchema = z.object({
  * delivered line. Idempotent via DeliveryNote.convertedInvoiceId — a
  * second call returns the existing Invoice id.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

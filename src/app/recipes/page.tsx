@@ -11,7 +11,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { q?: string };
 
-export default async function RecipesPage({ searchParams }: { searchParams: SP }) {
+export default async function RecipesPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const q = (searchParams.q || '').trim();
 

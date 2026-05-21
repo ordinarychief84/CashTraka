@@ -7,9 +7,10 @@ import { Check } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { params: { id: string } };
+type Props = { params: Promise<{ id: string }> };
 
-export default async function ReceiptPage({ params }: Props) {
+export default async function ReceiptPage(props: Props) {
+  const params = await props.params;
   // Resolve `params.id` as either a Receipt id (preferred — includes
   // balanceRemaining + persisted receiptNumber) or a Payment id (legacy URLs).
   const receipt = await prisma.receipt.findUnique({ where: { id: params.id } });

@@ -4,11 +4,12 @@ import { ResetPasswordForm } from './form';
 
 export const metadata = { title: 'Reset password · CashTraka' };
 
-export default function ResetPasswordPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function ResetPasswordPage(
+  props: {
+    params: Promise<{ token: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">
       <div className="container-app py-10">

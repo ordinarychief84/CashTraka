@@ -7,7 +7,8 @@ import { TemplateForm } from '@/components/TemplateForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditTemplatePage({ params }: { params: { id: string } }) {
+export default async function EditTemplatePage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const template = await prisma.messageTemplate.findFirst({
     where: { id: params.id, userId: user.id },

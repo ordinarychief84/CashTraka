@@ -38,11 +38,12 @@ const SUPPLIER_STATUS_TONE: Record<string, string> = {
   BLACKLISTED: 'bg-rose-100 text-rose-700',
 };
 
-export default async function SupplierDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function SupplierDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const user = await guard();
   let supplier;
   try {
@@ -121,7 +122,6 @@ export default async function SupplierDetailPage({
           </div>
         }
       />
-
       {/* Performance strip — only shows once we've recorded at least one PO. */}
       {(supplier.onTimeDeliveryRating != null ||
         supplier.qualityRating != null ||
@@ -163,7 +163,6 @@ export default async function SupplierDetailPage({
           />
         </div>
       )}
-
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
           <div className="card p-5">

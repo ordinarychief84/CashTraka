@@ -66,7 +66,8 @@ type SP = {
  * Filters via query params: ?filter= status, ?q= title search, ?assignee= staffId
  * or 'me', ?overdue=1 for overdue-only.
  */
-export default async function TasksPage({ searchParams }: { searchParams: SP }) {
+export default async function TasksPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guardWithFeature('tasks');
 
   const view = searchParams.view === 'board' ? 'board' : 'list';

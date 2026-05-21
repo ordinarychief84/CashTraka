@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 const VALID_STATUS = new Set(['ACTIVE', 'PAUSED', 'CANCELLED']);
 
@@ -16,7 +16,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     const body = await req.json().catch(() => ({}));
     const { status, nextRunAt } = body as { status?: string; nextRunAt?: string };
 
-    const rule = await prisma.recurringInvoiceRule.findUnique({ where: { id: ctx.params.id } });
+    const rule = await prisma.recurringInvoiceRule.findUnique({ where: { id: (await ctx.params).id } });
     if (!rule) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
     const data: Record<string, unknown> = {};

@@ -8,7 +8,8 @@ import { SaleDetailClient } from '@/components/SaleDetailClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SaleDetailPage({ params }: { params: { id: string } }) {
+export default async function SaleDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guardForBusinessType('sales');
 
   const sale = await prisma.sale.findUnique({

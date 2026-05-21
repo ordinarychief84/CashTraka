@@ -25,11 +25,12 @@ const STATUS_LABEL: Record<string, string> = {
   CREDITED: 'Credited',
 };
 
-export default async function InvoiceDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function InvoiceDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const user = await guard();
 
   const invoice = await prisma.invoice.findFirst({

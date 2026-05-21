@@ -18,7 +18,8 @@ export const runtime = 'nodejs';
  *
  * Only accepts the cuid `id`, NOT the sequential invoiceNumber.
  */
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const url = new URL(req.url);
   const publicToken = url.searchParams.get('token');
 

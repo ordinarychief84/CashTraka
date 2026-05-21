@@ -75,7 +75,8 @@ const PLANS: PlanCard[] = [
   },
 ];
 
-export default async function BillingPage({ searchParams }: { searchParams: SP }) {
+export default async function BillingPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const { plan: currentPlan } = effectivePlan(user);
 

@@ -28,7 +28,8 @@ function deriveStatus(c: {
   return 'INACTIVE';
 }
 
-export default async function CustomersPage({ searchParams }: { searchParams: SP }) {
+export default async function CustomersPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   if (user.businessType === 'property_manager') {
     const qs = searchParams.q ? `?q=${encodeURIComponent(searchParams.q)}` : '';

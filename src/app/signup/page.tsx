@@ -16,7 +16,7 @@ type SearchParams = {
  * small-batch operational pivot.
  */
 export default function SignupPage(_props: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-brand-50 to-white">

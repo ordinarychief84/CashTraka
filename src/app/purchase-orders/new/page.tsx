@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { supplierId?: string; materialId?: string; qty?: string };
 
-export default async function NewPurchaseOrderPage({ searchParams }: { searchParams: SP }) {
+export default async function NewPurchaseOrderPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const [{ rows: suppliers }, { rows: materials }] = await Promise.all([
     suppliersService.listForUser(user.id, { take: 500 }),

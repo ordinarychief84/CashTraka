@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { itemType?: string; reason?: string };
 
-export default async function MovementsPage({ searchParams }: { searchParams: SP }) {
+export default async function MovementsPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const { rows, total } = await inventoryService.listMovements(user.id, {
     itemType: (searchParams.itemType as any) || undefined,
@@ -41,13 +42,11 @@ export default async function MovementsPage({ searchParams }: { searchParams: SP
       principalName={user.principalName}
     >
       <PageHeader title="Inventory ledger" subtitle={`${total} movement${total === 1 ? '' : 's'}`} backHref="/inventory" />
-
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         <Link href="/inventory/movements" className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">All</Link>
         <Link href="/inventory/movements?itemType=MATERIAL" className="rounded-full bg-blue-100 px-3 py-1 text-blue-700">Materials</Link>
         <Link href="/inventory/movements?itemType=PRODUCT" className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">Products</Link>
       </div>
-
       {rows.length === 0 ? (
         <p className="card p-6 text-center text-sm text-slate-500">No movements yet.</p>
       ) : (

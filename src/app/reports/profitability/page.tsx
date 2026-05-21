@@ -13,11 +13,12 @@ export const dynamic = 'force-dynamic';
  * Pro+ gated. Free users see the UpgradeChip ONLY — no data is fetched
  * for them, so the gate can't leak metrics via timing or response size.
  */
-export default async function ProfitabilityPage({
-  searchParams,
-}: {
-  searchParams: { range?: string };
-}) {
+export default async function ProfitabilityPage(
+  props: {
+    searchParams: Promise<{ range?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const user = await guard();
 
   if (!hasFeature(user, 'batchCostIntelligence')) {

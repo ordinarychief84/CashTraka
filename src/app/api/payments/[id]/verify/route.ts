@@ -12,7 +12,8 @@ import { receiptService } from '@/lib/services/receipt.service';
 /** Tolerance in Naira, fees are typically N10-N50 on small instant transfers. */
 const AMOUNT_TOLERANCE = 50;
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

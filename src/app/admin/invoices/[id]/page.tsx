@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminInvoiceDetailPage({ params }: { params: { id: string } }) {
+export default async function AdminInvoiceDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const admin = await requireAdminSection('invoices');
 
   const invoice = await prisma.invoice.findUnique({

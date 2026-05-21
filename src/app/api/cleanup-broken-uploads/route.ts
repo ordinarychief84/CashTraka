@@ -24,7 +24,7 @@ export const runtime = 'nodejs';
  *     re-renders PDFs on demand from Prisma data when the stored URL
  *     fails, so a broken pdfUrl is non-fatal.
  *
- * Auth: same Bearer CRON_SECRET pattern as /api/migrate.
+ * Auth: same Bearer CRON_SECRET pattern as the other /api/cron/* routes.
  */
 export async function POST(req: NextRequest) {
   // Bearer header only — query string fallback removed (secrets leak via logs).

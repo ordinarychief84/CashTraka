@@ -3,6 +3,17 @@
   "rules": {
     "react/no-unescaped-entities": "off",
     "react/jsx-key": "warn",
-    "@next/next/no-page-custom-font": "off"
+    "@next/next/no-page-custom-font": "off",
+
+    // Security gate — per CSO finding #10. These rules fail the build in
+    // the dedicated `lint:security` CI step, so an `eval`-style
+    // regression can't sneak in unnoticed. Every legitimate use of
+    // `dangerouslySetInnerHTML` (PROJECT.md render, JSON-LD) is
+    // disabled inline with a justification comment.
+    "react/no-danger": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error"
   }
 }

@@ -24,8 +24,8 @@ export async function GET(req: Request) {
   const sort = url.searchParams.get('sort') || 'newest';
   const method = url.searchParams.get('method');
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = { userId: user.id };
+  // Prisma `where` for Sale — dynamic key set per filter combo.
+  const where: Record<string, unknown> = { userId: user.id };
 
   if (from || to) {
     where.soldAt = {

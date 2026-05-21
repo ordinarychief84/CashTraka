@@ -24,3 +24,8 @@ Thumbs.db
 
 # TypeScript incremental build cache
 tsconfig.tsbuildinfo
+
+# gstack local state + security reports
+# `/cso` writes findings to .gstack/security-reports/{date}.json — those
+# files contain verbatim exploit scenarios and must NOT be committed.
+.gstack/

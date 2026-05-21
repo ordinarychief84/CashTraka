@@ -29,11 +29,15 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      # SHA-pinned (not @v4) per CSO finding #7. Tags are mutable; if
+      # the actions/* org is ever compromised, an attacker could retag
+      # v4 to point at malicious code. Commit SHAs are immutable.
+      # Bump via Dependabot or stepsecurity.io periodically.
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.5.0
         with:
           node-version: 20
           cache: npm
@@ -50,8 +54,11 @@ jobs:
       - name: Run unit tests
         run: npm run test -- --run
 
+      # Lint — fails build on ERRORS, ignores WARNINGS. Per CSO #10:
+      # security-critical rules (`react/no-danger`, `no-eval`,
+      # `no-implied-eval`, `no-new-func`, `no-script-url`) are set to
+      # `error` in .eslintrc.json — they gate the build. Style warnings
+      # (jsx-key, etc.) stay at `warn` and don't block, since
+      # `--max-warnings=99999` is wired into the lint script.
       - name: Lint
-        # ESLint warnings are noisy in this repo; surface them but do not
-        # fail the build. Type errors above are the real gate.
-        continue-on-error: true
         run: npm run lint

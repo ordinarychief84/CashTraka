@@ -19,7 +19,8 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PromiseDetailPage({ params }: { params: { id: string } }) {
+export default async function PromiseDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const promise = await promiseToPayService.getById(params.id, user.id);
 

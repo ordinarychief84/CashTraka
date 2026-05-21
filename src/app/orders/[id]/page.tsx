@@ -17,7 +17,8 @@ export const dynamic = 'force-dynamic';
 
 const STATUS_TIMELINE = ['NEW', 'CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED'];
 
-export default async function OrderDetailPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   let order;
   try {

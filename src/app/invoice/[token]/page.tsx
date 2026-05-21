@@ -53,11 +53,12 @@ const STATUS_TONE: Record<string, { label: string; cls: string }> = {
  *   - Only safe fields are exposed (no internal user id, no other rows).
  *   - First view writes Invoice.viewedAt and an audit row.
  */
-export default async function PublicInvoicePage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function PublicInvoicePage(
+  props: {
+    params: Promise<{ token: string }>;
+  }
+) {
+  const params = await props.params;
   const invoice = await prisma.invoice.findUnique({
     where: { publicToken: params.token },
     include: {

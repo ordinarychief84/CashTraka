@@ -47,11 +47,11 @@ function buildLogoutResponse(req: Request) {
 }
 
 export async function POST(req: Request) {
-  clearSessionCookie();
+  await clearSessionCookie();
   return buildLogoutResponse(req);
 }
 
 export async function GET(req: Request) {
-  clearSessionCookie();
+  await clearSessionCookie();
   return buildLogoutResponse(req);
 }

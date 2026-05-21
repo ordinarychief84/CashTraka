@@ -20,7 +20,8 @@ function parseFilter(v: string | undefined): DebtFilter {
   return 'all';
 }
 
-export default async function DebtsPage({ searchParams }: { searchParams: SP }) {
+export default async function DebtsPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const q = (searchParams.q || '').trim();
   const filter = parseFilter(searchParams.filter);

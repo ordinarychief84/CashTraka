@@ -7,7 +7,8 @@ import { PaymentForm } from '@/components/PaymentForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditPaymentPage({ params }: { params: { id: string } }) {
+export default async function EditPaymentPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const payment = await prisma.payment.findFirst({
     where: { id: params.id, userId: user.id },

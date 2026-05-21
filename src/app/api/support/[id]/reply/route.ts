@@ -3,14 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 /** POST /api/support/[id]/reply, Add reply to own ticket */
-export async function POST(req: Request, ctx: { params: { id: string } }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const ticketId = ctx.params.id;
+    const ticketId = (await ctx.params).id;
     const body = await req.json();
     const { message } = body;
 

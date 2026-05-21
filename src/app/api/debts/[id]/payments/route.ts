@@ -18,7 +18,8 @@ const schema = z.object({
  *  3. If the debt is fully settled, flips Debt.status to PAID.
  *  4. Recomputes the customer's totals.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

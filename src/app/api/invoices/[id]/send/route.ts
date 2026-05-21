@@ -30,7 +30,8 @@ const bodySchema = z.object({
  *
  * Returns the public URL either way so the UI can copy-to-clipboard.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

@@ -13,11 +13,12 @@ import { MarkFiledButton } from './MarkFiledButton';
 
 export const dynamic = 'force-dynamic';
 
-export default async function VatReturnDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function VatReturnDetailPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const user = await guard();
   const result = await vatReturnService.getVatReturn(params.id, user.id);
   if (!result) notFound();

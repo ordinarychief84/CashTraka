@@ -96,7 +96,7 @@ async function verifySession(token: string): Promise<SessionPayload | null> {
 
 export async function setOwnerSession(userId: string) {
   const token = await signSession({ kind: 'owner', sub: userId });
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: true,
@@ -107,7 +107,7 @@ export async function setOwnerSession(userId: string) {
 
 export async function setStaffSession(staffId: string) {
   const token = await signSession({ kind: 'staff', sub: staffId });
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: true,
@@ -118,7 +118,7 @@ export async function setStaffSession(staffId: string) {
 
 export async function setAdminStaffSession(adminStaffId: string) {
   const token = await signSession({ kind: 'admin_staff', sub: adminStaffId });
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: true,
@@ -147,7 +147,7 @@ export async function setImpersonationSession(
     },
     IMPERSONATION_MAX_AGE,
   );
-  cookies().set(SESSION_COOKIE, token, {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: true,
@@ -175,13 +175,15 @@ export async function verifySessionToken(token: string): Promise<string | null> 
   return payload && payload.kind === 'owner' ? payload.sub : null;
 }
 
-export function clearSessionCookie() {
+export async function clearSessionCookie() {
   // Match the attributes used when the cookie was set. Most browsers
   // delete cookies by matching name + path + domain, but some (older
   // Safari, some Android webviews) are stricter about sameSite/secure —
   // mirroring the original attributes guarantees the Set-Cookie
   // replacement actually unsets the session.
-  cookies().set({
+  // Next 16: cookies() is async — await is required.
+  const c = await cookies();
+  c.set({
     name: SESSION_COOKIE,
     value: '',
     path: '/',
@@ -235,10 +237,13 @@ export type AuthContext = {
  * are present so admin tabs that include the header by mistake don't
  * downgrade their session kind.
  */
-function readSessionFromRequest(): string | null {
-  const cookieToken = cookies().get(SESSION_COOKIE)?.value;
+// Next 16: cookies() and headers() are async; this helper follows.
+async function readSessionFromRequest(): Promise<string | null> {
+  const c = await cookies();
+  const cookieToken = c.get(SESSION_COOKIE)?.value;
   if (cookieToken) return cookieToken;
-  const auth = headers().get('authorization') || headers().get('Authorization');
+  const h = await headers();
+  const auth = h.get('authorization') || h.get('Authorization');
   if (!auth) return null;
   const m = auth.match(/^Bearer\s+(.+)$/i);
   return m ? m[1].trim() : null;
@@ -246,7 +251,7 @@ function readSessionFromRequest(): string | null {
 
 /** Resolve the current AuthContext from the session cookie, or null. */
 export async function getAuthContext(): Promise<AuthContext | null> {
-  const token = readSessionFromRequest();
+  const token = await readSessionFromRequest();
   if (!token) return null;
   const payload = await verifySession(token);
   if (!payload) return null;
@@ -417,7 +422,7 @@ export function requireBusinessAccess(
  * or null if the session is not an admin_staff session.
  */
 export async function getAdminStaffFromSession() {
-  const token = readSessionFromRequest();
+  const token = await readSessionFromRequest();
   if (!token) return null;
   const payload = await verifySession(token);
   if (!payload || payload.kind !== 'admin_staff') return null;
@@ -446,7 +451,7 @@ export async function requireAdminOrStaff() {
     };
   }
   // Second try: is this a regular admin (User.role === ADMIN)?
-  const token = readSessionFromRequest();
+  const token = await readSessionFromRequest();
   if (!token) throw Err.unauthorized();
   const payload = await verifySession(token);
   if (!payload || payload.kind !== 'owner') throw Err.unauthorized();

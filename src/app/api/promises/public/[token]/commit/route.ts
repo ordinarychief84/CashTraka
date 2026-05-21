@@ -3,10 +3,8 @@ import { promiseCommitmentSchema } from '@/lib/validators';
 import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 
 /** POST /api/promises/public/[token]/commit, record a debtor commitment */
-export async function POST(
-  req: Request,
-  { params }: { params: { token: string } },
-) {
+export async function POST(req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   return handled(async () => {
     const body = await req.json();
     const data = promiseCommitmentSchema.parse(body);

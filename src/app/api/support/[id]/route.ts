@@ -3,14 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 /** GET /api/support/[id], Get ticket detail with replies (only if owned by current user) */
-export async function GET(req: Request, ctx: { params: { id: string } }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const ticketId = ctx.params.id;
+    const ticketId = (await ctx.params).id;
     const ticket = await prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: {

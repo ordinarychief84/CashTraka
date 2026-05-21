@@ -73,7 +73,9 @@ export const POST = (_req: Request, ctx: { params: { id: string } }) =>
  */
 export const DELETE = () =>
   handled(async () => {
-    const token = cookies().get(SESSION_COOKIE_NAME)?.value;
+    // Next 16: cookies() is async.
+    const cookieStore = await cookies();
+    const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
     if (!token) return fail('No active session', 401);
 
     let kind: string | undefined;

@@ -29,11 +29,12 @@ type SP = {
 
 const PAGE_SIZE = 30;
 
-export default async function AdminSubscriptionsPage({
-  searchParams,
-}: {
-  searchParams: SP;
-}) {
+export default async function AdminSubscriptionsPage(
+  props: {
+    searchParams: Promise<SP>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const admin = await requireAdminSection('subscriptions');
   const stats = await getSubscriptionStats();
 

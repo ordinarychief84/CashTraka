@@ -31,7 +31,8 @@ const ENTITY_TO_ADMIN_PATH: Record<string, (id: string) => string> = {
   INVOICE: (id) => `/admin/invoices/${id}`,
 };
 
-export default async function AdminDocumentAuditPage({ searchParams }: { searchParams: SP }) {
+export default async function AdminDocumentAuditPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const admin = await requireAdminSection('docAudit');
 
   const where: Record<string, unknown> = {};

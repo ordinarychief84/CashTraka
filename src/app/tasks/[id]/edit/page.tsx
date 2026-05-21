@@ -7,7 +7,8 @@ import { TaskForm } from '@/components/TaskForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditTaskPage({ params }: { params: { id: string } }) {
+export default async function EditTaskPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const task = await prisma.task.findFirst({
     where: { id: params.id, userId: user.id },

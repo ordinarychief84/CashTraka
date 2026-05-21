@@ -45,11 +45,12 @@ const PAY_METHOD_ICONS: Record<string, React.ReactNode> = {
   pos: <ReceiptText size={10} />,
 };
 
-export default async function ExpensesPage({
-  searchParams,
-}: {
-  searchParams: SP;
-}) {
+export default async function ExpensesPage(
+  props: {
+    searchParams: Promise<SP>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const range = parseRange(searchParams.range);
   const start = rangeStart(range);
@@ -235,7 +236,6 @@ export default async function ExpensesPage({
           </Link>
         }
       />
-
       {/* ── Personal budget alerts ── */}
       {(overWeek || overMonth) && (
         <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -273,7 +273,6 @@ export default async function ExpensesPage({
           </div>
         </div>
       )}
-
       {/* ── Kind tabs ── */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <KindTab
@@ -296,16 +295,13 @@ export default async function ExpensesPage({
           count={personalAgg._count}
         />
       </div>
-
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <TimeRange value={range} basePath="/expenses" />
       </div>
-
       {/* ── Search + category filter ── */}
       <Suspense>
         <ExpenseSearchBar />
       </Suspense>
-
       {/* ── Stats grid, context-aware ── */}
       {kind === 'business' || kind === 'all' ? (
         <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -357,7 +353,7 @@ export default async function ExpensesPage({
         </div>
       ) : (
         /* Personal-only view, show personal-relevant stats */
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
+        (<div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
           <StatCard
             label="This week"
             value={formatKobo(personalWeek)}
@@ -388,9 +384,8 @@ export default async function ExpensesPage({
                 : `${RANGE_LABELS[range]}`
             }
           />
-        </div>
+        </div>)
       )}
-
       {/* ── Insights row ── */}
       {(recurringCount > 0 || byPayMethod.size > 0) && (
         <div className="mb-4 flex flex-wrap gap-3">
@@ -420,7 +415,6 @@ export default async function ExpensesPage({
             ))}
         </div>
       )}
-
       {/* ── Category breakdown ── */}
       {byCategory.size > 0 && (
         <div className="card mb-4 p-4">
@@ -461,7 +455,6 @@ export default async function ExpensesPage({
           </div>
         </div>
       )}
-
       {/* ── Expense list ── */}
       {expenses.length === 0 ? (
         <EmptyState
@@ -551,7 +544,6 @@ export default async function ExpensesPage({
           })}
         </ul>
       )}
-
       {/* ── Personal budget thresholds ── */}
       <div className="mt-6" id="personal-budget">
         <PersonalBudgetCard

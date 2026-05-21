@@ -64,11 +64,12 @@ function resolveTopic(raw: string | undefined): Topic {
   return 'support';
 }
 
-export default function ContactPage({
-  searchParams,
-}: {
-  searchParams: { topic?: string };
-}) {
+export default async function ContactPage(
+  props: {
+    searchParams: Promise<{ topic?: string }>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const topic = resolveTopic(searchParams.topic);
   const variant = VARIANTS[topic];
   const mailto =

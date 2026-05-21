@@ -9,7 +9,8 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EditRecipePage({ params }: { params: { productId: string } }) {
+export default async function EditRecipePage(props: { params: Promise<{ productId: string }> }) {
+  const params = await props.params;
   const user = await guard();
   const product = await prisma.product.findUnique({
     where: { id: params.productId },

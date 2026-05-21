@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
  * and best-effort revokes upstream. Existing transactions stay so the
  * audit trail remains complete.
  */
-export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   return handled(async () => {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,7 +21,7 @@ export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
     const feature = await requireFeature(user, 'bankSync');
     if (feature) return feature;
 
-    const r = await monoBankService.disconnectAccount(ctx.params.id, user.id);
+    const r = await monoBankService.disconnectAccount((await ctx.params).id, user.id);
     if (!r.ok) return fail(r.error ?? 'Could not disconnect', 404);
     return ok({ disconnected: true });
   });

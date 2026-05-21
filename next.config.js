@@ -1,11 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  eslint: {
-    // Keep ESLint off during Vercel builds so lint warnings don't block a
-    // deploy. CI runs it separately. Type errors *do* block builds now.
-    ignoreDuringBuilds: true,
-  },
+  // Next.js 16 dropped the `eslint` config option from next.config.js;
+  // lint is now configured via .eslintrc.json + CI (`npm run lint`).
   typescript: {
     // Production-readiness pass cleared all 67 pre-existing TS errors
     // (including 4 runtime crashes in /api/installments, /api/customers

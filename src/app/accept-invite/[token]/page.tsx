@@ -16,11 +16,12 @@ export const dynamic = 'force-dynamic';
  * We resolve the token server-side so we can show them a friendly name +
  * business before they type a password.
  */
-export default async function AcceptInvitePage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function AcceptInvitePage(
+  props: {
+    params: Promise<{ token: string }>;
+  }
+) {
+  const params = await props.params;
   const tokenHash = hashToken(params.token);
   const staff = await prisma.staffMember.findUnique({
     where: { inviteToken: tokenHash },

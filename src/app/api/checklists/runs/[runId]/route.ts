@@ -9,7 +9,8 @@ const patchSchema = z.object({
   note: z.string().optional(),
 });
 
-export async function PATCH(req: Request, { params }: { params: { runId: string } }) {
+export async function PATCH(req: Request, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

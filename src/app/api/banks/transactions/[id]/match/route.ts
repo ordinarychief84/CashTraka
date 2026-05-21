@@ -18,7 +18,7 @@ const schema = z.object({
  * Mark a bank transaction as matched to an invoice. Both rows must be
  * owned by the caller.
  */
-export async function POST(req: Request, ctx: { params: { id: string } }) {
+export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   return handled(async () => {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,7 +31,7 @@ export async function POST(req: Request, ctx: { params: { id: string } }) {
     if (!parsed.success) return validationFail(parsed.error);
 
     const r = await monoBankService.matchToInvoice(
-      ctx.params.id,
+      (await ctx.params).id,
       parsed.data.invoiceId,
       user.id,
     );

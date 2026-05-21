@@ -28,7 +28,8 @@ const bodySchema = z.object({
  * Idempotent — second call returns the existing converted target id.
  * Sets Offer.status='CONVERTED' and links the produced doc.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

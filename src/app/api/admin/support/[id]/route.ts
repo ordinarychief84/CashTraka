@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
 /** GET /api/admin/support/[id], Get single ticket with all replies */
-export async function GET(req: Request, ctx: { params: { id: string } }) {
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     await requireAdmin();
 
-    const ticketId = ctx.params.id;
+    const ticketId = (await ctx.params).id;
     const ticket = await prisma.supportTicket.findUnique({
       where: { id: ticketId },
       include: {
@@ -58,11 +58,11 @@ export async function GET(req: Request, ctx: { params: { id: string } }) {
 }
 
 /** PATCH /api/admin/support/[id], Update ticket */
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
     const admin = await requireAdmin();
 
-    const ticketId = ctx.params.id;
+    const ticketId = (await ctx.params).id;
     const body = await req.json();
     const { status, priority, assignedTo } = body;
 

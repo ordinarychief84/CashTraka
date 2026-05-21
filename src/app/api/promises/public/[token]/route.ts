@@ -2,10 +2,8 @@ import { ok, handled } from '@/lib/api-response';
 import { promiseToPayService } from '@/lib/services/promise-to-pay.service';
 
 /** GET /api/promises/public/[token], get public promise data */
-export async function GET(
-  _req: Request,
-  { params }: { params: { token: string } },
-) {
+export async function GET(_req: Request, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   return handled(async () => {
     const promise = await promiseToPayService.getByToken(params.token);
     // Strip sensitive fields

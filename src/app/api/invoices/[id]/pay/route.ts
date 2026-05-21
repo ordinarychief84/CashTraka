@@ -30,7 +30,8 @@ const bodySchema = z.object({
  * /api/webhooks/paystack reconciles on charge.success and bumps
  * Invoice.amountPaid + status via paymentConfirmationService.
  */
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   // Per-IP rate limit. 10 attempts per minute keyed by invoice id keeps the
   // door open for a real customer retrying a failed Paystack init while
   // shutting down a script enumerating tokens.

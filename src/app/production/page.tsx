@@ -21,7 +21,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { status?: string; view?: string };
 
-export default async function ProductionPage({ searchParams }: { searchParams: SP }) {
+export default async function ProductionPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const view = (searchParams.view === 'list' ? 'list' : 'board') as 'board' | 'list';
   const status = (searchParams.status?.split(',') as any) ?? undefined;

@@ -8,11 +8,13 @@ import { ChecklistRunner } from '@/components/ChecklistRunner';
 export const dynamic = 'force-dynamic';
 
 type Props = {
-  params: { id: string };
-  searchParams: { runId?: string };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ runId?: string }>;
 };
 
-export default async function ChecklistRunPage({ params, searchParams }: Props) {
+export default async function ChecklistRunPage(props: Props) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
   const user = await guard();
   if (user.businessType === 'property_manager') redirect('/dashboard');
 

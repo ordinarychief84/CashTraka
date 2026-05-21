@@ -17,7 +17,8 @@ import { formatKobo, formatDateTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProductionDetailPage({ params }: { params: { id: string } }) {
+export default async function ProductionDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await guard();
   let order;
   try {

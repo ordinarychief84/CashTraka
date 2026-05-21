@@ -6,7 +6,7 @@ import { documentAudit } from '@/lib/services/document-audit.service';
 
 export const dynamic = 'force-dynamic';
 
-type Ctx = { params: { id: string } };
+type Ctx = { params: Promise<{ id: string }> };
 
 /** POST /api/admin/firs/[id]/retry, admin force-retry FIRS submission. */
 export async function POST(_req: Request, ctx: Ctx) {
@@ -14,7 +14,7 @@ export async function POST(_req: Request, ctx: Ctx) {
     const admin = await requireAdmin();
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id: ctx.params.id },
+      where: { id: (await ctx.params).id },
       select: { id: true, userId: true, firsStatus: true, firsRetryCount: true },
     });
     if (!invoice) return NextResponse.json({ error: 'Not found' }, { status: 404 });

@@ -16,7 +16,8 @@ export const dynamic = 'force-dynamic';
 
 type SP = { q?: string; lowStock?: string };
 
-export default async function MaterialsPage({ searchParams }: { searchParams: SP }) {
+export default async function MaterialsPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const q = (searchParams.q || '').trim();
   const lowStockOnly = searchParams.lowStock === '1';

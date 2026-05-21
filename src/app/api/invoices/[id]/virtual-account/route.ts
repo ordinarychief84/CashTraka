@@ -14,7 +14,7 @@ export const runtime = 'nodejs';
  * on `bankSync` for v1, since the partner integration ships in the
  * same Phase 2 of the Tax+ roadmap as Mono).
  */
-export async function POST(_req: Request, ctx: { params: { id: string } }) {
+export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   return handled(async () => {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -22,7 +22,7 @@ export async function POST(_req: Request, ctx: { params: { id: string } }) {
     const feature = await requireFeature(user, 'bankSync');
     if (feature) return feature;
 
-    const r = await virtualAccountService.ensureForInvoice(ctx.params.id, user.id);
+    const r = await virtualAccountService.ensureForInvoice((await ctx.params).id, user.id);
     if (!r.ok) return fail(r.error ?? 'Could not mint virtual account', 400);
     return ok(
       { account: r.account, alreadyExisted: 'alreadyExisted' in r ? r.alreadyExisted : false },

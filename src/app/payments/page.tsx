@@ -30,7 +30,8 @@ function parseVerification(v: string | undefined): VerificationFilter {
   return 'all';
 }
 
-export default async function PaymentsPage({ searchParams }: { searchParams: SP }) {
+export default async function PaymentsPage(props: { searchParams: Promise<SP> }) {
+  const searchParams = await props.searchParams;
   const user = await guard();
   const q = (searchParams.q || '').trim();
   const status = (searchParams.status as SP['status']) || 'ALL';

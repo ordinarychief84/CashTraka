@@ -17,7 +17,8 @@ export const runtime = 'nodejs';
  * Owner-only. Stamps `xmlGeneratedAt` and writes an XML_GENERATED audit
  * row the first time it's hit (idempotent).
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 

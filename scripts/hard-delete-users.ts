@@ -28,6 +28,12 @@
  * ─── Selection criteria ──────────────────────────────────────────
  *   Deletes every User where: role != 'ADMIN'
  *   Optionally: filter by `WHERE_EMAIL_LIKE` env var for safer batches.
+ *   Optionally: filter to ONLY suspended accounts via
+ *               `WHERE_SUSPENDED_ONLY=yes` — narrowest blast radius,
+ *               targets accounts where `User.isSuspended === true`.
+ *               Use this when you want to clean up accounts that were
+ *               disabled (failed onboarding, abuse, manual freeze) so
+ *               their email becomes immediately re-usable for signup.
  *
  * ─── Safety controls ─────────────────────────────────────────────
  *   1. Dry-run by default. Prints the cohort + per-user FK counts.
@@ -52,9 +58,21 @@
  *   $env:WHERE_EMAIL_LIKE="mimi"
  *   npx tsx scripts/hard-delete-users.ts
  *
+ *   # Target ONLY suspended accounts (greenfield-the-suspended-cohort):
+ *   $env:WHERE_SUSPENDED_ONLY="yes"
+ *   npx tsx scripts/hard-delete-users.ts
+ *   # then, to actually commit:
+ *   $env:CONFIRM_HARD_DELETE="yes"
+ *   $env:I_ACCEPT_FIRS_RETENTION_RISK="yes"
+ *   npx tsx scripts/hard-delete-users.ts
+ *
  * ─── Usage (POSIX) ───────────────────────────────────────────────
  *   npx tsx scripts/hard-delete-users.ts
  *   CONFIRM_HARD_DELETE=yes I_ACCEPT_FIRS_RETENTION_RISK=yes \
+ *     npx tsx scripts/hard-delete-users.ts
+ *   # Suspended-only flavour:
+ *   WHERE_SUSPENDED_ONLY=yes CONFIRM_HARD_DELETE=yes \
+ *     I_ACCEPT_FIRS_RETENTION_RISK=yes \
  *     npx tsx scripts/hard-delete-users.ts
  */
 import { PrismaClient, Prisma } from '@prisma/client';
@@ -66,6 +84,7 @@ const ARMED =
   process.env.I_ACCEPT_FIRS_RETENTION_RISK === 'yes';
 
 const EMAIL_LIKE = process.env.WHERE_EMAIL_LIKE ?? null;
+const SUSPENDED_ONLY = process.env.WHERE_SUSPENDED_ONLY === 'yes';
 
 function maskDbUrl(url: string): string {
   return url.replace(/:[^@/]+@/, ':***@');
@@ -192,12 +211,14 @@ async function main() {
   console.log(`  CONFIRM_HARD_DELETE      = ${process.env.CONFIRM_HARD_DELETE ?? '<unset>'}`);
   console.log(`  I_ACCEPT_FIRS_RETENTION_RISK = ${process.env.I_ACCEPT_FIRS_RETENTION_RISK ?? '<unset>'}`);
   console.log(`  WHERE_EMAIL_LIKE         = ${EMAIL_LIKE ?? '<none>'}`);
+  console.log(`  WHERE_SUSPENDED_ONLY     = ${SUSPENDED_ONLY ? 'yes' : 'no'}`);
   console.log(`  Armed for actual delete? ${ARMED ? '⚠️  YES' : 'no (dry-run)'}`);
   console.log('───────────────────────────────────────────────────────────');
 
   const where: Prisma.UserWhereInput = {
     role: { not: 'ADMIN' },
     ...(EMAIL_LIKE ? { email: { contains: EMAIL_LIKE, mode: 'insensitive' } } : {}),
+    ...(SUSPENDED_ONLY ? { isSuspended: true } : {}),
   };
 
   const cohort = await prisma.user.findMany({
@@ -208,6 +229,7 @@ async function main() {
       role: true,
       createdAt: true,
       deletedAt: true,
+      isSuspended: true,
     },
     orderBy: { createdAt: 'asc' },
   });
@@ -221,7 +243,10 @@ async function main() {
   for (const u of cohort) {
     const counts = await countDependents(u.id);
     const total = Object.values(counts).reduce((a, b) => a + b, 0);
-    const flag = u.deletedAt ? '(already soft-deleted)' : '';
+    const flags: string[] = [];
+    if (u.deletedAt) flags.push('soft-deleted');
+    if (u.isSuspended) flags.push('SUSPENDED');
+    const flag = flags.length ? `(${flags.join(', ')})` : '';
     console.log(
       `  ${u.id}  role=${u.role}  ${u.email.padEnd(40)}  ` +
         `dependents=${total}  created=${u.createdAt.toISOString()}  ${flag}`,

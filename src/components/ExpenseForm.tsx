@@ -4,8 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
-  Briefcase,
-  User,
   CreditCard,
   Banknote,
   Smartphone,
@@ -16,13 +14,9 @@ import {
   Search,
   Check,
 } from 'lucide-react';
-import {
-  BUSINESS_EXPENSE_CATEGORIES,
-  PERSONAL_EXPENSE_CATEGORIES,
-} from '@/lib/validators';
+import { BUSINESS_EXPENSE_CATEGORIES } from '@/lib/validators';
 import { cn } from '@/lib/utils';
 
-type Kind = 'business' | 'personal';
 type PayMethod = 'cash' | 'transfer' | 'card' | 'pos' | 'other';
 
 type Initial = {
@@ -31,7 +25,7 @@ type Initial = {
   category?: string;
   note?: string;
   incurredOn?: string;
-  kind?: Kind;
+  kind?: string;
   paymentMethod?: PayMethod | null;
   vendor?: string | null;
   isRecurring?: boolean;
@@ -56,14 +50,13 @@ const OTHER_SENTINEL = '__other__';
 
 /* ── Searchable Category Combobox ─────────────────────────────── */
 function CategoryCombobox({
-  categories,
   value,
   onChange,
 }: {
-  categories: readonly string[];
   value: string;
   onChange: (v: string) => void;
 }) {
+  const categories = BUSINESS_EXPENSE_CATEGORIES as readonly string[];
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [isOther, setIsOther] = useState(false);
@@ -78,6 +71,7 @@ function CategoryCombobox({
       setIsOther(true);
       setCustomText(value);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -95,7 +89,6 @@ function CategoryCombobox({
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  // Focus the custom text input when "Other" is selected
   useEffect(() => {
     if (isOther) {
       setTimeout(() => customInputRef.current?.focus(), 50);
@@ -103,7 +96,6 @@ function CategoryCombobox({
   }, [isOther]);
 
   const q = query.toLowerCase();
-  // Filter categories excluding "Miscellaneous" — we'll replace it with "Other"
   const filtered = categories
     .filter((c) => c !== 'Miscellaneous')
     .filter((c) => c.toLowerCase().includes(q));
@@ -136,7 +128,6 @@ function CategoryCombobox({
 
   return (
     <div ref={ref} className="relative">
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -155,13 +146,10 @@ function CategoryCombobox({
         />
       </button>
 
-      {/* Hidden native input for form data */}
       <input type="hidden" name="category" value={isOther ? (customText || 'Other') : value} />
 
-      {/* Dropdown */}
       {open && (
         <div className="absolute left-0 right-0 z-30 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
-          {/* Search */}
           <div className="border-b border-slate-100 px-3 py-2">
             <div className="relative">
               <Search
@@ -199,7 +187,6 @@ function CategoryCombobox({
               </button>
             ))}
 
-            {/* Other option, always at the bottom */}
             {showOther && (
               <>
                 <div className="mx-3 my-1 border-t border-slate-100" />
@@ -230,7 +217,6 @@ function CategoryCombobox({
         </div>
       )}
 
-      {/* Custom text input, shown when "Other" is selected */}
       {isOther && (
         <div className="mt-2">
           <input
@@ -238,7 +224,7 @@ function CategoryCombobox({
             type="text"
             value={customText}
             onChange={(e) => handleCustomChange(e.target.value)}
-            placeholder="What was this expense for? e.g. Church offering, School fees"
+            placeholder="What was this expense for? e.g. Welding gas, packaging tape"
             className="input w-full"
             maxLength={100}
           />
@@ -256,7 +242,6 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
   const editing = Boolean(initial?.id);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [kind, setKind] = useState<Kind>(initial?.kind ?? 'business');
   const [payMethod, setPayMethod] = useState<PayMethod | ''>(
     initial?.paymentMethod ?? '',
   );
@@ -265,27 +250,8 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
     initial?.taxDeductible ?? false,
   );
   const [category, setCategory] = useState(
-    initial?.category ?? (initial?.kind === 'personal' ? PERSONAL_EXPENSE_CATEGORIES[0] : BUSINESS_EXPENSE_CATEGORIES[0]),
+    initial?.category ?? BUSINESS_EXPENSE_CATEGORIES[0],
   );
-
-  const categories =
-    kind === 'business'
-      ? BUSINESS_EXPENSE_CATEGORIES
-      : PERSONAL_EXPENSE_CATEGORIES;
-
-  // Reset category when switching kind (if current isn't in new list and not a custom "Other")
-  useEffect(() => {
-    const list = kind === 'business' ? BUSINESS_EXPENSE_CATEGORIES : PERSONAL_EXPENSE_CATEGORIES;
-    if (!(list as readonly string[]).includes(category) && category !== 'Miscellaneous') {
-      // Keep custom categories as-is; only reset predefined ones that don't exist in the new list
-      const isCustom = category && !(
-        [...BUSINESS_EXPENSE_CATEGORIES, ...PERSONAL_EXPENSE_CATEGORIES] as string[]
-      ).includes(category);
-      if (!isCustom) {
-        setCategory(list[0]);
-      }
-    }
-  }, [kind]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -299,10 +265,10 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
       incurredOn: String(form.get('incurredOn') || ''),
       vendor: String(form.get('vendor') || ''),
       receiptRef: String(form.get('receiptRef') || ''),
-      kind,
+      kind: 'business',
       paymentMethod: payMethod || undefined,
       isRecurring,
-      taxDeductible: kind === 'business' ? taxDeductible : false,
+      taxDeductible,
     };
     try {
       const res = await fetch(
@@ -330,29 +296,6 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* ── Kind picker ── */}
-      <div>
-        <span className="label">What type of expense?</span>
-        <div className="grid grid-cols-2 gap-2">
-          <KindButton
-            active={kind === 'business'}
-            onClick={() => setKind('business')}
-            icon={<Briefcase size={16} />}
-            label="Business"
-            sub="Operational cost, affects your P&L"
-            color="blue"
-          />
-          <KindButton
-            active={kind === 'personal'}
-            onClick={() => setKind('personal')}
-            icon={<User size={16} />}
-            label="Personal"
-            sub="Your own spending, tracked separately"
-            color="amber"
-          />
-        </div>
-      </div>
-
       {/* ── Amount ── */}
       <div>
         <label htmlFor="amount" className="label">
@@ -370,32 +313,22 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
         />
       </div>
 
-      {/* ── Category (searchable combobox) ── */}
+      {/* ── Category ── */}
       <div>
         <label className="label">Category</label>
-        <CategoryCombobox
-          categories={categories}
-          value={category}
-          onChange={setCategory}
-          key={kind}
-        />
+        <CategoryCombobox value={category} onChange={setCategory} />
       </div>
 
-      {/* ── Vendor / Payee ── */}
+      {/* ── Vendor / Supplier ── */}
       <div>
         <label htmlFor="vendor" className="label">
-          {kind === 'business' ? 'Vendor / Supplier' : 'Paid to'}{' '}
-          <span className="text-slate-400">(optional)</span>
+          Vendor / Supplier <span className="text-slate-400">(optional)</span>
         </label>
         <input
           id="vendor"
           name="vendor"
           className="input"
-          placeholder={
-            kind === 'business'
-              ? 'e.g. Dangote Cement, MTN'
-              : 'e.g. Shoprite, Uber'
-          }
+          placeholder="e.g. Dangote Cement, MTN, Shoprite"
           defaultValue={initial?.vendor ?? ''}
         />
       </div>
@@ -450,11 +383,7 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
           id="note"
           name="note"
           className="input"
-          placeholder={
-            kind === 'personal'
-              ? 'e.g. Weekly grocery run, fuel top-up'
-              : 'e.g. Restocked 50 units of product X'
-          }
+          placeholder="e.g. Restocked 50kg flour, paid Q1 rent"
           defaultValue={initial?.note ?? ''}
         />
       </div>
@@ -493,25 +422,23 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
           Recurring expense
         </label>
 
-        {kind === 'business' && (
-          <label
-            className={cn(
-              'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition',
-              taxDeductible
-                ? 'border-success-500 bg-success-50 text-success-700'
-                : 'border-border bg-white text-slate-600 hover:bg-slate-50',
-            )}
-          >
-            <ShieldCheck size={14} />
-            <input
-              type="checkbox"
-              checked={taxDeductible}
-              onChange={(e) => setTaxDeductible(e.target.checked)}
-              className="sr-only"
-            />
-            Tax deductible
-          </label>
-        )}
+        <label
+          className={cn(
+            'flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition',
+            taxDeductible
+              ? 'border-success-500 bg-success-50 text-success-700'
+              : 'border-border bg-white text-slate-600 hover:bg-slate-50',
+          )}
+        >
+          <ShieldCheck size={14} />
+          <input
+            type="checkbox"
+            checked={taxDeductible}
+            onChange={(e) => setTaxDeductible(e.target.checked)}
+            className="sr-only"
+          />
+          Tax deductible
+        </label>
       </div>
 
       {error && (
@@ -523,67 +450,5 @@ export function ExpenseForm({ redirectTo = '/expenses', initial }: Props) {
         {submitting ? 'Saving…' : editing ? 'Save changes' : 'Save expense'}
       </button>
     </form>
-  );
-}
-
-function KindButton({
-  active,
-  onClick,
-  icon,
-  label,
-  sub,
-  color,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  sub: string;
-  color: 'blue' | 'amber';
-}) {
-  const colorClasses =
-    color === 'amber'
-      ? {
-          border: 'border-owed-400 ring-1 ring-owed-400',
-          bg: 'bg-owed-50',
-          iconBg: 'bg-owed-500 text-white',
-          text: 'text-owed-700',
-        }
-      : {
-          border: 'border-brand-500 ring-1 ring-brand-500',
-          bg: 'bg-brand-50',
-          iconBg: 'bg-brand-500 text-white',
-          text: 'text-brand-700',
-        };
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition',
-        active
-          ? `${colorClasses.border} ${colorClasses.bg}`
-          : 'border-border bg-white hover:border-brand-300',
-      )}
-    >
-      <span
-        className={cn(
-          'flex h-7 w-7 items-center justify-center rounded-md',
-          active ? colorClasses.iconBg : 'bg-slate-100 text-slate-600',
-        )}
-      >
-        {icon}
-      </span>
-      <span
-        className={cn(
-          'text-sm font-semibold',
-          active ? colorClasses.text : 'text-ink',
-        )}
-      >
-        {label}
-      </span>
-      <span className="text-[11px] text-slate-500">{sub}</span>
-    </button>
   );
 }

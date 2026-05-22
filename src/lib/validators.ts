@@ -111,35 +111,9 @@ const businessExpenseCategories = [
   'Miscellaneous',
 ] as const;
 
-/* ── Personal expense categories ── */
-const personalExpenseCategories = [
-  'Food / Meals',
-  'Transport / Fuel',
-  'Airtime / Data',
-  'Health / Medical',
-  'Family / Dependents',
-  'Clothing',
-  'Entertainment',
-  'Education',
-  'Personal Care',
-  'Gifts / Donations',
-  'Savings / Investments',
-  'Miscellaneous',
-] as const;
-
-/* ── Combined (for schema validation) ── */
-const allExpenseCategories = [
-  ...businessExpenseCategories,
-  ...personalExpenseCategories,
-] as const;
-
-// Deduplicate for Zod enum (Miscellaneous appears in both)
-const uniqueExpenseCategories = [...new Set(allExpenseCategories)] as unknown as readonly [string, ...string[]];
-
-export type ExpenseCategory = (typeof allExpenseCategories)[number];
-export const EXPENSE_CATEGORIES = uniqueExpenseCategories;
+export type ExpenseCategory = (typeof businessExpenseCategories)[number];
+export const EXPENSE_CATEGORIES = businessExpenseCategories;
 export const BUSINESS_EXPENSE_CATEGORIES = businessExpenseCategories;
-export const PERSONAL_EXPENSE_CATEGORIES = personalExpenseCategories;
 
 /* ── Industry-specific business expense categories ── */
 const sellerExpenseCategories = [
@@ -187,7 +161,7 @@ export const expenseSchema = z.object({
   category: z.string().trim().min(1, 'Category is required'),
   note: z.string().trim().max(200).optional().or(z.literal('')),
   incurredOn: z.string().optional(),
-  kind: z.enum(['business', 'personal']).default('business'),
+  kind: z.string().default('business'),
   paymentMethod: z.enum(['cash', 'transfer', 'card', 'pos', 'other']).optional(),
   vendor: z.string().trim().max(100).optional().or(z.literal('')),
   isRecurring: z.boolean().optional().default(false),

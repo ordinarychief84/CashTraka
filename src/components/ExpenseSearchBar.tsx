@@ -4,25 +4,16 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useRef, useEffect, useTransition } from 'react';
 import { ChevronDown, Search, X, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  BUSINESS_EXPENSE_CATEGORIES,
-  PERSONAL_EXPENSE_CATEGORIES,
-} from '@/lib/validators';
+import { BUSINESS_EXPENSE_CATEGORIES } from '@/lib/validators';
 
 export function ExpenseSearchBar() {
   const router = useRouter();
   const sp = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const currentCat = sp.get('category') ?? '';
-  const currentKind = sp.get('kind') ?? '';
 
-  const businessCats = BUSINESS_EXPENSE_CATEGORIES as readonly string[];
-  const personalCats = PERSONAL_EXPENSE_CATEGORIES as readonly string[];
-
-  // Determine which categories to show based on the kind filter
-  const showBusiness = currentKind !== 'personal';
-  const showPersonal = currentKind !== 'business';
+  const categories = BUSINESS_EXPENSE_CATEGORIES as readonly string[];
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -40,7 +31,6 @@ export function ExpenseSearchBar() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  // Focus the search input when dropdown opens
   useEffect(() => {
     if (open) inputRef.current?.focus();
   }, [open]);
@@ -68,13 +58,7 @@ export function ExpenseSearchBar() {
   }
 
   const q = query.toLowerCase();
-  const filteredBusiness = showBusiness
-    ? businessCats.filter((c) => c.toLowerCase().includes(q))
-    : [];
-  const filteredPersonal = showPersonal
-    ? personalCats.filter((c) => c.toLowerCase().includes(q))
-    : [];
-  const hasResults = filteredBusiness.length > 0 || filteredPersonal.length > 0;
+  const filtered = categories.filter((c) => c.toLowerCase().includes(q));
 
   return (
     <div ref={ref} className="relative mb-4">
@@ -113,7 +97,7 @@ export function ExpenseSearchBar() {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute left-0 z-30 mt-1.5 w-64 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
+        <div className="absolute left-0 z-30 mt-1.5 w-60 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden">
           {/* Search input */}
           <div className="border-b border-slate-100 px-3 py-2">
             <div className="relative">
@@ -132,7 +116,7 @@ export function ExpenseSearchBar() {
             </div>
           </div>
 
-          <div className="max-h-64 overflow-y-auto py-1">
+          <div className="max-h-60 overflow-y-auto py-1">
             {/* All Categories option */}
             {!query && (
               <button
@@ -148,62 +132,22 @@ export function ExpenseSearchBar() {
               </button>
             )}
 
-            {/* Business categories */}
-            {filteredBusiness.length > 0 && (
-              <>
-                {(showPersonal && showBusiness) && (
-                  <div className="px-3.5 pt-2 pb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Business
-                    </span>
-                  </div>
+            {filtered.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => select(cat)}
+                className={cn(
+                  'flex w-full items-center px-3.5 py-2 text-sm transition-colors',
+                  currentCat === cat
+                    ? 'bg-brand-50 font-semibold text-brand-700'
+                    : 'text-slate-700 hover:bg-slate-50',
                 )}
-                {filteredBusiness.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => select(cat)}
-                    className={cn(
-                      'flex w-full items-center px-3.5 py-2 text-sm transition-colors',
-                      currentCat === cat
-                        ? 'bg-brand-50 font-semibold text-brand-700'
-                        : 'text-slate-700 hover:bg-slate-50',
-                    )}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </>
-            )}
+              >
+                {cat}
+              </button>
+            ))}
 
-            {/* Personal categories */}
-            {filteredPersonal.length > 0 && (
-              <>
-                {(showPersonal && showBusiness) && (
-                  <div className="px-3.5 pt-2 pb-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Personal
-                    </span>
-                  </div>
-                )}
-                {filteredPersonal.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => select(cat)}
-                    className={cn(
-                      'flex w-full items-center px-3.5 py-2 text-sm transition-colors',
-                      currentCat === cat
-                        ? 'bg-brand-50 font-semibold text-brand-700'
-                        : 'text-slate-700 hover:bg-slate-50',
-                    )}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </>
-            )}
-
-            {/* No results */}
-            {!hasResults && query && (
+            {filtered.length === 0 && query && (
               <p className="px-3.5 py-4 text-center text-sm text-slate-400">
                 No categories match &ldquo;{query}&rdquo;
               </p>

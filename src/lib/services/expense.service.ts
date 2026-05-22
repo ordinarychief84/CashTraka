@@ -42,49 +42,8 @@ export const expenseService = {
       receiptRef?: string | null;
       taxDeductible?: boolean;
     },
-  ): Promise<Expense & { budgetWarning?: string }> {
-    // Check budget thresholds before creating
+  ): Promise<Expense> {
     const kind = data.kind ?? 'business';
-    let budgetWarning: string | undefined;
-
-    if (kind === 'personal') {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { personalBudgetWeekly: true, personalBudgetMonthly: true },
-      });
-      if (user) {
-        const now = new Date();
-        if (user.personalBudgetMonthly) {
-          const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-          const monthTotal = await prisma.expense.aggregate({
-            where: { userId, kind: 'personal', incurredOn: { gte: monthStart } },
-            _sum: { amount: true },
-          });
-          const currentMonthSpend = (monthTotal._sum.amount ?? 0) + data.amount;
-          if (currentMonthSpend > user.personalBudgetMonthly) {
-            budgetWarning = `Monthly personal budget exceeded: ${currentMonthSpend} / ${user.personalBudgetMonthly}`;
-          } else if (currentMonthSpend > user.personalBudgetMonthly * 0.8) {
-            budgetWarning = `Approaching monthly personal budget: ${currentMonthSpend} / ${user.personalBudgetMonthly}`;
-          }
-        }
-        if (user.personalBudgetWeekly) {
-          const dayOfWeek = now.getDay();
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-          weekStart.setHours(0, 0, 0, 0);
-          const weekTotal = await prisma.expense.aggregate({
-            where: { userId, kind: 'personal', incurredOn: { gte: weekStart } },
-            _sum: { amount: true },
-          });
-          const currentWeekSpend = (weekTotal._sum.amount ?? 0) + data.amount;
-          if (currentWeekSpend > user.personalBudgetWeekly) {
-            budgetWarning = `Weekly personal budget exceeded: ${currentWeekSpend} / ${user.personalBudgetWeekly}`;
-          } else if (!budgetWarning && currentWeekSpend > user.personalBudgetWeekly * 0.8) {
-            budgetWarning = `Approaching weekly personal budget: ${currentWeekSpend} / ${user.personalBudgetWeekly}`;
-          }
-        }
-      }
-    }
 
     const expense = await prisma.expense.create({
       data: {
@@ -103,7 +62,7 @@ export const expenseService = {
       },
     });
 
-    return budgetWarning ? Object.assign(expense, { budgetWarning }) : expense;
+    return expense;
   },
 
   /** Update an existing expense (partial). */

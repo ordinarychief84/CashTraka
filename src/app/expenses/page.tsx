@@ -3,11 +3,6 @@ import { Suspense } from 'react';
 import {
   Plus,
   ReceiptText,
-  Briefcase,
-  User as UserIcon,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown,
   CreditCard,
   Banknote,
   Smartphone,
@@ -23,20 +18,12 @@ import { StatCard } from '@/components/StatCard';
 import { TimeRange } from '@/components/TimeRange';
 import { ExpenseRowActions } from '@/components/ExpenseRowActions';
 import { ExpenseSearchBar } from '@/components/ExpenseSearchBar';
-import { PersonalBudgetCard } from '@/components/PersonalBudgetCard';
-import { formatKobo, formatNaira, formatDate } from '@/lib/format';
+import { formatKobo, formatDate } from '@/lib/format';
 import { parseRange, rangeStart, RANGE_LABELS } from '@/lib/range';
-import { cn } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
-type Kind = 'business' | 'personal' | 'all';
-type SP = { range?: string; kind?: string; q?: string; category?: string };
-
-function parseKind(k: string | undefined): Kind {
-  if (k === 'business' || k === 'personal') return k;
-  return 'all';
-}
+type SP = { range?: string; q?: string; category?: string };
 
 const PAY_METHOD_ICONS: Record<string, React.ReactNode> = {
   cash: <Banknote size={10} />,
@@ -53,21 +40,12 @@ export default async function ExpensesPage({
   const user = await guard();
   const range = parseRange(searchParams.range);
   const start = rangeStart(range);
-  const kind = parseKind(searchParams.kind);
   const searchQ = searchParams.q?.trim() || '';
   const categoryFilter = searchParams.category || '';
 
   const now = new Date();
-  const weekStart = new Date(now);
-  weekStart.setHours(0, 0, 0, 0);
-  weekStart.setDate(weekStart.getDate() - 6);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  // Previous month for trend comparison
   const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-
-  const kindFilter = kind === 'all' ? {} : { kind };
 
   const searchWhere: Record<string, unknown> = {};
   if (searchQ) {
@@ -84,12 +62,8 @@ export default async function ExpensesPage({
   const [
     expenses,
     businessAgg,
-    personalAgg,
     receivedAgg,
-    personalWeekAgg,
-    personalMonthAgg,
     prevMonthBusinessAgg,
-    prevMonthPersonalAgg,
     recurringCount,
     taxDeductibleAgg,
   ] = await Promise.all([
@@ -97,7 +71,6 @@ export default async function ExpensesPage({
       where: {
         userId: user.id,
         ...(start ? { incurredOn: { gte: start } } : {}),
-        ...kindFilter,
         ...searchWhere,
       },
       orderBy: { incurredOn: 'desc' },
@@ -106,16 +79,6 @@ export default async function ExpensesPage({
     prisma.expense.aggregate({
       where: {
         userId: user.id,
-        kind: 'business',
-        ...(start ? { incurredOn: { gte: start } } : {}),
-      },
-      _sum: { amountKobo: true },
-      _count: true,
-    }),
-    prisma.expense.aggregate({
-      where: {
-        userId: user.id,
-        kind: 'personal',
         ...(start ? { incurredOn: { gte: start } } : {}),
       },
       _sum: { amountKobo: true },
@@ -132,31 +95,6 @@ export default async function ExpensesPage({
     prisma.expense.aggregate({
       where: {
         userId: user.id,
-        kind: 'personal',
-        incurredOn: { gte: weekStart },
-      },
-      _sum: { amountKobo: true },
-    }),
-    prisma.expense.aggregate({
-      where: {
-        userId: user.id,
-        kind: 'personal',
-        incurredOn: { gte: monthStart },
-      },
-      _sum: { amountKobo: true },
-    }),
-    prisma.expense.aggregate({
-      where: {
-        userId: user.id,
-        kind: 'business',
-        incurredOn: { gte: prevMonthStart, lte: prevMonthEnd },
-      },
-      _sum: { amountKobo: true },
-    }),
-    prisma.expense.aggregate({
-      where: {
-        userId: user.id,
-        kind: 'personal',
         incurredOn: { gte: prevMonthStart, lte: prevMonthEnd },
       },
       _sum: { amountKobo: true },
@@ -167,7 +105,6 @@ export default async function ExpensesPage({
     prisma.expense.aggregate({
       where: {
         userId: user.id,
-        kind: 'business',
         taxDeductible: true,
         ...(start ? { incurredOn: { gte: start } } : {}),
       },
@@ -176,24 +113,15 @@ export default async function ExpensesPage({
   ]);
 
   const businessTotal = businessAgg._sum.amountKobo ?? 0;
-  const personalTotal = personalAgg._sum.amountKobo ?? 0;
   const received = receivedAgg._sum.amountKobo ?? 0;
   const profit = received - businessTotal;
   const prevBusiness = prevMonthBusinessAgg._sum.amountKobo ?? 0;
-  const prevPersonal = prevMonthPersonalAgg._sum.amountKobo ?? 0;
   const taxDeductibleTotal = taxDeductibleAgg._sum?.amountKobo ?? 0;
 
-  const personalWeek = personalWeekAgg._sum.amountKobo ?? 0;
-  const personalMonth = personalMonthAgg._sum.amountKobo ?? 0;
-  // Budgets are stored on User as naira ints. Compare against personalWeek/
-  // personalMonth (kobo) by promoting the budgets to kobo for the math, but
-  // keep the naira values around for the budget label display.
-  const weeklyBudget = user.personalBudgetWeekly ?? null;
-  const monthlyBudget = user.personalBudgetMonthly ?? null;
-  const weeklyBudgetKobo = weeklyBudget != null ? weeklyBudget * 100 : null;
-  const monthlyBudgetKobo = monthlyBudget != null ? monthlyBudget * 100 : null;
-  const overWeek = weeklyBudgetKobo !== null && personalWeek > weeklyBudgetKobo;
-  const overMonth = monthlyBudgetKobo !== null && personalMonth > monthlyBudgetKobo;
+  const businessTrend =
+    prevBusiness > 0
+      ? Math.round(((businessTotal - prevBusiness) / prevBusiness) * 100)
+      : null;
 
   // Category breakdown
   const byCategory = new Map<string, number>();
@@ -207,16 +135,6 @@ export default async function ExpensesPage({
     if (m) byPayMethod.set(m, (byPayMethod.get(m) ?? 0) + e.amountKobo);
   }
 
-  // Trend calculation
-  const businessTrend =
-    prevBusiness > 0
-      ? Math.round(((businessTotal - prevBusiness) / prevBusiness) * 100)
-      : null;
-  const personalTrend =
-    prevPersonal > 0
-      ? Math.round(((personalTotal - prevPersonal) / prevPersonal) * 100)
-      : null;
-
   return (
     <AppShell
       businessName={user.businessName}
@@ -226,8 +144,8 @@ export default async function ExpensesPage({
       principalName={user.principalName}
     >
       <PageHeader
-        title="Expense Management"
-        subtitle="Track business costs and personal spending separately, know exactly where every naira goes."
+        title="Expenses"
+        subtitle="Track production costs, overheads, and operational spend to know your real profit margin."
         action={
           <Link href="/expenses/new" className="btn-primary">
             <Plus size={18} />
@@ -235,67 +153,6 @@ export default async function ExpensesPage({
           </Link>
         }
       />
-
-      {/* ── Personal budget alerts ── */}
-      {(overWeek || overMonth) && (
-        <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
-          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-red-600" />
-          <div className="text-sm">
-            <div className="font-bold text-red-800">
-              Personal spending alert
-            </div>
-            <ul className="mt-1 space-y-0.5 text-red-700">
-              {overWeek && (
-                <li>
-                  This week: {formatKobo(personalWeek)} spent vs{' '}
-                  {formatNaira(weeklyBudget!)} budget ·{' '}
-                  <strong>
-                    {formatKobo(personalWeek - weeklyBudgetKobo!)} over
-                  </strong>
-                </li>
-              )}
-              {overMonth && (
-                <li>
-                  This month: {formatKobo(personalMonth)} spent vs{' '}
-                  {formatNaira(monthlyBudget!)} budget ·{' '}
-                  <strong>
-                    {formatKobo(personalMonth - monthlyBudgetKobo!)} over
-                  </strong>
-                </li>
-              )}
-            </ul>
-            <a
-              href="#personal-budget"
-              className="mt-2 inline-block text-xs font-semibold text-red-800 underline hover:text-red-900"
-            >
-              Adjust thresholds
-            </a>
-          </div>
-        </div>
-      )}
-
-      {/* ── Kind tabs ── */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <KindTab
-          label="All Expenses"
-          active={kind === 'all'}
-          href={`/expenses${range !== 'all' ? '?range=' + range : ''}`}
-        />
-        <KindTab
-          label="Business"
-          icon={<Briefcase size={12} />}
-          active={kind === 'business'}
-          href={`/expenses?kind=business${range !== 'all' ? '&range=' + range : ''}`}
-          count={businessAgg._count}
-        />
-        <KindTab
-          label="Personal"
-          icon={<UserIcon size={12} />}
-          active={kind === 'personal'}
-          href={`/expenses?kind=personal${range !== 'all' ? '&range=' + range : ''}`}
-          count={personalAgg._count}
-        />
-      </div>
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <TimeRange value={range} basePath="/expenses" />
@@ -306,90 +163,38 @@ export default async function ExpensesPage({
         <ExpenseSearchBar />
       </Suspense>
 
-      {/* ── Stats grid, context-aware ── */}
-      {kind === 'business' || kind === 'all' ? (
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+      {/* ── Stats grid ── */}
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatCard
+          label="Total expenses"
+          value={formatKobo(businessTotal)}
+          tone="neutral"
+          sub={
+            businessTrend !== null
+              ? `${businessTrend > 0 ? '↑' : '↓'} ${Math.abs(businessTrend)}% vs last month`
+              : `${RANGE_LABELS[range]}`
+          }
+        />
+        <StatCard
+          label="Revenue"
+          value={formatKobo(received)}
+          tone="brand"
+        />
+        <StatCard
+          label="Net profit"
+          value={formatKobo(profit)}
+          tone={profit >= 0 ? 'brand' : 'danger'}
+          sub={profit < 0 ? 'Costs exceed revenue' : 'Revenue minus costs'}
+        />
+        {taxDeductibleTotal > 0 && (
           <StatCard
-            label={`Business costs`}
-            value={formatKobo(businessTotal)}
+            label="Tax deductible"
+            value={formatKobo(taxDeductibleTotal)}
             tone="neutral"
-            sub={
-              businessTrend !== null
-                ? `${businessTrend > 0 ? '↑' : '↓'} ${Math.abs(businessTrend)}% vs last month`
-                : 'Affects your P&L'
-            }
+            sub="Potential tax savings"
           />
-          {kind === 'all' && (
-            <StatCard
-              label="Personal spending"
-              value={formatKobo(personalTotal)}
-              tone={overWeek || overMonth ? 'danger' : 'neutral'}
-              sub={
-                personalTrend !== null
-                  ? `${personalTrend > 0 ? '↑' : '↓'} ${Math.abs(personalTrend)}% vs last month`
-                  : 'Tracked separately'
-              }
-            />
-          )}
-          <StatCard
-            label="Revenue"
-            value={formatKobo(received)}
-            tone="brand"
-          />
-          <StatCard
-            label="Net profit"
-            value={formatKobo(profit)}
-            tone={profit >= 0 ? 'brand' : 'danger'}
-            sub={
-              profit < 0
-                ? 'Costs exceed revenue'
-                : 'Revenue minus business costs'
-            }
-          />
-          {kind === 'business' && taxDeductibleTotal > 0 && (
-            <StatCard
-              label="Tax deductible"
-              value={formatKobo(taxDeductibleTotal)}
-              tone="neutral"
-              sub="Potential tax savings"
-            />
-          )}
-        </div>
-      ) : (
-        /* Personal-only view, show personal-relevant stats */
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">
-          <StatCard
-            label="This week"
-            value={formatKobo(personalWeek)}
-            tone={overWeek ? 'danger' : 'neutral'}
-            sub={
-              weeklyBudget
-                ? `Budget: ${formatNaira(weeklyBudget)}`
-                : 'No weekly budget set'
-            }
-          />
-          <StatCard
-            label="This month"
-            value={formatKobo(personalMonth)}
-            tone={overMonth ? 'danger' : 'neutral'}
-            sub={
-              monthlyBudget
-                ? `Budget: ${formatNaira(monthlyBudget)}`
-                : 'No monthly budget set'
-            }
-          />
-          <StatCard
-            label="Total personal"
-            value={formatKobo(personalTotal)}
-            tone="neutral"
-            sub={
-              personalTrend !== null
-                ? `${personalTrend > 0 ? '↑' : '↓'} ${Math.abs(personalTrend)}% vs last month`
-                : `${RANGE_LABELS[range]}`
-            }
-          />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Insights row ── */}
       {(recurringCount > 0 || byPayMethod.size > 0) && (
@@ -432,19 +237,9 @@ export default async function ExpensesPage({
               .sort((a, b) => b[1] - a[1])
               .map(([cat, total]) => {
                 const pct =
-                  kind === 'business'
-                    ? businessTotal > 0
-                      ? Math.round((total / businessTotal) * 100)
-                      : 0
-                    : kind === 'personal'
-                      ? personalTotal > 0
-                        ? Math.round((total / personalTotal) * 100)
-                        : 0
-                      : (businessTotal + personalTotal) > 0
-                        ? Math.round(
-                            (total / (businessTotal + personalTotal)) * 100,
-                          )
-                        : 0;
+                  businessTotal > 0
+                    ? Math.round((total / businessTotal) * 100)
+                    : 0;
                 return (
                   <span
                     key={cat}
@@ -471,18 +266,12 @@ export default async function ExpensesPage({
               ? `No expenses match "${searchQ}"`
               : categoryFilter
                 ? `No ${categoryFilter} expenses`
-                : kind === 'personal'
-                  ? 'No personal expenses yet'
-                  : kind === 'business'
-                    ? 'No business expenses yet'
-                    : 'No expenses yet'
+                : 'No expenses yet'
           }
           description={
             searchQ || categoryFilter
               ? 'Try adjusting your search or filter.'
-              : kind === 'personal'
-                ? 'Track your personal spending to set budgets and avoid overspending.'
-                : 'Log your business costs to see real profit, not just revenue.'
+              : 'Log your business costs to see real profit, not just revenue.'
           }
           actionHref="/expenses/new"
           actionLabel="Log expense"
@@ -496,11 +285,6 @@ export default async function ExpensesPage({
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 truncate">
                     <span className="font-medium text-ink">{e.category}</span>
-                    <KindBadge
-                      kind={
-                        (e.kind as 'business' | 'personal') ?? 'business'
-                      }
-                    />
                     {Boolean(exp.isRecurring) && (
                       <RotateCcw
                         size={10}
@@ -551,77 +335,6 @@ export default async function ExpensesPage({
           })}
         </ul>
       )}
-
-      {/* ── Personal budget thresholds ── */}
-      <div className="mt-6" id="personal-budget">
-        <PersonalBudgetCard
-          initial={{
-            weekly: user.personalBudgetWeekly ?? null,
-            monthly: user.personalBudgetMonthly ?? null,
-          }}
-        />
-      </div>
     </AppShell>
-  );
-}
-
-function KindTab({
-  label,
-  icon,
-  active,
-  href,
-  count,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  active: boolean;
-  href: string;
-  count?: number;
-}) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition',
-        active
-          ? 'border-brand-500 bg-brand-50 text-brand-700'
-          : 'border-border bg-white text-slate-600 hover:bg-slate-50',
-      )}
-    >
-      {icon}
-      {label}
-      {count !== undefined && count > 0 && (
-        <span
-          className={cn(
-            'ml-0.5 rounded-full px-1.5 text-[10px] font-bold',
-            active
-              ? 'bg-brand-200 text-brand-800'
-              : 'bg-slate-100 text-slate-500',
-          )}
-        >
-          {count}
-        </span>
-      )}
-    </Link>
-  );
-}
-
-function KindBadge({ kind }: { kind: 'business' | 'personal' }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase',
-        kind === 'personal'
-          ? 'bg-owed-100 text-owed-700'
-          : 'bg-brand-50 text-brand-600',
-      )}
-    >
-      {kind === 'personal' ? (
-        <UserIcon size={8} />
-      ) : (
-        <Briefcase size={8} />
-      )}
-      {kind}
-    </span>
   );
 }

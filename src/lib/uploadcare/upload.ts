@@ -32,6 +32,7 @@
  */
 
 const UPLOAD_ENDPOINT = 'https://upload.uploadcare.com/base/';
+const INFO_ENDPOINT = 'https://upload.uploadcare.com/info/';
 const REST_BASE = 'https://api.uploadcare.com';
 
 /**
@@ -186,23 +187,49 @@ async function uploadBuffer(
   // No-op when UPLOADCARE_SECRET_KEY is not set.
   await storeFile(json.file);
 
-  const url = `${cdnBase()}/${json.file}/${encodeURIComponent(opts.filename)}`;
-
-  // Verify the file is reachable. If the project's auto-store is "Manual"
-  // and we have no secret key, the upload returns a UUID but the CDN serves
-  // 404. We throw a typed error so the API route can surface a clear,
-  // actionable message instead of silently returning a broken URL.
+  // ── Resolve the canonical CDN URL via Uploadcare's info endpoint ──────────
+  //
+  // Why: building the URL as `${cdnBase()}/${uuid}/` works for legacy projects
+  // that share `ucarecdn.com`, but newer Uploadcare projects are assigned a
+  // project-specific subdomain (e.g. `https://xyz.ucarecd.net/`). Without
+  // UPLOADCARE_CDN_BASE set, guessing `ucarecdn.com` produces a 404 for those
+  // projects and the browser renders a broken image immediately after upload.
+  //
+  // The info endpoint (`/info/?pub_key=…&file_id=…`) returns the actual CDN
+  // URL Uploadcare uses for this file, so we never have to guess the host.
+  // It also tells us whether the file is stored — giving us a better error
+  // message than a silent broken image when auto-store is off.
+  let url: string;
   try {
-    const head = await fetch(url, { method: 'HEAD' });
-    if (!head.ok) {
-      throw new UploadNotStoredError(json.file, head.status);
+    const infoRes = await fetch(
+      `${INFO_ENDPOINT}?pub_key=${encodeURIComponent(pubKey)}&file_id=${encodeURIComponent(json.file)}`,
+    );
+    if (infoRes.ok) {
+      const info = (await infoRes.json()) as {
+        url?: string;
+        is_stored?: boolean;
+        is_ready?: boolean;
+      };
+      if (!info.is_stored) {
+        // File uploaded but not persisted to CDN — auto-store must be off and
+        // no secret key was provided for explicit REST store. Surface a clear
+        // error so the operator knows exactly what to fix.
+        throw new UploadNotStoredError(json.file);
+      }
+      // Use the URL Uploadcare itself reports — handles custom CDN domains.
+      url = info.url ?? `${cdnBase()}/${json.file}/`;
+    } else {
+      // Info endpoint unreachable — fall back to constructed URL.
+      console.error(
+        `[uploadcare] info endpoint returned ${infoRes.status} for ${json.file}; falling back to constructed URL`,
+      );
+      url = `${cdnBase()}/${json.file}/`;
     }
   } catch (e) {
     if (e instanceof UploadNotStoredError) throw e;
-    // Network blip on the HEAD; trust the upload and let the caller render.
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Uploadcare HEAD check error (non-fatal)', e);
-    }
+    // Network blip querying info — fall back and hope the CDN base is right.
+    console.error('[uploadcare] info endpoint error (non-fatal):', e);
+    url = `${cdnBase()}/${json.file}/`;
   }
 
   return { url, publicId: json.file };

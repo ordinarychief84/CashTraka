@@ -48,7 +48,7 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.paystack.co https://cdnjs.cloudflare.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://ucarecdn.com https://*.uploadcare.com",
+              "img-src 'self' data: blob: https://ucarecdn.com https://*.ucarecdn.com https://*.ucarecd.net https://*.uploadcare.com",
               "connect-src 'self' https://api.paystack.co https://upload.uploadcare.com https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io",
               "frame-src 'self' https://js.paystack.co",
               "frame-ancestors 'none'",

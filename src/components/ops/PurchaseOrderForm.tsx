@@ -131,26 +131,46 @@ export function PurchaseOrderForm({
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Materials</h3>
-          <button
-            type="button"
-            onClick={() =>
-              setItems((prev) => {
-                const used = new Set(prev.map((p) => p.materialId));
-                const next = materials.find((m) => !used.has(m.id));
-                return [
-                  ...prev,
-                  {
-                    materialId: next?.id ?? '',
-                    quantity: 1,
-                    unitCostNaira: next ? next.unitCostKobo / 100 : 0,
-                  },
-                ];
-              })
-            }
-            className="btn-secondary inline-flex items-center gap-1 text-xs"
-          >
-            <Plus size={14} /> Add material
-          </button>
+          {(() => {
+            const usedIds = new Set(items.map((p) => p.materialId));
+            const lastBlank = !items[items.length - 1]?.materialId;
+            const allUsed = materials.length > 0 && usedIds.size >= materials.length && !usedIds.has('');
+            const disabled = lastBlank || allUsed;
+            return (
+              <button
+                type="button"
+                disabled={disabled}
+                title={
+                  lastBlank
+                    ? 'Select a material for the current line first'
+                    : allUsed
+                      ? 'All your materials are already on this order'
+                      : undefined
+                }
+                onClick={() =>
+                  setItems((prev) => {
+                    const used = new Set(prev.map((p) => p.materialId));
+                    const next = materials.find((m) => !used.has(m.id));
+                    return [
+                      ...prev,
+                      {
+                        materialId: next?.id ?? '',
+                        quantity: 1,
+                        unitCostNaira: next ? next.unitCostKobo / 100 : 0,
+                      },
+                    ];
+                  })
+                }
+                className={
+                  disabled
+                    ? 'inline-flex cursor-not-allowed items-center gap-1 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400'
+                    : 'btn-secondary inline-flex items-center gap-1 text-xs'
+                }
+              >
+                <Plus size={14} /> Add material
+              </button>
+            );
+          })()}
         </div>
         <ul className="space-y-2">
           {items.map((it, i) => {

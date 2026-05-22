@@ -246,14 +246,35 @@ export function ProductionOrderForm({
           <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-600">
             <Factory size={14} /> Items
           </div>
-          <button
-            type="button"
-            onClick={addLine}
-            disabled={noProducts}
-            className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600 disabled:opacity-50"
-          >
-            <Plus size={12} /> Add product
-          </button>
+          {(() => {
+            const usedIds = new Set(items.map((it) => it.productId).filter(Boolean));
+            const lastBlank = !items[items.length - 1]?.productId;
+            const allUsed =
+              producableProducts.length > 0 &&
+              usedIds.size >= producableProducts.length;
+            const addDisabled = noProducts || lastBlank || allUsed;
+            return (
+              <button
+                type="button"
+                onClick={addLine}
+                disabled={addDisabled}
+                title={
+                  lastBlank
+                    ? 'Pick a product for the current line first'
+                    : allUsed
+                      ? 'All products are already on this order'
+                      : undefined
+                }
+                className={
+                  addDisabled
+                    ? 'inline-flex cursor-not-allowed items-center gap-1 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400'
+                    : 'inline-flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600'
+                }
+              >
+                <Plus size={12} /> Add product
+              </button>
+            );
+          })()}
         </header>
         <ul className="divide-y divide-border">
           {items.map((it, i) => {

@@ -120,14 +120,17 @@ export function AppShell({
           {show.settings && (
             <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />
           )}
+          {/* Recipes sits next to Products — it's a core production planning feature */}
+          {show.products && !isPropManager && (
+            <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
+          )}
           <SideLink href="/billing" icon={<CreditCard size={18} />} label="Billing" />
 
-          {/* Supporting surfaces — extended this session. */}
+          {/* Supporting surfaces */}
           <div className="mt-3 border-t border-border/60 pt-3">
             <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               More
             </div>
-            <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
             {show.expenses && (
               <SideLink href="/expenses" icon={<Banknote size={18} />} label="Expenses" />
             )}

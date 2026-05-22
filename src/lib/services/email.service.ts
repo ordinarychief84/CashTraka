@@ -206,6 +206,10 @@ export const emailService = {
 
   /* ══════════════════════════════════════════════════════════════════════
    *  1. WELCOME EMAIL — sent after onboarding completes
+   *
+   *  Updated for the production planning pivot (2026-05):
+   *  Non-landlord steps now walk users through the production workflow:
+   *  profile → products → recipes → first order → first production run.
    * ══════════════════════════════════════════════════════════════════════ */
   async sendWelcome(args: { to: string; name: string; businessType?: string }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || 'https://cashtraka.co';
@@ -213,20 +217,60 @@ export const emailService = {
     const firstName = args.name.split(' ')[0];
 
     /* ── Step definitions (adaptive per business type) ──────────────── */
-    const steps: { num: number; icon: string; title: string; desc: string; href: string; linkLabel: string }[] = isLandlord
+    const steps: { num: number; icon: string; title: string; desc: string; href: string; linkLabel: string; time: string }[] = isLandlord
       ? [
-          { num: 1, icon: '⚙️', title: 'Complete your profile', desc: 'Add your business name, WhatsApp number, and bank details so tenants see a professional brand on every receipt.', href: `${appUrl}/settings`, linkLabel: 'Set up profile' },
-          { num: 2, icon: '🏢', title: 'Add your first property', desc: 'Create a building with units so you can assign tenants, track occupancy, and monitor rent.', href: `${appUrl}/properties`, linkLabel: 'Add a property' },
-          { num: 3, icon: '👤', title: 'Add tenants', desc: 'Link tenants to units with rent amounts and lease dates — CashTraka will handle reminders automatically.', href: `${appUrl}/tenants`, linkLabel: 'Add a tenant' },
-          { num: 4, icon: '🔗', title: 'Send a PayLink', desc: 'Generate a payment link and send it via WhatsApp or email. Tenants click, pay, and you get notified instantly.', href: `${appUrl}/paylinks`, linkLabel: 'Create PayLink' },
-          { num: 5, icon: '👥', title: 'Invite your team', desc: 'Add a property manager or assistant with the right permissions so they can help without full access.', href: `${appUrl}/team`, linkLabel: 'Invite staff' },
+          { num: 1, icon: '⚙️', title: 'Complete your profile', desc: 'Add your business name, WhatsApp number, and bank details so tenants see a professional brand on every receipt.', href: `${appUrl}/settings`, linkLabel: 'Set up profile', time: '2 min' },
+          { num: 2, icon: '🏢', title: 'Add your first property', desc: 'Create a building with units so you can assign tenants, track occupancy, and monitor rent.', href: `${appUrl}/properties`, linkLabel: 'Add a property', time: '3 min' },
+          { num: 3, icon: '👤', title: 'Add tenants', desc: 'Link tenants to units with rent amounts and lease dates — CashTraka will handle reminders automatically.', href: `${appUrl}/tenants`, linkLabel: 'Add a tenant', time: '2 min' },
+          { num: 4, icon: '🔗', title: 'Send a PayLink', desc: 'Generate a payment link and send it via WhatsApp or email. Tenants click, pay, and you get notified instantly.', href: `${appUrl}/paylinks`, linkLabel: 'Create PayLink', time: '1 min' },
+          { num: 5, icon: '👥', title: 'Invite your team', desc: 'Add a property manager or assistant with the right permissions so they can help without full access.', href: `${appUrl}/team`, linkLabel: 'Invite staff', time: '1 min' },
         ]
       : [
-          { num: 1, icon: '⚙️', title: 'Complete your profile', desc: 'Add your business name, WhatsApp number, and bank details so customers see a professional brand on every receipt.', href: `${appUrl}/settings`, linkLabel: 'Set up profile' },
-          { num: 2, icon: '💰', title: 'Record your first sale', desc: 'Tap "Record payment" to log a sale — your dashboard will come alive with real-time revenue tracking.', href: `${appUrl}/payments`, linkLabel: 'Record a payment' },
-          { num: 3, icon: '👤', title: 'Add your customers', desc: 'Build your customer list so you can track who owes what, send receipts, and follow up on debts.', href: `${appUrl}/customers`, linkLabel: 'Add a customer' },
-          { num: 4, icon: '🔗', title: 'Send a PayLink', desc: 'Generate a payment link and share it via WhatsApp or email — customers tap, pay, and you get notified.', href: `${appUrl}/paylinks`, linkLabel: 'Create PayLink' },
-          { num: 5, icon: '👥', title: 'Invite your team', desc: 'Add a cashier or manager with the right permissions so they can help without full access.', href: `${appUrl}/team`, linkLabel: 'Invite staff' },
+          {
+            num: 1,
+            icon: '⚙️',
+            title: 'Set up your business profile',
+            desc: 'Add your business name, WhatsApp number, and bank details. Your customers and production team will see this on every document.',
+            href: `${appUrl}/settings`,
+            linkLabel: 'Set up profile',
+            time: '2 min',
+          },
+          {
+            num: 2,
+            icon: '📦',
+            title: 'Add your products',
+            desc: 'List the products you make and sell — lip gloss, cakes, garments, furniture, anything. Set the selling price and we\'ll track revenue automatically.',
+            href: `${appUrl}/products/new`,
+            linkLabel: 'Add first product',
+            time: '3 min',
+          },
+          {
+            num: 3,
+            icon: '📋',
+            title: 'Create recipes (what goes into each product)',
+            desc: 'A recipe tells CashTraka: "to make 10 units of Lip Gloss, I need 500g shea butter, 100ml castor oil…". This unlocks material planning, shortage alerts, and batch cost tracking.',
+            href: `${appUrl}/recipes`,
+            linkLabel: 'Set up recipes',
+            time: '5 min',
+          },
+          {
+            num: 4,
+            icon: '📥',
+            title: 'Take your first customer order',
+            desc: 'When a customer orders, log it here. CashTraka will calculate what materials you need, flag what\'s missing, and walk you through fulfillment to invoicing.',
+            href: `${appUrl}/orders/new`,
+            linkLabel: 'Create first order',
+            time: '2 min',
+          },
+          {
+            num: 5,
+            icon: '🏭',
+            title: 'Run your first production batch',
+            desc: 'Start a production order, check material readiness, buy what you\'re short on, produce, and mark it done. CashTraka auto-updates stock and generates the invoice.',
+            href: `${appUrl}/production/new`,
+            linkLabel: 'Start production',
+            time: '5 min',
+          },
         ];
 
     /* ── Build step cards HTML ──────────────────────────────────────── */
@@ -234,28 +278,29 @@ export const emailService = {
     for (const s of steps) {
       stepsHTML += `
       <tr>
-        <td style="padding:0 0 16px;">
+        <td style="padding:0 0 12px;">
           <a href="${esc(s.href)}" style="text-decoration:none;display:block;">
-            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;transition:box-shadow 0.2s;">
               <tr>
                 <td style="padding:16px 18px;">
                   <table cellpadding="0" cellspacing="0" border="0" width="100%">
                     <tr>
-                      <!-- Number badge + icon -->
+                      <!-- Icon badge -->
                       <td width="52" style="vertical-align:top;">
-                        <div style="width:44px;height:44px;background:#F0F9FF;border:2px solid #BAE6FD;border-radius:12px;text-align:center;line-height:42px;font-size:20px;">
+                        <div style="width:44px;height:44px;background:#F0FFF4;border:2px solid #BBF7D0;border-radius:12px;text-align:center;line-height:42px;font-size:20px;">
                           ${s.icon}
                         </div>
                       </td>
                       <!-- Content -->
                       <td style="padding-left:14px;vertical-align:top;">
-                        <div style="margin-bottom:4px;">
-                          <span style="display:inline-block;background:#00B8E8;color:#FFFFFF;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;letter-spacing:0.3px;vertical-align:middle;">STEP ${s.num}</span>
+                        <div style="margin-bottom:5px;display:flex;align-items:center;gap:8px;">
+                          <span style="display:inline-block;background:#00B8E8;color:#FFFFFF;font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;letter-spacing:0.3px;">STEP ${s.num}</span>
+                          <span style="font-size:11px;color:#94A3B8;font-weight:600;">${esc(s.time)}</span>
                         </div>
                         <div style="font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;font-weight:700;color:#0F172A;margin-bottom:4px;line-height:1.3;">
                           ${esc(s.title)}
                         </div>
-                        <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:8px;">
+                        <div style="font-size:13px;color:#64748B;line-height:1.55;margin-bottom:8px;">
                           ${esc(s.desc)}
                         </div>
                         <div style="font-size:13px;font-weight:700;color:#00B8E8;">
@@ -272,36 +317,55 @@ export const emailService = {
       </tr>`;
     }
 
+    /* ── Flow diagram for production businesses ─────────────────────── */
+    const flowDiagram = isLandlord ? '' : `
+      ${DIVIDER}
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00B8E8;margin-bottom:10px;">
+          How an order flows through CashTraka
+        </div>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            ${['Customer Order', 'Production Plan', 'Buy Materials', 'Produce', 'Invoice & Collect'].map((label, i) => `
+            <td style="text-align:center;padding:0 2px;">
+              <div style="background:${i === 0 ? '#00B8E8' : '#F1F5F9'};color:${i === 0 ? '#FFFFFF' : '#475569'};border-radius:8px;padding:8px 4px;font-size:11px;font-weight:700;line-height:1.3;">${esc(label)}</div>
+              ${i < 4 ? '<div style="text-align:center;font-size:14px;color:#94A3B8;padding:2px 0;">→</div>' : ''}
+            </td>`).join('')}
+          </tr>
+        </table>
+        <p style="margin:10px 0 0;font-size:12px;color:#94A3B8;text-align:center;">CashTraka threads orders through every stage automatically.</p>
+      </div>`;
+
     /* ── Assemble final email body ──────────────────────────────────── */
     const body = `
       <!-- Hero -->
       <div style="text-align:center;margin-bottom:28px;">
-        <div style="font-size:48px;line-height:1;margin-bottom:16px;">🎉</div>
+        <div style="font-size:48px;line-height:1;margin-bottom:16px;">${isLandlord ? '🏠' : '🏭'}</div>
         <h1 style="margin:0 0 8px;font-size:26px;font-weight:800;color:#0F172A;line-height:1.2;">
           Welcome to CashTraka, ${esc(firstName)}!
         </h1>
         <p style="margin:0;font-size:15px;color:#64748B;line-height:1.5;">
           ${isLandlord
             ? "Your property management toolkit is ready. Let's get everything set up in 5 quick steps."
-            : "Your business dashboard is ready. Let's get everything set up in 5 quick steps."
+            : "Your production planning system is ready. Follow these 5 steps to fulfil your first order end-to-end."
           }
         </p>
       </div>
 
       ${DIVIDER}
 
-      <!-- Progress indicator -->
-      <div style="margin-bottom:24px;">
+      <!-- Progress label -->
+      <div style="margin-bottom:20px;">
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#00B8E8;margin-bottom:6px;">
           Your setup checklist
         </div>
         <p style="margin:0;font-size:13px;color:#94A3B8;">
-          Click each step below to get started — each one takes less than 2 minutes.
+          Each step unlocks the next. Click to get started — most take under 5 minutes.
         </p>
       </div>
 
       <!-- Step cards -->
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:16px;padding:16px;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#F8FAFC;border-radius:16px;">
         <tr>
           <td style="padding:16px;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -312,47 +376,51 @@ export const emailService = {
       </table>
 
       <!-- Main CTA -->
-      <div style="text-align:center;margin-top:8px;">
+      <div style="text-align:center;margin-top:4px;">
         ${ctaButton('Open your dashboard', appUrl + '/dashboard')}
       </div>
 
+      ${flowDiagram}
+
       ${DIVIDER}
 
-      <!-- Motivation section -->
+      <!-- Value prop -->
       <div style="text-align:center;padding:8px 0 16px;">
         <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#0F172A;">
-          ${isLandlord ? '🏠 Built for Nigerian landlords' : '💼 Built for Nigerian businesses'}
+          ${isLandlord ? '🏠 Built for Nigerian landlords' : '🏭 Built for Nigerian small-batch businesses'}
         </p>
         <p style="margin:0;font-size:13px;color:#64748B;line-height:1.6;">
           ${isLandlord
             ? 'Track every property, every tenant, every payment — and get reminded before things slip.'
-            : 'Record sales, send receipts, track expenses, and always know your real profit.'
+            : 'Know what to produce, what materials to buy, and what each batch costs — before you run out of stock or miss a deadline.'
           }
         </p>
       </div>
 
       ${DIVIDER}
 
-      <!-- Help section -->
+      <!-- Help -->
       <div style="background:#F0F9FF;border-radius:12px;padding:20px;text-align:center;">
-        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:8px;">Need a hand?</div>
+        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:8px;">Stuck on any step?</div>
         <p style="margin:0;font-size:13px;color:#64748B;line-height:1.6;">
-          Reply to this email or visit our ${link('help center', appUrl + '/contact')} — a real human will respond.
+          Reply to this email or visit our ${link('help center', appUrl + '/contact')} — a real human will respond within a few hours.
         </p>
       </div>
 
       <p style="margin:24px 0 0;font-size:14px;color:#475569;text-align:center;line-height:1.6;">
-        We're excited to have you on board! 🚀<br>
+        Rooting for your business! 🚀<br>
         <strong style="color:#0F172A;">— The CashTraka Team</strong>
       </p>`;
 
     return send({
       to: args.to,
-      subject: `Welcome to CashTraka — your 5-step setup guide`,
+      subject: isLandlord
+        ? `Welcome to CashTraka — your 5-step property setup guide`
+        : `Welcome to CashTraka — fulfil your first order in 5 steps`,
       html: layout(body, {
         preheader: isLandlord
           ? '5 quick steps to start managing your properties like a pro.'
-          : '5 quick steps to start tracking payments and growing your business.',
+          : 'Set up products, recipes, and orders — then run your first production batch.',
       }),
     });
   },
@@ -936,10 +1004,10 @@ export const emailService = {
     const firstName = args.name.split(' ')[0];
     const isPM = args.businessType === 'property_manager';
 
-    const heroEmoji = isPM ? '🏠' : '💰';
+    const heroEmoji = isPM ? '🏠' : '🏭';
     const heroSubtitle = isPM
       ? 'Your property management just got easier.'
-      : 'Your business finances just got clearer.';
+      : 'Your production planning system is waiting for you.';
 
     const featureCards = isPM
       ? [
@@ -961,19 +1029,19 @@ export const emailService = {
         ]
       : [
           {
-            icon: '📱',
-            title: 'Record Sales Instantly',
-            desc: 'Log payments in seconds and see your revenue grow in real time.',
+            icon: '📥',
+            title: 'Log orders, plan production',
+            desc: 'When a customer orders, capture it in CashTraka and it flows straight into your production board — no spreadsheets, no lost orders.',
           },
           {
-            icon: '📧',
-            title: 'Send Receipts in One Tap',
-            desc: 'Professional receipts via WhatsApp or email — your customers will love it.',
+            icon: '🔍',
+            title: 'Know what materials to buy',
+            desc: 'CashTraka reads your recipes and tells you exactly what\'s short before you start production. Never run out of raw materials mid-batch again.',
           },
           {
-            icon: '📈',
-            title: 'Know Your Numbers',
-            desc: 'Real profit, not just revenue. Track expenses, debts, and growth trends.',
+            icon: '💰',
+            title: 'Know your real batch cost',
+            desc: 'Every completed production run logs the material cost. You always know your margin — per batch, per product, per month.',
           },
         ];
 
@@ -1016,13 +1084,13 @@ export const emailService = {
         <p style="margin:0 0 12px;font-size:14px;color:#334155;line-height:1.7;">
           We built CashTraka because ${isPM
             ? "managing properties in Nigeria shouldn't mean drowning in spreadsheets and chasing tenants for rent."
-            : "too many Nigerian business owners work hard every day but can't tell you their real profit at the end of the month."
+            : "too many Nigerian small-batch businesses are producing blind — running out of materials, missing orders, and not knowing their real batch cost until it's too late."
           }
         </p>
         <p style="margin:0;font-size:14px;color:#334155;line-height:1.7;">
           ${isPM
             ? 'With CashTraka, you get a purpose-built system that tracks every unit, every tenant, every payment — and reminds you before things slip through the cracks.'
-            : 'CashTraka gives you one place to record sales, track who owes you, manage expenses, and see exactly where your money goes. No accounting degree needed.'
+            : 'CashTraka gives you one place to manage orders, plan what to produce, check what materials to buy, track batch costs, and invoice customers — all connected, end-to-end.'
           }
         </p>
       </div>
@@ -1041,9 +1109,9 @@ export const emailService = {
 
       <!-- Social proof / trust signal -->
       <div style="text-align:center;padding:16px 0 8px;">
-        <p style="margin:0 0 6px;font-size:20px;font-weight:800;color:#1A1A1A;">Join hundreds of Nigerian businesses</p>
+        <p style="margin:0 0 6px;font-size:20px;font-weight:800;color:#1A1A1A;">Built for Nigerian small-batch businesses</p>
         <p style="margin:0;font-size:13px;color:#94A3B8;">
-          ${isPM ? 'Property managers across Lagos, Abuja, and Port Harcourt trust CashTraka.' : 'From market sellers to tech startups — CashTraka works for every business size.'}
+          ${isPM ? 'Property managers across Lagos, Abuja, and Port Harcourt trust CashTraka.' : 'Skincare brands, food processors, fashion makers, agro-processors, furniture workshops — if you make things and sell them, CashTraka is built for you.'}
         </p>
       </div>
 
@@ -1075,11 +1143,11 @@ export const emailService = {
       to: args.to,
       subject: isPM
         ? `${firstName}, your property management toolkit is ready`
-        : `${firstName}, your business dashboard is ready`,
+        : `${firstName}, your production planning system is ready`,
       html: layout(body, {
         preheader: isPM
           ? 'Properties, tenants, rent tracking — all set up and waiting for you.'
-          : 'Payments, receipts, expenses — everything you need to run your business smarter.',
+          : 'Log orders, plan production, track materials and batch costs — all in one place.',
       }),
     });
   },

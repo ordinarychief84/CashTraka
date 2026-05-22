@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
@@ -13,6 +13,8 @@ import {
   FileText,
   StickyNote,
   Save,
+  Search,
+  ChevronDown,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,6 +33,162 @@ type Line = {
   quantity: number;
   unitPriceNaira: number;
 };
+
+/**
+ * ProductCombobox — single-input search that finds products from catalog
+ * OR lets the user type a free-text custom item.
+ *
+ * Replaces the old confusing (select + text-input) two-field combo.
+ */
+function ProductCombobox({
+  products,
+  value,
+  productId,
+  onChange,
+  placeholder,
+}: {
+  products: ProductOpt[];
+  value: string;
+  productId: string;
+  onChange: (patch: { productId: string; description: string; unitPriceNaira: number }) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const matches = useMemo(() => {
+    const q = value.trim().toLowerCase();
+    if (!q) return products.slice(0, 8); // show first 8 when empty/focused
+    return products
+      .filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.sku && p.sku.toLowerCase().includes(q)),
+      )
+      .slice(0, 8);
+  }, [value, products]);
+
+  function selectProduct(p: ProductOpt) {
+    onChange({
+      productId: p.id,
+      description: p.name,
+      unitPriceNaira: p.priceKobo / 100,
+    });
+    setOpen(false);
+    inputRef.current?.blur();
+  }
+
+  function clearProduct() {
+    onChange({ productId: '', description: '', unitPriceNaira: 0 });
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }
+
+  const selectedProduct = products.find((p) => p.id === productId);
+
+  return (
+    <div className="relative">
+      {selectedProduct ? (
+        /* ── Selected state: show chip + price, allow clearing ──── */
+        <div className="flex items-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 py-2">
+          <Package size={13} className="shrink-0 text-brand-600" />
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-brand-800">
+            {selectedProduct.name}
+          </span>
+          <span className="shrink-0 text-xs font-bold text-brand-700">
+            ₦{(selectedProduct.priceKobo / 100).toLocaleString('en-NG')}
+          </span>
+          <button
+            type="button"
+            onClick={clearProduct}
+            className="ml-1 shrink-0 rounded p-0.5 text-brand-400 hover:bg-brand-100 hover:text-brand-700"
+            title="Change product"
+          >
+            <ChevronDown size={13} />
+          </button>
+        </div>
+      ) : (
+        /* ── Search state ────────────────────────────────────────── */
+        <>
+          <div className="relative">
+            <Search
+              size={14}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            />
+            <input
+              ref={inputRef}
+              value={value}
+              onChange={(e) =>
+                onChange({ productId: '', description: e.target.value, unitPriceNaira: 0 })
+              }
+              onFocus={() => setOpen(true)}
+              onBlur={() => setTimeout(() => setOpen(false), 150)}
+              className="input w-full pl-8"
+              placeholder={
+                placeholder ??
+                (products.length > 0
+                  ? 'Search products or type item name…'
+                  : 'Type item name (e.g. "Lip gloss × 10")')
+              }
+            />
+          </div>
+
+          {open && (
+            <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-white shadow-xl">
+              {products.length === 0 ? (
+                <div className="px-3 py-3 text-xs text-slate-500">
+                  No products in catalog yet.{' '}
+                  <a href="/products/new" className="font-semibold text-brand-600 hover:underline">
+                    Add a product →
+                  </a>
+                </div>
+              ) : matches.length === 0 ? (
+                <div className="px-3 py-2.5 text-xs text-slate-500">
+                  No matching products — keep typing to use as a custom item.
+                </div>
+              ) : (
+                <ul className="max-h-56 overflow-y-auto py-1">
+                  {matches.map((p) => (
+                    <li key={p.id}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          selectProduct(p);
+                        }}
+                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left hover:bg-slate-50"
+                      >
+                        <Package size={13} className="shrink-0 text-slate-400" />
+                        <span className="min-w-0 flex-1 text-sm font-medium text-ink">
+                          {p.name}
+                          {p.sku && (
+                            <span className="ml-1.5 text-xs text-slate-400">
+                              {p.sku}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0 text-xs font-bold text-emerald-700">
+                          ₦{(p.priceKobo / 100).toLocaleString('en-NG')}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                  {value.trim() && !matches.find((p) => p.name.toLowerCase() === value.trim().toLowerCase()) && (
+                    <li className="border-t border-border">
+                      <div className="px-3 py-2 text-xs text-slate-500">
+                        <span className="font-semibold text-slate-700">"{value}"</span> will be saved as a custom item.
+                      </div>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
 
 /**
  * Prodio-inspired two-column add-order form.
@@ -60,10 +218,7 @@ export function CustomerOrderForm({
   const [shippingInfo, setShippingInfo] = useState('');
   const [customerPickup, setCustomerPickup] = useState(false);
 
-  // Bundle B additions — priority / source / delivery / payment status.
-  const [priority, setPriority] = useState<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'>(
-    'NORMAL',
-  );
+  const [priority, setPriority] = useState<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'>('NORMAL');
   const [source, setSource] = useState<
     '' | 'WHATSAPP' | 'WALK_IN' | 'INSTAGRAM' | 'WEBSITE' | 'REFERRAL' | 'OTHER'
   >('');
@@ -71,9 +226,7 @@ export function CustomerOrderForm({
     '' | 'PICKUP' | 'DELIVERY' | 'DISPATCH' | 'THIRD_PARTY'
   >('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [paymentStatus, setPaymentStatus] = useState<
-    'UNPAID' | 'PART_PAID' | 'PAID'
-  >('UNPAID');
+  const [paymentStatus, setPaymentStatus] = useState<'UNPAID' | 'PART_PAID' | 'PAID'>('UNPAID');
 
   const [items, setItems] = useState<Line[]>([
     { productId: '', description: '', quantity: 1, unitPriceNaira: 0 },
@@ -84,9 +237,7 @@ export function CustomerOrderForm({
   const customerSuggestions = useMemo(() => {
     if (!customerName.trim() || customerId) return [];
     const q = customerName.trim().toLowerCase();
-    return customers
-      .filter((c) => c.name.toLowerCase().includes(q))
-      .slice(0, 5);
+    return customers.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 5);
   }, [customerName, customers, customerId]);
 
   function pickCustomer(c: CustomerOpt) {
@@ -95,19 +246,12 @@ export function CustomerOrderForm({
     setCustomerPhone(c.phone);
   }
 
-  function pickProduct(i: number, productId: string) {
-    const p = products.find((x) => x.id === productId);
+  function updateItemCombo(
+    i: number,
+    patch: { productId: string; description: string; unitPriceNaira: number },
+  ) {
     setItems((prev) =>
-      prev.map((it, idx) =>
-        idx === i
-          ? {
-              ...it,
-              productId,
-              description: p?.name ?? it.description,
-              unitPriceNaira: p ? p.priceKobo / 100 : it.unitPriceNaira,
-            }
-          : it,
-      ),
+      prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)),
     );
   }
 
@@ -115,12 +259,18 @@ export function CustomerOrderForm({
     setItems((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
   }
 
+  /* Disable "Add item" if the last line is still empty (no product + no description) */
+  const lastLine = items[items.length - 1];
+  const lastLineEmpty = !lastLine?.productId && !lastLine?.description.trim();
+
   function addLine() {
+    if (lastLineEmpty) return; // guard: don't stack empty rows
     setItems((prev) => [
       ...prev,
       { productId: '', description: '', quantity: 1, unitPriceNaira: 0 },
     ]);
   }
+
   function removeLine(i: number) {
     setItems((prev) =>
       prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i),
@@ -131,7 +281,7 @@ export function CustomerOrderForm({
     (sum, it) => sum + Math.round(it.unitPriceNaira * 100) * it.quantity,
     0,
   );
-  const lineCount = items.filter((it) => it.description.trim()).length;
+  const lineCount = items.filter((it) => it.description.trim() || it.productId).length;
 
   async function submit(stay: boolean) {
     if (!customerName.trim()) {
@@ -139,7 +289,7 @@ export function CustomerOrderForm({
       return;
     }
     if (lineCount === 0) {
-      setError('Add at least one item.');
+      setError('Add at least one item to this order.');
       return;
     }
     setSubmitting(true);
@@ -171,10 +321,10 @@ export function CustomerOrderForm({
           paymentStatus,
           notes: composedNotes || undefined,
           items: items
-            .filter((it) => it.description.trim())
+            .filter((it) => it.description.trim() || it.productId)
             .map((it) => ({
               productId: it.productId || undefined,
-              description: it.description.trim(),
+              description: it.description.trim() || '(item)',
               quantity: it.quantity,
               unitPriceKobo: Math.round(it.unitPriceNaira * 100),
             })),
@@ -190,7 +340,6 @@ export function CustomerOrderForm({
       }
       toast.success('Order saved');
       if (stay) {
-        // Reset for next order — keep customer fields, clear items.
         setItems([{ productId: '', description: '', quantity: 1, unitPriceNaira: 0 }]);
         setNotes('');
         setExternalRef('');
@@ -395,17 +544,27 @@ export function CustomerOrderForm({
               <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-600">
                 <Package size={14} />
                 Items
+                {lineCount > 0 && (
+                  <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-700">
+                    {lineCount}
+                  </span>
+                )}
               </div>
-              <div className="text-xs text-slate-500">
-                {lineCount} {lineCount === 1 ? 'line' : 'lines'}
-              </div>
+              {products.length === 0 && (
+                <a
+                  href="/products/new"
+                  className="text-xs font-semibold text-brand-600 hover:underline"
+                >
+                  + Add products to catalog
+                </a>
+              )}
             </header>
 
-            {/* Header row (desktop) */}
+            {/* Column headers (desktop) */}
             <div className="hidden grid-cols-12 gap-2 border-b border-border bg-slate-50/50 px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:grid">
-              <div className="col-span-1">No.</div>
-              <div className="col-span-5">Product</div>
-              <div className="col-span-2 text-right">Quantity</div>
+              <div className="col-span-1">#</div>
+              <div className="col-span-5">Product / Item</div>
+              <div className="col-span-2 text-center">Qty</div>
               <div className="col-span-2 text-right">Unit price (₦)</div>
               <div className="col-span-1 text-right">Subtotal</div>
               <div className="col-span-1" />
@@ -416,75 +575,73 @@ export function CustomerOrderForm({
                 const subtotalKobo =
                   Math.round(it.unitPriceNaira * 100) * (it.quantity || 0);
                 return (
-                  <li key={i} className="p-3 sm:px-4 sm:py-2.5">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-center">
-                      <div className="hidden sm:col-span-1 sm:block text-xs font-mono text-slate-400">
-                        {i + 1}
+                  <li key={i} className="p-3 sm:px-4 sm:py-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-start">
+                      {/* Row number */}
+                      <div className="hidden sm:col-span-1 sm:flex sm:items-center sm:pt-2.5">
+                        <span className="text-xs font-mono text-slate-400">{i + 1}</span>
                       </div>
+
+                      {/* Product / Item combobox */}
                       <div className="sm:col-span-5">
-                        <div className="flex gap-2">
-                          <select
-                            value={it.productId}
-                            onChange={(e) => pickProduct(i, e.target.value)}
-                            className="input min-w-0 flex-1 sm:w-40 sm:flex-none"
-                          >
-                            <option value="">Custom</option>
-                            {products.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name}
-                              </option>
-                            ))}
-                          </select>
+                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:hidden">
+                          Product / Item
+                        </label>
+                        <ProductCombobox
+                          products={products}
+                          value={it.description}
+                          productId={it.productId}
+                          onChange={(patch) => updateItemCombo(i, patch)}
+                        />
+                      </div>
+
+                      {/* Qty + Unit price */}
+                      <div className="grid grid-cols-2 gap-2 sm:col-span-4 sm:grid-cols-2">
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                            Qty
+                          </label>
                           <input
-                            value={it.description}
+                            type="number"
+                            min={1}
+                            value={it.quantity}
                             onChange={(e) =>
-                              updateItem(i, { description: e.target.value })
+                              updateItem(i, {
+                                quantity: Math.max(1, Number(e.target.value || 1)),
+                              })
                             }
-                            className="input min-w-0 flex-1"
-                            placeholder="Search product or describe"
+                            className="input text-center"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                            ₦ / unit
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={it.unitPriceNaira}
+                            onChange={(e) =>
+                              updateItem(i, {
+                                unitPriceNaira: Number(e.target.value || 0),
+                              })
+                            }
+                            className="input text-right"
                           />
                         </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 sm:col-span-5 sm:grid-cols-2">
-                        <div className="sm:hidden col-span-1 self-center text-[10px] font-bold uppercase text-slate-500">
-                          Qty
-                        </div>
-                        <input
-                          type="number"
-                          min={1}
-                          value={it.quantity}
-                          onChange={(e) =>
-                            updateItem(i, {
-                              quantity: Math.max(1, Number(e.target.value || 1)),
-                            })
-                          }
-                          className="input col-span-2 text-right sm:col-span-1"
-                        />
-                        <div className="sm:hidden col-span-1 self-center text-[10px] font-bold uppercase text-slate-500">
-                          ₦
-                        </div>
-                        <input
-                          type="number"
-                          min={0}
-                          step="0.01"
-                          value={it.unitPriceNaira}
-                          onChange={(e) =>
-                            updateItem(i, {
-                              unitPriceNaira: Number(e.target.value || 0),
-                            })
-                          }
-                          className="input col-span-2 text-right sm:col-span-1"
-                        />
-                      </div>
-                      <div
-                        className={cn(
-                          'sm:col-span-1 text-right text-sm font-semibold text-ink',
-                          subtotalKobo === 0 && 'text-slate-400',
-                        )}
-                      >
-                        ₦{(subtotalKobo / 100).toLocaleString('en-NG')}
-                      </div>
-                      <div className="sm:col-span-1 flex justify-end">
+
+                      {/* Subtotal + remove */}
+                      <div className="flex items-center justify-between sm:col-span-2 sm:flex-col sm:items-end sm:gap-1 sm:pt-2">
+                        <span
+                          className={cn(
+                            'text-sm font-semibold',
+                            subtotalKobo === 0 ? 'text-slate-400' : 'text-ink',
+                          )}
+                        >
+                          ₦{(subtotalKobo / 100).toLocaleString('en-NG')}
+                        </span>
                         <button
                           type="button"
                           onClick={() => removeLine(i)}
@@ -501,15 +658,27 @@ export function CustomerOrderForm({
               })}
             </ul>
 
-            <div className="border-t border-border px-4 py-2">
+            <div className="border-t border-border px-4 py-3">
               <button
                 type="button"
                 onClick={addLine}
-                className="inline-flex items-center gap-1.5 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
+                disabled={lastLineEmpty}
+                title={lastLineEmpty ? 'Fill in the current item first' : 'Add another item'}
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition',
+                  lastLineEmpty
+                    ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                    : 'bg-amber-500 text-white hover:bg-amber-600',
+                )}
               >
                 <Plus size={12} />
-                Add item
+                Add another item
               </button>
+              {lastLineEmpty && items.length > 1 && (
+                <span className="ml-3 text-xs text-slate-500">
+                  Fill in item {items.length} first
+                </span>
+              )}
             </div>
           </section>
 
@@ -569,7 +738,7 @@ export function CustomerOrderForm({
         <aside className="lg:sticky lg:top-20 lg:self-start space-y-4">
           <div className="card p-5">
             <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
-              Summary
+              Order Summary
             </div>
             <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between">
@@ -593,13 +762,13 @@ export function CustomerOrderForm({
           </div>
 
           <div className="card p-5 text-xs text-slate-500">
-            <div className="mb-1.5 text-xs font-bold uppercase tracking-wide text-slate-500">
-              How it flows
+            <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+              How it works
             </div>
-            <ol className="list-decimal space-y-1 pl-4">
-              <li>Save creates the customer order in <strong>NEW</strong>.</li>
-              <li>Confirm to send to production planning.</li>
-              <li>Production complete → invoice + receipt.</li>
+            <ol className="list-decimal space-y-1.5 pl-4 leading-relaxed">
+              <li>Save → order created in <strong>New</strong> status.</li>
+              <li>Confirm → goes to production planning.</li>
+              <li>Production complete → auto-invoice + receipt.</li>
             </ol>
           </div>
         </aside>
@@ -611,7 +780,7 @@ export function CustomerOrderForm({
         </div>
       )}
 
-      {/* Sticky bottom action bar — Save / Save and stay (Prodio pattern) */}
+      {/* Sticky bottom action bar */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 backdrop-blur md:pl-56">
         <div className="container-app flex items-center justify-end gap-2 py-3">
           <button
@@ -624,7 +793,7 @@ export function CustomerOrderForm({
             Save and stay
           </button>
           <button type="submit" disabled={submitting} className="btn-pill-primary">
-            {submitting ? 'Saving…' : 'Save'}
+            {submitting ? 'Saving…' : 'Save order'}
           </button>
         </div>
       </div>

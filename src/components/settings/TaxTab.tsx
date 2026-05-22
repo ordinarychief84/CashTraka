@@ -208,16 +208,9 @@ export function TaxTab({ initial }: Props) {
           <Info size={14} /> About FIRS e-invoicing
         </div>
         <p className="text-xs text-slate-600">
-          Once FIRS issues you MBS credentials, set
-          <span className="mx-1 rounded bg-white px-1 py-0.5 font-mono">FIRS_API_BASE_URL</span>
-          and
-          <span className="mx-1 rounded bg-white px-1 py-0.5 font-mono">FIRS_API_KEY</span>
-          in your environment, then implement the real adapter in
-          <span className="mx-1 rounded bg-white px-1 py-0.5 font-mono">
-            src/lib/services/firs-invoice.service.ts
-          </span>
-          (the data shape already matches the FIRS spec). After that, every invoice can be
-          submitted to FIRS, returning an IRN + QR code that prints on the invoice PDF.
+          Once you are onboarded to the FIRS Merchant Buyer Solution (MBS) programme, enter
+          your Merchant ID above. CashTraka will then be able to submit invoices directly to
+          FIRS and print the IRN + QR code on every invoice PDF.
         </p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Save, Download, Activity } from 'lucide-react';
+import { Settings as SettingsIcon } from 'lucide-react';
 import { guardWithPermission } from '@/lib/guard-rbac';
 import { AppShell } from '@/components/AppShell';
 import { SettingsOverviewRow } from '@/components/settings-dashboard/SettingsOverviewRow';
@@ -28,20 +28,10 @@ export default async function SettingsDashboardPage() {
             Manage your business preferences and system configurations.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/settings/edit" className="btn-pill-ghost">
-            <Activity size={14} />
-            Audit Logs
-          </Link>
-          <Link href="/reports" className="btn-pill-ghost">
-            <Download size={14} />
-            Export Settings
-          </Link>
-          <Link href="/settings/edit" className="btn-pill-primary">
-            <Save size={14} />
-            Edit Settings
-          </Link>
-        </div>
+        <Link href="/settings/edit" className="btn-pill-primary">
+          <SettingsIcon size={14} />
+          Edit Settings
+        </Link>
       </div>
 
       {/* Settings overview entry cards */}

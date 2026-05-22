@@ -12,13 +12,10 @@ import {
   MapPin,
   Clock,
   Calendar as CalendarIcon,
-  Globe,
   CircleDollarSign,
   Percent,
   Hash,
   Receipt,
-  AlertTriangle,
-  ShieldAlert,
   Bell as BellIcon,
   Box,
   CheckCircle2,
@@ -213,26 +210,15 @@ function GeneralSettingsCard({
       title="General Settings"
       Icon={SettingsIcon}
       iconTone="brand"
-      editHref="/settings/edit#general"
+      editHref="/settings/edit?tab=profile"
       editLabel="Edit General Settings"
       toneRing="border-brand-200 text-brand-700 hover:bg-brand-50"
     >
       <Row Icon={Building2} label="Company Name" value={companyName} />
       <Row Icon={Box} label="Business Type" value={businessType} />
       <Row Icon={Mail} label="Company Email" value={email} />
-      <Row Icon={Phone} label="Phone Number" value={phone} />
-      <Row Icon={MapPin} label="Address" value={address} />
-      <Row Icon={Clock} label="Time Zone" value="(GMT+01:00) West Africa Time" />
-      <Row
-        Icon={CalendarIcon}
-        label="Date Format"
-        value={new Date().toLocaleDateString('en-NG', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })}
-      />
-      <Row Icon={Globe} label="Language" value="English (NG)" />
+      <Row Icon={Phone} label="WhatsApp" value={phone || '—'} />
+      <Row Icon={MapPin} label="Address" value={address || '—'} />
     </SettingsCard>
   );
 }
@@ -259,7 +245,7 @@ function BusinessFinanceCard({
       title="Business & Finance"
       Icon={Wallet}
       iconTone="success"
-      editHref="/settings/edit#finance"
+      editHref="/settings/edit?tab=tax"
       editLabel="Edit Business & Finance"
       toneRing="border-success-200 text-success-700 hover:bg-success-100"
     >
@@ -280,12 +266,6 @@ function BusinessFinanceCard({
       />
       <Row Icon={Hash} label="Invoice Prefix" value={`${invoicePrefix}-`} />
       <Row Icon={Receipt} label="Receipt Prefix" value={`${receiptPrefix}-`} />
-      <Row
-        Icon={AlertTriangle}
-        label="Low Stock Alert"
-        value="Enabled"
-      />
-      <Row Icon={CalendarIcon} label="Financial Year Start" value="January 1st" />
     </SettingsCard>
   );
 }
@@ -352,14 +332,10 @@ function NotificationsCard({
       title="Notifications"
       Icon={Bell}
       iconTone="owed"
-      editHref="/settings/edit#notifications"
+      editHref="/settings/edit?tab=invoice"
       editLabel="Configure Notifications"
       toneRing="border-owed-200 text-owed-700 hover:bg-owed-50"
     >
-      <ToggleRow label="Email notifications" enabled={true} />
-      <ToggleRow label="SMS notifications" enabled={false} />
-      <ToggleRow label="In-app notifications" enabled={true} />
-      <ToggleRow label="Low stock alerts" enabled={true} />
       <ToggleRow
         label="Service Check requests"
         enabled={
@@ -413,18 +389,11 @@ function SecurityCard({
       title="Security"
       Icon={ShieldCheck}
       iconTone="rose"
-      editHref="/settings/edit#security"
+      editHref="/settings/edit?tab=account"
       editLabel="Manage Security"
       toneRing="border-rose-200 text-rose-700 hover:bg-rose-50"
     >
-      <Row Icon={ShieldCheck} label="Password Policy" value="Strong" />
-      <Row
-        Icon={ShieldAlert}
-        label="Two-Factor Authentication"
-        value={twoFactorEnabled ? 'Enabled' : 'Disabled'}
-      />
-      <Row Icon={Clock} label="Session Timeout" value="30 Minutes" />
-      <Row Icon={Hash} label="Login Attempts Limit" value="5 Attempts" />
+      <ToggleRow label="Two-Factor Auth" enabled={twoFactorEnabled} />
       <Row Icon={CheckCircle2} label="Audit Log" value="Enabled" />
       <Row
         Icon={CalendarIcon}
@@ -467,17 +436,15 @@ function SystemDataCard({
       title="System & Data"
       Icon={Database}
       iconTone="brand"
-      editHref="/settings/edit"
-      editLabel="System Information"
+      editHref="/settings/edit?tab=danger"
+      editLabel="Exports & Data"
       toneRing="border-brand-200 text-brand-700 hover:bg-brand-50"
     >
-      <Row Icon={Database} label="Data Backup" value="Automatic (Daily)" />
-      <Row Icon={Globe} label="Backup Location" value="Cloud Storage" />
-      <Row Icon={Clock} label="Retention" value={`${retentionMonths} Months`} />
+      <Row Icon={Clock} label="Doc Retention" value={`${retentionMonths} months`} />
       <Row
         Icon={Box}
         label="Auto-Archive"
-        value={autoArchiveDays ? `${autoArchiveDays} Days` : 'Never'}
+        value={autoArchiveDays ? `${autoArchiveDays} days` : 'Never'}
       />
       <Row Icon={Hash} label="Audit Log Entries" value={String(auditLogs)} />
       <Row Icon={CheckCircle2} label="Plan" value={plan} />
@@ -494,7 +461,6 @@ function SystemDataCard({
             : '—'
         }
       />
-      <Row Icon={Box} label="Environment" value="Production" />
     </SettingsCard>
   );
 }

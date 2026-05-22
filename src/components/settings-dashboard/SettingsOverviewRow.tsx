@@ -24,14 +24,14 @@ export function SettingsOverviewRow() {
       Icon: SettingsIcon,
       label: 'General Settings',
       description: 'Manage company details, contact information, and basic preferences.',
-      href: '/settings/edit#general',
+      href: '/settings/edit?tab=profile',
       tone: 'brand',
     },
     {
       Icon: Wallet,
       label: 'Business & Finance',
       description: 'Configure currency, tax rates, payment terms and financial preferences.',
-      href: '/settings/edit#finance',
+      href: '/settings/edit?tab=tax',
       tone: 'success',
     },
     {
@@ -44,15 +44,15 @@ export function SettingsOverviewRow() {
     {
       Icon: Bell,
       label: 'Notifications',
-      description: 'Configure email, SMS and in-app notification preferences.',
-      href: '/settings/edit#notifications',
+      description: 'Configure invoice reminders, feedback requests and notification cadence.',
+      href: '/settings/edit?tab=invoice',
       tone: 'owed',
     },
     {
       Icon: ShieldCheck,
-      label: 'Security',
-      description: 'Manage passwords, two-factor authentication and security.',
-      href: '/settings/edit#security',
+      label: 'Account & Security',
+      description: 'Change your email, password, and bank account details.',
+      href: '/settings/edit?tab=account',
       tone: 'rose',
     },
   ];

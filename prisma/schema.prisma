@@ -235,6 +235,8 @@ model User {
   orderSubscriptions CustomerOrderSubscription[]
   certificates     Certificate[]
   shortageAlerts   MaterialShortageAlert[]
+  manufacturingTasks         ManufacturingTask[]
+  manufacturingTaskActivities ManufacturingTaskActivity[]
 
   @@index([role])
   @@index([businessType])
@@ -1110,6 +1112,7 @@ model StaffMember {
   attendance    Attendance[]
   staffPayments StaffPayment[]
   tasks         Task[]
+  manufacturingTaskWorkers ManufacturingTaskWorker[]
 
   @@unique([userId, email])
   @@index([userId, status])
@@ -2423,6 +2426,7 @@ model ProductionOrder {
   items            ProductionOrderItem[]
   shortageAlerts   MaterialShortageAlert[]
   batchCostItems   BatchCostLineItem[]
+  manufacturingTasks ManufacturingTask[]
 
   @@index([userId, status, createdAt])
   @@index([userId, plannedEndAt])
@@ -2763,4 +2767,92 @@ model MaterialShortageAlert {
   @@index([userId, status, createdAt])
   @@index([userId, severity])
   @@index([userId, materialId])
+}
+
+// ---------- MANUFACTURING TASKS ----------
+
+/// A discrete production task within or independent of a ProductionOrder.
+/// Models a single step e.g. "Mix Batch A", "Cut fabric – Style 12", "QC inspection".
+/// Lifecycle: PENDING → IN_PROGRESS → DONE (or → ON_HOLD / CANCELLED from any non-terminal state).
+model ManufacturingTask {
+  id                String    @id @default(cuid())
+  userId            String
+  /// Human-readable e.g. "MT-00042".
+  taskNumber        String    @unique
+  /// Optional bridge to a ProductionOrder. Null = standalone task.
+  productionOrderId String?
+  title             String
+  description       String?
+  /// "PENDING" | "IN_PROGRESS" | "ON_HOLD" | "DONE" | "CANCELLED"
+  status            String    @default("PENDING")
+  /// "LOW" | "NORMAL" | "HIGH" | "URGENT"
+  priority          String    @default("NORMAL")
+  /// Task type for UI grouping.
+  /// "MIXING" | "CUTTING" | "SEWING" | "ASSEMBLY" | "WELDING" | "BAKING" |
+  /// "PACKAGING" | "LABELLING" | "QC_INSPECTION" | "LOADING" | "CLEANING" | "OTHER"
+  taskType          String    @default("OTHER")
+  /// Target output quantity (units produced / processed by this task).
+  targetQty         Int?
+  /// Actual quantity completed when the task is marked DONE.
+  completedQty      Int?
+  /// Progress percentage 0-100. Updated explicitly via /progress endpoint.
+  progress          Int       @default(0)
+  plannedStartAt    DateTime?
+  plannedEndAt      DateTime?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  notes             String?
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productionOrder ProductionOrder?            @relation(fields: [productionOrderId], references: [id], onDelete: SetNull)
+  workers         ManufacturingTaskWorker[]
+  activities      ManufacturingTaskActivity[]
+
+  @@index([userId, status, createdAt])
+  @@index([userId, productionOrderId])
+  @@index([userId, deletedAt])
+  @@index([userId, plannedEndAt])
+  @@index([userId, priority, plannedEndAt])
+}
+
+/// Many-to-many join: which StaffMembers are assigned to a ManufacturingTask.
+model ManufacturingTaskWorker {
+  id                  String   @id @default(cuid())
+  manufacturingTaskId String
+  staffMemberId       String
+  /// "LEAD" | "WORKER"
+  role                String   @default("WORKER")
+  assignedAt          DateTime @default(now())
+
+  task        ManufacturingTask @relation(fields: [manufacturingTaskId], references: [id], onDelete: Cascade)
+  staffMember StaffMember       @relation(fields: [staffMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([manufacturingTaskId, staffMemberId])
+  @@index([manufacturingTaskId])
+  @@index([staffMemberId])
+}
+
+/// Append-only audit trail for a ManufacturingTask.
+/// Records status changes, progress updates, notes, and worker changes.
+model ManufacturingTaskActivity {
+  id                  String   @id @default(cuid())
+  manufacturingTaskId String
+  userId              String
+  /// "STATUS_CHANGE" | "PROGRESS_UPDATE" | "NOTE" | "WORKER_ADDED" | "WORKER_REMOVED"
+  type                String
+  note                String?
+  fromStatus          String?
+  toStatus            String?
+  /// Progress value at time of update (null when type != PROGRESS_UPDATE).
+  progress            Int?
+  createdAt           DateTime @default(now())
+
+  task ManufacturingTask @relation(fields: [manufacturingTaskId], references: [id], onDelete: Cascade)
+  user User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([manufacturingTaskId, createdAt])
+  @@index([userId, createdAt])
 }

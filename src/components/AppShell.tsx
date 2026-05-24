@@ -3,34 +3,32 @@ import { ReactNode } from 'react';
 import {
   Home,
   Banknote,
-  Clock3,
   Users,
   LogOut,
   Receipt,
   BarChart3,
   Users2,
-  ListTodo,
   ClipboardList,
-  Building2,
-  Key,
   Settings as SettingsIcon,
   CreditCard,
-  Send,
-  Target,
   FileText,
   ShoppingBag,
-  GalleryHorizontalEnd,
-  Landmark,
   Factory,
   Boxes,
   BookOpen,
   Truck,
+  ClipboardCheck,
+  Package,
+  Warehouse,
+  ArrowUpDown,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
 import { GlobalSearch } from './GlobalSearch';
 import { UpgradeBanner } from './UpgradeBanner';
 import { SideLink } from './SideLink';
+import { SideSection } from './SideSection';
 import { NotificationsBell } from './NotificationsBell';
 import { SidebarBusinessPlanContainer } from './dashboard/SidebarBusinessPlanContainer';
 import { TopBarDateRange } from './dashboard/TopBarDateRange';
@@ -89,44 +87,87 @@ export function AppShell({
           </Link>
         </div>
 
-        {/* Sidebar trimmed to surfaces that were rebuilt or substantively
-            extended in the autopilot release. Inventory is reachable as a
-            route but not in the nav (redundant with Materials). Shortages,
-            Work history and Certificates are reachable via deep links but
-            de-prioritised in the chrome. */}
+        {/* ── Sidebar navigation — production-first flow ──────────────────
+            Order mirrors the daily question cycle:
+            1. Dashboard (overview)
+            2. Orders (what to fulfil)
+            3. Production (what to produce)
+            4. Manufacturing Tasks (how to produce — step by step)
+            5. Products + Recipes (what we make)
+            6. Inventory (materials, suppliers, stock — collapsible)
+            7. Customers
+            8. Invoices + Receipts (billing)
+            9. Reports + Settings (management)
+        ──────────────────────────────────────────────────────────────── */}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pt-3 pb-2">
+          {/* ── Core planning flow ── */}
           <SideLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
           <SideLink href="/orders" icon={<ClipboardList size={18} />} label="Orders" />
           <SideLink href="/production" icon={<Factory size={18} />} label="Production" />
+          <SideLink
+            href="/manufacturing-tasks"
+            icon={<ClipboardCheck size={18} />}
+            label="Mfg Tasks"
+          />
+
+          {/* ── Products ── */}
           {show.products && !isPropManager && (
             <SideLink href="/products" icon={<ShoppingBag size={18} />} label="Products" />
           )}
-          <SideLink href="/materials" icon={<Boxes size={18} />} label="Materials" />
-          <SideLink href="/purchase-orders" icon={<Truck size={18} />} label="Purchases" />
-          <SideLink href="/suppliers" icon={<Users2 size={18} />} label="Suppliers" />
+          {show.products && !isPropManager && (
+            <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
+          )}
+
+          {/* ── Inventory (collapsible) ── */}
+          <div className="mt-1">
+            <SideSection
+              icon={<Warehouse size={18} />}
+              label="Inventory"
+              links={[
+                { href: '/inventory', label: 'Inventory Levels', icon: <Package size={12} /> },
+                { href: '/materials', label: 'Raw Materials', icon: <Boxes size={12} /> },
+                { href: '/suppliers', label: 'Suppliers', icon: <Users2 size={12} /> },
+                { href: '/purchase-orders', label: 'Purchase Orders', icon: <Truck size={12} /> },
+                {
+                  href: '/inventory/movements',
+                  label: 'Stock Movements',
+                  icon: <ArrowUpDown size={12} />,
+                },
+                {
+                  href: '/inventory/adjustments',
+                  label: 'Adjustments',
+                  icon: <SlidersHorizontal size={12} />,
+                },
+              ]}
+            />
+          </div>
+
+          {/* ── Customers ── */}
+          {show.customers && (
+            <SideLink href="/customers" icon={<Users size={18} />} label="Customers" />
+          )}
+
+          {/* ── Finance / documents ── */}
           {show.payments && !isPropManager && (
             <SideLink href="/invoices" icon={<FileText size={18} />} label="Invoices" />
           )}
           {show.payments && !isPropManager && (
             <SideLink href="/receipts" icon={<Receipt size={18} />} label="Receipts" />
           )}
+
+          {/* ── Reports ── */}
           {show.reports && (
             <SideLink href="/reports" icon={<BarChart3 size={18} />} label="Reports" />
           )}
-          {show.customers && (
-            <SideLink href="/customers" icon={<Users size={18} />} label="Customers" />
-          )}
+
+          {/* ── Management ── */}
           {show.team && <SideLink href="/team" icon={<Users2 size={18} />} label="Team" />}
           {show.settings && (
             <SideLink href="/settings" icon={<SettingsIcon size={18} />} label="Settings" />
           )}
-          {/* Recipes sits next to Products — it's a core production planning feature */}
-          {show.products && !isPropManager && (
-            <SideLink href="/recipes" icon={<BookOpen size={18} />} label="Recipes" />
-          )}
           <SideLink href="/billing" icon={<CreditCard size={18} />} label="Billing" />
 
-          {/* Supporting surfaces */}
+          {/* ── More (lower-traffic) ── */}
           <div className="mt-3 border-t border-border/60 pt-3">
             <div className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
               More
@@ -140,12 +181,6 @@ export function AppShell({
           </div>
         </nav>
 
-        {/* Bottom: Business Plan card — replaces the inline logout
-            (now moved into the top-bar user pill dropdown). Top divider
-            visually separates the plan card from the nav above.
-            Container fetches the principal's REAL plan + team count;
-            see SidebarBusinessPlanContainer for the data plumbing that
-            replaced the earlier hardcoded placeholders. */}
         <div className="border-t border-border/60">
           <SidebarBusinessPlanContainer />
         </div>
@@ -212,5 +247,3 @@ export function AppShell({
     </div>
   );
 }
-
-

@@ -76,6 +76,28 @@ export async function nextProductionNumber(userId: string): Promise<string> {
   );
 }
 
+export async function nextManufacturingTaskNumber(userId: string): Promise<string> {
+  return nextNumber(
+    userId,
+    'MT',
+    async (uid) => {
+      const row = await prisma.manufacturingTask.findFirst({
+        where: { userId: uid },
+        orderBy: { createdAt: 'desc' },
+        select: { taskNumber: true },
+      });
+      return row ? { number: row.taskNumber } : null;
+    },
+    async (candidate) => {
+      const hit = await prisma.manufacturingTask.findUnique({
+        where: { taskNumber: candidate },
+        select: { id: true },
+      });
+      return Boolean(hit);
+    },
+  );
+}
+
 export async function nextPurchaseOrderNumber(userId: string): Promise<string> {
   return nextNumber(
     userId,

@@ -79,6 +79,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
                 .map((it: any) => `${it.quantity}× ${it.description}`)
                 .slice(0, 2)
                 .join(', ') || '',
+            productNames: (o.items ?? [])
+              .map((it: any) => it.description as string)
+              .filter(Boolean),
             productionStatus: o.productionOrder?.status ?? null,
           }))}
         />

@@ -12,6 +12,7 @@ import {
   ExternalLink,
   CheckCircle2,
   Users,
+  Search,
 } from 'lucide-react';
 import { ImageUploader } from '@/components/showroom/ImageUploader';
 import { cn } from '@/lib/utils';
@@ -293,16 +294,22 @@ export function ProductForm({ redirectTo = '/products', initial, customers = [] 
                   Client
                   <span className="ml-1.5 text-slate-400 font-normal">(private-label or custom order)</span>
                 </label>
-                <input
-                  type="text"
-                  className="input"
-                  value={clientName}
-                  onChange={(e) => { setClientName(e.target.value); setClientOpen(true); }}
-                  onFocus={() => setClientOpen(true)}
-                  onBlur={() => setTimeout(() => setClientOpen(false), 150)}
-                  placeholder="e.g. Glowberry Naturals — leave blank if generic"
-                  autoComplete="off"
-                />
+                {/* Input with magnifying-glass prefix */}
+                <div className="relative">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <Search size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    className="input pl-9"
+                    value={clientName}
+                    onChange={(e) => { setClientName(e.target.value); setClientOpen(true); }}
+                    onFocus={() => setClientOpen(true)}
+                    onBlur={() => setTimeout(() => setClientOpen(false), 150)}
+                    placeholder="Select client"
+                    autoComplete="off"
+                  />
+                </div>
                 {clientOpen && clientSuggestions.length > 0 && (
                   <ul className="absolute left-0 right-0 top-full z-30 mt-1 rounded-lg border border-border bg-white shadow-lg">
                     {clientSuggestions.map((c) => (

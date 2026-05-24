@@ -22,6 +22,10 @@ import {
   Warehouse,
   ArrowUpDown,
   SlidersHorizontal,
+  PackageCheck,
+  PackageMinus,
+  ArrowLeftRight,
+  List,
 } from 'lucide-react';
 import { BottomNav } from './BottomNav';
 import { Logo } from './Logo';
@@ -125,19 +129,18 @@ export function AppShell({
               label="Inventory"
               links={[
                 { href: '/inventory', label: 'Inventory Levels', icon: <Package size={12} /> },
+                { href: '/purchase-orders', label: 'Orders from Suppliers', icon: <Truck size={12} /> },
+                { href: '/inventory/receipts', label: 'Inventory Receipts', icon: <PackageCheck size={12} /> },
+                { href: '/inventory/releases', label: 'Inventory Releases', icon: <PackageMinus size={12} /> },
                 { href: '/materials', label: 'Raw Materials', icon: <Boxes size={12} /> },
                 { href: '/suppliers', label: 'Suppliers', icon: <Users2 size={12} /> },
-                { href: '/purchase-orders', label: 'Purchase Orders', icon: <Truck size={12} /> },
-                {
-                  href: '/inventory/movements',
-                  label: 'Stock Movements',
-                  icon: <ArrowUpDown size={12} />,
-                },
                 {
                   href: '/inventory/adjustments',
-                  label: 'Adjustments',
+                  label: 'Stocktaking/Adjustments',
                   icon: <SlidersHorizontal size={12} />,
                 },
+                { href: '/inventory/transfers', label: 'Inventory Transfers', icon: <ArrowLeftRight size={12} /> },
+                { href: '/inventory/all', label: 'Inventories', icon: <List size={12} /> },
               ]}
             />
           </div>

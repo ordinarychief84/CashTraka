@@ -293,6 +293,16 @@ model Customer {
   /// in the UI as a "near limit" / "over limit" warning chip.
   creditLimitKobo Int?
 
+  /// Contact & address fields — added for the New Client intake form.
+  address    String?
+  email      String?
+  city       String?
+  state      String?
+  country    String?
+  postalCode String?
+  webPage    String?
+  taxId      String?
+
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments           Payment[]
   debts              Debt[]

@@ -1,16 +1,11 @@
-import Link from 'next/link';
-import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { prisma } from '@/lib/prisma';
-import { InventoryHeroKpis } from '@/components/inventory/InventoryHeroKpis';
-import { InventoryChartRow } from '@/components/inventory/InventoryChartRow';
 import {
   InventoryTable,
   type InventoryRow,
   type InventoryItemType,
 } from '@/components/inventory/InventoryTable';
-import { InventoryRightRail } from '@/components/inventory/InventoryRightRail';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,9 +22,7 @@ function classifyMaterial(t: string | null): {
 export default async function InventoryOverviewPage() {
   const user = await guard();
 
-  // Load products + materials in parallel. Also load active production orders
-  // so we can compute "reserved" stock per product (planned but not produced).
-  const [products, materials, activeOrders] = await Promise.all([
+  const [products, materials, activeOrders, pendingPoItems] = await Promise.all([
     prisma.product.findMany({
       where: { userId: user.id, archived: false },
       select: {
@@ -40,6 +33,7 @@ export default async function InventoryOverviewPage() {
         lowStockAt: true,
         priceKobo: true,
         costKobo: true,
+        clientName: true,
       },
       orderBy: { name: 'asc' },
     }),
@@ -55,9 +49,11 @@ export default async function InventoryOverviewPage() {
         stock: true,
         reorderLevel: true,
         unitCostKobo: true,
+        supplier: { select: { name: true } },
       },
       orderBy: { name: 'asc' },
     }),
+    // active production orders → reserved per product
     prisma.productionOrder.findMany({
       where: {
         userId: user.id,
@@ -68,10 +64,19 @@ export default async function InventoryOverviewPage() {
         items: { select: { productId: true, quantity: true } },
       },
     }),
+    // pending / ordered purchase order items → ordered qty per material
+    prisma.purchaseOrderItem.findMany({
+      where: {
+        purchaseOrder: {
+          userId: user.id,
+          status: { in: ['DRAFT', 'SENT', 'ORDERED', 'PARTIALLY_RECEIVED'] },
+        },
+      },
+      select: { materialId: true, quantity: true, quantityReceived: true },
+    }),
   ]);
 
-  // Reserved per product = sum of quantities across active production orders.
-  // For materials we don't track per-batch reservations on this page; reserved=0.
+  // reserved per product (from production orders)
   const reservedByProduct = new Map<string, number>();
   for (const o of activeOrders) {
     for (const it of o.items) {
@@ -80,6 +85,16 @@ export default async function InventoryOverviewPage() {
         (reservedByProduct.get(it.productId) ?? 0) + it.quantity,
       );
     }
+  }
+
+  // ordered (outstanding) per material (total ordered − already received)
+  const orderedByMaterial = new Map<string, number>();
+  for (const it of pendingPoItems) {
+    const outstanding = Math.max(0, it.quantity - it.quantityReceived);
+    orderedByMaterial.set(
+      it.materialId,
+      (orderedByMaterial.get(it.materialId) ?? 0) + outstanding,
+    );
   }
 
   const rows: InventoryRow[] = [
@@ -93,9 +108,11 @@ export default async function InventoryOverviewPage() {
       unit: 'pcs',
       stock: p.stock,
       reserved: reservedByProduct.get(p.id) ?? 0,
+      ordered: 0,
       reorderLevel: p.lowStockAt,
       unitCostKobo: p.costKobo ?? p.priceKobo ?? 0,
       category: p.category,
+      supplierName: p.clientName ?? null,
     })),
     ...materials.map<InventoryRow>((m) => {
       const cls = classifyMaterial(m.materialType);
@@ -109,9 +126,11 @@ export default async function InventoryOverviewPage() {
         unit: m.unit,
         stock: m.stock,
         reserved: 0,
+        ordered: orderedByMaterial.get(m.id) ?? 0,
         reorderLevel: m.reorderLevel,
         unitCostKobo: m.unitCostKobo,
         category: m.category,
+        supplierName: m.supplier?.name ?? null,
       };
     }),
   ];
@@ -124,48 +143,16 @@ export default async function InventoryOverviewPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Page header */}
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
-            Inventory
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            One view of every product, raw material, packaging and consumable
-            on your shelves.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/inventory/movements" className="btn-pill-ghost">
-            <Download size={14} />
-            Export
-          </Link>
-          <Link href="/reports" className="btn-pill-ghost">
-            <BarChart3 size={14} />
-            Reports
-          </Link>
-          <Link href="/materials/new" className="btn-pill-primary">
-            <Plus size={14} />
-            New Item
-          </Link>
-        </div>
+      <div className="mb-4">
+        <h1 className="text-xl font-black tracking-tight text-ink">
+          Inventory
+        </h1>
+        <p className="mt-0.5 text-sm text-slate-500">
+          One view of every product, raw material, packaging and consumable on your shelves.
+        </p>
       </div>
 
-      {/* 6 KPI tiles */}
-      <InventoryHeroKpis userId={user.id} />
-
-      {/* 3 chart cards */}
-      <InventoryChartRow userId={user.id} />
-
-      {/* 2-col layout: table (3/4) + right rail (1/4) */}
-      <div className="grid gap-5 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <InventoryTable rows={rows} />
-        </div>
-        <aside className="space-y-4 lg:col-span-1">
-          <InventoryRightRail userId={user.id} />
-        </aside>
-      </div>
+      <InventoryTable rows={rows} />
     </AppShell>
   );
 }

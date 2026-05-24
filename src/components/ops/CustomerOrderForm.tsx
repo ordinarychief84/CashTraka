@@ -6,15 +6,12 @@ import { toast } from 'sonner';
 import {
   Plus,
   Trash2,
-  Calendar,
-  User,
-  Hash,
-  Package,
-  FileText,
-  StickyNote,
-  Save,
   Search,
+  Package,
   ChevronDown,
+  ChevronRight,
+  CheckCircle2,
+  AlertCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,6 +21,7 @@ type ProductOpt = {
   name: string;
   sku?: string | null;
   priceKobo: number;
+  stock?: number | null;
 };
 type CustomerOpt = { id: string; name: string; phone: string };
 
@@ -34,31 +32,24 @@ type Line = {
   unitPriceNaira: number;
 };
 
-/**
- * ProductCombobox — single-input search that finds products from catalog
- * OR lets the user type a free-text custom item.
- *
- * Replaces the old confusing (select + text-input) two-field combo.
- */
+/* ── Inline product search combobox ─────────────────────────────── */
 function ProductCombobox({
   products,
   value,
   productId,
   onChange,
-  placeholder,
 }: {
   products: ProductOpt[];
   value: string;
   productId: string;
   onChange: (patch: { productId: string; description: string; unitPriceNaira: number }) => void;
-  placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const matches = useMemo(() => {
     const q = value.trim().toLowerCase();
-    if (!q) return products.slice(0, 8); // show first 8 when empty/focused
+    if (!q) return products.slice(0, 8);
     return products
       .filter(
         (p) =>
@@ -68,136 +59,92 @@ function ProductCombobox({
       .slice(0, 8);
   }, [value, products]);
 
-  function selectProduct(p: ProductOpt) {
-    onChange({
-      productId: p.id,
-      description: p.name,
-      unitPriceNaira: p.priceKobo / 100,
-    });
-    setOpen(false);
-    inputRef.current?.blur();
-  }
-
-  function clearProduct() {
-    onChange({ productId: '', description: '', unitPriceNaira: 0 });
-    setOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }
-
   const selectedProduct = products.find((p) => p.id === productId);
+
+  if (selectedProduct) {
+    return (
+      <div className="flex min-w-0 items-center gap-1.5">
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
+          {selectedProduct.name}
+        </span>
+        <button
+          type="button"
+          onClick={() => onChange({ productId: '', description: '', unitPriceNaira: 0 })}
+          className="shrink-0 text-slate-400 hover:text-rose-500"
+          title="Change product"
+        >
+          <ChevronDown size={13} />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="relative">
-      {selectedProduct ? (
-        /* ── Selected state: show chip + price, allow clearing ──── */
-        <div className="flex items-center gap-2 rounded-lg border border-brand-300 bg-brand-50 px-3 py-2">
-          <Package size={13} className="shrink-0 text-brand-600" />
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-brand-800">
-            {selectedProduct.name}
-          </span>
-          <span className="shrink-0 text-xs font-bold text-brand-700">
-            ₦{(selectedProduct.priceKobo / 100).toLocaleString('en-NG')}
-          </span>
-          <button
-            type="button"
-            onClick={clearProduct}
-            className="ml-1 shrink-0 rounded p-0.5 text-brand-400 hover:bg-brand-100 hover:text-brand-700"
-            title="Change product"
-          >
-            <ChevronDown size={13} />
-          </button>
-        </div>
-      ) : (
-        /* ── Search state ────────────────────────────────────────── */
-        <>
-          <div className="relative">
-            <Search
-              size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
-            <input
-              ref={inputRef}
-              value={value}
-              onChange={(e) =>
-                onChange({ productId: '', description: e.target.value, unitPriceNaira: 0 })
-              }
-              onFocus={() => setOpen(true)}
-              onBlur={() => setTimeout(() => setOpen(false), 150)}
-              className="input w-full pl-8"
-              placeholder={
-                placeholder ??
-                (products.length > 0
-                  ? 'Search products or type item name…'
-                  : 'Type item name (e.g. "Lip gloss × 10")')
-              }
-            />
-          </div>
-
-          {open && (
-            <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-lg border border-border bg-white shadow-xl">
-              {products.length === 0 ? (
-                <div className="px-3 py-3 text-xs text-slate-500">
-                  No products in catalog yet.{' '}
-                  <a href="/products/new" className="font-semibold text-brand-600 hover:underline">
-                    Add a product →
-                  </a>
-                </div>
-              ) : matches.length === 0 ? (
-                <div className="px-3 py-2.5 text-xs text-slate-500">
-                  No matching products — keep typing to use as a custom item.
-                </div>
-              ) : (
-                <ul className="max-h-56 overflow-y-auto py-1">
-                  {matches.map((p) => (
-                    <li key={p.id}>
-                      <button
-                        type="button"
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          selectProduct(p);
-                        }}
-                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left hover:bg-slate-50"
-                      >
-                        <Package size={13} className="shrink-0 text-slate-400" />
-                        <span className="min-w-0 flex-1 text-sm font-medium text-ink">
-                          {p.name}
-                          {p.sku && (
-                            <span className="ml-1.5 text-xs text-slate-400">
-                              {p.sku}
-                            </span>
-                          )}
-                        </span>
-                        <span className="shrink-0 text-xs font-bold text-emerald-700">
-                          ₦{(p.priceKobo / 100).toLocaleString('en-NG')}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                  {value.trim() && !matches.find((p) => p.name.toLowerCase() === value.trim().toLowerCase()) && (
-                    <li className="border-t border-border">
-                      <div className="px-3 py-2 text-xs text-slate-500">
-                        <span className="font-semibold text-slate-700">"{value}"</span> will be saved as a custom item.
-                      </div>
-                    </li>
-                  )}
-                </ul>
-              )}
+      <div className="flex items-center gap-1.5">
+        <Search size={12} className="shrink-0 text-slate-400" />
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) =>
+            onChange({ productId: '', description: e.target.value, unitPriceNaira: 0 })
+          }
+          onFocus={() => setOpen(true)}
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          className="w-full bg-transparent py-0.5 text-sm text-ink outline-none placeholder:text-slate-400"
+          placeholder="Search product or type name…"
+        />
+      </div>
+      {open && (
+        <div className="absolute left-0 top-full z-20 mt-1 w-64 rounded-lg border border-border bg-white shadow-xl">
+          {products.length === 0 ? (
+            <div className="px-3 py-2 text-xs text-slate-500">
+              No catalog products —{' '}
+              <a href="/products/new" className="font-semibold text-brand-600 hover:underline">
+                add one →
+              </a>
             </div>
+          ) : matches.length === 0 ? (
+            <div className="px-3 py-2 text-xs text-slate-500">
+              No match — keep typing to use as a custom item.
+            </div>
+          ) : (
+            <ul className="max-h-52 overflow-y-auto py-1">
+              {matches.map((p) => (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onChange({
+                        productId: p.id,
+                        description: p.name,
+                        unitPriceNaira: p.priceKobo / 100,
+                      });
+                      setOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-slate-50"
+                  >
+                    <Package size={12} className="shrink-0 text-slate-400" />
+                    <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink">
+                      {p.name}
+                      {p.sku && <span className="ml-1 text-slate-400">{p.sku}</span>}
+                    </span>
+                    <span className="shrink-0 text-[10px] font-bold text-emerald-700">
+                      ₦{(p.priceKobo / 100).toLocaleString('en-NG')}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
-        </>
+        </div>
       )}
     </div>
   );
 }
 
-/**
- * Prodio-inspired two-column add-order form.
- *
- * Left column carries the meta + product line items — the bulk of the
- * intake work. Right column is the meta sidebar (due date, customer
- * pickup, totals). The sticky footer holds Save / Save and stay so the
- * user can rapid-enter multiple orders without scrolling.
- */
+/* ── Main form ───────────────────────────────────────────────────── */
 export function CustomerOrderForm({
   products,
   customers,
@@ -207,33 +154,38 @@ export function CustomerOrderForm({
 }) {
   const router = useRouter();
 
-  const [customerId, setCustomerId] = useState<string>('');
+  /* core fields */
+  const [customerId, setCustomerId] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [externalRef, setExternalRef] = useState('');
   const [dueAt, setDueAt] = useState('');
+
+  /* notes */
   const [notes, setNotes] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
+
+  /* additional */
   const [packagingMethod, setPackagingMethod] = useState('');
   const [shippingInfo, setShippingInfo] = useState('');
   const [customerPickup, setCustomerPickup] = useState(false);
-
   const [priority, setPriority] = useState<'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'>('NORMAL');
-  const [source, setSource] = useState<
-    '' | 'WHATSAPP' | 'WALK_IN' | 'INSTAGRAM' | 'WEBSITE' | 'REFERRAL' | 'OTHER'
-  >('');
-  const [deliveryMethod, setDeliveryMethod] = useState<
-    '' | 'PICKUP' | 'DELIVERY' | 'DISPATCH' | 'THIRD_PARTY'
-  >('');
+  const [source, setSource] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'UNPAID' | 'PART_PAID' | 'PAID'>('UNPAID');
+  const [showAdditional, setShowAdditional] = useState(false);
 
+  /* line items */
   const [items, setItems] = useState<Line[]>([
     { productId: '', description: '', quantity: 1, unitPriceNaira: 0 },
   ]);
+
+  /* ui state */
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /* customer typeahead */
   const customerSuggestions = useMemo(() => {
     if (!customerName.trim() || customerId) return [];
     const q = customerName.trim().toLowerCase();
@@ -246,25 +198,23 @@ export function CustomerOrderForm({
     setCustomerPhone(c.phone);
   }
 
+  /* line item helpers */
   function updateItemCombo(
     i: number,
     patch: { productId: string; description: string; unitPriceNaira: number },
   ) {
-    setItems((prev) =>
-      prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)),
-    );
+    setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
   }
 
   function updateItem(i: number, patch: Partial<Line>) {
     setItems((prev) => prev.map((x, idx) => (idx === i ? { ...x, ...patch } : x)));
   }
 
-  /* Disable "Add item" if the last line is still empty (no product + no description) */
   const lastLine = items[items.length - 1];
   const lastLineEmpty = !lastLine?.productId && !lastLine?.description.trim();
 
   function addLine() {
-    if (lastLineEmpty) return; // guard: don't stack empty rows
+    if (lastLineEmpty) return;
     setItems((prev) => [
       ...prev,
       { productId: '', description: '', quantity: 1, unitPriceNaira: 0 },
@@ -272,20 +222,21 @@ export function CustomerOrderForm({
   }
 
   function removeLine(i: number) {
-    setItems((prev) =>
-      prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i),
-    );
+    setItems((prev) => (prev.length === 1 ? prev : prev.filter((_, idx) => idx !== i)));
   }
 
+  /* derived values */
   const totalKobo = items.reduce(
     (sum, it) => sum + Math.round(it.unitPriceNaira * 100) * it.quantity,
     0,
   );
   const lineCount = items.filter((it) => it.description.trim() || it.productId).length;
+  const productLookup = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
 
+  /* submit */
   async function submit(stay: boolean) {
     if (!customerName.trim()) {
-      setError('Customer name is required.');
+      setError('Client name is required.');
       return;
     }
     if (lineCount === 0) {
@@ -332,7 +283,7 @@ export function CustomerOrderForm({
       });
       const body = await res.json();
       if (!res.ok || !body.success) {
-        const msg = body?.error || 'Failed to create order';
+        const msg = body?.error ?? 'Failed to create order';
         setError(msg);
         toast.error(msg);
         setSubmitting(false);
@@ -364,457 +315,449 @@ export function CustomerOrderForm({
         e.preventDefault();
         submit(false);
       }}
-      className="space-y-4 pb-24"
+      className="pb-28"
     >
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* Left column — main */}
-        <div className="space-y-4 lg:col-span-2">
-          {/* Customer + ref + due */}
-          <section className="card p-5">
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="relative sm:col-span-1">
-                <Field icon={User} label="Client" />
-                <input
-                  className="input"
-                  value={customerName}
-                  onChange={(e) => {
-                    setCustomerName(e.target.value);
-                    setCustomerId('');
-                  }}
-                  placeholder="Search or type a name"
-                  required
-                />
-                {customerSuggestions.length > 0 && (
-                  <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-border bg-white shadow-lg">
-                    {customerSuggestions.map((c) => (
-                      <li key={c.id}>
-                        <button
-                          type="button"
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            pickCustomer(c);
-                          }}
-                          className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50"
-                        >
-                          <div className="font-semibold text-ink">{c.name}</div>
-                          <div className="text-xs text-slate-500">{c.phone}</div>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+      <div className="card overflow-hidden">
+        {/* ── Row 1: Client | External order ID | Due date ── */}
+        <div className="grid grid-cols-1 divide-y divide-border border-b border-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          {/* Client */}
+          <div className="relative p-4">
+            <FieldLabel required>Client</FieldLabel>
+            <input
+              className="mt-1 w-full bg-transparent text-sm font-medium text-ink outline-none placeholder:text-slate-400"
+              value={customerName}
+              onChange={(e) => {
+                setCustomerName(e.target.value);
+                setCustomerId('');
+              }}
+              placeholder="Search or type name"
+              autoComplete="off"
+            />
+            {customerId && (
+              <div className="mt-0.5 flex items-center gap-1 text-[10px] text-emerald-700">
+                <CheckCircle2 size={10} />
+                Existing client · {customerPhone}
               </div>
-              <div>
-                <Field icon={Hash} label="External order ID" />
-                <input
-                  className="input"
-                  value={externalRef}
-                  onChange={(e) => setExternalRef(e.target.value)}
-                  placeholder="e.g. ZN-9123456"
-                />
-              </div>
-              <div>
-                <Field icon={Calendar} label="Due date" required />
-                <input
-                  type="date"
-                  className="input"
-                  value={dueAt}
-                  onChange={(e) => setDueAt(e.target.value)}
-                />
-              </div>
-              <div>
-                <Field icon={User} label="Customer phone" />
-                <input
-                  className="input"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="0801…"
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* Operational meta — priority + source + delivery + payment */}
-          <section className="card p-5">
-            <div className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
-              Operational details
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Field icon={Package} label="Priority" />
-                <div className="flex flex-wrap gap-1">
-                  {(['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const).map((p) => (
+            )}
+            {customerSuggestions.length > 0 && (
+              <ul className="absolute left-4 right-4 top-[calc(100%-4px)] z-10 overflow-hidden rounded-lg border border-border bg-white shadow-lg">
+                {customerSuggestions.map((c) => (
+                  <li key={c.id}>
                     <button
                       type="button"
-                      key={p}
-                      onClick={() => setPriority(p)}
-                      className={cn(
-                        'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition',
-                        priority === p
-                          ? p === 'URGENT'
-                            ? 'bg-rose-600 text-white'
-                            : p === 'HIGH'
-                              ? 'bg-amber-500 text-white'
-                              : p === 'LOW'
-                                ? 'bg-slate-400 text-white'
-                                : 'bg-brand-600 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-                      )}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        pickCustomer(c);
+                      }}
+                      className="block w-full px-3 py-2 text-left hover:bg-slate-50"
                     >
-                      {p}
+                      <div className="text-sm font-semibold text-ink">{c.name}</div>
+                      <div className="text-xs text-slate-500">{c.phone}</div>
                     </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Field icon={StickyNote} label="Source" />
-                <select
-                  className="input"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value as typeof source)}
-                >
-                  <option value="">Where did this order come in?</option>
-                  <option value="WHATSAPP">WhatsApp</option>
-                  <option value="WALK_IN">Walk-in</option>
-                  <option value="INSTAGRAM">Instagram</option>
-                  <option value="WEBSITE">Website</option>
-                  <option value="REFERRAL">Referral</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </div>
-              <div>
-                <Field icon={Package} label="Delivery method" />
-                <select
-                  className="input"
-                  value={deliveryMethod}
-                  onChange={(e) =>
-                    setDeliveryMethod(e.target.value as typeof deliveryMethod)
-                  }
-                >
-                  <option value="">—</option>
-                  <option value="PICKUP">Customer pickup</option>
-                  <option value="DELIVERY">We deliver</option>
-                  <option value="DISPATCH">Dispatch rider</option>
-                  <option value="THIRD_PARTY">Third-party courier</option>
-                </select>
-              </div>
-              <div>
-                <Field icon={StickyNote} label="Payment status" />
-                <div className="flex gap-1">
-                  {(['UNPAID', 'PART_PAID', 'PAID'] as const).map((s) => (
-                    <button
-                      type="button"
-                      key={s}
-                      onClick={() => setPaymentStatus(s)}
-                      className={cn(
-                        'flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition',
-                        paymentStatus === s
-                          ? s === 'PAID'
-                            ? 'bg-emerald-600 text-white'
-                            : s === 'PART_PAID'
-                              ? 'bg-amber-500 text-white'
-                              : 'bg-slate-600 text-white'
-                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
-                      )}
-                    >
-                      {s.replace('_', ' ')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {(deliveryMethod === 'DELIVERY' ||
-                deliveryMethod === 'DISPATCH' ||
-                deliveryMethod === 'THIRD_PARTY') && (
-                <div className="sm:col-span-2">
-                  <Field icon={Package} label="Delivery address" />
-                  <input
-                    className="input"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Street, city — what the courier needs"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Items */}
-          <section className="card overflow-hidden">
-            <header className="flex items-center justify-between border-b border-border px-4 py-3">
-              <div className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-600">
-                <Package size={14} />
-                Items
-                {lineCount > 0 && (
-                  <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-700">
-                    {lineCount}
-                  </span>
-                )}
-              </div>
-              {products.length === 0 && (
-                <a
-                  href="/products/new"
-                  className="text-xs font-semibold text-brand-600 hover:underline"
-                >
-                  + Add products to catalog
-                </a>
-              )}
-            </header>
-
-            {/* Column headers (desktop) */}
-            <div className="hidden grid-cols-12 gap-2 border-b border-border bg-slate-50/50 px-4 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:grid">
-              <div className="col-span-1">#</div>
-              <div className="col-span-5">Product / Item</div>
-              <div className="col-span-2 text-center">Qty</div>
-              <div className="col-span-2 text-right">Unit price (₦)</div>
-              <div className="col-span-1 text-right">Subtotal</div>
-              <div className="col-span-1" />
-            </div>
-
-            <ul className="divide-y divide-border">
-              {items.map((it, i) => {
-                const subtotalKobo =
-                  Math.round(it.unitPriceNaira * 100) * (it.quantity || 0);
-                return (
-                  <li key={i} className="p-3 sm:px-4 sm:py-3">
-                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-start">
-                      {/* Row number */}
-                      <div className="hidden sm:col-span-1 sm:flex sm:items-center sm:pt-2.5">
-                        <span className="text-xs font-mono text-slate-400">{i + 1}</span>
-                      </div>
-
-                      {/* Product / Item combobox */}
-                      <div className="sm:col-span-5">
-                        <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:hidden">
-                          Product / Item
-                        </label>
-                        <ProductCombobox
-                          products={products}
-                          value={it.description}
-                          productId={it.productId}
-                          onChange={(patch) => updateItemCombo(i, patch)}
-                        />
-                      </div>
-
-                      {/* Qty + Unit price */}
-                      <div className="grid grid-cols-2 gap-2 sm:col-span-4 sm:grid-cols-2">
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                            Qty
-                          </label>
-                          <input
-                            type="number"
-                            min={1}
-                            value={it.quantity}
-                            onChange={(e) =>
-                              updateItem(i, {
-                                quantity: Math.max(1, Number(e.target.value || 1)),
-                              })
-                            }
-                            className="input text-center"
-                          />
-                        </div>
-                        <div>
-                          <label className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                            ₦ / unit
-                          </label>
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={it.unitPriceNaira}
-                            onChange={(e) =>
-                              updateItem(i, {
-                                unitPriceNaira: Number(e.target.value || 0),
-                              })
-                            }
-                            className="input text-right"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Subtotal + remove */}
-                      <div className="flex items-center justify-between sm:col-span-2 sm:flex-col sm:items-end sm:gap-1 sm:pt-2">
-                        <span
-                          className={cn(
-                            'text-sm font-semibold',
-                            subtotalKobo === 0 ? 'text-slate-400' : 'text-ink',
-                          )}
-                        >
-                          ₦{(subtotalKobo / 100).toLocaleString('en-NG')}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => removeLine(i)}
-                          disabled={items.length === 1}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-30"
-                          aria-label="Remove line"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
                   </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* External order ID */}
+          <div className="p-4">
+            <FieldLabel>External order ID</FieldLabel>
+            <input
+              className="mt-1 w-full bg-transparent text-sm text-ink outline-none placeholder:text-slate-400"
+              value={externalRef}
+              onChange={(e) => setExternalRef(e.target.value)}
+              placeholder="e.g. ZN-9123456"
+            />
+          </div>
+
+          {/* Due date */}
+          <div className="p-4">
+            <FieldLabel>Due date</FieldLabel>
+            <input
+              type="date"
+              className="mt-1 w-full bg-transparent text-sm text-ink outline-none"
+              value={dueAt}
+              onChange={(e) => setDueAt(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* ── Line items table ── */}
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[680px] text-sm">
+            <thead>
+              <tr className="border-b border-border bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                <th className="w-10 px-4 py-2.5 text-center">#</th>
+                <th className="px-3 py-2.5 text-left">Product / Item</th>
+                <th className="w-[90px] px-3 py-2.5 text-center">Qty</th>
+                <th className="w-[120px] px-3 py-2.5 text-right">Unit price (₦)</th>
+                <th className="w-[110px] px-3 py-2.5 text-right">Net</th>
+                <th className="w-[90px] px-3 py-2.5 text-center">Inventory</th>
+                <th className="w-10 px-3 py-2.5" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/50">
+              {items.map((it, i) => {
+                const subtotalKobo = Math.round(it.unitPriceNaira * 100) * (it.quantity || 0);
+                const catalogProduct = productLookup.get(it.productId);
+                const stockQty = catalogProduct?.stock ?? null;
+                const inStock = stockQty !== null ? stockQty >= it.quantity : null;
+
+                return (
+                  <tr key={i} className="group hover:bg-slate-50/50">
+                    {/* Row # */}
+                    <td className="px-4 py-2.5 text-center">
+                      <span className="font-mono text-xs text-slate-400">{i + 1}</span>
+                    </td>
+
+                    {/* Product combobox */}
+                    <td className="px-3 py-2">
+                      <ProductCombobox
+                        products={products}
+                        value={it.description}
+                        productId={it.productId}
+                        onChange={(patch) => updateItemCombo(i, patch)}
+                      />
+                    </td>
+
+                    {/* Qty */}
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min={1}
+                        value={it.quantity}
+                        onChange={(e) =>
+                          updateItem(i, { quantity: Math.max(1, Number(e.target.value || 1)) })
+                        }
+                        className="w-full bg-transparent text-center text-sm font-semibold text-ink outline-none"
+                      />
+                    </td>
+
+                    {/* Unit price */}
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={it.unitPriceNaira || ''}
+                        onChange={(e) =>
+                          updateItem(i, { unitPriceNaira: Number(e.target.value || 0) })
+                        }
+                        className="w-full bg-transparent text-right text-sm text-ink outline-none placeholder:text-slate-400"
+                        placeholder="0.00"
+                      />
+                    </td>
+
+                    {/* Net */}
+                    <td className="px-3 py-2 text-right">
+                      <span
+                        className={cn(
+                          'text-sm font-semibold',
+                          subtotalKobo === 0 ? 'text-slate-400' : 'text-ink',
+                        )}
+                      >
+                        {subtotalKobo === 0
+                          ? '—'
+                          : `₦${(subtotalKobo / 100).toLocaleString('en-NG')}`}
+                      </span>
+                    </td>
+
+                    {/* Inventory status */}
+                    <td className="px-3 py-2 text-center">
+                      {inStock === null ? (
+                        <span className="text-xs text-slate-400">—</span>
+                      ) : inStock ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                          <CheckCircle2 size={9} />
+                          {stockQty}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                          <AlertCircle size={9} />
+                          Low
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Remove */}
+                    <td className="px-2 py-2">
+                      <button
+                        type="button"
+                        onClick={() => removeLine(i)}
+                        disabled={items.length === 1}
+                        className="rounded p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-20"
+                        aria-label="Remove item"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </td>
+                  </tr>
                 );
               })}
-            </ul>
+            </tbody>
+          </table>
+        </div>
 
-            <div className="border-t border-border px-4 py-3">
-              <button
-                type="button"
-                onClick={addLine}
-                disabled={lastLineEmpty}
-                title={lastLineEmpty ? 'Fill in the current item first' : 'Add another item'}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-bold transition',
-                  lastLineEmpty
-                    ? 'cursor-not-allowed bg-slate-100 text-slate-400'
-                    : 'bg-amber-500 text-white hover:bg-amber-600',
-                )}
-              >
-                <Plus size={12} />
-                Add another item
-              </button>
-              {lastLineEmpty && items.length > 1 && (
-                <span className="ml-3 text-xs text-slate-500">
-                  Fill in item {items.length} first
-                </span>
-              )}
-            </div>
-          </section>
+        {/* ADD ITEM */}
+        <div className="border-t border-border px-4 py-3">
+          <button
+            type="button"
+            onClick={addLine}
+            disabled={lastLineEmpty}
+            title={lastLineEmpty ? 'Fill in the current item first' : 'Add item'}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-xs font-bold uppercase tracking-wide transition',
+              lastLineEmpty
+                ? 'cursor-not-allowed bg-slate-100 text-slate-400'
+                : 'bg-brand-500 text-white hover:bg-brand-600',
+            )}
+          >
+            <Plus size={13} />
+            Add item
+          </button>
+        </div>
 
-          {/* Notes + additional fields */}
-          <section className="card grid gap-4 p-5 sm:grid-cols-2">
+        {/* ── Notes + Additional order fields ── */}
+        <div className="grid grid-cols-1 divide-y divide-border border-t border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+          {/* Notes */}
+          <div className="space-y-3 p-4">
             <div>
-              <Field icon={StickyNote} label="Notes for all" />
+              <FieldLabel>Notes for all</FieldLabel>
               <textarea
+                rows={3}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className="input"
-                placeholder="Visible to anyone working on this order"
+                className="mt-1 w-full resize-none rounded-lg border border-border bg-slate-50/60 px-3 py-2 text-sm text-ink outline-none focus:border-brand-400 focus:bg-white placeholder:text-slate-400"
+                placeholder="Visible to everyone working on this order"
               />
             </div>
             <div>
-              <Field icon={FileText} label="Notes hidden from production" />
+              <FieldLabel>Notes hidden from production</FieldLabel>
               <textarea
+                rows={3}
                 value={internalNotes}
                 onChange={(e) => setInternalNotes(e.target.value)}
-                rows={3}
-                className="input"
+                className="mt-1 w-full resize-none rounded-lg border border-border bg-slate-50/60 px-3 py-2 text-sm text-ink outline-none focus:border-brand-400 focus:bg-white placeholder:text-slate-400"
                 placeholder="Pricing context, internal flags, etc."
               />
             </div>
-            <div>
-              <Field icon={Package} label="Packaging method" />
-              <input
-                value={packagingMethod}
-                onChange={(e) => setPackagingMethod(e.target.value)}
-                className="input"
-                placeholder="e.g. Carton of 12"
-              />
+          </div>
+
+          {/* Additional fields */}
+          <div className="p-4">
+            {/* Payment status — always visible */}
+            <div className="mb-4">
+              <FieldLabel>Payment status</FieldLabel>
+              <div className="mt-1 flex gap-1">
+                {(['UNPAID', 'PART_PAID', 'PAID'] as const).map((s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    onClick={() => setPaymentStatus(s)}
+                    className={cn(
+                      'flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition',
+                      paymentStatus === s
+                        ? s === 'PAID'
+                          ? 'bg-emerald-600 text-white'
+                          : s === 'PART_PAID'
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-slate-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                    )}
+                  >
+                    {s.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div>
-              <Field icon={FileText} label="Shipping" />
-              <input
-                value={shippingInfo}
-                onChange={(e) => setShippingInfo(e.target.value)}
-                className="input"
-                placeholder="e.g. GIG Lagos → Ibadan"
-              />
-            </div>
-            <label className="inline-flex cursor-pointer items-center gap-2 self-end pb-2 text-sm sm:col-span-2">
-              <input
-                type="checkbox"
-                checked={customerPickup}
-                onChange={(e) => setCustomerPickup(e.target.checked)}
-                className="h-4 w-4 accent-brand-500"
-              />
-              <span className="font-medium text-ink">Customer pickup</span>
-            </label>
-          </section>
+
+            {/* Expandable additional fields */}
+            <button
+              type="button"
+              onClick={() => setShowAdditional((v) => !v)}
+              className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-ink"
+            >
+              {showAdditional ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+              Additional order fields
+            </button>
+
+            {showAdditional && (
+              <div className="mt-3 space-y-3">
+                {/* Priority */}
+                <div>
+                  <FieldLabel>Priority</FieldLabel>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {(['LOW', 'NORMAL', 'HIGH', 'URGENT'] as const).map((p) => (
+                      <button
+                        type="button"
+                        key={p}
+                        onClick={() => setPriority(p)}
+                        className={cn(
+                          'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide transition',
+                          priority === p
+                            ? p === 'URGENT'
+                              ? 'bg-rose-600 text-white'
+                              : p === 'HIGH'
+                                ? 'bg-amber-500 text-white'
+                                : p === 'LOW'
+                                  ? 'bg-slate-400 text-white'
+                                  : 'bg-brand-600 text-white'
+                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+                        )}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Source */}
+                <div>
+                  <FieldLabel>Source</FieldLabel>
+                  <select
+                    className="input mt-1 w-full"
+                    value={source}
+                    onChange={(e) => setSource(e.target.value)}
+                  >
+                    <option value="">Where did this order come from?</option>
+                    <option value="WHATSAPP">WhatsApp</option>
+                    <option value="WALK_IN">Walk-in</option>
+                    <option value="INSTAGRAM">Instagram</option>
+                    <option value="WEBSITE">Website</option>
+                    <option value="REFERRAL">Referral</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+
+                {/* Packing + Shipping */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <FieldLabel>Packing method</FieldLabel>
+                    <input
+                      className="input mt-1 w-full"
+                      value={packagingMethod}
+                      onChange={(e) => setPackagingMethod(e.target.value)}
+                      placeholder="e.g. Carton × 12"
+                    />
+                  </div>
+                  <div>
+                    <FieldLabel>Shipping</FieldLabel>
+                    <input
+                      className="input mt-1 w-full"
+                      value={shippingInfo}
+                      onChange={(e) => setShippingInfo(e.target.value)}
+                      placeholder="e.g. GIG Lagos"
+                    />
+                  </div>
+                </div>
+
+                {/* Delivery method */}
+                <div>
+                  <FieldLabel>Delivery method</FieldLabel>
+                  <select
+                    className="input mt-1 w-full"
+                    value={deliveryMethod}
+                    onChange={(e) => setDeliveryMethod(e.target.value)}
+                  >
+                    <option value="">—</option>
+                    <option value="PICKUP">Customer pickup</option>
+                    <option value="DELIVERY">We deliver</option>
+                    <option value="DISPATCH">Dispatch rider</option>
+                    <option value="THIRD_PARTY">Third-party courier</option>
+                  </select>
+                </div>
+
+                {(deliveryMethod === 'DELIVERY' ||
+                  deliveryMethod === 'DISPATCH' ||
+                  deliveryMethod === 'THIRD_PARTY') && (
+                  <div>
+                    <FieldLabel>Delivery address</FieldLabel>
+                    <input
+                      className="input mt-1 w-full"
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                      placeholder="Street, city"
+                    />
+                  </div>
+                )}
+
+                {/* Customer pickup checkbox */}
+                <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={customerPickup}
+                    onChange={(e) => setCustomerPickup(e.target.checked)}
+                    className="h-4 w-4 accent-brand-500"
+                  />
+                  <span className="font-medium text-ink">Customer pickup</span>
+                </label>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Right column — sticky summary */}
-        <aside className="lg:sticky lg:top-20 lg:self-start space-y-4">
-          <div className="card p-5">
-            <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
-              Order Summary
-            </div>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-600">Items</dt>
-                <dd className="font-semibold text-ink">{lineCount}</dd>
-              </div>
-              <div className="flex items-center justify-between">
-                <dt className="text-slate-600">Net</dt>
-                <dd className="num font-semibold text-ink">
-                  ₦{Math.round(totalKobo / 100).toLocaleString('en-NG')}
-                </dd>
-              </div>
-              <div className="my-2 border-t border-dashed border-border" />
-              <div className="flex items-center justify-between">
-                <dt className="font-bold text-ink">Total</dt>
-                <dd className="num text-xl font-black text-emerald-700">
-                  ₦{Math.round(totalKobo / 100).toLocaleString('en-NG')}
-                </dd>
-              </div>
-            </dl>
+        {/* ── Order total footer ── */}
+        <div className="flex items-center justify-between border-t border-border bg-amber-50/60 px-4 py-3">
+          <div className="text-xs text-slate-600">
+            <span className="font-bold text-ink">{lineCount}</span>{' '}
+            {lineCount === 1 ? 'item' : 'items'}
           </div>
-
-          <div className="card p-5 text-xs text-slate-500">
-            <div className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-              How it works
+          <div className="text-right">
+            <div className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
+              Order total
             </div>
-            <ol className="list-decimal space-y-1.5 pl-4 leading-relaxed">
-              <li>Save → order created in <strong>New</strong> status.</li>
-              <li>Confirm → goes to production planning.</li>
-              <li>Production complete → auto-invoice + receipt.</li>
-            </ol>
+            <div className="text-xl font-black text-ink">
+              ₦{Math.round(totalKobo / 100).toLocaleString('en-NG')}
+            </div>
           </div>
-        </aside>
+        </div>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
-          {error}
-        </div>
+        <div className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
       )}
 
-      {/* Sticky bottom action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 backdrop-blur md:pl-56">
-        <div className="container-app flex items-center justify-end gap-2 py-3">
-          <button
-            type="button"
-            onClick={() => submit(true)}
-            disabled={submitting}
-            className="btn-pill-ghost"
-          >
-            <Save size={14} />
-            Save and stay
-          </button>
-          <button type="submit" disabled={submitting} className="btn-pill-primary">
-            {submitting ? 'Saving…' : 'Save order'}
-          </button>
+      {/* ── Sticky footer ── */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 backdrop-blur md:pl-60">
+        <div className="container-app flex items-center gap-4 py-3">
+          <div className="hidden flex-1 text-xs text-slate-600 sm:block">
+            {lineCount} {lineCount === 1 ? 'item' : 'items'} ·{' '}
+            <span className="font-bold text-ink">
+              ₦{Math.round(totalKobo / 100).toLocaleString('en-NG')}
+            </span>
+          </div>
+          <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
+            <button
+              type="button"
+              onClick={() => submit(true)}
+              disabled={submitting}
+              className="btn-pill-ghost"
+            >
+              Save and stay
+            </button>
+            <button type="submit" disabled={submitting} className="btn-pill-primary">
+              {submitting ? 'Saving…' : 'Save order'}
+            </button>
+          </div>
         </div>
       </div>
     </form>
   );
 }
 
-function Field({
-  icon: Icon,
-  label,
+/* ── Shared label ──────────────────────────────────────────────────── */
+function FieldLabel({
+  children,
   required,
 }: {
-  icon: LucideIcon;
-  label: string;
+  children: React.ReactNode;
   required?: boolean;
 }) {
   return (
-    <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-      <Icon size={12} className="text-slate-400" />
-      {label}
-      {required ? <span className="text-rose-500">*</span> : null}
-    </label>
+    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+      {children}
+      {required && <span className="ml-0.5 text-rose-500">*</span>}
+    </div>
   );
 }

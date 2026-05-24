@@ -5,7 +5,6 @@ import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
 import { OrdersTable } from '@/components/ops/OrdersTable';
 import { OrdersHeroKpis } from '@/components/ops/OrdersHeroKpis';
-import { OrdersRightRail } from '@/components/ops/OrdersRightRail';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
 
 export const dynamic = 'force-dynamic';
@@ -53,45 +52,37 @@ export default async function OrdersPage({ searchParams }: { searchParams: SP })
       {/* 5 KPI tiles */}
       <OrdersHeroKpis userId={user.id} />
 
-      {/* 2-col main + right rail (the right rail still renders even when
-          there are no orders — its summary widgets handle empty state). */}
-      <div className="grid gap-5 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          {orders.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="No customer orders yet"
-              description="Capture orders before you fulfil them. We'll thread them through production, packaging, and invoicing."
-              actionHref="/orders/new"
-              actionLabel="Create your first order"
-            />
-          ) : (
-            <OrdersTable
-              rows={orders.map((o: any) => ({
-                id: o.id,
-                orderNumber: o.orderNumber,
-                status: o.status,
-                customerName: o.customerName,
-                customerPhone: o.customerPhone ?? null,
-                totalKobo: o.totalKobo,
-                dueAt: o.dueAt ? o.dueAt.toISOString() : null,
-                createdAt: o.createdAt.toISOString(),
-                notes: o.notes,
-                itemCount: o.items?.length ?? 0,
-                productSummary:
-                  (o.items ?? [])
-                    .map((it: any) => `${it.quantity}× ${it.description}`)
-                    .slice(0, 2)
-                    .join(', ') || '',
-                productionStatus: o.productionOrder?.status ?? null,
-              }))}
-            />
-          )}
-        </div>
-        <aside className="lg:col-span-1">
-          <OrdersRightRail userId={user.id} />
-        </aside>
-      </div>
+      {/* Full-width orders table */}
+      {orders.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="No customer orders yet"
+          description="Capture orders before you fulfil them. We'll thread them through production, packaging, and invoicing."
+          actionHref="/orders/new"
+          actionLabel="Create your first order"
+        />
+      ) : (
+        <OrdersTable
+          rows={orders.map((o: any) => ({
+            id: o.id,
+            orderNumber: o.orderNumber,
+            status: o.status,
+            customerName: o.customerName,
+            customerPhone: o.customerPhone ?? null,
+            totalKobo: o.totalKobo,
+            dueAt: o.dueAt ? o.dueAt.toISOString() : null,
+            createdAt: o.createdAt.toISOString(),
+            notes: o.notes,
+            itemCount: o.items?.length ?? 0,
+            productSummary:
+              (o.items ?? [])
+                .map((it: any) => `${it.quantity}× ${it.description}`)
+                .slice(0, 2)
+                .join(', ') || '',
+            productionStatus: o.productionOrder?.status ?? null,
+          }))}
+        />
+      )}
     </AppShell>
   );
 }

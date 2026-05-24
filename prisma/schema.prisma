@@ -488,6 +488,11 @@ model Product {
   /// `startedAt + shelfLifeDays` if the user didn't pick a date.
   shelfLifeDays Int?
 
+  /// Client/customer this product is made for (private-label or custom orders).
+  /// Stored as a name snapshot so the label survives customer renames or deletion.
+  /// The UI autocompletes from the Customer list but accepts free-text.
+  clientName String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -9,9 +9,14 @@ export const dynamic = 'force-dynamic';
 
 export default async function EditProductPage({ params }: { params: { id: string } }) {
   const user = await guardForBusinessType('products');
-  const product = await prisma.product.findFirst({
-    where: { id: params.id, userId: user.id },
-  });
+  const [product, customers] = await Promise.all([
+    prisma.product.findFirst({ where: { id: params.id, userId: user.id } }),
+    prisma.customer.findMany({
+      where: { userId: user.id },
+      select: { id: true, name: true, phone: true },
+      orderBy: { name: 'asc' },
+    }),
+  ]);
   if (!product) notFound();
 
   return (
@@ -19,6 +24,7 @@ export default async function EditProductPage({ params }: { params: { id: string
       <PageHeader title="Edit product" backHref="/products" />
       <ProductForm
         redirectTo="/products"
+        customers={customers}
         initial={{
           id: product.id,
           name: product.name,
@@ -43,6 +49,7 @@ export default async function EditProductPage({ params }: { params: { id: string
           expiryTracking: product.expiryTracking,
           nafdacNumber: product.nafdacNumber,
           shelfLifeDays: product.shelfLifeDays,
+          clientName: product.clientName,
           archived: product.archived,
         }}
       />

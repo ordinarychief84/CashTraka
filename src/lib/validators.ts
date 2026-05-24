@@ -209,6 +209,8 @@ export const productSchema = z.object({
   nafdacNumber: z.string().trim().max(64).optional().or(z.literal('')),
   /// Default shelf life in days for production-batch expiry stamping.
   shelfLifeDays: z.coerce.number().int().positive().max(36500).optional(),
+  /// Client/customer this product is made for (private-label or custom orders).
+  clientName: z.string().trim().max(120).optional().or(z.literal('')),
 });
 
 export const saleItemSchema = z.object({

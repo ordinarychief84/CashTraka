@@ -47,6 +47,7 @@ export async function POST(req: Request) {
       description,
       nafdacNumber,
       shelfLifeDays,
+      clientName,
     } = parsed.data;
 
     const product = await prisma.product.create({
@@ -66,6 +67,7 @@ export async function POST(req: Request) {
         description: description ? description : null,
         nafdacNumber: nafdacNumber ? nafdacNumber : null,
         shelfLifeDays: shelfLifeDays ?? null,
+        clientName: clientName || null,
       },
     });
 

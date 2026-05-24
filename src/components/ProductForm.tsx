@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import {
@@ -11,9 +11,12 @@ import {
   ArrowLeft,
   ExternalLink,
   CheckCircle2,
+  Users,
 } from 'lucide-react';
 import { ImageUploader } from '@/components/showroom/ImageUploader';
 import { cn } from '@/lib/utils';
+
+type CustomerOpt = { id: string; name: string; phone?: string | null };
 
 type Initial = {
   id?: string;
@@ -40,16 +43,18 @@ type Initial = {
   nafdacNumber?: string | null;
   shelfLifeDays?: number | null;
   archived?: boolean;
+  clientName?: string | null;
 };
 
 type Props = {
   redirectTo?: string;
   initial?: Initial;
+  customers?: CustomerOpt[];
 };
 
 type Tab = 'basic' | 'technology' | 'rawmaterial';
 
-export function ProductForm({ redirectTo = '/products', initial }: Props) {
+export function ProductForm({ redirectTo = '/products', initial, customers = [] }: Props) {
   const router = useRouter();
   const editing = Boolean(initial?.id);
   const [tab, setTab] = useState<Tab>('basic');
@@ -61,6 +66,8 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
   const [name, setName] = useState(initial?.name ?? '');
   const [active, setActive] = useState(!(initial?.archived ?? false));
   const [category, setCategory] = useState(initial?.category ?? '');
+  const [clientName, setClientName] = useState(initial?.clientName ?? '');
+  const [clientOpen, setClientOpen] = useState(false);
   const [sku, setSku] = useState(initial?.sku ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [unitOfSale, setUnitOfSale] = useState(initial?.unitOfSale ?? '');
@@ -101,6 +108,14 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
     initial?.minimumSellingQuantity != null ? String(initial.minimumSellingQuantity) : '',
   );
 
+  const clientSuggestions = useMemo(() => {
+    if (!clientName.trim() || !customers.length) return [];
+    const q = clientName.toLowerCase();
+    return customers
+      .filter((c) => c.name.toLowerCase().includes(q))
+      .slice(0, 6);
+  }, [clientName, customers]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setGlobalError(null);
@@ -140,6 +155,7 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
       expiryTracking,
       nafdacNumber,
       shelfLifeDays: shelfLifeDays === '' ? undefined : Number(shelfLifeDays),
+      clientName: clientName.trim() || undefined,
       archived: !active,
     };
 
@@ -268,6 +284,46 @@ export function ProductForm({ redirectTo = '/products', initial }: Props) {
                     (c) => <option key={c} value={c} />,
                   )}
                 </datalist>
+              </div>
+
+              {/* Client / Customer */}
+              <div className="relative">
+                <label className="label">
+                  <Users size={13} className="mr-1 inline-block text-slate-400" />
+                  Client
+                  <span className="ml-1.5 text-slate-400 font-normal">(private-label or custom order)</span>
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={clientName}
+                  onChange={(e) => { setClientName(e.target.value); setClientOpen(true); }}
+                  onFocus={() => setClientOpen(true)}
+                  onBlur={() => setTimeout(() => setClientOpen(false), 150)}
+                  placeholder="e.g. Glowberry Naturals — leave blank if generic"
+                  autoComplete="off"
+                />
+                {clientOpen && clientSuggestions.length > 0 && (
+                  <ul className="absolute left-0 right-0 top-full z-30 mt-1 rounded-lg border border-border bg-white shadow-lg">
+                    {clientSuggestions.map((c) => (
+                      <li key={c.id}>
+                        <button
+                          type="button"
+                          onMouseDown={() => { setClientName(c.name); setClientOpen(false); }}
+                          className="w-full px-3 py-2.5 text-left text-sm hover:bg-brand-50 transition"
+                        >
+                          <span className="font-medium text-ink">{c.name}</span>
+                          {c.phone && (
+                            <span className="ml-2 text-xs text-slate-400">{c.phone}</span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="mt-1 text-xs text-slate-400">
+                  Stored as a name snapshot. Helps you filter products by client later.
+                </p>
               </div>
 
               {/* SKU / EAN + Unit of sale */}

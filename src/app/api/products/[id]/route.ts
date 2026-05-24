@@ -44,6 +44,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     description,
     nafdacNumber,
     shelfLifeDays,
+    clientName,
   } = parsed.data;
 
   // stockDelta is a convenience — "add 10 to stock" without having to do math client-side.
@@ -75,6 +76,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         nafdacNumber === undefined ? product.nafdacNumber : nafdacNumber || null,
       shelfLifeDays:
         shelfLifeDays === undefined ? product.shelfLifeDays : shelfLifeDays ?? null,
+      clientName:
+        clientName === undefined ? product.clientName : clientName || null,
     },
   });
 

@@ -63,14 +63,6 @@ function fmtCreatedAt(iso: string | null | undefined): string {
   return d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function createdAtBucket(iso: string | null | undefined): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  return `${y}-${m}`;
-}
-
 const INPUT_CLS =
   'w-full rounded border border-slate-200 bg-white text-[11px] px-2 py-0.5 focus:outline-none focus:border-slate-400 placeholder-slate-400';
 const SELECT_CLS =
@@ -118,15 +110,6 @@ export function MaterialsTable({ rows }: { rows: MaterialRow[] }) {
     return Array.from(s).sort();
   }, [rows]);
 
-  const createdAtBuckets = useMemo(() => {
-    const s = new Set<string>();
-    for (const r of rows) {
-      const b = createdAtBucket(r.createdAt);
-      if (b) s.add(b);
-    }
-    return Array.from(s).sort().reverse();
-  }, [rows]);
-
   const hasFilters =
     !!filterCategory || !!filterSupplier || !!filterUnit || !!filterStatus ||
     !!filterCreatedAt || !!qName || !!qSku || !!qNotes || !!qLocation || !!qMinDelivery;
@@ -169,7 +152,7 @@ export function MaterialsTable({ rows }: { rows: MaterialRow[] }) {
         const val = String(r.minimumPurchaseQuantity ?? '');
         if (!val.includes(qMinDelivery)) return false;
       }
-      if (filterCreatedAt && createdAtBucket(r.createdAt) !== filterCreatedAt) return false;
+      if (filterCreatedAt && (r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 10) : '') !== filterCreatedAt) return false;
       return true;
     });
 
@@ -573,16 +556,12 @@ export function MaterialsTable({ rows }: { rows: MaterialRow[] }) {
               <td className="border-b border-r border-slate-200 px-2 py-1" />
               {/* Date of creation filter */}
               <td className="border-b border-r border-slate-200 px-2 py-1">
-                <select
+                <input
+                  type="date"
                   value={filterCreatedAt}
                   onChange={(e) => { setFilterCreatedAt(e.target.value); setPage(0); }}
-                  className={SELECT_CLS}
-                >
-                  <option value="">Choose</option>
-                  {createdAtBuckets.map((b) => (
-                    <option key={b} value={b}>{b}</option>
-                  ))}
-                </select>
+                  className="w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-300"
+                />
               </td>
               {/* Actions */}
               <td className="border-b border-slate-200 px-2 py-1" />

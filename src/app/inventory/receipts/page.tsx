@@ -158,7 +158,7 @@ export default async function InventoryReceiptsPage() {
               {/* Static visual filter row */}
               <tr className="bg-white">
                 <td className="border-b border-r border-slate-100 px-2.5 py-1" />
-                {['Inventory', 'Receipt type', 'Supplier', 'Client', 'Identification', 'ID Prodio', 'Date', 'Comments', 'Date of creation'].map(
+                {['Inventory', 'Receipt type', 'Supplier', 'Client', 'Identification', 'ID Prodio'].map(
                   (col) => (
                     <td key={col} className="border-b border-r border-slate-100 px-2 py-1">
                       <select className="w-full rounded border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700 focus:outline-none">
@@ -167,6 +167,20 @@ export default async function InventoryReceiptsPage() {
                     </td>
                   ),
                 )}
+                {/* Date — calendar picker */}
+                <td className="border-b border-r border-slate-100 px-2 py-1">
+                  <input type="date" className="w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-300" />
+                </td>
+                {/* Comments */}
+                <td className="border-b border-r border-slate-100 px-2 py-1">
+                  <select className="w-full rounded border border-slate-200 bg-white px-2 py-0.5 text-[11px] text-slate-700 focus:outline-none">
+                    <option value="">Choose</option>
+                  </select>
+                </td>
+                {/* Date of creation — calendar picker */}
+                <td className="border-b border-r border-slate-100 px-2 py-1">
+                  <input type="date" className="w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-300" />
+                </td>
                 <td className="border-b border-slate-100 px-2 py-1" />
               </tr>
             </thead>

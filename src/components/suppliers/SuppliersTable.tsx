@@ -112,6 +112,15 @@ const ChooseSelect = ({
   </select>
 );
 
+const DateFilterInput = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+  <input
+    type="date"
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-300"
+  />
+);
+
 export function SuppliersTable({
   rows,
   createdByName,
@@ -134,15 +143,6 @@ export function SuppliersTable({
   const [qContact, setQContact] = useState('');
   const [filterCreatedAt, setFilterCreatedAt] = useState('');
   const [filterUpdatedAt, setFilterUpdatedAt] = useState('');
-
-  const uniqueDates = useMemo(
-    () => [...new Set(rows.map((r) => fmt(r.createdAt).slice(0, 10)))].sort(),
-    [rows],
-  );
-  const uniqueUpdateDates = useMemo(
-    () => [...new Set(rows.map((r) => fmt(r.updatedAt).slice(0, 10)))].sort(),
-    [rows],
-  );
 
   const filtered = useMemo(() => {
     let out = [...rows];
@@ -404,13 +404,12 @@ export function SuppliersTable({
               </td>
               {/* Date of creation */}
               <td className="border-b border-r border-slate-100 px-2 py-1">
-                <ChooseSelect
+                <DateFilterInput
                   value={filterCreatedAt}
                   onChange={(v) => {
                     setFilterCreatedAt(v);
                     setPage(1);
                   }}
-                  options={uniqueDates}
                 />
               </td>
               {/* Created by */}
@@ -422,13 +421,12 @@ export function SuppliersTable({
               </td>
               {/* Updated at */}
               <td className="border-b border-r border-slate-100 px-2 py-1">
-                <ChooseSelect
+                <DateFilterInput
                   value={filterUpdatedAt}
                   onChange={(v) => {
                     setFilterUpdatedAt(v);
                     setPage(1);
                   }}
-                  options={uniqueUpdateDates}
                 />
               </td>
               {/* Updated by */}

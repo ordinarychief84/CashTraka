@@ -74,6 +74,15 @@ const ChooseSelect = ({ value, onChange, options }: { value: string; onChange: (
   </select>
 );
 
+const DateFilterInput = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => (
+  <input
+    type="date"
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] text-slate-700 focus:outline-none focus:ring-1 focus:ring-orange-300"
+  />
+);
+
 export function StocktakingTable({ rows }: { rows: AdjustmentRow[] }) {
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -91,9 +100,6 @@ export function StocktakingTable({ rows }: { rows: AdjustmentRow[] }) {
   const [filterUpdatedAt, setFilterUpdatedAt] = useState('');
 
   const uniqueInventories = useMemo(() => [...new Set(rows.map((r) => r.itemName))].sort(), [rows]);
-  const uniqueDates = useMemo(() => [...new Set(rows.map((r) => fmt(r.date).slice(0, 10)))].sort(), [rows]);
-  const uniqueCreatedDates = useMemo(() => [...new Set(rows.map((r) => fmt(r.createdAt).slice(0, 10)))].sort(), [rows]);
-  const uniqueUpdatedDates = useMemo(() => [...new Set(rows.map((r) => fmt(r.updatedAt).slice(0, 10)))].sort(), [rows]);
   const uniqueCreatedBy = useMemo(() => [...new Set(rows.map((r) => r.createdByName))].sort(), [rows]);
 
   const filtered = useMemo(() => {
@@ -167,13 +173,13 @@ export function StocktakingTable({ rows }: { rows: AdjustmentRow[] }) {
               <td className="border-b border-r border-slate-100 px-2 py-1" />
               <td className="border-b border-r border-slate-100 px-2 py-1"><ChooseSelect value={filterInventory} onChange={(v) => { setFilterInventory(v); setPage(1); }} options={uniqueInventories} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><SearchInput value={qAdjNumber} onChange={(v) => { setQAdjNumber(v); setPage(1); }} /></td>
-              <td className="border-b border-r border-slate-100 px-2 py-1"><ChooseSelect value={filterDate} onChange={(v) => { setFilterDate(v); setPage(1); }} options={uniqueDates} /></td>
+              <td className="border-b border-r border-slate-100 px-2 py-1"><DateFilterInput value={filterDate} onChange={(v) => { setFilterDate(v); setPage(1); }} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><SearchInput value={qIdent} onChange={(v) => { setQIdent(v); setPage(1); }} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><SearchInput value={qReason} onChange={(v) => { setQReason(v); setPage(1); }} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><SearchInput value={qComments} onChange={(v) => { setQComments(v); setPage(1); }} /></td>
-              <td className="border-b border-r border-slate-100 px-2 py-1"><ChooseSelect value={filterCreatedAt} onChange={(v) => { setFilterCreatedAt(v); setPage(1); }} options={uniqueCreatedDates} /></td>
+              <td className="border-b border-r border-slate-100 px-2 py-1"><DateFilterInput value={filterCreatedAt} onChange={(v) => { setFilterCreatedAt(v); setPage(1); }} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><div className="flex items-center gap-1"><ChooseSelect value="" onChange={() => {}} options={uniqueCreatedBy} /><Info size={10} className="shrink-0 text-orange-400" /></div></td>
-              <td className="border-b border-r border-slate-100 px-2 py-1"><ChooseSelect value={filterUpdatedAt} onChange={(v) => { setFilterUpdatedAt(v); setPage(1); }} options={uniqueUpdatedDates} /></td>
+              <td className="border-b border-r border-slate-100 px-2 py-1"><DateFilterInput value={filterUpdatedAt} onChange={(v) => { setFilterUpdatedAt(v); setPage(1); }} /></td>
               <td className="border-b border-r border-slate-100 px-2 py-1"><div className="flex items-center gap-1"><ChooseSelect value="" onChange={() => {}} options={uniqueCreatedBy} /><Info size={10} className="shrink-0 text-orange-400" /></div></td>
               <td className="border-b border-slate-100 px-2 py-1" />
             </tr>

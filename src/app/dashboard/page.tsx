@@ -50,6 +50,9 @@ import { DailyActionPanel } from '@/components/dashboard/DailyActionPanel';
 import { OperationalRiskPanel } from '@/components/dashboard/OperationalRiskPanel';
 import { ProductionPipeline } from '@/components/dashboard/ProductionPipeline';
 import { TemplateQuickStart } from '@/components/dashboard/TemplateQuickStart';
+import { ProductsToReorderPanel } from '@/components/dashboard/ProductsToReorderPanel';
+import { AwaitingPurchaseOrdersPanel } from '@/components/dashboard/AwaitingPurchaseOrdersPanel';
+import { AwaitingOrdersPanel } from '@/components/dashboard/AwaitingOrdersPanel';
 import { formatKobo } from '@/lib/format';
 import { copyFor, isPropertyManager } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
@@ -533,6 +536,13 @@ export default async function DashboardPage() {
               for empty-catalogue tenants (TemplateQuickStart above
               already owns that case). */}
           <SetupChecklist userId={user.id} />
+
+          {/* ─────────── Operational snapshot panels (Rackbeat-style) ─── */}
+          <div className="mb-6 grid gap-4 lg:grid-cols-3">
+            <ProductsToReorderPanel userId={user.id} />
+            <AwaitingPurchaseOrdersPanel userId={user.id} />
+            <AwaitingOrdersPanel userId={user.id} />
+          </div>
 
           {/* ─────────── SECTION 1 · AT A GLANCE ─────────── */}
           {/* The six top-line KPIs plus the amber "not yet notified"

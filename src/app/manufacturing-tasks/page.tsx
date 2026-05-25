@@ -27,6 +27,8 @@ export default async function ManufacturingTasksPage() {
     productionOrderNumber: t.productionOrder?.productionNumber ?? null,
     productionOrderTitle: t.productionOrder?.title ?? null,
     workerNames: t.workers.map((w) => w.staffMember.name),
+    notes: t.notes ?? null,
+    createdAt: t.createdAt.toISOString(),
   }));
 
   return (

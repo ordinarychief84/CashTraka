@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { List, Plus, Settings2 } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { purchaseOrdersService } from '@/lib/services/purchase-orders.service';
+import { suppliersService } from '@/lib/services/suppliers.service';
 import { PurchasesTable, type PurchaseRow } from '@/components/purchases/PurchasesTable';
 
 export const dynamic = 'force-dynamic';
@@ -16,10 +17,11 @@ export default async function PurchaseOrdersPage({
 }) {
   const user = await guard();
   const status = (searchParams.status?.split(',') as any) ?? undefined;
-  const { rows: orders } = await purchaseOrdersService.listForUser(user.id, {
-    status,
-    take: 200,
-  });
+
+  const [{ rows: orders }, { rows: suppliers }] = await Promise.all([
+    purchaseOrdersService.listForUser(user.id, { status, take: 200 }),
+    suppliersService.listForUser(user.id, { take: 500 }),
+  ]);
 
   const tableRows: PurchaseRow[] = orders.map((o) => {
     const deliveredCount = o.items.reduce(
@@ -47,6 +49,8 @@ export default async function PurchaseOrdersPage({
     };
   });
 
+  const supplierOpts = suppliers.map((s) => ({ id: s.id, name: s.name }));
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -66,25 +70,20 @@ export default async function PurchaseOrdersPage({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {/* LIST VIEW — always active since this IS the list view */}
           <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
             <List size={12} /> LIST VIEW
           </button>
           <Link
             href="/purchase-orders/new"
-            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white hover:bg-orange-600 transition"
+            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-600"
           >
             <Plus size={12} /> ADD
-          </Link>
-          <Link
-            href="/inventory/movements"
-            className="inline-flex items-center gap-1.5 rounded text-xs font-semibold text-slate-600 hover:text-slate-800"
-          >
-            <Settings2 size={12} /> ADJUST
           </Link>
         </div>
       </div>
 
-      <PurchasesTable rows={tableRows} />
+      <PurchasesTable rows={tableRows} suppliers={supplierOpts} />
     </AppShell>
   );
 }

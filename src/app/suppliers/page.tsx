@@ -1,12 +1,9 @@
 import Link from 'next/link';
-import { Plus, Download, BarChart3 } from 'lucide-react';
+import { Plus, Settings2, Upload } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { prisma } from '@/lib/prisma';
-import { SuppliersHeroKpis } from '@/components/suppliers/SuppliersHeroKpis';
-import { SuppliersChartRow } from '@/components/suppliers/SuppliersChartRow';
 import { SuppliersTable, type SupplierRow } from '@/components/suppliers/SuppliersTable';
-import { SuppliersRightRail } from '@/components/suppliers/SuppliersRightRail';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +11,7 @@ export default async function SuppliersPage() {
   const user = await guard();
 
   const suppliers = await prisma.supplier.findMany({
-    where: { userId: user.id, deletedAt: null },
+    where: { userId: user.id },
     orderBy: { name: 'asc' },
     select: {
       id: true,
@@ -22,38 +19,26 @@ export default async function SuppliersPage() {
       contactPerson: true,
       phone: true,
       email: true,
-      supplierCategory: true,
+      address: true,
       status: true,
-      lastPurchaseAt: true,
-      onTimeDeliveryRating: true,
-      qualityRating: true,
+      notes: true,
+      deletedAt: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
-
-  // Roll up total spend per supplier from received POs (kobo).
-  const spendGroup = await prisma.purchaseOrder.groupBy({
-    by: ['supplierId'],
-    where: {
-      userId: user.id,
-      deletedAt: null,
-      status: { in: ['RECEIVED', 'PARTIALLY_RECEIVED'] },
-    },
-    _sum: { totalKobo: true },
-  });
-  const spendBy = new Map(spendGroup.map((g) => [g.supplierId, g._sum.totalKobo ?? 0]));
 
   const rows: SupplierRow[] = suppliers.map((s) => ({
     id: s.id,
     name: s.name,
-    contactPerson: s.contactPerson,
-    phone: s.phone,
+    address: s.address,
     email: s.email,
-    category: s.supplierCategory,
-    status: s.status,
-    totalSpendKobo: spendBy.get(s.id) ?? 0,
-    lastPurchaseAt: s.lastPurchaseAt ? s.lastPurchaseAt.toISOString() : null,
-    onTimeDeliveryRating: s.onTimeDeliveryRating,
-    qualityRating: s.qualityRating,
+    phone: s.phone,
+    contactPerson: s.contactPerson,
+    notes: s.notes,
+    status: s.deletedAt ? 'INACTIVE' : s.status,
+    createdAt: s.createdAt.toISOString(),
+    updatedAt: s.updatedAt.toISOString(),
   }));
 
   return (
@@ -65,46 +50,35 @@ export default async function SuppliersPage() {
       principalName={user.principalName}
     >
       {/* Page header */}
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
-            Suppliers
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            The businesses you buy from, ranked by spend, reliability and quality.
-          </p>
+          <h1 className="text-xl font-black tracking-tight text-ink">Suppliers</h1>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/suppliers" className="btn-pill-ghost">
-            <Download size={14} />
-            Export
+        <div className="flex items-center gap-2">
+          {/* IMPORTER button with NEW badge */}
+          <button className="relative inline-flex items-center gap-1.5 rounded border border-orange-400 px-3 py-1.5 text-xs font-semibold text-orange-500 hover:bg-orange-50 transition">
+            <Upload size={12} />
+            IMPORTER
+            <span className="absolute -top-2 -right-2 rounded bg-orange-500 px-1 py-0.5 text-[9px] font-bold text-white leading-none">
+              NEW
+            </span>
+          </button>
+          <Link
+            href="/suppliers/new"
+            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-600"
+          >
+            <Plus size={12} /> ADD
           </Link>
-          <Link href="/reports" className="btn-pill-ghost">
-            <BarChart3 size={14} />
-            Reports
-          </Link>
-          <Link href="/suppliers/new" className="btn-pill-primary">
-            <Plus size={14} />
-            New Supplier
+          <Link
+            href="/inventory/movements"
+            className="inline-flex items-center gap-1.5 rounded text-xs font-semibold text-slate-600 hover:text-slate-800"
+          >
+            <Settings2 size={12} /> ADJUST
           </Link>
         </div>
       </div>
 
-      {/* 6 KPI tiles */}
-      <SuppliersHeroKpis userId={user.id} />
-
-      {/* 3 chart cards */}
-      <SuppliersChartRow userId={user.id} />
-
-      {/* 2-col: table (3/4) + right rail (1/4) */}
-      <div className="grid gap-5 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <SuppliersTable rows={rows} />
-        </div>
-        <aside className="space-y-4 lg:col-span-1">
-          <SuppliersRightRail userId={user.id} />
-        </aside>
-      </div>
+      <SuppliersTable rows={rows} createdByName={user.name ?? 'User'} />
     </AppShell>
   );
 }

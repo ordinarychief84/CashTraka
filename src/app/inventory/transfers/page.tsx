@@ -1,40 +1,63 @@
 import Link from 'next/link';
-import { ArrowLeftRight } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
-import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { EmptyState } from '@/components/EmptyState';
 import { prisma } from '@/lib/prisma';
-import { formatDateTime } from '@/lib/format';
+import { AppShell } from '@/components/AppShell';
+import { TransfersTable, type TransferRow } from '@/components/inventory/TransfersTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function InventoryTransfersPage() {
   const user = await guard();
-  // reason is stored as a plain String in the DB; TRANSFER may be added later.
-  const where = { userId: user.id, reason: 'TRANSFER' };
-  const [rows, total] = await Promise.all([
-    prisma.stockMovement.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      take: 200,
-    }),
-    prisma.stockMovement.count({ where }),
-  ]);
 
-  // Lookup names for items in this page.
-  const productIds = Array.from(new Set(rows.filter((r) => r.itemType === 'PRODUCT').map((r) => r.itemId)));
-  const materialIds = Array.from(new Set(rows.filter((r) => r.itemType === 'MATERIAL').map((r) => r.itemId)));
+  const movements = await prisma.stockMovement.findMany({
+    where: { userId: user.id, reason: 'TRANSFER' },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+  });
+
+  // Resolve item names
+  const productIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'PRODUCT').map((m) => m.itemId)),
+  );
+  const materialIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'MATERIAL').map((m) => m.itemId)),
+  );
   const [products, materials] = await Promise.all([
     productIds.length > 0
       ? prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true } })
       : [],
     materialIds.length > 0
-      ? prisma.rawMaterial.findMany({ where: { id: { in: materialIds } }, select: { id: true, name: true, unit: true } })
+      ? prisma.rawMaterial.findMany({ where: { id: { in: materialIds } }, select: { id: true, name: true } })
       : [],
   ]);
   const productName = new Map(products.map((p) => [p.id, p.name]));
-  const materialMap = new Map(materials.map((m) => [m.id, m]));
+  const materialName = new Map(materials.map((m) => [m.id, m.name]));
+
+  const rows: TransferRow[] = movements.map((m) => {
+    const itemName =
+      m.itemType === 'PRODUCT'
+        ? (productName.get(m.itemId) ?? m.itemId)
+        : (materialName.get(m.itemId) ?? m.itemId);
+    const itemHref =
+      m.itemType === 'PRODUCT' ? `/products/${m.itemId}` : `/materials/${m.itemId}`;
+
+    return {
+      id: m.id,
+      fromInventory: itemName,
+      fromInventoryHref: itemHref,
+      toInventory: m.refId ?? '—',
+      toInventoryHref: '#',
+      transferNumber: `TRF-${m.id.slice(-6).toUpperCase()}`,
+      date: m.createdAt.toISOString(),
+      identification: m.id.slice(-6).toUpperCase(),
+      comments: m.notes,
+      createdAt: m.createdAt.toISOString(),
+      createdByName: user.name ?? 'User',
+      updatedAt: m.createdAt.toISOString(),
+      updatedByName: user.name ?? 'User',
+    };
+  });
 
   return (
     <AppShell
@@ -44,72 +67,26 @@ export default async function InventoryTransfersPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader
-        title="Inventory Transfers"
-        subtitle="Internal stock transfers between materials or products"
-        backHref="/inventory"
-      />
-
-      {/* Info banner */}
-      <div className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-        <span>
-          Use transfers to record when stock moves between materials — e.g. splitting bulk ingredients into
-          labelled packages.
-        </span>
+      {/* Page header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-black tracking-tight text-ink">Inventory transfers</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
+            <List size={12} /> LIST VIEW
+          </button>
+          <button
+            disabled
+            className="inline-flex items-center gap-1.5 rounded-full bg-orange-300 px-4 py-2 text-xs font-bold text-white cursor-not-allowed"
+            title="Coming soon"
+          >
+            <Plus size={12} /> ADD
+          </button>
+        </div>
       </div>
 
-      {rows.length === 0 ? (
-        <EmptyState
-          icon={ArrowLeftRight}
-          title="No transfers recorded"
-          description="Transfers appear here once recorded. Coming soon: record a transfer directly from this page."
-        />
-      ) : (
-        <div className="card overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100 text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-2 text-left">When</th>
-                <th className="px-4 py-2 text-left">Item</th>
-                <th className="px-4 py-2 text-left">Notes</th>
-                <th className="px-4 py-2 text-right">Δ</th>
-                <th className="px-4 py-2 text-right">Balance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {rows.map((r) => {
-                const name =
-                  r.itemType === 'PRODUCT'
-                    ? productName.get(r.itemId) ?? r.itemId
-                    : materialMap.get(r.itemId)?.name ?? r.itemId;
-                const unit = r.itemType === 'MATERIAL' ? materialMap.get(r.itemId)?.unit ?? '' : '';
-                return (
-                  <tr key={r.id}>
-                    <td className="px-4 py-2 text-xs text-slate-500">{formatDateTime(r.createdAt)}</td>
-                    <td className="px-4 py-2">
-                      <Link
-                        href={r.itemType === 'PRODUCT' ? `/products/${r.itemId}` : `/materials/${r.itemId}`}
-                        className="font-medium text-slate-900 hover:underline"
-                      >
-                        {name}
-                      </Link>
-                      <span className="ml-2 text-xs text-slate-400">{r.itemType.toLowerCase()}</span>
-                    </td>
-                    <td className="px-4 py-2 text-slate-500">{r.notes ?? '—'}</td>
-                    <td className={`px-4 py-2 text-right font-mono font-bold ${r.delta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {r.delta > 0 ? '+' : ''}
-                      {r.delta} {unit}
-                    </td>
-                    <td className="px-4 py-2 text-right font-mono text-slate-700">
-                      {r.balanceAfter} {unit}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <TransfersTable rows={rows} />
     </AppShell>
   );
 }

@@ -1,24 +1,61 @@
 import Link from 'next/link';
-import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { EmptyState } from '@/components/EmptyState';
-import { timeAgo } from '@/lib/format';
+import { StocktakingTable, type AdjustmentRow } from '@/components/inventory/StocktakingTable';
 
 export const dynamic = 'force-dynamic';
 
 export default async function InventoryAdjustmentsPage() {
   const user = await guard();
 
-  // Show ADJUSTMENT type stock movements
   const movements = await prisma.stockMovement.findMany({
-    where: {
-      userId: user.id,
-      reason: 'ADJUSTMENT',
-    },
+    where: { userId: user.id, reason: 'ADJUSTMENT' },
     orderBy: { createdAt: 'desc' },
-    take: 100,
+    take: 200,
+  });
+
+  // Resolve item names
+  const productIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'PRODUCT').map((m) => m.itemId)),
+  );
+  const materialIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'MATERIAL').map((m) => m.itemId)),
+  );
+  const [products, materials] = await Promise.all([
+    productIds.length > 0
+      ? prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true } })
+      : [],
+    materialIds.length > 0
+      ? prisma.rawMaterial.findMany({ where: { id: { in: materialIds } }, select: { id: true, name: true } })
+      : [],
+  ]);
+  const productName = new Map(products.map((p) => [p.id, p.name]));
+  const materialName = new Map(materials.map((m) => [m.id, m.name]));
+
+  const rows: AdjustmentRow[] = movements.map((m) => {
+    const itemName =
+      m.itemType === 'PRODUCT'
+        ? (productName.get(m.itemId) ?? m.itemId)
+        : (materialName.get(m.itemId) ?? m.itemId);
+    const itemHref =
+      m.itemType === 'PRODUCT' ? `/products/${m.itemId}` : `/materials/${m.itemId}`;
+
+    return {
+      id: m.id,
+      itemName,
+      itemHref,
+      adjustNumber: `ADJ-${m.id.slice(-6).toUpperCase()}`,
+      date: m.createdAt.toISOString(),
+      identification: m.id.slice(-6).toUpperCase(),
+      reason: m.reason.replace(/_/g, ' '),
+      comments: m.notes,
+      createdAt: m.createdAt.toISOString(),
+      createdByName: user.name ?? 'User',
+      updatedAt: m.createdAt.toISOString(), // movements are immutable
+      updatedByName: user.name ?? 'User',
+    };
   });
 
   return (
@@ -29,73 +66,27 @@ export default async function InventoryAdjustmentsPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      {/* Page header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
-            Inventory Adjustments
+          <h1 className="text-xl font-black tracking-tight text-ink">
+            Stocktaking/adjustments
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Manual corrections to stock — damaged goods, write-offs, recount corrections.
-          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/inventory/movements" className="btn-pill-ghost">
-            <ArrowUpDown size={14} />
-            All movements
-          </Link>
-          <Link href="/materials" className="btn-pill-primary">
-            <SlidersHorizontal size={14} />
-            Adjust via Materials
+          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
+            <List size={12} /> LIST VIEW
+          </button>
+          <Link
+            href="/inventory/movements"
+            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-600"
+          >
+            <Plus size={12} /> ADD
           </Link>
         </div>
       </div>
 
-      <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        To adjust stock for a specific material, go to{' '}
-        <Link href="/materials" className="font-semibold underline hover:text-amber-900">
-          Raw Materials
-        </Link>{' '}
-        and click the adjust button next to the item.
-      </div>
-
-      {movements.length === 0 ? (
-        <EmptyState
-          icon={SlidersHorizontal}
-          title="No adjustments recorded"
-          description="Adjustments appear here when stock is manually corrected. Go to Raw Materials to adjust a specific item."
-          actionHref="/materials"
-          actionLabel="Go to Raw Materials"
-        />
-      ) : (
-        <div className="card divide-y divide-border">
-          {movements.map((m) => (
-            <div key={m.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-              <span
-                className={
-                  m.delta >= 0
-                    ? 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 font-bold text-emerald-700 text-xs'
-                    : 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-rose-50 font-bold text-rose-700 text-xs'
-                }
-              >
-                {m.delta >= 0 ? '+' : ''}
-                {m.delta}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-ink">
-                  {m.itemType === 'MATERIAL' ? 'Material' : 'Product'} adjustment
-                </p>
-                {m.notes && (
-                  <p className="truncate text-xs text-slate-500">{m.notes}</p>
-                )}
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-xs text-slate-500">{timeAgo(m.createdAt)}</p>
-                <p className="text-[10px] text-slate-400">Balance after: {m.balanceAfter}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <StocktakingTable rows={rows} />
     </AppShell>
   );
 }

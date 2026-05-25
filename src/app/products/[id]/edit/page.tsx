@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
 import { ProductForm } from '@/components/ProductForm';
 
 export const dynamic = 'force-dynamic';
@@ -21,7 +20,9 @@ export default async function EditProductPage({ params }: { params: { id: string
 
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
-      <PageHeader title="Edit product" backHref="/products" />
+      <div className="mb-4">
+        <h1 className="text-2xl font-black tracking-tight text-ink">Edit product</h1>
+      </div>
       <ProductForm
         redirectTo="/products"
         customers={customers}

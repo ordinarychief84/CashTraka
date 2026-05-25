@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Plus, Download, BookOpen, AlertTriangle } from 'lucide-react';
+import { BookOpen, AlertTriangle } from 'lucide-react';
 import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
@@ -33,18 +33,8 @@ export default async function ProductsPage() {
       principalName={user.principalName}
     >
       {/* ── Page header ── */}
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-5">
         <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">Products</h1>
-        <div className="flex items-center gap-2">
-          <a href="/api/products/export" className="btn-pill-ghost">
-            <Download size={14} />
-            Export
-          </a>
-          <Link href="/products/new" className="btn-pill-primary">
-            <Plus size={14} />
-            Add product
-          </Link>
-        </div>
       </div>
 
       {/* ── Recipe readiness banner ── */}

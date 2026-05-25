@@ -1,7 +1,6 @@
 import { guardForBusinessType } from '@/lib/guard-rbac';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
 import { ProductForm } from '@/components/ProductForm';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +14,9 @@ export default async function NewProductPage() {
   });
   return (
     <AppShell businessName={user.businessName} userName={user.name} businessType={user.businessType} accessRole={user.accessRole} principalName={user.principalName}>
-      <PageHeader title="Add product" backHref="/products" />
+      <div className="mb-4">
+        <h1 className="text-2xl font-black tracking-tight text-ink">Create product</h1>
+      </div>
       <ProductForm redirectTo="/products" customers={customers} />
     </AppShell>
   );

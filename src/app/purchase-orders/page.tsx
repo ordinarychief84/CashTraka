@@ -1,18 +1,19 @@
 import Link from 'next/link';
-import { Plus, Download, BarChart3 } from 'lucide-react';
+import { List, Plus, Settings2 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { purchaseOrdersService } from '@/lib/services/purchase-orders.service';
-import { PurchasesHeroKpis } from '@/components/purchases/PurchasesHeroKpis';
-import { PurchasesChartRow } from '@/components/purchases/PurchasesChartRow';
 import { PurchasesTable, type PurchaseRow } from '@/components/purchases/PurchasesTable';
-import { PurchasesRightRail } from '@/components/purchases/PurchasesRightRail';
 
 export const dynamic = 'force-dynamic';
 
 type SP = { status?: string };
 
-export default async function PurchaseOrdersPage({ searchParams }: { searchParams: SP }) {
+export default async function PurchaseOrdersPage({
+  searchParams,
+}: {
+  searchParams: SP;
+}) {
   const user = await guard();
   const status = (searchParams.status?.split(',') as any) ?? undefined;
   const { rows: orders } = await purchaseOrdersService.listForUser(user.id, {
@@ -20,18 +21,31 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
     take: 200,
   });
 
-  const tableRows: PurchaseRow[] = orders.map((o) => ({
-    id: o.id,
-    poNumber: o.poNumber,
-    supplierName: o.supplier?.name ?? 'Supplier',
-    status: o.status,
-    lineCount: o.items.length,
-    totalKobo: o.totalKobo,
-    amountPaidKobo: o.amountPaidKobo,
-    expectedAt: o.expectedAt ? o.expectedAt.toISOString() : null,
-    receivedAt: o.receivedAt ? o.receivedAt.toISOString() : null,
-    createdAt: o.createdAt.toISOString(),
-  }));
+  const tableRows: PurchaseRow[] = orders.map((o) => {
+    const deliveredCount = o.items.reduce(
+      (sum, it) => sum + (it.quantityReceived ?? 0),
+      0,
+    );
+    const totalQtyCount = o.items.reduce((sum, it) => sum + it.quantity, 0);
+
+    return {
+      id: o.id,
+      poNumber: o.poNumber,
+      supplierName: o.supplier?.name ?? 'Supplier',
+      status: o.status,
+      lineCount: o.items.length,
+      totalKobo: o.totalKobo,
+      amountPaidKobo: o.amountPaidKobo,
+      expectedAt: o.expectedAt ? o.expectedAt.toISOString() : null,
+      receivedAt: o.receivedAt ? o.receivedAt.toISOString() : null,
+      createdAt: o.createdAt.toISOString(),
+      updatedAt: o.updatedAt.toISOString(),
+      deliveredCount,
+      totalQtyCount,
+      createdByName: user.name ?? 'User',
+      notes: o.notes ?? null,
+    };
+  });
 
   return (
     <AppShell
@@ -41,47 +55,36 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Page header */}
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+      {/* Header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
-            Purchases
+          <h1 className="text-xl font-black tracking-tight text-ink">
+            Orders from suppliers
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Track every PO from draft to received — and what you still owe.
+          <p className="mt-0.5 text-sm text-slate-500">
+            Track every purchase order from draft to received.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Link href="/purchase-orders" className="btn-pill-ghost">
-            <Download size={14} />
-            Export
+        <div className="flex items-center gap-2">
+          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
+            <List size={12} /> LIST VIEW
+          </button>
+          <Link
+            href="/purchase-orders/new"
+            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white hover:bg-orange-600 transition"
+          >
+            <Plus size={12} /> ADD
           </Link>
-          <Link href="/reports" className="btn-pill-ghost">
-            <BarChart3 size={14} />
-            Reports
-          </Link>
-          <Link href="/purchase-orders/new" className="btn-pill-primary">
-            <Plus size={14} />
-            New Purchase Order
+          <Link
+            href="/inventory/movements"
+            className="inline-flex items-center gap-1.5 rounded text-xs font-semibold text-slate-600 hover:text-slate-800"
+          >
+            <Settings2 size={12} /> ADJUST
           </Link>
         </div>
       </div>
 
-      {/* 6 KPI tiles */}
-      <PurchasesHeroKpis userId={user.id} />
-
-      {/* 3 chart cards */}
-      <PurchasesChartRow userId={user.id} />
-
-      {/* 2-col: table (3/4) + right rail (1/4) */}
-      <div className="grid gap-5 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <PurchasesTable rows={tableRows} />
-        </div>
-        <aside className="space-y-4 lg:col-span-1">
-          <PurchasesRightRail userId={user.id} />
-        </aside>
-      </div>
+      <PurchasesTable rows={tableRows} />
     </AppShell>
   );
 }

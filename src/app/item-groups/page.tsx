@@ -85,8 +85,8 @@ export default function ItemGroupsPage() {
                   Import
                 </button>
                 <Link
-                  href="/products/new"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-blue-700"
+                  href="/item-groups/new"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
                 >
                   <Plus size={13} />
                   Create new

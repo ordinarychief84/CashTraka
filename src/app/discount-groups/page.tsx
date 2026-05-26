@@ -25,7 +25,7 @@ export default async function DiscountGroupsPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <h1 className="text-xl font-bold text-ink">Discount groups</h1>
             <Link
-              href="#"
+              href="/discount-groups/new"
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
             >
               <Plus size={13} />
@@ -42,7 +42,7 @@ export default async function DiscountGroupsPage() {
               No discount groups found.
             </p>
             <Link
-              href="#"
+              href="/discount-groups/new"
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-brand-700"
             >
               <Plus size={13} />

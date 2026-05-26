@@ -1,10 +1,10 @@
-import Link from 'next/link';
-import { Plus, Settings2 } from 'lucide-react';
 import { guard } from '@/lib/guard';
+import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { ItemsSubNav } from '@/components/ItemsSubNav';
 import { productionOrdersService } from '@/lib/services/production-orders.service';
 import { ProductionOrdersTable } from '@/components/ops/ProductionOrdersTable';
+import { ProductionPageHeader } from '@/components/ops/ProductionPageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,10 +39,21 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
     searchParams.cancelled,
   ) as any;
 
-  const { rows: orders } = await productionOrdersService.listForUser(user.id, {
-    status: statusFilter,
-    take: 200,
-  });
+  const [{ rows: orders }, producableProducts, openCustomerOrders] = await Promise.all([
+    productionOrdersService.listForUser(user.id, { status: statusFilter, take: 200 }),
+    prisma.product.findMany({
+      where: { userId: user.id, archived: false },
+      orderBy: { name: 'asc' },
+      take: 200,
+      select: { id: true, name: true, sku: true },
+    }),
+    prisma.customerOrder.findMany({
+      where: { userId: user.id, deletedAt: null, status: { in: ['NEW', 'CONFIRMED'] }, productionOrderId: null },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+      select: { id: true, orderNumber: true, customerName: true },
+    }),
+  ]);
 
   const rows = orders.map((o: any) => ({
     id: o.id,
@@ -70,27 +81,11 @@ export default async function ProductionPage({ searchParams }: { searchParams: S
         <ItemsSubNav />
 
         <div className="flex-1 min-w-0">
-          {/* Page header */}
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h1 className="text-xl font-bold text-ink">
-              {rows.length} Production orders
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-500 hover:bg-slate-50"
-              >
-                <Settings2 size={15} />
-              </button>
-              <Link
-                href="/production/new"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
-              >
-                <Plus size={13} />
-                Create new
-              </Link>
-            </div>
-          </div>
+          <ProductionPageHeader
+            rowCount={rows.length}
+            products={producableProducts}
+            customerOrders={openCustomerOrders}
+          />
 
           <ProductionOrdersTable
             rows={rows}

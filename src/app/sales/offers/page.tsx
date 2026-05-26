@@ -1,45 +1,36 @@
-import Link from 'next/link';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { SalesSubNav } from '@/components/SalesSubNav';
-import { CustomerInvoicesTable, type CustomerInvoiceRow } from '@/components/sales/CustomerInvoicesTable';
+import { OffersTable, type OfferRow } from '@/components/sales/OffersTable';
 
 export const dynamic = 'force-dynamic';
 
-export default async function InvoicesPage() {
+export default async function OffersPage() {
   const user = await guard();
 
-  const invoices = await prisma.invoice.findMany({
-    where: { userId: user.id },
+  // Offers = CustomerOrders in NEW status (not yet confirmed)
+  const orders = await prisma.customerOrder.findMany({
+    where: { userId: user.id, deletedAt: null },
     orderBy: { createdAt: 'desc' },
     take: 200,
-    select: {
-      id: true,
-      invoiceNumber: true,
-      status: true,
-      customerName: true,
-      customerId: true,
-      totalKobo: true,
-      issuedAt: true,
-      dueDate: true,
-      paidAt: true,
-      createdAt: true,
+    include: {
+      customer: { select: { id: true, name: true } },
     },
   });
 
-  const rows: CustomerInvoiceRow[] = invoices.map((inv) => ({
-    id: inv.id,
-    number: inv.invoiceNumber,
-    customerName: inv.customerName,
-    customerId: inv.customerId ?? null,
-    invoiceDate: inv.issuedAt.toISOString(),
-    orderId: null,
-    orderNumber: null,
-    invoiceStatus: inv.status,
-    delivered: inv.paidAt ? 'Shipped' : 'Not shipped',
-    heading: '',
-    totalKobo: inv.totalKobo,
+  const rows: OfferRow[] = orders.map((o, i) => ({
+    id: o.id,
+    number: String(1001 + i),
+    customerName: o.customerName,
+    customerId: o.customerId,
+    status: o.status === 'CONFIRMED' || o.status === 'IN_PRODUCTION' || o.status === 'READY' || o.status === 'DELIVERED'
+      ? 'ACCEPTED'
+      : o.status === 'CANCELLED'
+        ? 'REJECTED'
+        : 'DRAFT',
+    deliveryDate: o.dueAt ? o.dueAt.toISOString() : null,
+    totalKobo: o.totalKobo,
   }));
 
   return (
@@ -56,7 +47,7 @@ export default async function InvoicesPage() {
         <div className="flex-1 min-w-0">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h1 className="text-xl font-bold text-ink">
-              {rows.length} Customer invoices
+              {rows.length} Offers
             </h1>
             <div className="flex items-center gap-2">
               <button
@@ -65,16 +56,16 @@ export default async function InvoicesPage() {
               >
                 Export ▾
               </button>
-              <Link
-                href="/invoices/new"
+              <button
+                type="button"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
               >
                 + Create new
-              </Link>
+              </button>
             </div>
           </div>
 
-          <CustomerInvoicesTable rows={rows} />
+          <OffersTable rows={rows} />
         </div>
       </div>
     </AppShell>

@@ -1,18 +1,13 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Plus, Download, BarChart3 } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { CustomersHeroKpis } from '@/components/customers/CustomersHeroKpis';
-import { CustomersChartRow } from '@/components/customers/CustomersChartRow';
-import { CustomersTable, type CustomerRow } from '@/components/customers/CustomersTable';
-import { CustomersRightRail } from '@/components/customers/CustomersRightRail';
+import { SalesSubNav } from '@/components/SalesSubNav';
+import { CustomersRackbeatTable, type CustomerRackbeatRow } from '@/components/sales/CustomersRackbeatTable';
 import { displayPhone } from '@/lib/whatsapp';
 
 export const dynamic = 'force-dynamic';
-
-type SP = { q?: string };
 
 function deriveStatus(c: {
   lastActivityAt: Date;
@@ -28,23 +23,21 @@ function deriveStatus(c: {
   return 'INACTIVE';
 }
 
-export default async function CustomersPage({ searchParams }: { searchParams: SP }) {
+export default async function CustomersPage() {
   const user = await guard();
+
   if (user.businessType === 'property_manager') {
-    const qs = searchParams.q ? `?q=${encodeURIComponent(searchParams.q)}` : '';
-    redirect(`/tenants${qs}`);
+    redirect('/tenants');
   }
 
   const customers = await prisma.customer.findMany({
     where: { userId: user.id },
     orderBy: { lastActivityAt: 'desc' },
-    take: 200,
+    take: 500,
     select: {
       id: true,
       name: true,
       phone: true,
-      tags: true,
-      notes: true,
       totalPaidKobo: true,
       totalOwedKobo: true,
       transactionCount: true,
@@ -55,29 +48,21 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
   });
 
   const activeThresholdMs = Date.now() - 30 * 24 * 60 * 60 * 1000;
-  const rows: CustomerRow[] = customers.map((c) => {
-    const tags = (c.tags ?? '').split(',').map((t) => t.trim()).filter(Boolean);
-    const group = tags[0] ?? '';
-    const location = tags[1] ?? '';
-    return {
-      id: c.id,
-      name: c.name,
-      phone: displayPhone(c.phone),
-      email: null,
-      group,
-      location,
-      dateJoined: c.createdAt.toISOString(),
-      totalSalesKobo: c.totalPaidKobo,
-      outstandingKobo: c.totalOwedKobo,
-      status: deriveStatus({
-        lastActivityAt: c.lastActivityAt,
-        totalPaidKobo: c.totalPaidKobo,
-        transactionCount: c.transactionCount,
-        behaviorTag: c.behaviorTag,
-        activeThresholdMs,
-      }),
-    };
-  });
+
+  const rows: CustomerRackbeatRow[] = customers.map((c, i) => ({
+    id: c.id,
+    number: 1001 + i,
+    name: c.name,
+    vatNo: null,
+    email: null,
+    status: deriveStatus({
+      lastActivityAt: c.lastActivityAt,
+      totalPaidKobo: c.totalPaidKobo,
+      transactionCount: c.transactionCount,
+      behaviorTag: c.behaviorTag,
+      activeThresholdMs,
+    }),
+  }));
 
   return (
     <AppShell
@@ -87,46 +72,38 @@ export default async function CustomersPage({ searchParams }: { searchParams: SP
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Page header */}
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">
-            Customers
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Manage customer relationships and track sales performance.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <a href="/api/export/customers" download className="btn-pill-ghost">
-            <Download size={14} />
-            Export
-          </a>
-          <Link href="/reports" className="btn-pill-ghost">
-            <BarChart3 size={14} />
-            Reports
-          </Link>
-          <Link href="/customers/new" className="btn-pill-primary">
-            <Plus size={14} />
-            New Client
-          </Link>
-        </div>
-      </div>
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <SalesSubNav />
 
-      {/* 6 KPI tiles */}
-      <CustomersHeroKpis userId={user.id} />
+        <div className="flex-1 min-w-0">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-bold text-ink">
+              {rows.length} Customers
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Bulk actions ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Import / Export ▾
+              </button>
+              <Link
+                href="/customers/new"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
+              >
+                + Create new
+              </Link>
+            </div>
+          </div>
 
-      {/* 3 chart cards */}
-      <CustomersChartRow userId={user.id} />
-
-      {/* 2-col: table (3/4) + right rail (1/4) */}
-      <div className="grid gap-5 lg:grid-cols-4">
-        <div className="lg:col-span-3">
-          <CustomersTable rows={rows} />
+          <CustomersRackbeatTable rows={rows} />
         </div>
-        <aside className="space-y-4 lg:col-span-1">
-          <CustomersRightRail userId={user.id} />
-        </aside>
       </div>
     </AppShell>
   );

@@ -142,30 +142,42 @@ export function TopNav({
     });
 
     // Sales tab
-    const salesChildren: NavChild[] = [];
-    salesChildren.push({ label: 'Customer orders', href: '/orders' });
+    const salesChildren: NavChild[] = [
+      { label: 'Offers', href: '/sales/offers' },
+      { label: 'Orders', href: '/orders' },
+      { label: 'Shipments', href: '/sales/shipments' },
+    ];
     if (showPayments) {
-      salesChildren.push(
-        { label: 'Invoices', href: '/invoices' },
-        { label: 'Receipts', href: '/receipts' },
-      );
+      salesChildren.push({ label: 'Invoices', href: '/invoices' });
     }
     if (showCustomers) {
-      salesChildren.push({ label: 'Customers', href: '/customers', divider: true });
+      salesChildren.push(
+        { label: 'Customers', href: '/customers', divider: true },
+        { label: 'Customer groups', href: '/customer-groups' },
+      );
     }
     if (showPayments) {
       salesChildren.push(
+        { label: 'Receipts', href: '/receipts', divider: true },
         { label: 'Payments', href: '/payments' },
         { label: 'Debts', href: '/debts' },
       );
     }
-    if (salesChildren.length > 0) {
-      groups.push({
-        label: 'Sales',
-        match: ['/orders', '/invoices', '/receipts', '/customers', '/payments', '/debts'],
-        children: salesChildren,
-      });
-    }
+    groups.push({
+      label: 'Sales',
+      match: [
+        '/sales/offers',
+        '/sales/shipments',
+        '/orders',
+        '/invoices',
+        '/receipts',
+        '/customers',
+        '/customer-groups',
+        '/payments',
+        '/debts',
+      ],
+      children: salesChildren,
+    });
   }
 
   // Property manager: simplified nav

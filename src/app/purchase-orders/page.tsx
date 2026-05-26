@@ -1,55 +1,32 @@
 import Link from 'next/link';
-import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
+import { PurchasingSubNav } from '@/components/PurchasingSubNav';
 import { purchaseOrdersService } from '@/lib/services/purchase-orders.service';
 import { suppliersService } from '@/lib/services/suppliers.service';
-import { PurchasesTable, type PurchaseRow } from '@/components/purchases/PurchasesTable';
+import { PurchaseOrdersTable, type PORow } from '@/components/purchases/PurchaseOrdersTable';
 
 export const dynamic = 'force-dynamic';
 
-type SP = { status?: string };
-
-export default async function PurchaseOrdersPage({
-  searchParams,
-}: {
-  searchParams: SP;
-}) {
+export default async function PurchaseOrdersPage() {
   const user = await guard();
-  const status = (searchParams.status?.split(',') as any) ?? undefined;
 
-  const [{ rows: orders }, { rows: suppliers }] = await Promise.all([
-    purchaseOrdersService.listForUser(user.id, { status, take: 200 }),
-    suppliersService.listForUser(user.id, { take: 500 }),
+  const [{ rows: orders }] = await Promise.all([
+    purchaseOrdersService.listForUser(user.id, { take: 200 }),
   ]);
 
-  const tableRows: PurchaseRow[] = orders.map((o) => {
-    const deliveredCount = o.items.reduce(
-      (sum, it) => sum + (it.quantityReceived ?? 0),
-      0,
-    );
-    const totalQtyCount = o.items.reduce((sum, it) => sum + it.quantity, 0);
-
-    return {
-      id: o.id,
-      poNumber: o.poNumber,
-      supplierName: o.supplier?.name ?? 'Supplier',
-      status: o.status,
-      lineCount: o.items.length,
-      totalKobo: o.totalKobo,
-      amountPaidKobo: o.amountPaidKobo,
-      expectedAt: o.expectedAt ? o.expectedAt.toISOString() : null,
-      receivedAt: o.receivedAt ? o.receivedAt.toISOString() : null,
-      createdAt: o.createdAt.toISOString(),
-      updatedAt: o.updatedAt.toISOString(),
-      deliveredCount,
-      totalQtyCount,
-      createdByName: user.name ?? 'User',
-      notes: o.notes ?? null,
-    };
-  });
-
-  const supplierOpts = suppliers.map((s) => ({ id: s.id, name: s.name }));
+  const rows: PORow[] = orders.map((o) => ({
+    id: o.id,
+    poNumber: o.poNumber,
+    supplierName: o.supplier?.name ?? 'Supplier',
+    status: o.status,
+    totalKobo: o.totalKobo,
+    expectedAt: o.expectedAt ? o.expectedAt.toISOString() : null,
+    receivedAt: o.receivedAt ? o.receivedAt.toISOString() : null,
+    deliveredCount: o.items.reduce((s, it) => s + (it.quantityReceived ?? 0), 0),
+    totalQtyCount: o.items.reduce((s, it) => s + it.quantity, 0),
+    notes: o.notes ?? null,
+  }));
 
   return (
     <AppShell
@@ -59,31 +36,52 @@ export default async function PurchaseOrdersPage({
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Header */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-ink">
-            Orders from suppliers
-          </h1>
-          <p className="mt-0.5 text-sm text-slate-500">
-            Track every purchase order from draft to received.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* LIST VIEW — always active since this IS the list view */}
-          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
-            <List size={12} /> LIST VIEW
-          </button>
-          <Link
-            href="/purchase-orders/new"
-            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-600"
-          >
-            <Plus size={12} /> ADD
-          </Link>
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <PurchasingSubNav />
+
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <h1 className="text-xl font-bold text-ink">
+              {rows.length} Purchase orders
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Bulk actions ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Import / Export ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Hide received lines
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Show lines
+              </button>
+              <Link
+                href="/purchase-orders/new"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
+              >
+                + Create new
+              </Link>
+            </div>
+          </div>
+
+          <PurchaseOrdersTable rows={rows} />
         </div>
       </div>
-
-      <PurchasesTable rows={tableRows} suppliers={supplierOpts} />
     </AppShell>
   );
 }

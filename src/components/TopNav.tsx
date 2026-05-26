@@ -123,13 +123,21 @@ export function TopNav({
     // Purchasing tab
     groups.push({
       label: 'Purchasing',
-      match: ['/purchase-orders', '/suppliers', '/inventory/receipts', '/inventory/releases'],
+      match: [
+        '/purchase-orders',
+        '/inventory/receipts',
+        '/purchasing/invoices',
+        '/suppliers',
+        '/supplier-groups',
+        '/inventory/releases',
+      ],
       children: [
         { label: 'Purchase orders', href: '/purchase-orders' },
-        { label: 'Inventory receipts', href: '/inventory/receipts' },
-        { label: 'Inventory releases', href: '/inventory/releases' },
+        { label: 'Receipts', href: '/inventory/receipts' },
+        { label: 'Invoices', href: '/purchasing/invoices' },
         { label: 'Suppliers', href: '/suppliers', divider: true },
-        { label: 'Raw materials', href: '/materials' },
+        { label: 'Supplier groups', href: '/supplier-groups' },
+        { label: 'Raw materials', href: '/materials', divider: true },
       ],
     });
 

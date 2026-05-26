@@ -36,7 +36,7 @@ const ITEMS: SubNavItem[] = [
   { label: 'Units', href: '/units', icon: <Ruler size={14} /> },
   { label: 'Variations', href: '/variations', icon: <GitBranch size={14} /> },
   { label: 'Locations', href: '/locations', icon: <MapPin size={14} /> },
-  { label: 'Collections', href: '/collections', icon: <Archive size={14} /> },
+  { label: 'Collections', href: '/item-collections', icon: <Archive size={14} /> },
 ];
 
 const INVENTORY: SubNavItem[] = [

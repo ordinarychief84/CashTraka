@@ -87,10 +87,10 @@ export function TopNav({
         { label: 'Production', href: '/production' },
         { label: 'Item groups', href: '/item-groups' },
         { label: 'Discount groups', href: '/discount-groups' },
-        { label: 'Units', href: '/units', disabled: true },
-        { label: 'Variations', href: '/variations', disabled: true },
-        { label: 'Locations', href: '/locations', disabled: true },
-        { label: 'Collections', href: '/collections', disabled: true },
+        { label: 'Units', href: '/units' },
+        { label: 'Variations', href: '/variations' },
+        { label: 'Locations', href: '/locations' },
+        { label: 'Collections', href: '/collections' },
       );
     }
     itemChildren.push(
@@ -111,6 +111,10 @@ export function TopNav({
           '/inventory',
           '/item-groups',
           '/discount-groups',
+          '/units',
+          '/variations',
+          '/locations',
+          '/collections',
         ],
         children: itemChildren,
       });

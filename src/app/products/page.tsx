@@ -6,8 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { EmptyState } from '@/components/EmptyState';
 import { StarterPackPicker } from '@/components/onboarding/StarterPackPicker';
 import { ProductsTable } from '@/components/products/ProductsTable';
-import { ProductsHeroKpis } from '@/components/products/ProductsHeroKpis';
-import { ProductsChartRow } from '@/components/products/ProductsChartRow';
+import { ItemsSubNav } from '@/components/ItemsSubNav';
 import { Package } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -32,83 +31,80 @@ export default async function ProductsPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* ── Page header ── */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-black tracking-tight text-ink md:text-[28px]">Products</h1>
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        {/* Secondary sidebar — Rackbeat Items nav */}
+        <ItemsSubNav />
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* ── Recipe readiness banner ── */}
+          {products.length > 0 && recipeCount < products.filter((p) => !p.archived).length && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-amber-800">
+                  {recipeCount === 0
+                    ? `${products.filter((p) => !p.archived).length} product${products.filter((p) => !p.archived).length === 1 ? '' : 's'} without a recipe`
+                    : `${products.filter((p) => !p.archived).length - recipeCount} products still need a recipe`}
+                </p>
+                <p className="mt-0.5 text-xs text-amber-700">
+                  Recipes tell CashTraka what raw materials each product needs. Without one, production planning and shortage alerts won&apos;t work.
+                </p>
+              </div>
+              <Link
+                href="/recipes"
+                className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
+              >
+                <BookOpen size={12} className="mr-1 inline-block" />
+                Set up recipes
+              </Link>
+            </div>
+          )}
+
+          {/* ── Full-width product table ── */}
+          {products.length === 0 ? (
+            <div className="space-y-4">
+              <div>
+                <h2 className="mb-3 text-base font-bold text-ink">Start with a sector pack</h2>
+                <p className="mb-4 text-xs text-slate-500">
+                  Pick the closest match. Re-running later only adds missing pieces.
+                </p>
+                <StarterPackPicker />
+              </div>
+              <EmptyState
+                icon={Package}
+                title="Or add products one by one"
+                description="Skip the starter pack if your catalogue doesn't match — you can add each product manually."
+                actionHref="/products/new"
+                actionLabel="Add a product"
+              />
+            </div>
+          ) : (
+            <ProductsTable
+              rows={products.map((p) => ({
+                id: p.id,
+                name: p.name,
+                sku: p.sku,
+                barcodeValue: p.barcodeValue,
+                note: p.note,
+                description: p.description,
+                price: p.price,
+                cost: p.cost,
+                stock: p.stock,
+                trackStock: p.trackStock,
+                lowStockAt: p.lowStockAt,
+                archived: p.archived,
+                isPublished: p.isPublished,
+                catalogStatus: p.catalogStatus,
+                nafdacNumber: p.nafdacNumber,
+                shelfLifeDays: p.shelfLifeDays,
+                images: p.images ?? [],
+                group: p.category,
+              }))}
+            />
+          )}
+        </div>
       </div>
-
-      {/* ── Recipe readiness banner ── */}
-      {products.length > 0 && recipeCount < products.filter((p) => !p.archived).length && (
-        <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-amber-800">
-              {recipeCount === 0
-                ? `${products.filter((p) => !p.archived).length} product${products.filter((p) => !p.archived).length === 1 ? '' : 's'} without a recipe`
-                : `${products.filter((p) => !p.archived).length - recipeCount} products still need a recipe`}
-            </p>
-            <p className="mt-0.5 text-xs text-amber-700">
-              Recipes tell CashTraka what raw materials each product needs. Without one, production planning and shortage alerts won&apos;t work.
-            </p>
-          </div>
-          <Link
-            href="/recipes"
-            className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
-          >
-            <BookOpen size={12} className="mr-1 inline-block" />
-            Set up recipes
-          </Link>
-        </div>
-      )}
-
-      {/* ── KPI tiles ── */}
-      <ProductsHeroKpis userId={user.id} />
-
-      {/* ── Charts row ── */}
-      <ProductsChartRow userId={user.id} />
-
-      {/* ── Full-width product table ── */}
-      {products.length === 0 ? (
-        <div className="space-y-4">
-          <div>
-            <h2 className="mb-3 text-base font-bold text-ink">Start with a sector pack</h2>
-            <p className="mb-4 text-xs text-slate-500">
-              Pick the closest match. Re-running later only adds missing pieces.
-            </p>
-            <StarterPackPicker />
-          </div>
-          <EmptyState
-            icon={Package}
-            title="Or add products one by one"
-            description="Skip the starter pack if your catalogue doesn't match — you can add each product manually."
-            actionHref="/products/new"
-            actionLabel="Add a product"
-          />
-        </div>
-      ) : (
-        <ProductsTable
-          rows={products.map((p) => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            barcodeValue: p.barcodeValue,
-            note: p.note,
-            description: p.description,
-            price: p.price,
-            cost: p.cost,
-            stock: p.stock,
-            trackStock: p.trackStock,
-            lowStockAt: p.lowStockAt,
-            archived: p.archived,
-            isPublished: p.isPublished,
-            catalogStatus: p.catalogStatus,
-            nafdacNumber: p.nafdacNumber,
-            shelfLifeDays: p.shelfLifeDays,
-            images: p.images ?? [],
-            group: p.category,
-          }))}
-        />
-      )}
     </AppShell>
   );
 }

@@ -83,16 +83,21 @@ export function TopNav({
     if (showProducts) {
       itemChildren.push(
         { label: 'Products', href: '/products' },
-        { label: 'Recipes / BOMs', href: '/recipes' },
-        { label: 'Production', href: '/production', divider: false },
-        { label: 'Manufacturing Tasks', href: '/manufacturing-tasks' },
+        { label: 'Bills of Materials', href: '/recipes' },
+        { label: 'Production', href: '/production' },
+        { label: 'Item groups', href: '/item-groups' },
+        { label: 'Discount groups', href: '/discount-groups' },
+        { label: 'Units', href: '/units', disabled: true },
+        { label: 'Variations', href: '/variations', disabled: true },
+        { label: 'Locations', href: '/locations', disabled: true },
+        { label: 'Collections', href: '/collections', disabled: true },
       );
     }
     itemChildren.push(
       { label: 'Adjustments', href: '/inventory/adjustments', divider: true },
       { label: 'Movements', href: '/inventory/movements' },
       { label: 'Stock counts', href: '/inventory/all' },
-      { label: 'Transfers', href: '/inventory/transfers' },
+      { label: 'Transport movements', href: '/inventory/transfers' },
     );
     if (showProducts) {
       groups.push({
@@ -104,6 +109,8 @@ export function TopNav({
           '/manufacturing-tasks',
           '/materials',
           '/inventory',
+          '/item-groups',
+          '/discount-groups',
         ],
         children: itemChildren,
       });

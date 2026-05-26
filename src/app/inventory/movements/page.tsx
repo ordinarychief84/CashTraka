@@ -1,36 +1,61 @@
-import Link from 'next/link';
 import { guard } from '@/lib/guard';
-import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { inventoryService } from '@/lib/services/inventory.service';
 import { prisma } from '@/lib/prisma';
-import { formatDateTime } from '@/lib/format';
+import { AppShell } from '@/components/AppShell';
+import { ItemsSubNav } from '@/components/ItemsSubNav';
+import { MovementsTable, type MovementRow } from '@/components/inventory/MovementsTable';
 
 export const dynamic = 'force-dynamic';
 
-type SP = { itemType?: string; reason?: string };
-
-export default async function MovementsPage({ searchParams }: { searchParams: SP }) {
+export default async function MovementsPage() {
   const user = await guard();
-  const { rows, total } = await inventoryService.listMovements(user.id, {
-    itemType: (searchParams.itemType as any) || undefined,
-    reason: (searchParams.reason as any) || undefined,
-    take: 200,
+
+  const movements = await prisma.stockMovement.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 300,
   });
 
-  // Lookup names for items in this page.
-  const productIds = Array.from(new Set(rows.filter((r) => r.itemType === 'PRODUCT').map((r) => r.itemId)));
-  const materialIds = Array.from(new Set(rows.filter((r) => r.itemType === 'MATERIAL').map((r) => r.itemId)));
+  const productIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'PRODUCT').map((m) => m.itemId)),
+  );
+  const materialIds = Array.from(
+    new Set(movements.filter((m) => m.itemType === 'MATERIAL').map((m) => m.itemId)),
+  );
   const [products, materials] = await Promise.all([
     productIds.length > 0
       ? prisma.product.findMany({ where: { id: { in: productIds } }, select: { id: true, name: true } })
       : [],
     materialIds.length > 0
-      ? prisma.rawMaterial.findMany({ where: { id: { in: materialIds } }, select: { id: true, name: true, unit: true } })
+      ? prisma.rawMaterial.findMany({
+          where: { id: { in: materialIds } },
+          select: { id: true, name: true, unit: true },
+        })
       : [],
   ]);
   const productName = new Map(products.map((p) => [p.id, p.name]));
   const materialMap = new Map(materials.map((m) => [m.id, m]));
+
+  const rows: MovementRow[] = movements.map((m) => {
+    const isProduct = m.itemType === 'PRODUCT';
+    const itemName = isProduct
+      ? (productName.get(m.itemId) ?? m.itemId)
+      : (materialMap.get(m.itemId)?.name ?? m.itemId);
+    const unit = isProduct ? '' : (materialMap.get(m.itemId)?.unit ?? '');
+
+    return {
+      id: m.id,
+      date: m.createdAt.toISOString(),
+      itemName,
+      itemHref: isProduct ? `/products/${m.itemId}` : `/materials/${m.itemId}`,
+      itemType: m.itemType,
+      reason: m.reason,
+      delta: m.delta,
+      balanceAfter: m.balanceAfter,
+      unit,
+      createdByName: user.name ?? 'User',
+      status: 'Posted',
+    };
+  });
 
   return (
     <AppShell
@@ -40,60 +65,34 @@ export default async function MovementsPage({ searchParams }: { searchParams: SP
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader title="Inventory ledger" subtitle={`${total} movement${total === 1 ? '' : 's'}`} backHref="/inventory" />
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <ItemsSubNav />
 
-      <div className="mb-4 flex flex-wrap gap-2 text-sm">
-        <Link href="/inventory/movements" className="rounded-full bg-slate-100 px-3 py-1 text-slate-700">All</Link>
-        <Link href="/inventory/movements?itemType=MATERIAL" className="rounded-full bg-blue-100 px-3 py-1 text-blue-700">Materials</Link>
-        <Link href="/inventory/movements?itemType=PRODUCT" className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">Products</Link>
-      </div>
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-bold text-ink">
+              {rows.length} Movements
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Import ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
+              >
+                + Create new
+              </button>
+            </div>
+          </div>
 
-      {rows.length === 0 ? (
-        <p className="card p-6 text-center text-sm text-slate-500">No movements yet.</p>
-      ) : (
-        <div className="card overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100 text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-              <tr>
-                <th className="px-4 py-2 text-left">When</th>
-                <th className="px-4 py-2 text-left">Item</th>
-                <th className="px-4 py-2 text-left">Reason</th>
-                <th className="px-4 py-2 text-right">Δ</th>
-                <th className="px-4 py-2 text-right">Balance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {rows.map((r) => {
-                const name =
-                  r.itemType === 'PRODUCT'
-                    ? productName.get(r.itemId) ?? r.itemId
-                    : materialMap.get(r.itemId)?.name ?? r.itemId;
-                const unit = r.itemType === 'MATERIAL' ? materialMap.get(r.itemId)?.unit ?? '' : '';
-                return (
-                  <tr key={r.id}>
-                    <td className="px-4 py-2 text-xs text-slate-500">{formatDateTime(r.createdAt)}</td>
-                    <td className="px-4 py-2">
-                      <Link
-                        href={r.itemType === 'PRODUCT' ? `/products/${r.itemId}` : `/materials/${r.itemId}`}
-                        className="font-medium text-slate-900 hover:underline"
-                      >
-                        {name}
-                      </Link>
-                      <span className="ml-2 text-xs text-slate-400">{r.itemType.toLowerCase()}</span>
-                    </td>
-                    <td className="px-4 py-2 text-slate-700">{r.reason.replace(/_/g, ' ')}</td>
-                    <td className={`px-4 py-2 text-right font-mono font-bold ${r.delta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {r.delta > 0 ? '+' : ''}
-                      {r.delta} {unit}
-                    </td>
-                    <td className="px-4 py-2 text-right font-mono text-slate-700">{r.balanceAfter} {unit}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <MovementsTable rows={rows} />
         </div>
-      )}
+      </div>
     </AppShell>
   );
 }

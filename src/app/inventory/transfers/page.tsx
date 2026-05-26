@@ -1,9 +1,8 @@
-import Link from 'next/link';
-import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { TransfersTable, type TransferRow } from '@/components/inventory/TransfersTable';
+import { ItemsSubNav } from '@/components/ItemsSubNav';
+import { TransportMovementsTable, type TransportRow } from '@/components/inventory/TransportMovementsTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +15,6 @@ export default async function InventoryTransfersPage() {
     take: 200,
   });
 
-  // Resolve item names
   const productIds = Array.from(
     new Set(movements.filter((m) => m.itemType === 'PRODUCT').map((m) => m.itemId)),
   );
@@ -34,28 +32,23 @@ export default async function InventoryTransfersPage() {
   const productName = new Map(products.map((p) => [p.id, p.name]));
   const materialName = new Map(materials.map((m) => [m.id, m.name]));
 
-  const rows: TransferRow[] = movements.map((m) => {
-    const itemName =
-      m.itemType === 'PRODUCT'
-        ? (productName.get(m.itemId) ?? m.itemId)
-        : (materialName.get(m.itemId) ?? m.itemId);
-    const itemHref =
-      m.itemType === 'PRODUCT' ? `/products/${m.itemId}` : `/materials/${m.itemId}`;
+  const rows: TransportRow[] = movements.map((m) => {
+    const isProduct = m.itemType === 'PRODUCT';
+    const itemName = isProduct
+      ? (productName.get(m.itemId) ?? m.itemId)
+      : (materialName.get(m.itemId) ?? m.itemId);
 
     return {
       id: m.id,
-      fromInventory: itemName,
-      fromInventoryHref: itemHref,
-      toInventory: m.refId ?? '—',
-      toInventoryHref: '#',
       transferNumber: `TRF-${m.id.slice(-6).toUpperCase()}`,
       date: m.createdAt.toISOString(),
-      identification: m.id.slice(-6).toUpperCase(),
-      comments: m.notes,
-      createdAt: m.createdAt.toISOString(),
+      itemName,
+      itemHref: isProduct ? `/products/${m.itemId}` : `/materials/${m.itemId}`,
+      fromLocation: 'Default Warehouse',
+      toLocation: m.refId ?? '—',
+      status: 'Not received',
       createdByName: user.name ?? 'User',
-      updatedAt: m.createdAt.toISOString(),
-      updatedByName: user.name ?? 'User',
+      notes: m.notes,
     };
   });
 
@@ -67,26 +60,34 @@ export default async function InventoryTransfersPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Page header */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-ink">Inventory transfers</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
-            <List size={12} /> LIST VIEW
-          </button>
-          <button
-            disabled
-            className="inline-flex items-center gap-1.5 rounded-full bg-orange-300 px-4 py-2 text-xs font-bold text-white cursor-not-allowed"
-            title="Coming soon"
-          >
-            <Plus size={12} /> ADD
-          </button>
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <ItemsSubNav />
+
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-bold text-ink">
+              {rows.length} Transport movements
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Export ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
+              >
+                + Create
+              </button>
+            </div>
+          </div>
+
+          <TransportMovementsTable rows={rows} tab="movements" />
         </div>
       </div>
-
-      <TransfersTable rows={rows} />
     </AppShell>
   );
 }

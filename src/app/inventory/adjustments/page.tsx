@@ -1,9 +1,8 @@
-import Link from 'next/link';
-import { List, Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
-import { StocktakingTable, type AdjustmentRow } from '@/components/inventory/StocktakingTable';
+import { ItemsSubNav } from '@/components/ItemsSubNav';
+import { AdjustmentsTable, type AdjustmentRow } from '@/components/inventory/AdjustmentsTable';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,17 +43,17 @@ export default async function InventoryAdjustmentsPage() {
 
     return {
       id: m.id,
-      itemName,
-      itemHref,
       adjustNumber: `ADJ-${m.id.slice(-6).toUpperCase()}`,
       date: m.createdAt.toISOString(),
-      identification: m.id.slice(-6).toUpperCase(),
+      itemName,
+      itemHref,
       reason: m.reason.replace(/_/g, ' '),
-      comments: m.notes,
-      createdAt: m.createdAt.toISOString(),
+      delta: m.delta,
+      notes: m.notes,
       createdByName: user.name ?? 'User',
-      updatedAt: m.createdAt.toISOString(), // movements are immutable
-      updatedByName: user.name ?? 'User',
+      status: 'Draft',
+      category: null,
+      location: 'Default Warehouse',
     };
   });
 
@@ -66,27 +65,34 @@ export default async function InventoryAdjustmentsPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      {/* Page header */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-ink">
-            Stocktaking/adjustments
-          </h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 px-4 py-2 text-xs font-bold text-white">
-            <List size={12} /> LIST VIEW
-          </button>
-          <Link
-            href="/inventory/movements"
-            className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold text-white transition hover:bg-orange-600"
-          >
-            <Plus size={12} /> ADD
-          </Link>
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <ItemsSubNav />
+
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h1 className="text-xl font-bold text-ink">
+              {rows.length} Adjustments
+            </h1>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
+              >
+                Import ▾
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
+              >
+                + Create adjustment
+              </button>
+            </div>
+          </div>
+
+          <AdjustmentsTable rows={rows} />
         </div>
       </div>
-
-      <StocktakingTable rows={rows} />
     </AppShell>
   );
 }

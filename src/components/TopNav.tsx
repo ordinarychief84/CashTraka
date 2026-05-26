@@ -195,7 +195,23 @@ export function TopNav({
 
   // Reporting
   if (showReports) {
-    groups.push({ label: 'Reporting', href: '/reports', match: ['/reports'] });
+    groups.push({
+      label: 'Reporting',
+      match: [
+        '/reports',
+      ],
+      children: [
+        { label: 'Valuation', href: '/reports/valuation' },
+        { label: 'Reordering', href: '/reports/reordering' },
+        { label: 'Ledger', href: '/reports/ledger' },
+        { label: 'Stock counting', href: '/reports/stock-counting' },
+        { label: 'Order statistics', href: '/reports/order-statistics', divider: true },
+        { label: 'Sales statistics', href: '/reports/sales-statistics' },
+        { label: 'Sales budgets', href: '/reports/sales-budgets' },
+        { label: 'Purchasing statistics', href: '/reports/purchasing-statistics', divider: true },
+        { label: 'Transactions', href: '/reports/transactions' },
+      ],
+    });
   }
 
   // Admin (settings, team, etc.)

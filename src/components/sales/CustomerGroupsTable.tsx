@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Pencil, Trash2 } from 'lucide-react';
 
 export interface CustomerGroupRow {
@@ -65,8 +66,15 @@ export function CustomerGroupsTable({ rows }: Props) {
         <tbody className="divide-y divide-slate-50">
           {rows.map((row) => (
             <tr key={row.id} className="group hover:bg-slate-50 transition-colors">
-              <td className="px-4 py-3 text-slate-500 tabular-nums">{row.number}</td>
-              <td className="px-4 py-3 font-medium text-ink">{row.name}</td>
+              <td className="px-4 py-3 tabular-nums">
+                <Link
+                  href={`/customer-groups/${row.id}`}
+                  className="font-medium text-brand-600 hover:underline"
+                >
+                  {row.number}
+                </Link>
+              </td>
+              <td className="px-4 py-3 text-ink">{row.name}</td>
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button

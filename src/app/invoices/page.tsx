@@ -1,32 +1,40 @@
-import Link from 'next/link';
 import { guard } from '@/lib/guard';
 import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { SalesSubNav } from '@/components/SalesSubNav';
 import { CustomerInvoicesTable, type CustomerInvoiceRow } from '@/components/sales/CustomerInvoicesTable';
+import { CustomerInvoicesPageHeader } from '@/components/sales/CustomerInvoicesPageHeader';
 
 export const dynamic = 'force-dynamic';
 
 export default async function InvoicesPage() {
   const user = await guard();
 
-  const invoices = await prisma.invoice.findMany({
-    where: { userId: user.id },
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-    select: {
-      id: true,
-      invoiceNumber: true,
-      status: true,
-      customerName: true,
-      customerId: true,
-      totalKobo: true,
-      issuedAt: true,
-      dueDate: true,
-      paidAt: true,
-      createdAt: true,
-    },
-  });
+  const [invoices, rawCustomers] = await Promise.all([
+    prisma.invoice.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: {
+        id: true,
+        invoiceNumber: true,
+        status: true,
+        customerName: true,
+        customerId: true,
+        totalKobo: true,
+        issuedAt: true,
+        dueDate: true,
+        paidAt: true,
+        createdAt: true,
+      },
+    }),
+    prisma.customer.findMany({
+      where: { userId: user.id },
+      orderBy: { name: 'asc' },
+      take: 500,
+      select: { id: true, name: true },
+    }),
+  ]);
 
   const rows: CustomerInvoiceRow[] = invoices.map((inv) => ({
     id: inv.id,
@@ -42,6 +50,13 @@ export default async function InvoicesPage() {
     totalKobo: inv.totalKobo,
   }));
 
+  const customers = rawCustomers.map((c, i) => ({
+    id: c.id,
+    name: c.name,
+    email: null as string | null,
+    number: 1001 + i,
+  }));
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -54,26 +69,7 @@ export default async function InvoicesPage() {
         <SalesSubNav />
 
         <div className="flex-1 min-w-0">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h1 className="text-xl font-bold text-ink">
-              {rows.length} Customer invoices
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Export ▾
-              </button>
-              <Link
-                href="/invoices/new"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
-              >
-                + Create new
-              </Link>
-            </div>
-          </div>
-
+          <CustomerInvoicesPageHeader rowCount={rows.length} customers={customers} />
           <CustomerInvoicesTable rows={rows} />
         </div>
       </div>

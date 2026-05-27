@@ -1,9 +1,10 @@
-import Link from 'next/link';
 import { guard } from '@/lib/guard';
+import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { SalesSubNav } from '@/components/SalesSubNav';
 import { customerOrdersService } from '@/lib/services/customer-orders.service';
 import { OrdersRackbeatTable, type OrderRackbeatRow } from '@/components/sales/OrdersRackbeatTable';
+import { OrdersPageHeader } from '@/components/sales/OrdersPageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,7 +23,15 @@ function deriveInvoiceStatus(status: string, invoiceId: string | null): string {
 export default async function OrdersPage() {
   const user = await guard();
 
-  const { rows: orders } = await customerOrdersService.listForUser(user.id, { take: 200 });
+  const [{ rows: orders }, rawCustomers] = await Promise.all([
+    customerOrdersService.listForUser(user.id, { take: 200 }),
+    prisma.customer.findMany({
+      where: { userId: user.id },
+      orderBy: { name: 'asc' },
+      take: 500,
+      select: { id: true, name: true },
+    }),
+  ]);
 
   const rows: OrderRackbeatRow[] = orders.map((o: any) => ({
     id: o.id,
@@ -34,6 +43,13 @@ export default async function OrdersPage() {
     invoiceStatus: deriveInvoiceStatus(o.status, o.invoiceId ?? null),
     deliveryDate: o.dueAt ? o.dueAt.toISOString() : null,
     totalKobo: o.totalKobo,
+  }));
+
+  const customers = rawCustomers.map((c, i) => ({
+    id: c.id,
+    name: c.name,
+    email: null as string | null,
+    number: 1001 + i,
   }));
 
   return (
@@ -48,44 +64,7 @@ export default async function OrdersPage() {
         <SalesSubNav />
 
         <div className="flex-1 min-w-0">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <h1 className="text-xl font-bold text-ink">
-              {rows.length} Orders
-            </h1>
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Bulk actions ▾
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Import / Export ▾
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Hide shipped lines
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Show lines
-              </button>
-              <Link
-                href="/orders/new"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
-              >
-                + Create new
-              </Link>
-            </div>
-          </div>
-
+          <OrdersPageHeader rowCount={rows.length} customers={customers} />
           <OrdersRackbeatTable rows={rows} />
         </div>
       </div>

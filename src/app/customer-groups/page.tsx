@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { SalesSubNav } from '@/components/SalesSubNav';
@@ -27,12 +29,13 @@ export default async function CustomerGroupsPage() {
             <h1 className="text-xl font-bold text-ink">
               {STATIC_GROUPS.length} Customer groups
             </h1>
-            <button
-              type="button"
+            <Link
+              href="/customer-groups/new"
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
             >
-              + Create new
-            </button>
+              <Plus size={13} />
+              Create new
+            </Link>
           </div>
 
           <CustomerGroupsTable rows={STATIC_GROUPS} />

@@ -1,8 +1,8 @@
 import { guard } from '@/lib/guard';
 import { redirect } from 'next/navigation';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { CustomerForm } from '@/components/customers/CustomerForm';
+import { SalesSubNav } from '@/components/SalesSubNav';
+import { NewCustomerForm } from '@/components/customers/NewCustomerForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +18,13 @@ export default async function NewCustomerPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader title="New Client" backHref="/customers" />
-      <CustomerForm redirectTo="/customers" />
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <SalesSubNav />
+
+        <div className="flex-1 min-w-0">
+          <NewCustomerForm />
+        </div>
+      </div>
     </AppShell>
   );
 }

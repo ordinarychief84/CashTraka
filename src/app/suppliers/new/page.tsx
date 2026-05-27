@@ -1,12 +1,13 @@
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
-import { PageHeader } from '@/components/PageHeader';
-import { SupplierForm } from '@/components/ops/SupplierForm';
+import { PurchasingSubNav } from '@/components/PurchasingSubNav';
+import { NewSupplierForm } from '@/components/suppliers/NewSupplierForm';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewSupplierPage() {
   const user = await guard();
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -15,10 +16,11 @@ export default async function NewSupplierPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <PageHeader title="Add supplier" backHref="/suppliers" />
-      <div className="mx-auto max-w-3xl">
-        <div className="card p-5">
-          <SupplierForm />
+      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <PurchasingSubNav />
+
+        <div className="flex-1 min-w-0">
+          <NewSupplierForm />
         </div>
       </div>
     </AppShell>

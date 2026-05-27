@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { AppShell } from '@/components/AppShell';
 import { ItemsSubNav } from '@/components/ItemsSubNav';
 import { TransportMovementsTable, type TransportRow } from '@/components/inventory/TransportMovementsTable';
+import { TransportMovementsPageHeader } from '@/components/inventory/TransportMovementsPageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,26 +65,7 @@ export default async function InventoryTransfersPage() {
         <ItemsSubNav />
 
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h1 className="text-xl font-bold text-ink">
-              {rows.length} Transport movements
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Export ▾
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
-              >
-                + Create
-              </button>
-            </div>
-          </div>
+          <TransportMovementsPageHeader rowCount={rows.length} />
 
           <TransportMovementsTable rows={rows} tab="movements" />
         </div>

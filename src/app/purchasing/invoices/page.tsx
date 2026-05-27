@@ -3,20 +3,26 @@ import { AppShell } from '@/components/AppShell';
 import { PurchasingSubNav } from '@/components/PurchasingSubNav';
 import { prisma } from '@/lib/prisma';
 import { SupplierInvoicesTable, type SupplierInvoiceRow } from '@/components/purchases/SupplierInvoicesTable';
+import { SupplierInvoicesPageHeader } from '@/components/purchases/SupplierInvoicesPageHeader';
 
 export const dynamic = 'force-dynamic';
 
 export default async function SupplierInvoicesPage() {
   const user = await guard();
 
-  // Supplier invoices map to purchase orders — each PO that has been sent/received
-  // becomes a "supplier invoice" entry.
-  const orders = await prisma.purchaseOrder.findMany({
-    where: { userId: user.id, deletedAt: null },
-    orderBy: { createdAt: 'desc' },
-    take: 200,
-    include: { supplier: { select: { id: true, name: true } } },
-  });
+  const [orders, rawSuppliers] = await Promise.all([
+    prisma.purchaseOrder.findMany({
+      where: { userId: user.id, deletedAt: null },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: { supplier: { select: { id: true, name: true } } },
+    }),
+    prisma.supplier.findMany({
+      where: { userId: user.id, deletedAt: null },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true },
+    }),
+  ]);
 
   const rows: SupplierInvoiceRow[] = orders.map((o, i) => ({
     id: o.id,
@@ -40,6 +46,12 @@ export default async function SupplierInvoicesPage() {
     totalKobo: o.totalKobo,
   }));
 
+  const suppliers = rawSuppliers.map((s, i) => ({
+    id: s.id,
+    name: s.name,
+    number: 1001 + i,
+  }));
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -52,27 +64,7 @@ export default async function SupplierInvoicesPage() {
         <PurchasingSubNav />
 
         <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h1 className="text-xl font-bold text-ink">
-              {rows.length} Supplier invoices
-            </h1>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-[13px] font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Export ▾
-              </button>
-              <button
-                type="button"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
-              >
-                + Create new
-              </button>
-            </div>
-          </div>
-
+          <SupplierInvoicesPageHeader rowCount={rows.length} suppliers={suppliers} />
           <SupplierInvoicesTable rows={rows} />
         </div>
       </div>

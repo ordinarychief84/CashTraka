@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { guard } from '@/lib/guard';
 import { AppShell } from '@/components/AppShell';
 import { PurchasingSubNav } from '@/components/PurchasingSubNav';
@@ -29,12 +31,13 @@ export default async function SupplierGroupsPage() {
             <h1 className="text-xl font-bold text-ink">
               {STATIC_GROUPS.length} Supplier groups
             </h1>
-            <button
-              type="button"
+            <Link
+              href="/supplier-groups/new"
               className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700"
             >
-              + Create new
-            </button>
+              <Plus size={13} />
+              Create new
+            </Link>
           </div>
 
           <SupplierGroupsTable rows={STATIC_GROUPS} />

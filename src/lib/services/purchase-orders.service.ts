@@ -96,9 +96,9 @@ export const purchaseOrdersService = {
     input: PurchaseOrderCreateInput,
     actorId?: string | null,
   ) {
-    if (input.items.length === 0) {
-      throw Err.validation('At least one material is required.');
-    }
+    // Empty items allowed for drafts created from the Rackbeat-style
+    // dialog. Materials get added on the detail page, and `/send` /
+    // `/receive` guard against shipping a PO with zero lines.
     const supplier = await prisma.supplier.findUnique({
       where: { id: input.supplierId },
     });
@@ -106,12 +106,14 @@ export const purchaseOrdersService = {
       throw Err.validation('Supplier not found.');
     }
     const materialIds = Array.from(new Set(input.items.map((i) => i.materialId)));
-    if (materialIds.length !== input.items.length) {
+    if (input.items.length > 0 && materialIds.length !== input.items.length) {
       throw Err.validation('Each material can appear only once per PO.');
     }
-    const materials = await prisma.rawMaterial.findMany({
-      where: { id: { in: materialIds }, userId, deletedAt: null },
-    });
+    const materials = materialIds.length
+      ? await prisma.rawMaterial.findMany({
+          where: { id: { in: materialIds }, userId, deletedAt: null },
+        })
+      : [];
     if (materials.length !== materialIds.length) {
       throw Err.validation('One or more materials are unavailable.');
     }
@@ -221,6 +223,9 @@ export const purchaseOrdersService = {
     const po = await this.getForUser(userId, purchaseOrderId);
     if (po.status !== 'DRAFT') {
       throw Err.conflict(`Cannot send a PO in status ${po.status}.`);
+    }
+    if (po.items.length === 0) {
+      throw Err.validation('Add at least one material before sending this PO.');
     }
     const updated = await prisma.purchaseOrder.update({
       where: { id: po.id },

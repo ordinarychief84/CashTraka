@@ -53,9 +53,10 @@ export function CreateSupplierInvoiceDialog({ open, onClose, suppliers }: Props)
           items: [],
         }),
       });
-      const data = await res.json();
-      if (res.ok && data?.purchaseOrder?.id) {
-        router.push(`/purchase-orders/${data.purchaseOrder.id}`);
+      const json = await res.json();
+      const poId = json?.data?.id ?? json?.id;
+      if (res.ok && poId) {
+        router.push(`/purchase-orders/${poId}`);
       }
     } finally {
       setSubmitting(false);

@@ -411,7 +411,11 @@ export const customerOrderSchema = z.object({
   assignedTo: z.preprocess(emptyToUndefined, z.string().cuid().optional()),
   internalNote: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
   notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
-  items: z.array(customerOrderItemSchema).min(1, 'Add at least one item.'),
+  // Empty items array allowed — drafts created from the Rackbeat-style
+  // intake dialog start with zero lines and get items added on the detail
+  // page. The service guards against attempting to confirm/produce/invoice
+  // an order with no items.
+  items: z.array(customerOrderItemSchema).default([]),
 });
 
 export const customerOrderStatusSchema = z.object({
@@ -454,7 +458,10 @@ export const purchaseOrderSchema = z.object({
   expectedAt: z.preprocess(emptyToUndefined, z.coerce.date().optional()),
   priority: z.enum(['LOW', 'NORMAL', 'HIGH', 'URGENT']).optional(),
   notes: z.preprocess(emptyToUndefined, z.string().trim().max(1000).optional()),
-  items: z.array(purchaseOrderItemSchema).min(1, 'Add at least one material.'),
+  // Empty items array allowed for drafts — purchase orders are created
+  // from the Rackbeat dialog with a supplier reference only; materials are
+  // added on the detail page. /send and /receive guard against empty POs.
+  items: z.array(purchaseOrderItemSchema).default([]),
 });
 
 export const purchaseOrderReceiveSchema = z.object({

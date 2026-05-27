@@ -81,19 +81,29 @@ export function OrderDetailRackbeat({ order }: Props) {
   const [deliveryDate, setDeliveryDate] = useState(isoToDateInput(order.dueAt));
   const [note, setNote] = useState(order.notes ?? '');
 
-  const canConfirm = order.status === 'NEW';
+  const hasItems = order.items.length > 0;
+  const canConfirm = order.status === 'NEW' && hasItems;
   const isCancelled = order.status === 'CANCELLED';
+  const [confirmError, setConfirmError] = useState<string | null>(null);
 
   async function handleConfirm() {
     if (!canConfirm) return;
     setConfirming(true);
+    setConfirmError(null);
     try {
-      await fetch(`/api/customer-orders/${order.id}/status`, {
+      const res = await fetch(`/api/customer-orders/${order.id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'CONFIRMED' }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setConfirmError(body?.error ?? `Confirm failed (${res.status})`);
+        return;
+      }
       router.refresh();
+    } catch (e) {
+      setConfirmError((e as Error).message ?? 'Network error');
     } finally {
       setConfirming(false);
     }
@@ -119,17 +129,18 @@ export function OrderDetailRackbeat({ order }: Props) {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {canConfirm && (
+            {order.status === 'NEW' && (
               <button
                 type="button"
                 onClick={handleConfirm}
-                disabled={confirming}
-                className="rounded-md bg-brand-600 px-4 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50"
+                disabled={!canConfirm || confirming}
+                title={hasItems ? '' : 'Add at least one line item before confirming.'}
+                className="rounded-md bg-brand-600 px-4 py-1.5 text-[13px] font-semibold text-white hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {confirming ? 'Confirming…' : 'Confirm'}
               </button>
             )}
-            {!canConfirm && !isCancelled && (
+            {order.status !== 'NEW' && !isCancelled && (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
                 {order.status.replace('_', ' ')}
               </span>
@@ -193,6 +204,13 @@ export function OrderDetailRackbeat({ order }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Error banner */}
+      {confirmError && (
+        <div className="mx-6 mt-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-[12px] text-rose-700">
+          {confirmError}
+        </div>
+      )}
 
       {/* ── Three-column body ── */}
       <div className="px-6 py-5">

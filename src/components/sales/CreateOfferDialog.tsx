@@ -58,9 +58,10 @@ export function CreateOfferDialog({ open, onClose, customers }: Props) {
           items: [],
         }),
       });
-      const data = await res.json();
-      if (res.ok && data?.customerOrder?.id) {
-        router.push(`/orders/${data.customerOrder.id}`);
+      const json = await res.json();
+      const orderId = json?.data?.id ?? json?.id;
+      if (res.ok && orderId) {
+        router.push(`/orders/${orderId}`);
       }
     } finally {
       setSubmitting(false);

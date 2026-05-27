@@ -36,29 +36,19 @@ export function CreateCustomerInvoiceDialog({ open, onClose, customers }: Props)
     if (c) setQuery(c.name);
   }
 
-  async function handleCreate() {
+  function handleCreate() {
     if (!selectedId) return;
     setSubmitting(true);
-    try {
-      const c = customers.find((c) => c.id === selectedId);
-      const res = await fetch('/api/invoices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: selectedId,
-          customerName: c?.name ?? '',
-          totalKobo: 0,
-          items: [],
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && (data?.invoice?.id ?? data?.id)) {
-        router.push(`/invoices/${data?.invoice?.id ?? data?.id}`);
-      }
-    } finally {
-      setSubmitting(false);
-      onClose();
-    }
+    // Invoices need a phone + line items for FIRS compliance, so we can't
+    // create a zero-line stub like we do for offers/orders/POs. Navigate
+    // to the full invoice form with the chosen customer pre-selected.
+    const c = customers.find((c) => c.id === selectedId);
+    const params = new URLSearchParams({
+      customerId: selectedId,
+      customerName: c?.name ?? '',
+    });
+    router.push(`/invoices/new?${params.toString()}`);
+    onClose();
   }
 
   return (

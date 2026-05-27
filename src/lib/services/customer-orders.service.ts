@@ -116,9 +116,9 @@ export const customerOrdersService = {
     input: CustomerOrderCreateInput,
     actorId?: string | null,
   ) {
-    if (input.items.length === 0) {
-      throw Err.validation('At least one item is required.');
-    }
+    // Note: empty items array is allowed — order is created in NEW (draft)
+    // status and items get added on the detail page. Status transitions to
+    // CONFIRMED / IN_PRODUCTION will guard against zero-item orders.
     if (input.customerId) {
       const customer = await prisma.customer.findUnique({
         where: { id: input.customerId },
@@ -216,6 +216,16 @@ export const customerOrdersService = {
     if (!allowed.includes(nextStatus)) {
       throw Err.conflict(
         `Cannot transition customer order from ${current} to ${nextStatus}.`,
+      );
+    }
+
+    // Guard against advancing a zero-item draft — orders need at least one
+    // line before they can be confirmed, sent to production, or invoiced.
+    const lineCount = order.items?.length ?? 0;
+    const requiresItems: CustomerOrderStatus[] = ['CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED'];
+    if (requiresItems.includes(nextStatus) && lineCount === 0) {
+      throw Err.validation(
+        `Add at least one line item before transitioning to ${nextStatus}.`,
       );
     }
 

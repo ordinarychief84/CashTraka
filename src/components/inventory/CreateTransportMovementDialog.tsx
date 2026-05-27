@@ -22,11 +22,14 @@ export function CreateTransportMovementDialog({ open, onClose }: Props) {
     if (!from || !to || !transportLoc) return;
     setSubmitting(true);
     try {
-      await fetch('/api/inventory/transfers', {
+      const res = await fetch('/api/inventory/transfers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ expectedDate, from, to, transportLoc, reason }),
       });
+      // Swallow JSON parse errors silently — the dialog only cares about
+      // res.ok for now since the transfers detail page isn't wired yet.
+      await res.json().catch(() => null);
     } finally {
       setSubmitting(false);
       onClose();

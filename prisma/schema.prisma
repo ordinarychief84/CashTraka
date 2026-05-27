@@ -274,6 +274,7 @@ model User {
   businessAddresses   BusinessAddress[]
   bankAccounts        BankAccount[]
   customFields        CustomField[]
+  currencies          Currency[]
   createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
   promisesToPay       PromiseToPay[]
   installmentPlans    InstallmentPlan[]
@@ -3129,4 +3130,32 @@ model CustomField {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, entityType, deletedAt])
+}
+
+/// Per-tenant currency configuration. The first row (Naira by
+/// default — CashTraka is Africa-first, Nigeria first) is flagged
+/// `isDefault=true` and its `exchangeRate` is always 1.0. Other
+/// currencies store their rate relative to the default — e.g. USD
+/// at 0.00065 when 1 NGN ≈ 0.00065 USD.
+///
+/// Soft-delete preserves history so old invoices keep their
+/// currency snapshot working even after a user removes a currency
+/// from their active list.
+model Currency {
+  id           String    @id @default(cuid())
+  userId       String
+  /// ISO 4217 three-letter code, uppercase ("NGN", "GHS", "USD").
+  code         String
+  /// Rate of THIS currency expressed in the default currency.
+  /// Default currency itself is always 1.0.
+  exchangeRate Float     @default(1.0)
+  isDefault    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, code], name: "userId_code")
+  @@index([userId, isDefault])
 }

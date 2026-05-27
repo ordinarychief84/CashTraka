@@ -7,11 +7,16 @@ import {
   type AddressRow,
   type BankRow,
 } from '@/components/settings/GeneralSettingsTabs';
+import type { DefaultsProfile } from '@/components/settings/general-tabs/DefaultsTab';
+import type { CustomFieldRow } from '@/components/settings/general-tabs/FieldsTab';
+import type { AccountingProfile } from '@/components/settings/general-tabs/AccountingTab';
+import type { AdvancedProfile } from '@/components/settings/general-tabs/AdvancedTab';
 import { prisma } from '@/lib/prisma';
 import {
   addressesService,
   bankAccountsService,
 } from '@/lib/services/company-book.service';
+import { customFieldsService } from '@/lib/services/custom-fields.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +53,8 @@ export default async function SettingsGeneralPage() {
     addressesService.listForUser(user.id),
     bankAccountsService.listForUser(user.id),
   ]);
+
+  const customFields = await customFieldsService.listForUser(user.id);
 
   const anchor = (user as any).generalStartingNumber ?? 1001;
   const initialProfile: GeneralProfile = {
@@ -98,6 +105,69 @@ export default async function SettingsGeneralPage() {
     isDefault: b.isDefault,
   }));
 
+  // The 4 new tabs serialise straight from User + custom-field rows.
+  // Helper to read a User column that may still be undefined on a
+  // freshly-migrated row (the SQL added defaults but `user` was
+  // fetched against the typed client BEFORE generate ran on Vercel —
+  // so we cast through `any` for resilience).
+  const u = user as any;
+
+  const initialDefaults: DefaultsProfile = {
+    defaultItemUnit:              u.defaultItemUnit ?? '',
+    defaultItemGroup:             u.defaultItemGroup ?? '',
+    defaultLocation:              u.defaultLocation ?? '',
+    defaultPrimarySupplier:       u.defaultPrimarySupplier ?? '',
+    suggestNextNumberItem:        !!u.suggestNextNumberItem,
+    defaultCustomerCurrency:      u.defaultCustomerCurrency ?? '',
+    defaultCustomerLanguage:      u.defaultCustomerLanguage ?? '',
+    defaultCustomerPaymentTerm:   u.defaultCustomerPaymentTerm ?? '',
+    defaultCustomerGroup:         u.defaultCustomerGroup ?? '',
+    defaultCustomerLayout:        u.defaultCustomerLayout ?? '',
+    defaultCustomerVatZone:       u.defaultCustomerVatZone ?? '',
+    defaultCustomerCountry:       u.defaultCustomerCountry ?? '',
+    defaultCustomerDeliveryTerms: u.defaultCustomerDeliveryTerms ?? '',
+    suggestNextNumberCustomer:    !!u.suggestNextNumberCustomer,
+    defaultSupplierCurrency:      u.defaultSupplierCurrency ?? '',
+    defaultSupplierLanguage:      u.defaultSupplierLanguage ?? '',
+    defaultSupplierPaymentTerm:   u.defaultSupplierPaymentTerm ?? '',
+    defaultSupplierGroup:         u.defaultSupplierGroup ?? '',
+    defaultSupplierLayout:        u.defaultSupplierLayout ?? '',
+    defaultSupplierVatZone:       u.defaultSupplierVatZone ?? '',
+    defaultSupplierCountry:       u.defaultSupplierCountry ?? '',
+    defaultSupplierDeliveryTerms: u.defaultSupplierDeliveryTerms ?? '',
+    suggestNextNumberSupplier:    !!u.suggestNextNumberSupplier,
+  };
+
+  const initialCustomFields: CustomFieldRow[] = customFields.map((cf) => ({
+    id: cf.id,
+    entityType: cf.entityType as CustomFieldRow['entityType'],
+    fieldType: cf.fieldType as CustomFieldRow['fieldType'],
+    name: cf.name,
+    availableInLayouts: cf.availableInLayouts,
+  }));
+
+  const initialAccounting: AccountingProfile = {
+    costPricePrinciple: (u.costPricePrinciple ?? 'AVERAGE') as AccountingProfile['costPricePrinciple'],
+    valuationAssociatedWithInvoicing: !!u.valuationAssociatedWithInvoicing,
+    negativeQtyValuation: (u.negativeQtyValuation ?? 'UNDECIDED') as AccountingProfile['negativeQtyValuation'],
+  };
+
+  const initialAdvanced: AdvancedProfile = {
+    priceDecimals:                  u.priceDecimals ?? 2,
+    quantityDecimals:               u.quantityDecimals ?? 2,
+    decimalSeparator:               (u.decimalSeparator ?? '.') as AdvancedProfile['decimalSeparator'],
+    thousandsSeparator:             (u.thousandsSeparator ?? ',') as AdvancedProfile['thousandsSeparator'],
+    dateFormat:                     (u.dateFormat ?? 'DD-MM-YYYY') as AdvancedProfile['dateFormat'],
+    showMondayFirst:                u.showMondayFirst ?? true,
+    updateSupplierPricesOnInvoice:  !!u.updateSupplierPricesOnInvoice,
+    allowEditBomsInProduction:      !!u.allowEditBomsInProduction,
+    includeDescriptionOnSalesLines: !!u.includeDescriptionOnSalesLines,
+    giveSupportAccess:              !!u.giveSupportAccess,
+    enableInventorySharing:         !!u.enableInventorySharing,
+    sendIntegrationErrorsByEmail:   !!u.sendIntegrationErrorsByEmail,
+    logoUrl:                        u.logoUrl ?? null,
+  };
+
   return (
     <AppShell
       businessName={user.businessName}
@@ -122,6 +192,10 @@ export default async function SettingsGeneralPage() {
             initialProfile={initialProfile}
             initialAddresses={initialAddresses}
             initialBanks={initialBanks}
+            initialDefaults={initialDefaults}
+            initialCustomFields={initialCustomFields}
+            initialAccounting={initialAccounting}
+            initialAdvanced={initialAdvanced}
           />
 
           <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4 text-[11px] text-slate-500">

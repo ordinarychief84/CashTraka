@@ -87,6 +87,38 @@ export async function POST(req: Request) {
   if (street2 !== undefined) data.street2 = street2?.trim() || null;
   if (generalStartingNumber !== undefined) data.generalStartingNumber = generalStartingNumber;
 
+  // Pass-through Defaults/Accounting/Advanced fields. Empty strings on
+  // optional text fields clear the column to null; booleans/enums are
+  // stored as-is.
+  const STRING_NULLABLE = [
+    'defaultItemUnit','defaultItemGroup','defaultLocation','defaultPrimarySupplier',
+    'defaultCustomerCurrency','defaultCustomerLanguage','defaultCustomerPaymentTerm',
+    'defaultCustomerGroup','defaultCustomerLayout','defaultCustomerVatZone',
+    'defaultCustomerCountry','defaultCustomerDeliveryTerms',
+    'defaultSupplierCurrency','defaultSupplierLanguage','defaultSupplierPaymentTerm',
+    'defaultSupplierGroup','defaultSupplierLayout','defaultSupplierVatZone',
+    'defaultSupplierCountry','defaultSupplierDeliveryTerms',
+  ] as const;
+  const ENUMS = [
+    'costPricePrinciple','negativeQtyValuation','decimalSeparator',
+    'thousandsSeparator','dateFormat',
+  ] as const;
+  const BOOLS = [
+    'suggestNextNumberItem','suggestNextNumberCustomer','suggestNextNumberSupplier',
+    'valuationAssociatedWithInvoicing','showMondayFirst',
+    'updateSupplierPricesOnInvoice','allowEditBomsInProduction',
+    'includeDescriptionOnSalesLines','giveSupportAccess',
+    'enableInventorySharing','sendIntegrationErrorsByEmail',
+  ] as const;
+  const INTS = ['priceDecimals', 'quantityDecimals'] as const;
+  const all = parsed.data as Record<string, unknown>;
+  for (const k of STRING_NULLABLE) {
+    if (all[k] !== undefined) data[k] = String(all[k] ?? '').trim() || null;
+  }
+  for (const k of [...ENUMS, ...BOOLS, ...INTS] as const) {
+    if (all[k] !== undefined) data[k] = all[k];
+  }
+
   await prisma.user.update({
     where: { id: user.id },
     data,

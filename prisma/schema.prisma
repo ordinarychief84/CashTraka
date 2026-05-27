@@ -60,6 +60,53 @@ model User {
   /// /settings General > Numbers.
   generalStartingNumber Int     @default(1001)
 
+  // ── General settings > Defaults tab ──
+  defaultItemUnit              String?
+  defaultItemGroup             String?
+  defaultLocation              String?
+  defaultPrimarySupplier       String?
+  suggestNextNumberItem        Boolean @default(false)
+  defaultCustomerCurrency      String?
+  defaultCustomerLanguage      String?
+  defaultCustomerPaymentTerm   String?
+  defaultCustomerGroup         String?
+  defaultCustomerLayout        String?
+  defaultCustomerVatZone       String?
+  defaultCustomerCountry       String?
+  defaultCustomerDeliveryTerms String?
+  suggestNextNumberCustomer    Boolean @default(false)
+  defaultSupplierCurrency      String?
+  defaultSupplierLanguage      String?
+  defaultSupplierPaymentTerm   String?
+  defaultSupplierGroup         String?
+  defaultSupplierLayout        String?
+  defaultSupplierVatZone       String?
+  defaultSupplierCountry       String?
+  defaultSupplierDeliveryTerms String?
+  suggestNextNumberSupplier    Boolean @default(false)
+
+  // ── General settings > Accounting tab ──
+  /// "AVERAGE" | "FIFO" | "LIFO"
+  costPricePrinciple               String  @default("AVERAGE")
+  valuationAssociatedWithInvoicing Boolean @default(false)
+  /// "UNDECIDED" | "ZERO" | "EXPECTED_COST". One-way after first selection.
+  negativeQtyValuation             String  @default("UNDECIDED")
+
+  // ── General settings > Advanced tab ──
+  priceDecimals                  Int     @default(2)
+  quantityDecimals               Int     @default(2)
+  decimalSeparator               String  @default(".")
+  thousandsSeparator             String  @default(",")
+  /// "DD-MM-YYYY" | "MM-DD-YYYY" | "YYYY-MM-DD"
+  dateFormat                     String  @default("DD-MM-YYYY")
+  showMondayFirst                Boolean @default(true)
+  updateSupplierPricesOnInvoice  Boolean @default(false)
+  allowEditBomsInProduction      Boolean @default(false)
+  includeDescriptionOnSalesLines Boolean @default(false)
+  giveSupportAccess              Boolean @default(false)
+  enableInventorySharing         Boolean @default(false)
+  sendIntegrationErrorsByEmail   Boolean @default(false)
+
   /// Address line shown on invoices.
   businessAddress String?
   /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
@@ -226,6 +273,7 @@ model User {
   emailLogs           EmailLog[]
   businessAddresses   BusinessAddress[]
   bankAccounts        BankAccount[]
+  customFields        CustomField[]
   createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
   promisesToPay       PromiseToPay[]
   installmentPlans    InstallmentPlan[]
@@ -3058,4 +3106,27 @@ model BankAccount {
 
   @@index([userId, deletedAt])
   @@index([userId, isDefault])
+}
+
+/// Per-tenant custom fields shown under General settings > Fields.
+/// Each row scoped to one entity type (Item / Customer / Supplier).
+/// fieldType drives the input rendered when the field is filled on
+/// a record — text/long-text/number/date/checkbox.
+model CustomField {
+  id                 String    @id @default(cuid())
+  userId             String
+  /// "ITEM" | "CUSTOMER" | "SUPPLIER"
+  entityType         String
+  /// "TEXT" (max 255) | "TEXT_LONG" | "NUMBER" | "DATE" | "CHECKBOX"
+  fieldType          String
+  name               String
+  /// Whether the field can be referenced from PDF / e-mail layouts.
+  availableInLayouts Boolean   @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, entityType, deletedAt])
 }

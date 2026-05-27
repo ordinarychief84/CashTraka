@@ -3,6 +3,10 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, Trash2, Star, MoreHorizontal, Loader2 } from 'lucide-react';
+import { DefaultsTab, type DefaultsProfile } from './general-tabs/DefaultsTab';
+import { FieldsTab, type CustomFieldRow } from './general-tabs/FieldsTab';
+import { AccountingTab, type AccountingProfile } from './general-tabs/AccountingTab';
+import { AdvancedTab, type AdvancedProfile } from './general-tabs/AdvancedTab';
 
 // ── Types matching the server-side shapes ───────────────────────
 
@@ -60,15 +64,31 @@ interface Props {
   initialProfile: GeneralProfile;
   initialAddresses: AddressRow[];
   initialBanks: BankRow[];
+  initialDefaults: DefaultsProfile;
+  initialCustomFields: CustomFieldRow[];
+  initialAccounting: AccountingProfile;
+  initialAdvanced: AdvancedProfile;
 }
 
-type Tab = 'numbers' | 'information' | 'addresses' | 'banking';
+type Tab =
+  | 'numbers'
+  | 'information'
+  | 'addresses'
+  | 'banking'
+  | 'defaults'
+  | 'fields'
+  | 'accounting'
+  | 'advanced';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'numbers',     label: 'Numbers' },
   { id: 'information', label: 'Information' },
   { id: 'addresses',   label: 'Addresses' },
   { id: 'banking',     label: 'Banking' },
+  { id: 'defaults',    label: 'Defaults' },
+  { id: 'fields',      label: 'Fields' },
+  { id: 'accounting',  label: 'Accounting' },
+  { id: 'advanced',    label: 'Advanced' },
 ];
 
 // Shared input class so every form field on every tab looks the same.
@@ -78,7 +98,15 @@ const labelCls = 'mb-1 block text-[12px] font-medium text-slate-600';
 const sectionCardCls = 'rounded-xl border border-slate-200 bg-white p-5';
 const sectionHeadCls = 'mb-4 text-[14px] font-semibold text-brand-700';
 
-export function GeneralSettingsTabs({ initialProfile, initialAddresses, initialBanks }: Props) {
+export function GeneralSettingsTabs({
+  initialProfile,
+  initialAddresses,
+  initialBanks,
+  initialDefaults,
+  initialCustomFields,
+  initialAccounting,
+  initialAdvanced,
+}: Props) {
   const [tab, setTab] = useState<Tab>('numbers');
 
   return (
@@ -101,10 +129,14 @@ export function GeneralSettingsTabs({ initialProfile, initialAddresses, initialB
         ))}
       </div>
 
-      {tab === 'numbers' && <NumbersTab initialProfile={initialProfile} />}
+      {tab === 'numbers'     && <NumbersTab initialProfile={initialProfile} />}
       {tab === 'information' && <InformationTab initialProfile={initialProfile} />}
-      {tab === 'addresses' && <AddressesTab initialRows={initialAddresses} />}
-      {tab === 'banking' && <BankingTab initialRows={initialBanks} />}
+      {tab === 'addresses'   && <AddressesTab initialRows={initialAddresses} />}
+      {tab === 'banking'     && <BankingTab initialRows={initialBanks} />}
+      {tab === 'defaults'    && <DefaultsTab initialProfile={initialDefaults} />}
+      {tab === 'fields'      && <FieldsTab initialRows={initialCustomFields} />}
+      {tab === 'accounting'  && <AccountingTab initialProfile={initialAccounting} />}
+      {tab === 'advanced'    && <AdvancedTab initialProfile={initialAdvanced} />}
     </div>
   );
 }

@@ -97,6 +97,50 @@ export const settingsSchema = z.object({
   /// General > Numbers tab. The single anchor used by sequence
   /// helpers when an entity table is empty.
   generalStartingNumber: z.coerce.number().int().min(1).max(10_000_000).optional(),
+
+  /// ── General > Defaults tab ──
+  defaultItemUnit:              z.string().trim().max(40).optional().or(z.literal('')),
+  defaultItemGroup:             z.string().trim().max(80).optional().or(z.literal('')),
+  defaultLocation:              z.string().trim().max(80).optional().or(z.literal('')),
+  defaultPrimarySupplier:       z.string().trim().max(80).optional().or(z.literal('')),
+  suggestNextNumberItem:        z.boolean().optional(),
+  defaultCustomerCurrency:      z.string().trim().max(8).optional().or(z.literal('')),
+  defaultCustomerLanguage:      z.string().trim().max(40).optional().or(z.literal('')),
+  defaultCustomerPaymentTerm:   z.string().trim().max(120).optional().or(z.literal('')),
+  defaultCustomerGroup:         z.string().trim().max(80).optional().or(z.literal('')),
+  defaultCustomerLayout:        z.string().trim().max(80).optional().or(z.literal('')),
+  defaultCustomerVatZone:       z.string().trim().max(40).optional().or(z.literal('')),
+  defaultCustomerCountry:       z.string().trim().max(80).optional().or(z.literal('')),
+  defaultCustomerDeliveryTerms: z.string().trim().max(80).optional().or(z.literal('')),
+  suggestNextNumberCustomer:    z.boolean().optional(),
+  defaultSupplierCurrency:      z.string().trim().max(8).optional().or(z.literal('')),
+  defaultSupplierLanguage:      z.string().trim().max(40).optional().or(z.literal('')),
+  defaultSupplierPaymentTerm:   z.string().trim().max(120).optional().or(z.literal('')),
+  defaultSupplierGroup:         z.string().trim().max(80).optional().or(z.literal('')),
+  defaultSupplierLayout:        z.string().trim().max(80).optional().or(z.literal('')),
+  defaultSupplierVatZone:       z.string().trim().max(40).optional().or(z.literal('')),
+  defaultSupplierCountry:       z.string().trim().max(80).optional().or(z.literal('')),
+  defaultSupplierDeliveryTerms: z.string().trim().max(80).optional().or(z.literal('')),
+  suggestNextNumberSupplier:    z.boolean().optional(),
+
+  /// ── General > Accounting tab ──
+  costPricePrinciple:               z.enum(['AVERAGE', 'FIFO', 'LIFO']).optional(),
+  valuationAssociatedWithInvoicing: z.boolean().optional(),
+  negativeQtyValuation:             z.enum(['UNDECIDED', 'ZERO', 'EXPECTED_COST']).optional(),
+
+  /// ── General > Advanced tab ──
+  priceDecimals:                  z.coerce.number().int().min(0).max(6).optional(),
+  quantityDecimals:               z.coerce.number().int().min(0).max(6).optional(),
+  decimalSeparator:               z.enum(['.', ',']).optional(),
+  thousandsSeparator:             z.enum([',', '.', ' ']).optional(),
+  dateFormat:                     z.enum(['DD-MM-YYYY', 'MM-DD-YYYY', 'YYYY-MM-DD']).optional(),
+  showMondayFirst:                z.boolean().optional(),
+  updateSupplierPricesOnInvoice:  z.boolean().optional(),
+  allowEditBomsInProduction:      z.boolean().optional(),
+  includeDescriptionOnSalesLines: z.boolean().optional(),
+  giveSupportAccess:              z.boolean().optional(),
+  enableInventorySharing:         z.boolean().optional(),
+  sendIntegrationErrorsByEmail:   z.boolean().optional(),
 });
 
 export const fraudReportSchema = z.object({

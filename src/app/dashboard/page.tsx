@@ -30,7 +30,6 @@ import { InstallPrompt } from '@/components/InstallPrompt';
 import { SuggestionsPanel } from '@/components/dashboard/SuggestionsPanel';
 import { CollectionScoreWidget } from '@/components/dashboard/CollectionScoreWidget';
 import { CashFlowForecastCard } from '@/components/dashboard/CashFlowForecastCard';
-import { OpsDashboardCards } from '@/components/dashboard/OpsDashboardCards';
 import { HeroKpiCards } from '@/components/dashboard/HeroKpiCards';
 import { HeroKpiCards6 } from '@/components/dashboard/HeroKpiCards6';
 import { NotYetNotifiedRail } from '@/components/dashboard/NotYetNotifiedRail';
@@ -150,6 +149,15 @@ export default async function DashboardPage() {
   const prevMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
   // ── Parallel data fetch ────────────────────────────────────────────────
+  //
+  // PERF: the legacy zones (TodayTriage / Pulse / Activity) only render
+  // for property managers and staff principals. Sellers see the new comp
+  // layout (HeroKpiCards6, ProductionOverview, etc.) which fetches its
+  // own data inside each card. We were unconditionally running ~10
+  // legacy-only queries on every seller dashboard load — pure waste. So
+  // gate the legacy-only fetches on `useLegacyZones` and short-circuit
+  // them with `Promise.resolve(…)` for the seller path.
+  const useLegacyZones = isPm || isStaffPrincipal;
   const [
     paymentsThisWeek,
     paymentsPrevWeek,
@@ -173,155 +181,175 @@ export default async function DashboardPage() {
     autoConfirmedTodayAgg,
     catalogIsEmpty,
   ] = await Promise.all([
-    // This week's PAID payments (for hero total + sparkline + transaction count)
-    prisma.payment.findMany({
-      where: {
-        userId: user.id,
-        status: 'PAID',
-        createdAt: { gte: weekStart },
-      },
-      select: { amountKobo: true, createdAt: true },
-    }),
-    // Previous week's PAID total (for WoW delta)
-    prisma.payment.aggregate({
-      where: {
-        userId: user.id,
-        status: 'PAID',
-        createdAt: { gte: prevWeekStart, lte: prevWeekEnd },
-      },
-      _sum: { amountKobo: true },
-      _count: true,
-    }),
-    // This month's PAID payments (for AOV + monthly revenue)
-    prisma.payment.aggregate({
-      where: {
-        userId: user.id,
-        status: 'PAID',
-        createdAt: { gte: monthStart },
-      },
-      _sum: { amountKobo: true },
-      _count: true,
-    }),
-    prisma.payment.aggregate({
-      where: {
-        userId: user.id,
-        status: 'PAID',
-        createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
-      },
-      _sum: { amountKobo: true },
-      _count: true,
-    }),
-    // Outstanding debt (open)
-    prisma.debt.aggregate({
-      where: { userId: user.id, status: 'OPEN' },
-      _sum: { amountOwedKobo: true, amountPaidKobo: true },
-    }),
-    // Outstanding at end of last month — to compute trend on "owed"
-    prisma.debt.aggregate({
-      where: {
-        userId: user.id,
-        createdAt: { lte: prevMonthEnd },
-        OR: [{ status: 'OPEN' }, { updatedAt: { gt: prevMonthEnd } }],
-      },
-      _sum: { amountOwedKobo: true, amountPaidKobo: true },
-    }),
-    prisma.debt.aggregate({
-      where: {
-        userId: user.id,
-        status: 'OPEN',
-        dueDate: { lt: now, not: null },
-      },
-      _sum: { amountOwedKobo: true, amountPaidKobo: true },
-      _count: true,
-    }),
-    showExpenses
-      ? prisma.expense.aggregate({
+    // ── LEGACY-ONLY QUERIES (PMs + staff principals) ───────────────────
+    // All 20 queries below feed TodayTriage / Pulse / Activity zones
+    // that only render for property managers + staff principals. The
+    // seller comp dashboard pulls its own data inside each card, so we
+    // short-circuit these with empty placeholders to save ~20 round-trips
+    // on every seller load.
+
+    // This week's PAID payments
+    useLegacyZones
+      ? prisma.payment.findMany({
+          where: { userId: user.id, status: 'PAID', createdAt: { gte: weekStart } },
+          select: { amountKobo: true, createdAt: true },
+        })
+      : Promise.resolve([] as { amountKobo: number; createdAt: Date }[]),
+    // Previous week's PAID total
+    useLegacyZones
+      ? prisma.payment.aggregate({
           where: {
             userId: user.id,
-            kind: 'business',
-            incurredOn: { gte: monthStart },
+            status: 'PAID',
+            createdAt: { gte: prevWeekStart, lte: prevWeekEnd },
           },
+          _sum: { amountKobo: true },
+          _count: true,
+        })
+      : Promise.resolve({ _sum: { amountKobo: 0 }, _count: 0 } as const),
+    // This month's PAID payments
+    useLegacyZones
+      ? prisma.payment.aggregate({
+          where: { userId: user.id, status: 'PAID', createdAt: { gte: monthStart } },
+          _sum: { amountKobo: true },
+          _count: true,
+        })
+      : Promise.resolve({ _sum: { amountKobo: 0 }, _count: 0 } as const),
+    useLegacyZones
+      ? prisma.payment.aggregate({
+          where: {
+            userId: user.id,
+            status: 'PAID',
+            createdAt: { gte: prevMonthStart, lte: prevMonthEnd },
+          },
+          _sum: { amountKobo: true },
+          _count: true,
+        })
+      : Promise.resolve({ _sum: { amountKobo: 0 }, _count: 0 } as const),
+    // Outstanding debt (open)
+    useLegacyZones
+      ? prisma.debt.aggregate({
+          where: { userId: user.id, status: 'OPEN' },
+          _sum: { amountOwedKobo: true, amountPaidKobo: true },
+        })
+      : Promise.resolve({ _sum: { amountOwedKobo: 0, amountPaidKobo: 0 } } as const),
+    // Outstanding at end of last month
+    useLegacyZones
+      ? prisma.debt.aggregate({
+          where: {
+            userId: user.id,
+            createdAt: { lte: prevMonthEnd },
+            OR: [{ status: 'OPEN' }, { updatedAt: { gt: prevMonthEnd } }],
+          },
+          _sum: { amountOwedKobo: true, amountPaidKobo: true },
+        })
+      : Promise.resolve({ _sum: { amountOwedKobo: 0, amountPaidKobo: 0 } } as const),
+    useLegacyZones
+      ? prisma.debt.aggregate({
+          where: {
+            userId: user.id,
+            status: 'OPEN',
+            dueDate: { lt: now, not: null },
+          },
+          _sum: { amountOwedKobo: true, amountPaidKobo: true },
+          _count: true,
+        })
+      : Promise.resolve({ _sum: { amountOwedKobo: 0, amountPaidKobo: 0 }, _count: 0 } as const),
+    useLegacyZones && showExpenses
+      ? prisma.expense.aggregate({
+          where: { userId: user.id, kind: 'business', incurredOn: { gte: monthStart } },
           _sum: { amountKobo: true },
         })
       : Promise.resolve({ _sum: { amountKobo: 0 } } as const),
-    prisma.payment.aggregate({
-      where: { userId: user.id, status: 'PAID', verified: false },
-      _sum: { amountKobo: true },
-      _count: true,
-    }),
-    prisma.customer.findMany({
-      where: { userId: user.id, totalOwedKobo: { gt: 0 } },
-      orderBy: { totalOwedKobo: 'desc' },
-      take: 3,
-    }),
-    prisma.customer.findMany({
-      where: {
-        userId: user.id,
-        lastActivityAt: {
-          lt: new Date(Date.now() - QUIET_THRESHOLD_DAYS * 24 * 60 * 60 * 1000),
-        },
-      },
-      orderBy: { lastActivityAt: 'asc' },
-      take: 3,
-    }),
-    prisma.debt.findMany({
-      where: { userId: user.id, status: 'OPEN', amountPaidKobo: { gt: 0 } },
-      orderBy: { updatedAt: 'desc' },
-      take: 4,
-    }),
-    prisma.reminderSchedule.findMany({
-      where: { userId: user.id, enabled: true },
-      include: { debt: true },
-      orderBy: { nextDueAt: 'asc' },
-      take: 5,
-    }),
-    // Low-stock products (sellers only)
-    isPm
-      ? Promise.resolve(0)
-      : prisma.product.count({
+    useLegacyZones
+      ? prisma.payment.aggregate({
+          where: { userId: user.id, status: 'PAID', verified: false },
+          _sum: { amountKobo: true },
+          _count: true,
+        })
+      : Promise.resolve({ _sum: { amountKobo: 0 }, _count: 0 } as const),
+    useLegacyZones
+      ? prisma.customer.findMany({
+          where: { userId: user.id, totalOwedKobo: { gt: 0 } },
+          orderBy: { totalOwedKobo: 'desc' },
+          take: 3,
+        })
+      : Promise.resolve([] as Array<{ id: string; name: string; totalOwedKobo: number }>),
+    useLegacyZones
+      ? prisma.customer.findMany({
           where: {
             userId: user.id,
-            trackStock: true,
-            archived: false,
-            stock: { lte: 3 },
+            lastActivityAt: {
+              lt: new Date(Date.now() - QUIET_THRESHOLD_DAYS * 24 * 60 * 60 * 1000),
+            },
           },
-        }),
+          orderBy: { lastActivityAt: 'asc' },
+          take: 3,
+        })
+      : Promise.resolve([] as Array<{ id: string; name: string; lastActivityAt: Date }>),
+    useLegacyZones
+      ? prisma.debt.findMany({
+          where: { userId: user.id, status: 'OPEN', amountPaidKobo: { gt: 0 } },
+          orderBy: { updatedAt: 'desc' },
+          take: 4,
+        })
+      : Promise.resolve([] as any[]),
+    useLegacyZones
+      ? prisma.reminderSchedule.findMany({
+          where: { userId: user.id, enabled: true },
+          include: { debt: true },
+          orderBy: { nextDueAt: 'asc' },
+          take: 5,
+        })
+      : Promise.resolve([] as any[]),
+    // Low-stock products (sellers only triage)
+    useLegacyZones && !isPm
+      ? prisma.product.count({
+          where: { userId: user.id, trackStock: true, archived: false, stock: { lte: 3 } },
+        })
+      : Promise.resolve(0),
     // Top revenue contributors this month
-    prisma.payment.groupBy({
-      by: ['customerId', 'customerNameSnapshot'],
-      where: {
-        userId: user.id,
-        status: 'PAID',
-        createdAt: { gte: monthStart },
-      },
-      _sum: { amountKobo: true },
-      _count: true,
-      orderBy: { _sum: { amountKobo: 'desc' } },
-      take: 5,
-    }),
-    // PayLinks: claimed (need confirmation)
-    prisma.paymentRequest.count({
-      where: { userId: user.id, status: 'claimed' },
-    }),
-    // PayLinks: pending/viewed
-    prisma.paymentRequest.count({
-      where: { userId: user.id, status: { in: ['pending', 'viewed'] } },
-    }),
-    // Broken promises needing follow-up
-    prisma.promiseToPay.count({
-      where: { userId: user.id, status: 'BROKEN' },
-    }).catch(() => 0),
-    // Active promises (awaiting payment)
-    prisma.promiseToPay.count({
-      where: { userId: user.id, status: { in: ['OPEN', 'PROMISED', 'PARTIALLY_PAID'] } },
-    }).catch(() => 0),
-    // Auto-confirmed payments today
-    prisma.payment.aggregate({
-      where: { userId: user.id, confirmedAutomatically: true, confirmedAt: { gte: today } },
-      _sum: { amountKobo: true },
-      _count: true,
-    }).catch(() => ({ _sum: { amountKobo: null }, _count: 0 })),
-    // Has the user got ANY ops catalog yet? If not, the TemplateQuickStart
+    useLegacyZones
+      ? prisma.payment.groupBy({
+          by: ['customerId', 'customerNameSnapshot'],
+          where: { userId: user.id, status: 'PAID', createdAt: { gte: monthStart } },
+          _sum: { amountKobo: true },
+          _count: true,
+          orderBy: { _sum: { amountKobo: 'desc' } },
+          take: 5,
+        })
+      : Promise.resolve([] as any[]),
+    useLegacyZones
+      ? prisma.paymentRequest.count({ where: { userId: user.id, status: 'claimed' } })
+      : Promise.resolve(0),
+    useLegacyZones
+      ? prisma.paymentRequest.count({
+          where: { userId: user.id, status: { in: ['pending', 'viewed'] } },
+        })
+      : Promise.resolve(0),
+    useLegacyZones
+      ? prisma.promiseToPay
+          .count({ where: { userId: user.id, status: 'BROKEN' } })
+          .catch(() => 0)
+      : Promise.resolve(0),
+    useLegacyZones
+      ? prisma.promiseToPay
+          .count({
+            where: { userId: user.id, status: { in: ['OPEN', 'PROMISED', 'PARTIALLY_PAID'] } },
+          })
+          .catch(() => 0)
+      : Promise.resolve(0),
+    useLegacyZones
+      ? prisma.payment
+          .aggregate({
+            where: { userId: user.id, confirmedAutomatically: true, confirmedAt: { gte: today } },
+            _sum: { amountKobo: true },
+            _count: true,
+          })
+          .catch(() => ({ _sum: { amountKobo: null }, _count: 0 }))
+      : Promise.resolve({ _sum: { amountKobo: null }, _count: 0 } as const),
+    // ── UNIVERSAL: catalogIsEmpty drives TemplateQuickStart for both
+    // seller + PM paths. Has the user got ANY ops catalog yet?
     // card shows on the dashboard so the empty-state isn't a dead end.
     // Two cheap counts in a single batch — gated on `!isPm` because
     // property managers don't have a catalog.

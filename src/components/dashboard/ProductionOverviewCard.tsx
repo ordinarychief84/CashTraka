@@ -1,12 +1,13 @@
 import { prisma } from '@/lib/prisma';
-import { DashboardCard, PeriodPill } from './DashboardCard';
+import { DashboardCard } from './DashboardCard';
 
 /**
- * Production Overview — donut chart with status breakdown + legend.
- * Counts every non-deleted ProductionOrder grouped by status, then
- * renders the four primary statuses (Planned / In Production /
- * Completed / Delayed) plus a Cancelled row when present. The donut is
- * drawn with a conic-gradient so no chart library dependency is needed.
+ * Production Overview — compact horizontal stacked bar + tight legend.
+ *
+ * The previous design used a 128 px conic-gradient donut that dominated
+ * the card. Sellers don't get extra information from a donut over a
+ * progress bar — both encode part-to-whole — so we switched to a stacked
+ * bar that reads at a glance and frees up vertical space.
  */
 export async function ProductionOverviewCard({ userId }: { userId: string }) {
   const counts = await prisma.productionOrder.groupBy({
@@ -16,86 +17,70 @@ export async function ProductionOverviewCard({ userId }: { userId: string }) {
   });
 
   const byStatus = new Map(counts.map((c) => [c.status, c._count._all]));
-  const planned = byStatus.get('PLANNED') ?? 0;
-  const materialsNeeded = byStatus.get('MATERIALS_NEEDED') ?? 0;
+  const planned = (byStatus.get('PLANNED') ?? 0) + (byStatus.get('MATERIALS_NEEDED') ?? 0);
   const inProduction = byStatus.get('IN_PRODUCTION') ?? 0;
   const completed = byStatus.get('COMPLETED') ?? 0;
   const delayed = byStatus.get('DELAYED') ?? 0;
   const cancelled = byStatus.get('CANCELLED') ?? 0;
 
-  const total =
-    planned + materialsNeeded + inProduction + completed + delayed + cancelled;
+  const total = planned + inProduction + completed + delayed + cancelled;
 
-  const rows: {
-    label: string;
-    count: number;
-    color: string;
-    hex: string;
-  }[] = [
-    { label: 'Planned', count: planned + materialsNeeded, color: 'bg-brand-500', hex: '#00B8E8' },
-    { label: 'In Production', count: inProduction, color: 'bg-brand-300', hex: '#45CBF2' },
-    { label: 'Completed', count: completed, color: 'bg-success-500', hex: '#8BD91E' },
-    { label: 'Delayed', count: delayed, color: 'bg-owed-500', hex: '#F59E0B' },
-    { label: 'Cancelled', count: cancelled, color: 'bg-slate-300', hex: '#CBD5E1' },
+  const rows = [
+    { label: 'Planned',       count: planned,      color: 'bg-brand-200',   dot: 'bg-brand-300' },
+    { label: 'In production', count: inProduction, color: 'bg-brand-500',   dot: 'bg-brand-500' },
+    { label: 'Completed',     count: completed,    color: 'bg-success-500', dot: 'bg-success-500' },
+    { label: 'Delayed',       count: delayed,      color: 'bg-owed-500',    dot: 'bg-owed-500' },
+    { label: 'Cancelled',     count: cancelled,    color: 'bg-slate-300',   dot: 'bg-slate-300' },
   ];
 
-  const conicStops = (() => {
-    if (total === 0) return 'conic-gradient(#E5E7EB 0% 100%)';
-    let acc = 0;
-    const stops: string[] = [];
-    for (const r of rows) {
-      const pct = (r.count / total) * 100;
-      stops.push(`${r.hex} ${acc.toFixed(2)}% ${(acc + pct).toFixed(2)}%`);
-      acc += pct;
-    }
-    return `conic-gradient(${stops.join(', ')})`;
-  })();
-
   return (
-    <DashboardCard title="Production Overview" rightSlot={<PeriodPill />}>
-      <div className="flex items-center gap-5">
-        {/* Donut */}
-        <div className="relative h-32 w-32 shrink-0">
-          <div
-            className="absolute inset-0 rounded-full"
-            style={{ background: conicStops }}
-          />
-          <div className="absolute inset-[22%] rounded-full bg-white" />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="num text-xl font-black leading-none text-ink">
-              {total}
-            </div>
-            <div className="mt-1 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-              Total
-            </div>
-            <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-              Production
-            </div>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <ul className="flex-1 space-y-1.5">
-          {rows.map((r) => {
-            const pct = total > 0 ? Math.round((r.count / total) * 100) : 0;
-            return (
-              <li
-                key={r.label}
-                className="flex items-center justify-between gap-2 text-xs"
-              >
-                <span className="flex items-center gap-2 text-slate-600">
-                  <span className={`h-2 w-2 rounded-full ${r.color}`} />
-                  {r.label}
-                </span>
-                <span className="num text-slate-700">
-                  <span className="font-bold text-ink">{r.count}</span>
-                  <span className="ml-1 text-slate-400">({pct}%)</span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+    <DashboardCard title="Production overview" viewAllHref="/production">
+      {/* Total + active count */}
+      <div className="mb-3 flex items-baseline gap-2">
+        <span className="num text-2xl font-black leading-none text-ink">{total}</span>
+        <span className="text-[11px] font-medium text-slate-500">
+          {total === 1 ? 'production order' : 'production orders'}
+        </span>
       </div>
+
+      {/* Stacked progress bar */}
+      <div className="mb-3 flex h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        {total > 0 ? (
+          rows
+            .filter((r) => r.count > 0)
+            .map((r) => (
+              <div
+                key={r.label}
+                className={r.color}
+                style={{ width: `${(r.count / total) * 100}%` }}
+                title={`${r.label}: ${r.count}`}
+              />
+            ))
+        ) : null}
+      </div>
+
+      {/* Legend */}
+      <ul className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+        {rows.map((r) => {
+          const pct = total > 0 ? Math.round((r.count / total) * 100) : 0;
+          return (
+            <li key={r.label} className="flex items-center justify-between gap-2 text-[12px]">
+              <span className="flex items-center gap-1.5 text-slate-600">
+                <span className={`h-1.5 w-1.5 rounded-full ${r.dot}`} />
+                {r.label}
+              </span>
+              <span className="num text-slate-500">
+                <span className="font-semibold text-ink">{r.count}</span>
+                {total > 0 && <span className="ml-1 text-slate-400">{pct}%</span>}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+
+      {total === 0 && (
+        <p className="mt-3 text-[12px] text-slate-400">No production orders yet.</p>
+      )}
     </DashboardCard>
   );
 }

@@ -13,7 +13,8 @@ export function DashboardSectionHeading({
   return (
     <div className="mb-3 mt-1 flex items-baseline justify-between gap-3 border-b border-slate-200 pb-2">
       <div className="min-w-0">
-        <h2 className="text-sm font-bold uppercase tracking-[0.12em] text-slate-700 md:text-[13px]">
+        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.12em] text-slate-700 md:text-[13px]">
+          <span aria-hidden className="inline-block h-3 w-1 rounded-full bg-brand-500" />
           {title}
         </h2>
         {subtitle && (

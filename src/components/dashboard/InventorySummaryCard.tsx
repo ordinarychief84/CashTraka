@@ -1,13 +1,14 @@
-import { Package, Boxes, AlertTriangle, XCircle, ArrowUp } from 'lucide-react';
+import { Package, Boxes, AlertTriangle, XCircle } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { inventoryService } from '@/lib/services/inventory.service';
 import { DashboardCard } from './DashboardCard';
 
 /**
- * Inventory Summary — a donut showing overall stock health on the
- * right, and a 4-row breakdown (total products / raw materials / low
- * stock / out of stock) on the left.
+ * Inventory Summary — compact 4-row breakdown with a tight stock-health
+ * progress bar at the top. The previous design used a 112 px donut and
+ * a hardcoded "+9% vs last week" delta that was never connected to real
+ * data — both have been removed in favour of an honest at-a-glance view.
  */
 export async function InventorySummaryCard({ userId }: { userId: string }) {
   const [
@@ -33,91 +34,97 @@ export async function InventorySummaryCard({ userId }: { userId: string }) {
   const lowStockTotal = lowStockProductsList.length + lowStockMaterialsList.length;
   const outOfStockTotal = outOfStockProducts + outOfStockMaterials;
   const totalItems = totalProducts + totalMaterials;
-  // Healthy = total - low - out
   const healthy = Math.max(0, totalItems - lowStockTotal - outOfStockTotal);
   const healthyPct = totalItems > 0 ? Math.round((healthy / totalItems) * 100) : 100;
 
-  // Donut: healthy (success), low (owed), out-of-stock (rose), rest neutral.
-  const lowPct = totalItems > 0 ? (lowStockTotal / totalItems) * 100 : 0;
-  const outPct = totalItems > 0 ? (outOfStockTotal / totalItems) * 100 : 0;
   const healthyPctFloat = totalItems > 0 ? (healthy / totalItems) * 100 : 100;
-  const conicStops = totalItems === 0
-    ? 'conic-gradient(#E5E7EB 0% 100%)'
-    : `conic-gradient(
-        #8BD91E 0% ${healthyPctFloat.toFixed(2)}%,
-        #F59E0B ${healthyPctFloat.toFixed(2)}% ${(healthyPctFloat + lowPct).toFixed(2)}%,
-        #EF4444 ${(healthyPctFloat + lowPct).toFixed(2)}% ${(healthyPctFloat + lowPct + outPct).toFixed(2)}%
-      )`;
+  const lowPctFloat = totalItems > 0 ? (lowStockTotal / totalItems) * 100 : 0;
+  const outPctFloat = totalItems > 0 ? (outOfStockTotal / totalItems) * 100 : 0;
 
   type Row = {
     Icon: LucideIcon;
     label: string;
     iconTone: 'brand' | 'success' | 'owed' | 'rose';
+    value: number;
+    href: string;
   };
+
   const rows: Row[] = [
-    { Icon: Package, label: 'Total Products', iconTone: 'brand' },
-    { Icon: Boxes, label: 'Raw Materials', iconTone: 'success' },
-    { Icon: AlertTriangle, label: 'Low Stock Items', iconTone: 'owed' },
-    { Icon: XCircle, label: 'Out of Stock Items', iconTone: 'rose' },
+    { Icon: Package,        label: 'Total products',     iconTone: 'brand',   value: totalProducts,   href: '/products' },
+    { Icon: Boxes,          label: 'Raw materials',      iconTone: 'success', value: totalMaterials,  href: '/materials' },
+    { Icon: AlertTriangle,  label: 'Low stock items',    iconTone: 'owed',    value: lowStockTotal,   href: '/inventory?filter=low' },
+    { Icon: XCircle,        label: 'Out of stock',       iconTone: 'rose',    value: outOfStockTotal, href: '/inventory?filter=oos' },
   ];
 
   const ICON_TONE: Record<Row['iconTone'], string> = {
-    brand: 'bg-brand-50 text-brand-700',
-    success: 'bg-success-100 text-success-700',
-    owed: 'bg-owed-50 text-owed-700',
-    rose: 'bg-rose-50 text-rose-700',
+    brand:   'bg-brand-50 text-brand-700',
+    success: 'bg-success-50 text-success-700',
+    owed:    'bg-owed-50 text-owed-700',
+    rose:    'bg-rose-50 text-rose-700',
   };
 
-  const values: Record<string, number> = {
-    'Total Products': totalProducts,
-    'Raw Materials': totalMaterials,
-    'Low Stock Items': lowStockTotal,
-    'Out of Stock Items': outOfStockTotal,
-  };
+  // Tone the headline number with the actual health: green if mostly
+  // healthy, amber if there's noticeable low-stock pressure, rose if
+  // out-of-stock dominates.
+  const headlineTone =
+    totalItems === 0
+      ? 'text-slate-400'
+      : healthyPct >= 80
+        ? 'text-success-700'
+        : healthyPct >= 50
+          ? 'text-owed-700'
+          : 'text-rose-700';
 
   return (
-    <DashboardCard title="Inventory Summary" viewAllHref="/inventory">
-      <div className="flex items-center gap-4">
-        <ul className="flex-1 space-y-2.5">
-          {rows.map((r) => (
-            <li key={r.label} className="flex items-center justify-between gap-2">
-              <span className="flex items-center gap-2 text-sm text-slate-600">
-                <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-lg ${ICON_TONE[r.iconTone]}`}
-                >
-                  <r.Icon size={13} />
-                </span>
-                {r.label}
-              </span>
-              <span className="num text-sm font-bold text-ink">
-                {values[r.label] ?? 0}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="flex flex-col items-center">
-          <div className="relative h-28 w-28">
-            <div className="absolute inset-0 rounded-full" style={{ background: conicStops }} />
-            <div className="absolute inset-[22%] rounded-full bg-white" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="num text-xl font-black leading-none text-ink">
-                {healthyPct}%
-              </div>
-              <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                Healthy
-              </div>
-              <div className="text-[9px] font-semibold uppercase tracking-wide text-slate-500">
-                Stock
-              </div>
-            </div>
+    <DashboardCard title="Inventory summary" viewAllHref="/inventory">
+      {/* Health headline */}
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <div>
+          <div className="flex items-baseline gap-1.5">
+            <span className={`num text-2xl font-black leading-none ${headlineTone}`}>
+              {healthyPct}%
+            </span>
+            <span className="text-[11px] font-medium text-slate-500">healthy stock</span>
           </div>
-          <div className="mt-2 inline-flex items-center gap-0.5 text-[11px] font-semibold text-success-700">
-            <ArrowUp size={11} />
-            9% vs last week
-          </div>
+          <p className="mt-1 text-[11px] text-slate-400">
+            {totalItems === 0
+              ? 'No items tracked yet'
+              : `${healthy} of ${totalItems} items in good standing`}
+          </p>
         </div>
       </div>
+
+      {/* Stacked health bar */}
+      <div className="mb-4 flex h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        {totalItems > 0 ? (
+          <>
+            {healthyPctFloat > 0 && (
+              <div className="bg-success-500" style={{ width: `${healthyPctFloat}%` }} />
+            )}
+            {lowPctFloat > 0 && (
+              <div className="bg-owed-500" style={{ width: `${lowPctFloat}%` }} />
+            )}
+            {outPctFloat > 0 && (
+              <div className="bg-rose-500" style={{ width: `${outPctFloat}%` }} />
+            )}
+          </>
+        ) : null}
+      </div>
+
+      {/* 4-row breakdown */}
+      <ul className="space-y-2">
+        {rows.map((r) => (
+          <li key={r.label} className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2 text-[13px] text-slate-600">
+              <span className={`flex h-6 w-6 items-center justify-center rounded-md ${ICON_TONE[r.iconTone]}`}>
+                <r.Icon size={12} />
+              </span>
+              {r.label}
+            </span>
+            <span className="num text-[13px] font-bold text-ink">{r.value}</span>
+          </li>
+        ))}
+      </ul>
     </DashboardCard>
   );
 }

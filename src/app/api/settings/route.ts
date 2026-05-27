@@ -50,6 +50,15 @@ export async function POST(req: Request) {
     vatRegistered,
     vatRate,
     firsMerchantId,
+    phoneNumber,
+    website,
+    eanNumber,
+    vatNumber,
+    postcode,
+    city,
+    country,
+    street2,
+    generalStartingNumber,
   } = parsed.data;
 
   // Only update fields that were actually sent. Previously every absent
@@ -68,6 +77,15 @@ export async function POST(req: Request) {
   if (vatRegistered !== undefined) data.vatRegistered = vatRegistered;
   if (vatRate !== undefined) data.vatRate = vatRate;
   if (firsMerchantId !== undefined) data.firsMerchantId = firsMerchantId?.trim() || null;
+  if (phoneNumber !== undefined) data.phoneNumber = phoneNumber?.trim() || null;
+  if (website !== undefined) data.website = website?.trim() || null;
+  if (eanNumber !== undefined) data.eanNumber = eanNumber?.trim() || null;
+  if (vatNumber !== undefined) data.vatNumber = vatNumber?.trim() || null;
+  if (postcode !== undefined) data.postcode = postcode?.trim() || null;
+  if (city !== undefined) data.city = city?.trim() || null;
+  if (country !== undefined) data.country = country?.trim() || null;
+  if (street2 !== undefined) data.street2 = street2?.trim() || null;
+  if (generalStartingNumber !== undefined) data.generalStartingNumber = generalStartingNumber;
 
   await prisma.user.update({
     where: { id: user.id },

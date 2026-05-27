@@ -44,6 +44,22 @@ model User {
   bankAccountNumber String?
   bankAccountName   String?
 
+  // Multi-tab "General settings" fields (Numbers / Information / Addresses / Banking).
+  // `businessAddress` below stays as the freeform single-line legacy
+  // field; the structured fields here populate the Information tab.
+  phoneNumber           String?
+  website               String?
+  eanNumber             String?
+  vatNumber             String?
+  postcode              String?
+  city                  String?
+  country               String?
+  street2               String?
+  /// Anchor for sequence helpers (`nextCustomerOrderNumber`,
+  /// `nextPoNumber`, …) when the table is empty. Editable in
+  /// /settings General > Numbers.
+  generalStartingNumber Int     @default(1001)
+
   /// Address line shown on invoices.
   businessAddress String?
   /// URL of the seller's logo (uploaded via Cloudinary) — printed on receipts & invoices.
@@ -208,6 +224,8 @@ model User {
   deliveryTermDefs    DeliveryTermDef[]
   apiKeys             ApiKey[]
   emailLogs           EmailLog[]
+  businessAddresses   BusinessAddress[]
+  bankAccounts        BankAccount[]
   createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
   promisesToPay       PromiseToPay[]
   installmentPlans    InstallmentPlan[]
@@ -2988,4 +3006,56 @@ model EmailLog {
   @@index([userId, sentAt])
   @@index([userId, toEmail, sentAt])
   @@index([userId, status, sentAt])
+}
+
+/// Address book attached to the company profile. Each tenant can
+/// have multiple named addresses (warehouse, pickup point, billing
+/// office, …) used as defaults across documents.
+model BusinessAddress {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  street    String?
+  street2   String?
+  postcode  String?
+  city      String?
+  country   String?
+  phone     String?
+  email     String?
+  attention String?
+  /// Free-text Location field shown in the Rackbeat-style modal —
+  /// used to tag an address to a warehouse/location code.
+  location  String?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+}
+
+/// Bank account book — replaces the User.bankName / bankAccountNumber
+/// / bankAccountName triplet for tenants who want to maintain multiple
+/// accounts. The legacy User fields stay for back-compat and are
+/// migrated into a "Standard bank" row on first access.
+model BankAccount {
+  id             String    @id @default(cuid())
+  userId         String
+  name           String
+  bankName       String?
+  registrationNo String?
+  accountNumber  String?
+  iban           String?
+  swift          String?
+  fiNumber       String?
+  isDefault      Boolean   @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
 }

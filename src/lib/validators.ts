@@ -81,6 +81,22 @@ export const settingsSchema = z.object({
   vatRate: z.coerce.number().min(0).max(50).optional(),
   /// FIRS MBS merchant ID (provided by FIRS once the business onboards).
   firsMerchantId: z.string().trim().max(64).optional().or(z.literal('')),
+
+  /// ── General settings > Information tab ──────────────────────
+  /// Phone, website, EAN, VAT no., postcode, city, country, street2
+  /// surfaced via the structured General > Information form. Empty
+  /// strings clear the field.
+  phoneNumber: z.string().trim().max(30).optional().or(z.literal('')),
+  website: z.string().trim().max(200).optional().or(z.literal('')),
+  eanNumber: z.string().trim().max(20).optional().or(z.literal('')),
+  vatNumber: z.string().trim().max(40).optional().or(z.literal('')),
+  postcode: z.string().trim().max(20).optional().or(z.literal('')),
+  city: z.string().trim().max(80).optional().or(z.literal('')),
+  country: z.string().trim().max(80).optional().or(z.literal('')),
+  street2: z.string().trim().max(200).optional().or(z.literal('')),
+  /// General > Numbers tab. The single anchor used by sequence
+  /// helpers when an entity table is empty.
+  generalStartingNumber: z.coerce.number().int().min(1).max(10_000_000).optional(),
 });
 
 export const fraudReportSchema = z.object({

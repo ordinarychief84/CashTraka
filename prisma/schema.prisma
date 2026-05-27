@@ -204,6 +204,10 @@ model User {
   reminderRules       ReminderRule[]
   reminderLogs        ReminderLog[]
   customerNotes       CustomerNote[]
+  paymentTermDefs     PaymentTermDef[]
+  deliveryTermDefs    DeliveryTermDef[]
+  apiKeys             ApiKey[]
+  emailLogs           EmailLog[]
   createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
   promisesToPay       PromiseToPay[]
   installmentPlans    InstallmentPlan[]
@@ -2870,4 +2874,118 @@ model ManufacturingTaskActivity {
 
   @@index([manufacturingTaskId, createdAt])
   @@index([userId, createdAt])
+}
+
+// ============================================================
+// SETTINGS-MANAGED REFERENCE DATA
+// ============================================================
+// Per-tenant terms and integration credentials. All tenant-scoped
+// via `userId` and soft-deleted with `deletedAt`. Names are
+// case-insensitively unique per user so the same term can't be
+// double-defined (e.g. "Net 30" twice).
+
+/// Customer/supplier payment windows. Referenced from the customer
+/// and supplier create forms — previously hardcoded {Net 30, Net 60,
+/// Immediate}, now driven from this table so each tenant can model
+/// their own terms ("PoP within 7 days", "End of month + 30", etc).
+model PaymentTermDef {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  /// Optional plain-English description shown as a tooltip.
+  description String?
+  /// Days-from-issue the invoice falls due. Nullable for non-time
+  /// based terms ("Cash on delivery", "Prepaid").
+  netDays     Int?
+  /// Marks the term shown by default in new-customer / new-supplier
+  /// forms. Only ONE row per user can be default — enforced at the
+  /// service layer (Prisma doesn't have partial-unique indexes).
+  isDefault   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
+}
+
+/// Standard incoterms (EXW, FOB, CIF, DDP, …) per tenant. Same
+/// shape and rationale as PaymentTermDef.
+model DeliveryTermDef {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  isDefault   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+  @@index([userId, isDefault])
+}
+
+/// Tenant-issued API keys for programmatic access. Stores the SHA-256
+/// hash, never the raw token — the raw value is shown to the user
+/// once on create and never recoverable. `lastFour` is kept so the
+/// list view can show e.g. "ct_live_••••a3f7" for identification.
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  /// Human-readable label, e.g. "Zapier sync" or "Internal CRM bot".
+  name       String
+  /// SHA-256 hex of the secret. Never store the raw token.
+  hash       String    @unique
+  /// "ct_live" | "ct_test". Lets the auth layer route to sandbox vs
+  /// production behaviour without an extra DB lookup.
+  prefix     String    @default("ct_live")
+  /// Last 4 chars of the raw token — purely for UI identification.
+  lastFour   String
+  /// Optional scopes (comma-separated). Empty = full access.
+  scopes     String?
+  /// Wallclock of the most recent successful API call.
+  lastUsedAt DateTime?
+  /// Set when a user revokes a key. Past keys are kept (not deleted)
+  /// so audit logs and webhooks remain attributable.
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+}
+
+/// Delivery log for transactional emails sent via Resend. Populated
+/// by the /api/webhooks/resend route (events: delivered, bounced,
+/// complained, opened, clicked). Indexed by recipient + sent time so
+/// the Settings > E-mail log view can answer "what did we send to
+/// X?" in one query.
+model EmailLog {
+  id          String   @id @default(cuid())
+  userId      String
+  /// Resend's `email_id` so subsequent webhook events can update the
+  /// same row in place (status, bouncedAt, openedAt …). Unique.
+  resendId    String   @unique
+  toEmail     String
+  fromEmail   String
+  subject     String
+  /// "delivered" | "bounced" | "complained" | "opened" | "clicked"
+  /// | "queued" | "sent" | "failed"
+  status      String   @default("queued")
+  /// Free-text category from the sender (e.g. "invoice", "receipt",
+  /// "reminder") — set when the send is enqueued.
+  category    String?
+  errorReason String?
+  sentAt      DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sentAt])
+  @@index([userId, toEmail, sentAt])
+  @@index([userId, status, sentAt])
 }

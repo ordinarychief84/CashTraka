@@ -12,6 +12,8 @@
  * the function returns `{ ok, id?, error? }` and the caller decides what to do.
  */
 
+import { recordEmailSend } from '@/lib/services/email-log.service';
+
 type SendResult = { ok: boolean; id?: string; error?: string };
 
 async function send(args: {
@@ -19,6 +21,10 @@ async function send(args: {
   subject: string;
   html: string;
   attachments?: { filename: string; content: string /* base64 */ }[];
+  /** Owning tenant — used so the e-mail log row scopes to the sender. */
+  userId?: string;
+  /** Free-text category for the e-mail log ("invoice", "receipt", …). */
+  category?: string;
 }): Promise<SendResult> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
@@ -44,7 +50,19 @@ async function send(args: {
     if (!res.ok) {
       return { ok: false, error: data?.message || data?.error?.message || `Resend ${res.status}` };
     }
-    return { ok: true, id: data?.id };
+    const resendId = data?.id;
+    // Best-effort log — never block a successful send on logging.
+    if (resendId && args.userId) {
+      recordEmailSend({
+        userId: args.userId,
+        resendId,
+        toEmail: args.to,
+        fromEmail: from,
+        subject: args.subject,
+        category: args.category ?? null,
+      });
+    }
+    return { ok: true, id: resendId };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Send failed' };
   }

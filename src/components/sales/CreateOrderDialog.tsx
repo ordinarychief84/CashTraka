@@ -75,7 +75,7 @@ export function CreateOrderDialog({ open, onClose, customers }: Props) {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl flex flex-col">
+      <div className="relative z-10 mx-3 w-full max-w-sm rounded-xl bg-white shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h2 className="text-[15px] font-semibold text-slate-900">Create order</h2>

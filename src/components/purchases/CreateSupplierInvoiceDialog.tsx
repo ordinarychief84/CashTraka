@@ -75,7 +75,7 @@ export function CreateSupplierInvoiceDialog({ open, onClose, suppliers }: Props)
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
+      <div className="relative z-10 mx-3 w-full max-w-sm rounded-xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <h2 className="text-[15px] font-semibold text-slate-900">

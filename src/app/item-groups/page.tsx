@@ -67,7 +67,7 @@ export default function ItemGroupsPage() {
     <div className="min-h-screen bg-slate-50">
       {/* Inline shell — no AppShell import to avoid server/client mismatch */}
       <div className="container-app py-5 md:py-8">
-        <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+        <div className="flex flex-col md:flex-row md:min-h-[calc(100vh-8rem)] md:gap-6">
           <ItemsSubNav />
 
           <div className="flex-1 min-w-0">

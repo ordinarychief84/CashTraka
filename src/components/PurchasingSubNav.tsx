@@ -29,13 +29,13 @@ const SUPPLIERS: SubNavItem[] = [
   { label: 'Supplier groups', href: '/supplier-groups', icon: <Layers size={14} /> },
 ];
 
-function SubLink({ item }: { item: SubNavItem }) {
+function useActive(href: string) {
   const pathname = usePathname();
-  const active =
-    pathname === item.href ||
-    pathname.startsWith(item.href + '/') ||
-    pathname.startsWith(item.href + '?');
+  return pathname === href || pathname.startsWith(href + '/') || pathname.startsWith(href + '?');
+}
 
+function SubLink({ item }: { item: SubNavItem }) {
+  const active = useActive(item.href);
   return (
     <Link
       href={item.href}
@@ -62,26 +62,57 @@ function SubLink({ item }: { item: SubNavItem }) {
   );
 }
 
+function MobilePill({ item }: { item: SubNavItem }) {
+  const active = useActive(item.href);
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        'inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] transition-colors',
+        active
+          ? 'border-brand-500 bg-brand-50 font-semibold text-brand-700'
+          : 'border-slate-200 bg-white font-normal text-slate-600 hover:bg-slate-50',
+      )}
+    >
+      <span className={active ? 'text-brand-600' : 'text-slate-400'}>{item.icon}</span>
+      {item.label}
+    </Link>
+  );
+}
+
 export function PurchasingSubNav() {
   return (
-    <aside className="hidden w-44 shrink-0 border-r border-slate-200 pr-2 md:block">
-      <div className="mb-1 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-        Purchasing
-      </div>
-      <nav className="flex flex-col gap-0.5">
-        {PURCHASING.map((item) => (
-          <SubLink key={item.href} item={item} />
+    <>
+      {/* Mobile: horizontal scroll pill bar */}
+      <nav
+        aria-label="Purchasing sub-navigation"
+        className="md:hidden -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {[...PURCHASING, ...SUPPLIERS].map((item) => (
+          <MobilePill key={item.href} item={item} />
         ))}
       </nav>
 
-      <div className="mb-1 mt-4 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-        Suppliers
-      </div>
-      <nav className="flex flex-col gap-0.5">
-        {SUPPLIERS.map((item) => (
-          <SubLink key={item.href} item={item} />
-        ))}
-      </nav>
-    </aside>
+      {/* Desktop: vertical sidebar */}
+      <aside className="hidden w-44 shrink-0 border-r border-slate-200 pr-2 md:block">
+        <div className="mb-1 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          Purchasing
+        </div>
+        <nav className="flex flex-col gap-0.5">
+          {PURCHASING.map((item) => (
+            <SubLink key={item.href} item={item} />
+          ))}
+        </nav>
+
+        <div className="mb-1 mt-4 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+          Suppliers
+        </div>
+        <nav className="flex flex-col gap-0.5">
+          {SUPPLIERS.map((item) => (
+            <SubLink key={item.href} item={item} />
+          ))}
+        </nav>
+      </aside>
+    </>
   );
 }

@@ -53,7 +53,7 @@ export default async function RecipesPage() {
       principalName={user.principalName}
     >
       {/* Two-column layout: secondary sidebar + main content */}
-      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+      <div className="flex flex-col md:flex-row md:min-h-[calc(100vh-8rem)] md:gap-6">
         <ItemsSubNav />
 
         {/* Main content */}

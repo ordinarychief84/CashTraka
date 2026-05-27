@@ -113,15 +113,15 @@ export function NewSupplierForm() {
         </button>
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex gap-5 items-start">
+      {/* Two-column layout — stacks on mobile */}
+      <div className="flex flex-col gap-5 items-start lg:flex-row">
 
         {/* ── Main form ── */}
         <div className="flex-1 min-w-0 space-y-4">
 
           {/* General + Settings */}
           <div className="rounded-xl border border-slate-200 bg-white p-5">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
 
               {/* General */}
               <div>
@@ -282,7 +282,7 @@ export function NewSupplierForm() {
         </div>
 
         {/* ── Right panel ── */}
-        <div className="w-60 shrink-0 space-y-4">
+        <div className="w-full shrink-0 space-y-4 lg:w-60">
 
           {/* Contact */}
           <div className="rounded-xl border border-slate-200 bg-white p-4">

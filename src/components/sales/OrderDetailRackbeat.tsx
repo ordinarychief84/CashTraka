@@ -118,7 +118,7 @@ export function OrderDetailRackbeat({ order }: Props) {
     <div className="min-h-screen bg-slate-50">
       {/* ── Page header ── */}
       <div className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-3">
+        <div className="flex items-center justify-between px-3 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <Link href="/orders" className="text-[13px] text-slate-400 hover:text-slate-600">
               ← Orders
@@ -213,8 +213,8 @@ export function OrderDetailRackbeat({ order }: Props) {
       )}
 
       {/* ── Three-column body ── */}
-      <div className="px-6 py-5">
-        <div className="grid grid-cols-3 gap-5 items-start">
+      <div className="px-3 py-4 sm:px-6 sm:py-5">
+        <div className="grid grid-cols-1 gap-5 items-start lg:grid-cols-3">
 
           {/* ── Col 1: Customer ── */}
           <div className="rounded-xl border border-slate-200 bg-white p-5">

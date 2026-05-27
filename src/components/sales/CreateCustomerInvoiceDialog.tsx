@@ -60,7 +60,7 @@ export function CreateCustomerInvoiceDialog({ open, onClose, customers }: Props)
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-sm rounded-xl bg-white shadow-xl">
+      <div className="relative z-10 mx-3 w-full max-w-sm rounded-xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h2 className="text-[15px] font-semibold text-slate-900">

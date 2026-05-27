@@ -16,7 +16,7 @@ export default async function NewSupplierPage() {
       accessRole={user.accessRole}
       principalName={user.principalName}
     >
-      <div className="flex min-h-[calc(100vh-8rem)] gap-6">
+      <div className="flex flex-col md:flex-row md:min-h-[calc(100vh-8rem)] md:gap-6">
         <PurchasingSubNav />
 
         <div className="flex-1 min-w-0">

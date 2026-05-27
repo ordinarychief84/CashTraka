@@ -8,7 +8,22 @@ import { Err } from '@/lib/errors';
  * Supplier sub-tabs can ask for exactly what they need.
  */
 
-export const ENTITY_TYPES = ['ITEM', 'CUSTOMER', 'SUPPLIER'] as const;
+/**
+ * Where a custom field attaches:
+ *   ITEM       → product master record (one-shot, on each product)
+ *   CUSTOMER   → customer master record
+ *   SUPPLIER   → supplier master record
+ *   PURCHASING → document-level field on purchase orders / supplier
+ *                invoices / receipts (per-document, not per-supplier)
+ *   SALES      → document-level field on offers / orders / invoices
+ *                / shipments (per-document, not per-customer)
+ *
+ * The split between SUPPLIER+PURCHASING and CUSTOMER+SALES is
+ * intentional: tenants typically want some fields on the master
+ * record ("supplier rating") and others on individual documents
+ * ("expected delivery slot").
+ */
+export const ENTITY_TYPES = ['ITEM', 'CUSTOMER', 'SUPPLIER', 'PURCHASING', 'SALES'] as const;
 export const FIELD_TYPES = ['TEXT', 'TEXT_LONG', 'NUMBER', 'DATE', 'CHECKBOX'] as const;
 
 export type EntityType = (typeof ENTITY_TYPES)[number];

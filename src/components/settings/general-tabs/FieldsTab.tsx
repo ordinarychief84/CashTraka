@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, Trash2, Loader2 } from 'lucide-react';
 
-export type EntityType = 'ITEM' | 'CUSTOMER' | 'SUPPLIER';
+export type EntityType = 'ITEM' | 'CUSTOMER' | 'SUPPLIER' | 'PURCHASING' | 'SALES';
 export type FieldType = 'TEXT' | 'TEXT_LONG' | 'NUMBER' | 'DATE' | 'CHECKBOX';
 
 export interface CustomFieldRow {
@@ -27,10 +27,12 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
   CHECKBOX: 'Checkbox',
 };
 
-const SUB_TABS: { id: EntityType; label: string }[] = [
-  { id: 'ITEM', label: 'Item' },
-  { id: 'CUSTOMER', label: 'Customer' },
-  { id: 'SUPPLIER', label: 'Supplier' },
+const SUB_TABS: { id: EntityType; label: string; panel: string; emptyNoun: string }[] = [
+  { id: 'ITEM',       label: 'Item',       panel: 'Item fields',       emptyNoun: 'items'    },
+  { id: 'CUSTOMER',   label: 'Customer',   panel: 'Customer fields',   emptyNoun: 'customers'},
+  { id: 'SUPPLIER',   label: 'Supplier',   panel: 'Supplier fields',   emptyNoun: 'suppliers'},
+  { id: 'PURCHASING', label: 'Purchasing', panel: 'Purchasing fields', emptyNoun: 'purchase documents' },
+  { id: 'SALES',      label: 'Sales',      panel: 'Sales fields',      emptyNoun: 'sales documents'    },
 ];
 
 const inputCls =
@@ -83,7 +85,7 @@ export function FieldsTab({ initialRows }: Props) {
       <div className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-[14px] font-semibold text-brand-700">
-            {SUB_TABS.find((t) => t.id === subTab)?.label} fields
+            {SUB_TABS.find((t) => t.id === subTab)?.panel}
           </p>
           <button
             type="button"
@@ -97,7 +99,7 @@ export function FieldsTab({ initialRows }: Props) {
 
         {visible.length === 0 ? (
           <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/50 px-6 py-10 text-center text-[13px] text-slate-500">
-            No custom fields for {SUB_TABS.find((t) => t.id === subTab)?.label.toLowerCase()}s yet.
+            No custom fields for {SUB_TABS.find((t) => t.id === subTab)?.emptyNoun} yet.
           </div>
         ) : (
           <div className="overflow-hidden rounded-lg border border-slate-200">

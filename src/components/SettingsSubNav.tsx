@@ -32,7 +32,7 @@ const GROUPS: NavGroup[] = [
   {
     label: 'System',
     items: [
-      { label: 'Users',              href: '/team/manage' },
+      { label: 'Users',              href: '/settings/users' },
       { label: 'Billing',            href: '/billing' },
       { label: 'Integrations',       href: '/settings/integrations' },
       { label: 'Integration issues', href: '/settings/integration-issues' },

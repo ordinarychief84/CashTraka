@@ -1193,6 +1193,15 @@ model StaffMember {
   nextOfKinPhone    String?
   notes             String?
   status            String    @default("active")
+  /// Locale code from the Settings > Users create form ("EN", "FR").
+  language          String    @default("EN")
+  /// "STANDARD" (full web + mobile) | "SCANNER" (mobile scanner only).
+  userType          String    @default("STANDARD")
+  /// Mobile-app flags from the Edit user form.
+  autoBookAdjustments Boolean @default(false)
+  autoBookMovements   Boolean @default(false)
+  /// Optional free-text HR pointer ("John Administration", …).
+  associatedEmployee  String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

@@ -19,6 +19,8 @@ export type TermCreateInput = {
   description?: string | null;
   /** Only meaningful for PaymentTermDef; ignored by delivery terms. */
   netDays?: number | null;
+  /** Payment-term category: NET / CURRENT_MONTH / PAID_IN_CASH / … */
+  type?: string | null;
   isDefault?: boolean;
 };
 
@@ -78,6 +80,7 @@ export const paymentTermsService = {
           name,
           description,
           netDays,
+          type: cleanStr(input.type),
           isDefault: !!input.isDefault,
         },
       });
@@ -92,6 +95,7 @@ export const paymentTermsService = {
     const data: Record<string, unknown> = {};
     if (input.name != null) data.name = validateName(input.name);
     if ('description' in input) data.description = cleanStr(input.description);
+    if ('type' in input) data.type = cleanStr(input.type);
     if ('netDays' in input) {
       data.netDays =
         typeof input.netDays === 'number' && Number.isFinite(input.netDays)

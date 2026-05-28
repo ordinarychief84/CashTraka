@@ -9,6 +9,10 @@ const UpdateSchema = z.object({
   name: z.string().trim().min(1).max(100).optional(),
   description: z.string().trim().max(500).nullable().optional(),
   netDays: z.number().int().min(0).max(3650).nullable().optional(),
+  type: z
+    .enum(['NET','CURRENT_MONTH','PAID_IN_CASH','PREPAYMENT','DUE_DATE','FACTORING','CURRENT_WEEK_MONDAY'])
+    .nullable()
+    .optional(),
   isDefault: z.boolean().optional(),
 });
 

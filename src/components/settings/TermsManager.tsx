@@ -9,6 +9,7 @@ export interface TermRow {
   name: string;
   description: string | null;
   netDays?: number | null;
+  type?: string | null;
   isDefault: boolean;
 }
 
@@ -18,11 +19,13 @@ interface Props {
   endpoint: 'payment-terms' | 'delivery-terms';
   /** Whether the form exposes a "Net days" field (payment terms only). */
   showNetDays: boolean;
+  /** Optional "Type" dropdown options. Empty → field is not rendered. */
+  typeOptions?: { value: string; label: string }[];
   /** Singular noun for empty state + button copy ("payment term", "delivery term"). */
   singular: string;
 }
 
-export function TermsManager({ initialRows, endpoint, showNetDays, singular }: Props) {
+export function TermsManager({ initialRows, endpoint, showNetDays, typeOptions, singular }: Props) {
   const router = useRouter();
   const [rows, setRows] = useState<TermRow[]>(initialRows);
   const [pending, startTransition] = useTransition();
@@ -31,14 +34,18 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [netDays, setNetDays] = useState<string>('');
+  const [termType, setTermType] = useState('');
   const [isDefault, setIsDefault] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const showTypeField = !!typeOptions && typeOptions.length > 0;
 
   function resetForm() {
     setName('');
     setDescription('');
     setNetDays('');
+    setTermType('');
     setIsDefault(false);
     setError(null);
   }
@@ -58,6 +65,9 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
       };
       if (showNetDays) {
         body.netDays = netDays === '' ? null : Number(netDays);
+      }
+      if (showTypeField) {
+        body.type = termType || null;
       }
       const res = await fetch(`/api/settings/${endpoint}`, {
         method: 'POST',
@@ -142,7 +152,7 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
             </button>
           </div>
 
-          <div className={`grid gap-3 ${showNetDays ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <label className="mb-1 block text-[11px] font-medium text-slate-600">
                 Name <span className="text-red-500">*</span>
@@ -156,18 +166,21 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
                 className="h-9 w-full rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-300"
               />
             </div>
-            <div className={showNetDays ? '' : 'md:col-span-1'}>
-              <label className="mb-1 block text-[11px] font-medium text-slate-600">
-                Description
-              </label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder={showNetDays ? 'Due 30 days from invoice date' : 'Ex Works — buyer collects'}
-                className="h-9 w-full rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-300"
-              />
-            </div>
+            {showTypeField && (
+              <div>
+                <label className="mb-1 block text-[11px] font-medium text-slate-600">Type</label>
+                <select
+                  value={termType}
+                  onChange={(e) => setTermType(e.target.value)}
+                  className="h-9 w-full rounded-md border border-slate-300 bg-white px-3 pr-8 text-[13px] text-slate-700 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-300"
+                >
+                  <option value="">—</option>
+                  {typeOptions!.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {showNetDays && (
               <div>
                 <label className="mb-1 block text-[11px] font-medium text-slate-600">
@@ -184,6 +197,18 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
                 />
               </div>
             )}
+            <div className="md:col-span-2 lg:col-span-2">
+              <label className="mb-1 block text-[11px] font-medium text-slate-600">
+                Description
+              </label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={showNetDays ? 'Due 30 days from invoice date' : 'Ex Works — buyer collects'}
+                className="h-9 w-full rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 outline-none focus:border-brand-400 focus:ring-1 focus:ring-brand-300"
+              />
+            </div>
           </div>
 
           <label className="mt-3 flex cursor-pointer items-center gap-2 text-[12px] text-slate-700">
@@ -238,6 +263,7 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
             <thead>
               <tr className="border-b border-slate-100 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
                 <th className="px-4 py-2.5">Name</th>
+                {showTypeField && <th className="px-4 py-2.5">Type</th>}
                 <th className="px-4 py-2.5">Description</th>
                 {showNetDays && <th className="px-4 py-2.5 text-right">Net days</th>}
                 <th className="px-4 py-2.5">Default</th>
@@ -248,6 +274,11 @@ export function TermsManager({ initialRows, endpoint, showNetDays, singular }: P
               {rows.map((r) => (
                 <tr key={r.id} className="hover:bg-slate-50/60">
                   <td className="px-4 py-3 font-medium text-slate-800">{r.name}</td>
+                  {showTypeField && (
+                    <td className="px-4 py-3 text-slate-600">
+                      {typeOptions!.find((o) => o.value === r.type)?.label ?? '—'}
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-slate-600">{r.description ?? '—'}</td>
                   {showNetDays && (
                     <td className="px-4 py-3 text-right text-slate-600">

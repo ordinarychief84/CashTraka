@@ -275,6 +275,9 @@ model User {
   bankAccounts        BankAccount[]
   customFields        CustomField[]
   currencies          Currency[]
+  adjustmentCategories AdjustmentCategory[]
+  languages           LanguageDef[]
+  projects            ProjectDef[]
   createdAdminStaff   AdminStaff[]           @relation("AdminStaffCreator")
   promisesToPay       PromiseToPay[]
   installmentPlans    InstallmentPlan[]
@@ -2961,6 +2964,10 @@ model PaymentTermDef {
   name        String
   /// Optional plain-English description shown as a tooltip.
   description String?
+  /// Term type — drives how `netDays` is interpreted:
+  ///   "NET" / "CURRENT_MONTH" / "PAID_IN_CASH" / "PREPAYMENT" /
+  ///   "DUE_DATE" / "FACTORING" / "CURRENT_WEEK_MONDAY".
+  type        String?
   /// Days-from-issue the invoice falls due. Nullable for non-time
   /// based terms ("Cash on delivery", "Prepaid").
   netDays     Int?
@@ -3158,4 +3165,62 @@ model Currency {
 
   @@unique([userId, code], name: "userId_code")
   @@index([userId, isDefault])
+}
+
+/// Stock-adjustment reason codes shown in /inventory/adjustments and
+/// in PO receive flows. Per-tenant taxonomy; `type` is free-text so
+/// tenants can group (e.g. "Loss", "Gain", "Correction") to suit
+/// their accounting.
+model AdjustmentCategory {
+  id        String    @id @default(cuid())
+  userId    String
+  name      String
+  /// Free-text categorisation: "Loss" / "Gain" / "Correction" / etc.
+  type      String?
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+}
+
+/// Languages available for customer-facing documents (invoices,
+/// receipts, reminders). Lazy-seeded with English + French on first
+/// visit — CashTraka is Africa-first and ECOWAS spans Anglophone
+/// Nigeria/Ghana/Liberia/SL/Gambia AND Francophone Côte d'Ivoire,
+/// Senegal, Mali, Burkina Faso, Benin, Togo, Guinea, Niger.
+model LanguageDef {
+  id        String    @id @default(cuid())
+  userId    String
+  /// Display name in the user's own language ("English", "Français").
+  name      String
+  /// Short locale code: "EN", "FR", "AR", "PT", "SW".
+  code      String
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
+}
+
+/// User-defined projects for cost-tracking. Per-tenant; number +
+/// name are both user-provided (number is not auto-incremented
+/// because Rackbeat lets the user pick their own scheme).
+model ProjectDef {
+  id          String    @id @default(cuid())
+  userId      String
+  number      String
+  name        String
+  description String?
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, deletedAt])
 }

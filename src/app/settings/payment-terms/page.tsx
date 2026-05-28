@@ -14,6 +14,7 @@ export default async function SettingsPaymentTermsPage() {
     name: r.name,
     description: r.description,
     netDays: r.netDays,
+    type: (r as any).type ?? null,
     isDefault: r.isDefault,
   }));
 
@@ -42,6 +43,15 @@ export default async function SettingsPaymentTermsPage() {
             endpoint="payment-terms"
             showNetDays
             singular="payment term"
+            typeOptions={[
+              { value: 'NET',                  label: 'Net' },
+              { value: 'CURRENT_MONTH',        label: 'Current month' },
+              { value: 'PAID_IN_CASH',         label: 'Paid in cash' },
+              { value: 'PREPAYMENT',           label: 'Prepayment' },
+              { value: 'DUE_DATE',             label: 'Due date' },
+              { value: 'FACTORING',            label: 'Factoring' },
+              { value: 'CURRENT_WEEK_MONDAY',  label: 'Current week, starting Monday' },
+            ]}
           />
         </div>
       </div>

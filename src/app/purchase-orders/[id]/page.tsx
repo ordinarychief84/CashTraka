@@ -44,7 +44,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: { id
                     <p className="text-xs text-slate-500">
                       {it.quantity} {it.material.unit} @ {formatKobo(it.unitCostKobo)}
                       {it.quantityReceived > 0 && (
-                        <span className="ml-2 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700">
+                        <span className="ml-2 rounded-full bg-success-50 px-2 py-0.5 text-success-700">
                           {it.quantityReceived} received
                         </span>
                       )}

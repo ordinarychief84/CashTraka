@@ -165,7 +165,7 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
               <AlertTriangle size={14} /> Material readiness
             </h2>
             {shortages.length === 0 ? (
-              <p className="text-sm text-emerald-700">
+              <p className="text-sm text-success-700">
                 Every material is available.
               </p>
             ) : (
@@ -199,7 +199,7 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
                               className={
                                 short
                                   ? 'font-bold text-rose-600'
-                                  : 'text-emerald-600'
+                                  : 'text-success-600'
                               }
                             >
                               {short ? s.shortBy : 'OK'}
@@ -250,11 +250,11 @@ export default async function ProductionDetailPage({ params }: { params: { id: s
                       {order.quantityDamaged ?? 0}
                     </dd>
                   </div>
-                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3">
-                    <dt className="text-[10px] font-bold uppercase text-emerald-700">
+                  <div className="rounded-lg border border-success-100 bg-success-50 p-3">
+                    <dt className="text-[10px] font-bold uppercase text-success-700">
                       Accepted (to stock)
                     </dt>
-                    <dd className="num mt-0.5 text-xl font-black text-emerald-700">
+                    <dd className="num mt-0.5 text-xl font-black text-success-700">
                       {order.quantityAccepted ?? '—'}
                     </dd>
                   </div>

@@ -154,7 +154,7 @@ export function CertificateVault({ initial }: { initial: CertificateRow[] }) {
           </label>
         </div>
         {error ? (
-          <p className="mt-2 text-xs text-red-700" role="alert">{error}</p>
+          <p className="mt-2 text-xs text-rose-700" role="alert">{error}</p>
         ) : null}
         <button type="submit" disabled={submitting} className="btn-primary mt-4 text-sm">
           {submitting ? 'Uploading…' : 'Add certificate'}
@@ -190,7 +190,7 @@ export function CertificateVault({ initial }: { initial: CertificateRow[] }) {
                           <AlertTriangle size={10} /> Expired
                         </span>
                       ) : expiringSoon ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-owed-50 px-2 py-0.5 text-[11px] font-bold text-owed-700">
                           <AlertTriangle size={10} /> {days}d left
                         </span>
                       ) : null}

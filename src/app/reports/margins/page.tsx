@@ -202,7 +202,7 @@ export default async function MarginsReportPage() {
                   <td
                     className={
                       'px-4 py-3 text-right font-bold ' +
-                      (r.marginKobo >= 0 ? 'text-emerald-700' : 'text-rose-700')
+                      (r.marginKobo >= 0 ? 'text-success-700' : 'text-rose-700')
                     }
                   >
                     {formatKobo(r.marginKobo)}
@@ -213,9 +213,9 @@ export default async function MarginsReportPage() {
                       (r.marginPct == null
                         ? 'text-slate-400'
                         : r.marginPct >= 30
-                          ? 'text-emerald-700'
+                          ? 'text-success-700'
                           : r.marginPct >= 10
-                            ? 'text-amber-700'
+                            ? 'text-owed-700'
                             : 'text-rose-700')
                     }
                   >
@@ -249,9 +249,9 @@ function SummaryCard({
 }) {
   const ring =
     tone === 'good'
-      ? 'border-emerald-200 bg-emerald-50/60'
+      ? 'border-success-200 bg-success-50/60'
       : tone === 'warn'
-        ? 'border-amber-200 bg-amber-50/60'
+        ? 'border-owed-200 bg-owed-50/60'
         : tone === 'bad'
           ? 'border-rose-200 bg-rose-50/60'
           : 'border-border bg-white';

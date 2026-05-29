@@ -51,11 +51,11 @@ const SEVERITY_STYLE: Record<
   }
 > = {
   critical: {
-    accent: 'bg-red-500',
-    iconWrap: 'bg-red-50 text-red-600',
-    dot: 'bg-red-500',
+    accent: 'bg-rose-500',
+    iconWrap: 'bg-rose-50 text-rose-600',
+    dot: 'bg-rose-500',
     label: 'Urgent',
-    labelText: 'text-red-600',
+    labelText: 'text-rose-600',
   },
   warning: {
     accent: 'bg-owed-400',
@@ -110,7 +110,7 @@ export function TodayTriage({ items }: { items: TriageItem[] }) {
           <ListChecks size={15} className="text-slate-400" />
           Today&apos;s priorities
           {criticalCount > 0 && (
-            <span className="ml-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-50 px-1.5 text-[10px] font-bold text-red-600 ring-1 ring-red-100">
+            <span className="ml-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-50 px-1.5 text-[10px] font-bold text-rose-600 ring-1 ring-rose-100">
               {criticalCount}
             </span>
           )}

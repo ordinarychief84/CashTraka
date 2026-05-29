@@ -48,8 +48,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_CLS: Record<string, string> = {
   PENDING:     'bg-rose-600 text-white',
-  IN_PROGRESS: 'bg-emerald-600 text-white',
-  ON_HOLD:     'bg-amber-500 text-white',
+  IN_PROGRESS: 'bg-success-600 text-white',
+  ON_HOLD:     'bg-owed-500 text-white',
   DONE:        'bg-slate-500 text-white',
   CANCELLED:   'bg-slate-300 text-slate-700',
 };
@@ -57,7 +57,7 @@ const STATUS_CLS: Record<string, string> = {
 const PRIORITY_CLS: Record<string, string> = {
   LOW:    'bg-slate-100 text-slate-600',
   NORMAL: 'bg-blue-100 text-blue-700',
-  HIGH:   'bg-amber-100 text-amber-700',
+  HIGH:   'bg-owed-100 text-owed-700',
   URGENT: 'bg-rose-100 text-rose-700',
 };
 
@@ -526,7 +526,7 @@ export function ManufacturingTasksTable({ rows }: { rows: TaskRow[] }) {
                         <span className={cn(
                           'font-semibold tabular-nums',
                           days < 0   ? 'text-rose-600'
-                          : days <= 2 ? 'text-amber-600'
+                          : days <= 2 ? 'text-owed-600'
                           : 'text-slate-700',
                         )}>
                           {days < 0 ? days : `+${days}`}
@@ -539,7 +539,7 @@ export function ManufacturingTasksTable({ rows }: { rows: TaskRow[] }) {
                       <div className="flex flex-col gap-1">
                         <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200">
                           <div
-                            className={cn('h-full rounded-full', pct >= 100 ? 'bg-emerald-500' : 'bg-orange-400')}
+                            className={cn('h-full rounded-full', pct >= 100 ? 'bg-success-500' : 'bg-orange-400')}
                             style={{ width: `${pct}%` }}
                           />
                         </div>

@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
 
 const SEVERITY_TONE: Record<string, string> = {
   LOW: 'bg-slate-100 text-slate-700',
-  MEDIUM: 'bg-amber-100 text-amber-800',
+  MEDIUM: 'bg-owed-100 text-owed-800',
   HIGH: 'bg-orange-100 text-orange-700',
   CRITICAL: 'bg-rose-100 text-rose-700',
 };
@@ -290,7 +290,7 @@ export default async function OperationsReportsPage() {
                   >
                     {m.name}
                   </Link>
-                  <span className="text-xs font-semibold text-amber-700">
+                  <span className="text-xs font-semibold text-owed-700">
                     {formatDate(m.expiresAt)}
                   </span>
                 </li>
@@ -368,7 +368,7 @@ export default async function OperationsReportsPage() {
                       {p.quantity} units · {p.orders} orders
                     </div>
                   </div>
-                  <span className="num text-sm font-semibold text-emerald-700">
+                  <span className="num text-sm font-semibold text-success-700">
                     {formatKobo(p.revenueKobo)}
                   </span>
                 </li>
@@ -408,7 +408,7 @@ export default async function OperationsReportsPage() {
                       {r.acceptedQuantity}/{r.plannedQuantity} units
                       {r.damagedQuantity > 0 ? ` · ${r.damagedQuantity} damaged` : ''}
                     </span>
-                    <span className="num font-semibold text-emerald-700">
+                    <span className="num font-semibold text-success-700">
                       Margin {formatKobo(r.marginKobo)}
                     </span>
                   </div>
@@ -523,7 +523,7 @@ function Tile({
     tone === 'rose'
       ? 'text-rose-700'
       : tone === 'amber'
-        ? 'text-amber-700'
+        ? 'text-owed-700'
         : 'text-slate-800';
   return (
     <Link
@@ -580,7 +580,7 @@ function Stat({
 }) {
   const tones: Record<string, string> = {
     rose: 'text-rose-700 border-rose-100 bg-rose-50',
-    emerald: 'text-emerald-700 border-emerald-100 bg-emerald-50',
+    emerald: 'text-success-700 border-success-100 bg-success-50',
     brand: 'text-brand-700 border-brand-100 bg-brand-50',
     default: 'text-slate-700 border-slate-200 bg-slate-50',
   };

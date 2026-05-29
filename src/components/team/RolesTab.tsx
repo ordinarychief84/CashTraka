@@ -154,7 +154,7 @@ export function RolesTab() {
                           type="button"
                           onClick={() => handleDelete(role)}
                           disabled={deleting === role.id}
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50"
                         >
                           <Trash2 size={14} />
                           {deleting === role.id ? 'Deleting…' : 'Delete role'}

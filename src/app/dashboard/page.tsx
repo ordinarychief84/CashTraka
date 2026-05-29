@@ -703,7 +703,7 @@ export default async function DashboardPage() {
                       {staffTaskCounts.pending === 1 ? 'task' : 'tasks'} to finish
                     </span>
                     {staffTaskCounts.overdue > 0 && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
                         <AlertTriangle size={10} />
                         {staffTaskCounts.overdue} overdue
                       </span>
@@ -819,7 +819,7 @@ export default async function DashboardPage() {
                     <span
                       className={
                         'ml-2 text-[11px] font-semibold ' +
-                        (monthDelta >= 0 ? 'text-brand-700' : 'text-red-600')
+                        (monthDelta >= 0 ? 'text-brand-700' : 'text-rose-600')
                       }
                     >
                       {monthDelta >= 0 ? '+' : ''}{monthDelta}% vs last

@@ -213,7 +213,7 @@ export async function OperationalRiskPanel({ userId }: { userId: string }) {
                 >
                   {m.name}
                 </Link>
-                <span className="text-xs font-semibold text-amber-700">
+                <span className="text-xs font-semibold text-owed-700">
                   {m.expiresAt
                     ? new Date(m.expiresAt).toLocaleDateString('en-NG', {
                         day: 'numeric',

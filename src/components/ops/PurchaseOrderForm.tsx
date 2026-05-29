@@ -299,7 +299,7 @@ export function PurchaseOrderForm({
                       {/* Status */}
                       <ColTD>
                         <span className="inline-flex items-center gap-1.5">
-                          <span className="inline-block h-2 w-2 rounded-full bg-amber-400" />
+                          <span className="inline-block h-2 w-2 rounded-full bg-owed-400" />
                           <span className="text-slate-500">Waiting</span>
                         </span>
                       </ColTD>

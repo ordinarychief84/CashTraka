@@ -9,7 +9,7 @@ const STATUS_BAR_TONE: Record<string, string> = {
   MATERIALS_NEEDED: 'bg-owed-100 text-owed-800 border-owed-300',
   READY_TO_PRODUCE: 'bg-brand-100 text-brand-800 border-brand-300',
   IN_PRODUCTION: 'bg-success-100 text-success-800 border-success-300',
-  COMPLETED: 'bg-emerald-200 text-emerald-900 border-emerald-300',
+  COMPLETED: 'bg-success-200 text-success-900 border-success-300',
   DELAYED: 'bg-rose-100 text-rose-800 border-rose-300',
 };
 

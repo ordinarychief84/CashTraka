@@ -39,21 +39,21 @@ export default async function ProductsPage() {
         <div className="flex-1 min-w-0">
           {/* ── Recipe readiness banner ── */}
           {products.length > 0 && recipeCount < products.filter((p) => !p.archived).length && (
-            <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" />
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-owed-200 bg-owed-50 px-4 py-3">
+              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-owed-600" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-amber-800">
+                <p className="text-sm font-semibold text-owed-800">
                   {recipeCount === 0
                     ? `${products.filter((p) => !p.archived).length} product${products.filter((p) => !p.archived).length === 1 ? '' : 's'} without a recipe`
                     : `${products.filter((p) => !p.archived).length - recipeCount} products still need a recipe`}
                 </p>
-                <p className="mt-0.5 text-xs text-amber-700">
+                <p className="mt-0.5 text-xs text-owed-700">
                   Recipes tell CashTraka what raw materials each product needs. Without one, production planning and shortage alerts won&apos;t work.
                 </p>
               </div>
               <Link
                 href="/recipes"
-                className="shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
+                className="shrink-0 rounded-lg bg-owed-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-owed-600"
               >
                 <BookOpen size={12} className="mr-1 inline-block" />
                 Set up recipes

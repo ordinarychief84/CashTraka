@@ -25,7 +25,7 @@ function orderStatusBadge(s: string) {
   const upper = s.toUpperCase();
   if (['CONFIRMED', 'IN_PRODUCTION', 'READY', 'DELIVERED'].includes(upper))
     return (
-      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+      <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
         Confirmed
       </span>
     );
@@ -42,7 +42,7 @@ function deliveryStatusBadge(s: string) {
   switch (s) {
     case 'Shipped':
       return (
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
           Shipped
         </span>
       );
@@ -61,13 +61,13 @@ function invoiceStatusBadge(s: string) {
   switch (s) {
     case 'Ready for invoicing':
       return (
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+        <span className="rounded-full bg-owed-100 px-2 py-0.5 text-[11px] font-semibold text-owed-700">
           Ready for invoicing
         </span>
       );
     case 'Invoiced':
       return (
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
           Invoiced
         </span>
       );

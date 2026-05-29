@@ -58,7 +58,7 @@ export async function CashFlowForecastCard({ userId }: { userId: string }) {
       <span
         className={cn(
           'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold',
-          trendUp ? 'bg-success-100 text-success-700' : 'bg-red-50 text-red-700',
+          trendUp ? 'bg-success-100 text-success-700' : 'bg-rose-50 text-rose-700',
         )}
       >
         <TrendIcon size={10} />
@@ -87,7 +87,7 @@ export async function CashFlowForecastCard({ userId }: { userId: string }) {
       <div
         className={cn(
           'num mt-3 text-2xl font-black leading-none tracking-tight',
-          netPositive ? 'text-success-700' : 'text-amber-600',
+          netPositive ? 'text-success-700' : 'text-owed-600',
         )}
       >
         {netPositive ? '' : '-'}

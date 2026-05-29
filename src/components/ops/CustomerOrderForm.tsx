@@ -130,7 +130,7 @@ function ProductCombobox({
                       {p.name}
                       {p.sku && <span className="ml-1 text-slate-400">{p.sku}</span>}
                     </span>
-                    <span className="shrink-0 text-[10px] font-bold text-emerald-700">
+                    <span className="shrink-0 text-[10px] font-bold text-success-700">
                       ₦{(p.priceKobo / 100).toLocaleString('en-NG')}
                     </span>
                   </button>
@@ -334,7 +334,7 @@ export function CustomerOrderForm({
               autoComplete="off"
             />
             {customerId && (
-              <div className="mt-0.5 flex items-center gap-1 text-[10px] text-emerald-700">
+              <div className="mt-0.5 flex items-center gap-1 text-[10px] text-success-700">
                 <CheckCircle2 size={10} />
                 Existing client · {customerPhone}
               </div>
@@ -468,7 +468,7 @@ export function CustomerOrderForm({
                       {inStock === null ? (
                         <span className="text-xs text-slate-400">—</span>
                       ) : inStock ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-success-50 px-2 py-0.5 text-[10px] font-bold text-success-700">
                           <CheckCircle2 size={9} />
                           {stockQty}
                         </span>
@@ -559,9 +559,9 @@ export function CustomerOrderForm({
                       'flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition',
                       paymentStatus === s
                         ? s === 'PAID'
-                          ? 'bg-emerald-600 text-white'
+                          ? 'bg-success-600 text-white'
                           : s === 'PART_PAID'
-                            ? 'bg-amber-500 text-white'
+                            ? 'bg-owed-500 text-white'
                             : 'bg-slate-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200',
                     )}
@@ -599,7 +599,7 @@ export function CustomerOrderForm({
                             ? p === 'URGENT'
                               ? 'bg-rose-600 text-white'
                               : p === 'HIGH'
-                                ? 'bg-amber-500 text-white'
+                                ? 'bg-owed-500 text-white'
                                 : p === 'LOW'
                                   ? 'bg-slate-400 text-white'
                                   : 'bg-brand-600 text-white'
@@ -698,7 +698,7 @@ export function CustomerOrderForm({
         </div>
 
         {/* ── Order total footer ── */}
-        <div className="flex items-center justify-between border-t border-border bg-amber-50/60 px-4 py-3">
+        <div className="flex items-center justify-between border-t border-border bg-owed-50/60 px-4 py-3">
           <div className="text-xs text-slate-600">
             <span className="font-bold text-ink">{lineCount}</span>{' '}
             {lineCount === 1 ? 'item' : 'items'}

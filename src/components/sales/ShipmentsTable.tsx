@@ -24,12 +24,12 @@ interface Props {
 function pickedBadge(s: string) {
   if (s === 'Picked')
     return (
-      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+      <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
         Picked
       </span>
     );
   return (
-    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+    <span className="rounded-full bg-owed-100 px-2 py-0.5 text-[11px] font-semibold text-owed-700">
       Not picked
     </span>
   );
@@ -38,7 +38,7 @@ function pickedBadge(s: string) {
 function sentBadge(s: string) {
   if (s === 'Shipped')
     return (
-      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+      <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
         Shipped
       </span>
     );

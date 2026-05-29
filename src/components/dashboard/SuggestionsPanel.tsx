@@ -27,7 +27,7 @@ type Suggestion = {
 };
 
 const TYPE_CONFIG: Record<string, { icon: typeof Zap; color: string; bg: string }> = {
-  COLLECT: { icon: Target, color: 'text-red-600', bg: 'bg-red-50' },
+  COLLECT: { icon: Target, color: 'text-rose-600', bg: 'bg-rose-50' },
   REWARD: { icon: Gift, color: 'text-success-600', bg: 'bg-success-50' },
   RE_ENGAGE: { icon: RefreshCw, color: 'text-brand-600', bg: 'bg-brand-50' },
   OPTIMISE: { icon: Settings, color: 'text-purple-600', bg: 'bg-purple-50' },

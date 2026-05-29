@@ -75,7 +75,7 @@ export async function AwaitingOrdersPanel({ userId }: Props) {
                   <span className="text-[11px] text-slate-400 truncate block">
                     {order.customerName}
                     {isOverdue && (
-                      <span className="ml-1.5 text-[10px] font-semibold text-red-500">OVERDUE</span>
+                      <span className="ml-1.5 text-[10px] font-semibold text-rose-500">OVERDUE</span>
                     )}
                   </span>
                 </div>

@@ -111,7 +111,7 @@ export function SettingsShell({
                     (active
                       ? 'bg-success-50 text-success-700 border-l-2 border-success-600'
                       : tab.id === 'danger'
-                        ? 'text-red-500 hover:bg-red-50 hover:text-red-600'
+                        ? 'text-rose-500 hover:bg-rose-50 hover:text-rose-600'
                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900')
                   }
                 >

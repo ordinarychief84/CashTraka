@@ -26,14 +26,14 @@ export const dynamic = 'force-dynamic';
 const STATUS_TONE: Record<string, string> = {
   DRAFT: 'bg-slate-100 text-slate-700',
   SENT: 'bg-blue-100 text-blue-700',
-  ORDERED: 'bg-amber-100 text-amber-700',
+  ORDERED: 'bg-owed-100 text-owed-700',
   PARTIALLY_RECEIVED: 'bg-violet-100 text-violet-700',
-  RECEIVED: 'bg-emerald-100 text-emerald-700',
+  RECEIVED: 'bg-success-100 text-success-700',
   CANCELLED: 'bg-rose-100 text-rose-700',
 };
 
 const SUPPLIER_STATUS_TONE: Record<string, string> = {
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
+  ACTIVE: 'bg-success-100 text-success-700',
   INACTIVE: 'bg-slate-100 text-slate-700',
   BLACKLISTED: 'bg-rose-100 text-rose-700',
 };
@@ -105,7 +105,7 @@ export default async function SupplierDetailPage({
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                className="inline-flex items-center gap-1.5 rounded-md border border-success-200 bg-success-50 px-3 py-1.5 text-sm font-semibold text-success-700 hover:bg-success-100"
               >
                 <MessageCircle size={14} />
                 WhatsApp
@@ -379,11 +379,11 @@ function StatTile({
 }) {
   const toneCls =
     tone === 'emerald'
-      ? 'text-emerald-700'
+      ? 'text-success-700'
       : tone === 'brand'
         ? 'text-brand-700'
         : tone === 'amber'
-          ? 'text-amber-700'
+          ? 'text-owed-700'
           : 'text-slate-700';
   return (
     <div className="card p-4">

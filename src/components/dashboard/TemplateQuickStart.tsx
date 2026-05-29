@@ -91,7 +91,7 @@ export function TemplateQuickStart() {
       </div>
 
       {error ? (
-        <p className="mt-3 text-xs text-red-700" role="alert">
+        <p className="mt-3 text-xs text-rose-700" role="alert">
           {error}
         </p>
       ) : (

@@ -205,7 +205,7 @@ export async function DailyActionPanel({ userId }: { userId: string }) {
                   >
                     {m.name}
                   </Link>
-                  <span className="num text-amber-700">
+                  <span className="num text-owed-700">
                     {m.stock} {m.unit}
                   </span>
                 </li>
@@ -281,7 +281,7 @@ function Cluster({
 }) {
   const toneCls = {
     brand: 'text-brand-700 border-brand-200 bg-brand-50/60',
-    amber: 'text-amber-700 border-amber-200 bg-amber-50/60',
+    amber: 'text-owed-700 border-owed-200 bg-owed-50/60',
     indigo: 'text-indigo-700 border-indigo-200 bg-indigo-50/60',
     rose: 'text-rose-700 border-rose-200 bg-rose-50/60',
   }[tone];

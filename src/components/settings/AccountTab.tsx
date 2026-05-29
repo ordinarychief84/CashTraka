@@ -341,7 +341,7 @@ export function AccountTab({ initial, businessType }: Props) {
                 placeholder="0123456789"
               />
               {!accountNumberValid && (
-                <p className="mt-1 text-xs font-semibold text-red-600">Must be 10 digits</p>
+                <p className="mt-1 text-xs font-semibold text-rose-600">Must be 10 digits</p>
               )}
             </div>
             <div>
@@ -380,7 +380,7 @@ export function AccountTab({ initial, businessType }: Props) {
         <form action="/api/auth/logout" method="post">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
           >
             <LogOut size={15} />
             Log out
@@ -394,7 +394,7 @@ export function AccountTab({ initial, businessType }: Props) {
 function Feedback({ msg }: { msg: { ok: boolean; text: string } | null }) {
   if (!msg) return null;
   return (
-    <div className={'flex items-start gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-success-50 text-success-700' : 'bg-red-50 text-red-700')}>
+    <div className={'flex items-start gap-2 rounded-lg px-3 py-2 text-sm ' + (msg.ok ? 'bg-success-50 text-success-700' : 'bg-rose-50 text-rose-700')}>
       {msg.ok ? <CheckCircle2 size={15} className="mt-0.5 shrink-0" /> : <AlertCircle size={15} className="mt-0.5 shrink-0" />}
       {msg.text}
     </div>

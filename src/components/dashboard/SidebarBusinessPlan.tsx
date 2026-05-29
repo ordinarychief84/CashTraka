@@ -24,7 +24,7 @@ const STATUS_PILL: Record<
   { label: string; tone: string }
 > = {
   free: { label: 'Free', tone: 'bg-slate-100 text-slate-600' },
-  trialing: { label: 'Trial', tone: 'bg-amber-100 text-amber-800' },
+  trialing: { label: 'Trial', tone: 'bg-owed-100 text-owed-800' },
   active: { label: 'Active', tone: 'bg-success-100 text-success-800' },
   cancelled: { label: 'Cancelled', tone: 'bg-slate-100 text-slate-600' },
   past_due: { label: 'Past due', tone: 'bg-rose-100 text-rose-700' },
@@ -80,7 +80,7 @@ export function SidebarBusinessPlan({
       </div>
 
       {status === 'trialing' && trialDaysLeft != null && !expired && (
-        <p className="mb-3 text-[11px] text-amber-700">
+        <p className="mb-3 text-[11px] text-owed-700">
           {trialDaysLeft === 0
             ? 'Trial ends today'
             : `${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} left in trial`}

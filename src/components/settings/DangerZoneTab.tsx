@@ -96,7 +96,7 @@ function ExportCSVButton({
       {/* Green "Export CSV ▼" button */}
       <button
         onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500 px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm hover:bg-emerald-600 active:bg-emerald-700 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-md bg-success-500 px-3 py-1.5 text-[13px] font-semibold text-white shadow-sm hover:bg-success-600 active:bg-success-700 transition-colors"
       >
         Export CSV
         <ChevronDown
@@ -116,7 +116,7 @@ function ExportCSVButton({
             {sending ? (
               <Loader2 size={15} className="shrink-0 animate-spin text-slate-400" />
             ) : sent ? (
-              <Check size={15} className="shrink-0 text-emerald-500" />
+              <Check size={15} className="shrink-0 text-success-500" />
             ) : (
               <Mail size={15} className="shrink-0 text-slate-400" />
             )}
@@ -347,13 +347,13 @@ export function DangerZoneTab({ businessType }: Props) {
       </div>
 
       {/* ── Delete Account ── */}
-      <div className="rounded-xl border-2 border-red-200 bg-red-50/30 shadow-sm">
-        <div className="border-b border-red-200 px-6 py-4">
-          <h2 className="flex items-center gap-2 text-base font-bold text-red-700">
+      <div className="rounded-xl border-2 border-rose-200 bg-rose-50/30 shadow-sm">
+        <div className="border-b border-rose-200 px-6 py-4">
+          <h2 className="flex items-center gap-2 text-base font-bold text-rose-700">
             <AlertTriangle size={18} />
             Delete Account
           </h2>
-          <p className="text-sm text-red-600">
+          <p className="text-sm text-rose-600">
             Permanently delete your account and all associated data. This cannot be undone.
           </p>
         </div>
@@ -361,14 +361,14 @@ export function DangerZoneTab({ businessType }: Props) {
           {!showConfirm ? (
             <button
               onClick={() => setShowConfirm(true)}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50"
+              className="inline-flex items-center gap-2 rounded-lg border border-rose-300 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50"
             >
               <Trash2 size={15} />
               Delete my account
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="rounded-lg bg-red-100 px-4 py-3 text-sm text-red-800">
+              <div className="rounded-lg bg-rose-100 px-4 py-3 text-sm text-rose-800">
                 <strong>This will permanently delete:</strong>
                 <ul className="mt-2 ml-4 list-disc space-y-1 text-xs">
                   <li>All your customers, payments, and debts</li>
@@ -379,18 +379,18 @@ export function DangerZoneTab({ businessType }: Props) {
                 </ul>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-red-700 mb-1.5">
-                  Type <span className="font-mono bg-red-100 px-1 rounded">DELETE</span> to confirm
+                <label className="block text-sm font-semibold text-rose-700 mb-1.5">
+                  Type <span className="font-mono bg-rose-100 px-1 rounded">DELETE</span> to confirm
                 </label>
                 <input
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
-                  className="w-full rounded-lg border border-red-300 px-3 py-2.5 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                  className="w-full rounded-lg border border-rose-300 px-3 py-2.5 text-sm focus:border-rose-500 focus:ring-1 focus:ring-rose-500 focus:outline-none"
                   placeholder="DELETE"
                 />
               </div>
-              {error && <p className="text-sm text-red-700">{error}</p>}
+              {error && <p className="text-sm text-rose-700">{error}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
@@ -405,7 +405,7 @@ export function DangerZoneTab({ businessType }: Props) {
                 <button
                   onClick={handleDelete}
                   disabled={confirmText !== 'DELETE' || deleting}
-                  className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
                 >
                   <Trash2 size={15} />
                   {deleting ? 'Deleting...' : 'Permanently delete account'}

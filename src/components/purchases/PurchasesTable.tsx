@@ -306,7 +306,7 @@ export function PurchasesTable({
             className={cn(
               'rounded-full px-3 py-1 text-[11px] font-semibold transition',
               showReady
-                ? 'bg-emerald-600 text-white'
+                ? 'bg-success-600 text-white'
                 : 'bg-slate-200 text-slate-600 hover:bg-slate-300',
             )}
           >

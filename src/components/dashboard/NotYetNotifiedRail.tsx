@@ -17,17 +17,17 @@ export async function NotYetNotifiedRail({ userId }: { userId: string }) {
   return (
     <Link
       href="/orders"
-      className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 transition hover:bg-amber-100"
+      className="flex items-center justify-between gap-3 rounded-xl border border-owed-200 bg-owed-50 px-4 py-3 transition hover:bg-owed-100"
     >
       <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-amber-700">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-owed-700">
           <MessageCircle size={16} />
         </span>
         <div className="min-w-0">
-          <div className="text-sm font-bold text-amber-900">
+          <div className="text-sm font-bold text-owed-900">
             {counts.total} customer {counts.total === 1 ? 'touchpoint' : 'touchpoints'} not yet sent
           </div>
-          <div className="mt-0.5 text-[11px] font-medium text-amber-800/80">
+          <div className="mt-0.5 text-[11px] font-medium text-owed-800/80">
             {counts.orderConfirmed > 0 ? `${counts.orderConfirmed} confirmation` : null}
             {counts.orderConfirmed > 0 && (counts.productionDone > 0 || counts.invoiceIssued > 0)
               ? ' · '
@@ -38,7 +38,7 @@ export async function NotYetNotifiedRail({ userId }: { userId: string }) {
           </div>
         </div>
       </div>
-      <ChevronRight size={16} className="shrink-0 text-amber-700" />
+      <ChevronRight size={16} className="shrink-0 text-owed-700" />
     </Link>
   );
 }

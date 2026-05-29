@@ -149,7 +149,7 @@ export function ProductionOrderForm({
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       {noProducts && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+        <div className="rounded-lg border border-owed-200 bg-owed-50 p-3 text-sm text-owed-800">
           <div className="flex items-center gap-2 font-semibold">
             <AlertTriangle size={14} />
             No products in your catalog yet
@@ -188,7 +188,7 @@ export function ProductionOrderForm({
                     ? p === 'URGENT'
                       ? 'bg-rose-600 text-white'
                       : p === 'HIGH'
-                        ? 'bg-amber-500 text-white'
+                        ? 'bg-owed-500 text-white'
                         : p === 'LOW'
                           ? 'bg-slate-400 text-white'
                           : 'bg-brand-600 text-white'
@@ -268,7 +268,7 @@ export function ProductionOrderForm({
                 className={
                   addDisabled
                     ? 'inline-flex cursor-not-allowed items-center gap-1 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-400'
-                    : 'inline-flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600'
+                    : 'inline-flex items-center gap-1 rounded-md bg-owed-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-owed-600'
                 }
               >
                 <Plus size={12} /> Add product
@@ -301,7 +301,7 @@ export function ProductionOrderForm({
                       ))}
                     </select>
                     {p && !p.hasRecipe && (
-                      <p className="mt-1 text-xs text-amber-700">
+                      <p className="mt-1 text-xs text-owed-700">
                         No active recipe — materials check will skip this item.
                       </p>
                     )}

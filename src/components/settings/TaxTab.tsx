@@ -88,7 +88,7 @@ export function TaxTab({ initial }: Props) {
       <TaxPlusSections />
 
       {!hasAddress ? (
-        <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <div className="flex items-start gap-2 rounded-lg bg-owed-50 px-3 py-2 text-sm text-owed-800">
           <AlertTriangle size={16} className="mt-0.5 shrink-0" />
           <div>
             Your <strong>business address</strong> is empty. Tax invoices must include the
@@ -194,7 +194,7 @@ export function TaxTab({ initial }: Props) {
               className={
                 message.tone === 'ok'
                   ? 'rounded-lg bg-success-50 px-3 py-2 text-sm text-success-700'
-                  : 'rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700'
+                  : 'rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700'
               }
             >
               {message.text}

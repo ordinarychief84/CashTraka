@@ -302,7 +302,7 @@ export function ProfitabilityClient({
                           : r.grossMarginBps >= 4000
                             ? 'text-success-700'
                             : r.grossMarginBps >= 2000
-                              ? 'text-amber-700'
+                              ? 'text-owed-700'
                               : 'text-rose-700')
                     }
                   >

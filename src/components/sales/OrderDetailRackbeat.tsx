@@ -141,7 +141,7 @@ export function OrderDetailRackbeat({ order }: Props) {
               </button>
             )}
             {order.status !== 'NEW' && !isCancelled && (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-[12px] font-semibold text-emerald-700">
+              <span className="rounded-full bg-success-100 px-3 py-1 text-[12px] font-semibold text-success-700">
                 {order.status.replace('_', ' ')}
               </span>
             )}

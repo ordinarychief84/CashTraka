@@ -23,8 +23,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_CLS: Record<string, string> = {
   PENDING: 'bg-rose-600 text-white',
-  IN_PROGRESS: 'bg-emerald-600 text-white',
-  ON_HOLD: 'bg-amber-500 text-white',
+  IN_PROGRESS: 'bg-success-600 text-white',
+  ON_HOLD: 'bg-owed-500 text-white',
   DONE: 'bg-slate-500 text-white',
   CANCELLED: 'bg-slate-400 text-white',
 };
@@ -94,7 +94,7 @@ export function AddToScheduleModal({
                   <div className="h-1 w-full rounded bg-slate-200 mb-0.5" />
                   <div className="h-1 w-3/4 rounded bg-slate-200" />
                 </div>
-                <Settings size={14} className="absolute -bottom-1 -right-2 text-emerald-500" />
+                <Settings size={14} className="absolute -bottom-1 -right-2 text-success-500" />
               </div>
             </div>
             <p className="text-[11px] text-slate-500">
@@ -288,7 +288,7 @@ export function AddToScheduleModal({
 
         {/* Footer */}
         <div className="flex items-center justify-center border-t border-slate-200 px-6 py-4">
-          <button className="rounded-full bg-emerald-500 px-10 py-2.5 text-[12px] font-bold text-white hover:bg-emerald-600 transition">
+          <button className="rounded-full bg-success-500 px-10 py-2.5 text-[12px] font-bold text-white hover:bg-success-600 transition">
             SCHEDULE SELECTED ORDERS
           </button>
         </div>

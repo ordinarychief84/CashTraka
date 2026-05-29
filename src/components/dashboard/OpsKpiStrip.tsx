@@ -199,9 +199,9 @@ function toneCls(t: string): string {
     case 'rose':
       return 'text-rose-700';
     case 'amber':
-      return 'text-amber-700';
+      return 'text-owed-700';
     case 'emerald':
-      return 'text-emerald-700';
+      return 'text-success-700';
     case 'brand':
       return 'text-brand-700';
     case 'indigo':

@@ -23,7 +23,7 @@ export async function ProductionPipeline({ userId }: { userId: string }) {
     {
       key: 'MATERIALS_NEEDED',
       label: 'Materials needed',
-      tone: 'bg-amber-100 text-amber-800',
+      tone: 'bg-owed-100 text-owed-800',
     },
     {
       key: 'READY_TO_PRODUCE',
@@ -38,7 +38,7 @@ export async function ProductionPipeline({ userId }: { userId: string }) {
     {
       key: 'COMPLETED',
       label: 'Completed',
-      tone: 'bg-emerald-100 text-emerald-700',
+      tone: 'bg-success-100 text-success-700',
     },
   ];
 

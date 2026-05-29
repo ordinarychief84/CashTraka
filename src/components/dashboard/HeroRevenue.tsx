@@ -37,7 +37,7 @@ export function HeroRevenue({ label, total, deltaPct, daily, transactions }: Pro
         <ArrowUpRight size={11} />+{deltaPct}%
       </span>
     ) : (
-      <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-700">
+      <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700">
         <ArrowDownRight size={11} />
         {deltaPct}%
       </span>

@@ -140,7 +140,7 @@ export function ApiKeysManager({ initialKeys }: Props) {
           <div className="grid gap-3 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-[11px] font-medium text-slate-600">
-                Name <span className="text-red-500">*</span>
+                Name <span className="text-rose-500">*</span>
               </label>
               <input
                 autoFocus

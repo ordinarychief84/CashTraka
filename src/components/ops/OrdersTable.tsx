@@ -502,7 +502,7 @@ function DateRangeDropdown({
                   onChange(draft);
                   setOpen(false);
                 }}
-                className="rounded-full bg-emerald-600 px-4 py-1.5 text-xs font-bold uppercase text-white hover:bg-emerald-700"
+                className="rounded-full bg-success-600 px-4 py-1.5 text-xs font-bold uppercase text-white hover:bg-success-700"
               >
                 Save
               </button>
@@ -960,8 +960,8 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
                             overdue
                               ? 'text-rose-600'
                               : dueSoon
-                                ? 'text-amber-600'
-                                : 'text-emerald-700',
+                                ? 'text-owed-600'
+                                : 'text-success-700',
                           )}
                         >
                           {overdue ? `${d}d` : `+${d}d`}
@@ -1017,7 +1017,7 @@ export function OrdersTable({ rows }: { rows: OrderRow[] }) {
 
             {filtered.length > 0 && (
               <tfoot>
-                <tr className="border-t-2 border-amber-200 bg-amber-50/70">
+                <tr className="border-t-2 border-owed-200 bg-owed-50/70">
                   <td colSpan={9} className="px-3 py-2">
                     <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                       Page summary — {filtered.length}{' '}

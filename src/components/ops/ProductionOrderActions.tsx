@@ -87,7 +87,7 @@ export function ProductionOrderActions({
   return (
     <div className="space-y-3">
       {status === 'MATERIALS_NEEDED' && hasShortages && (
-        <p className="rounded-md bg-amber-50 p-3 text-sm font-medium text-amber-900">
+        <p className="rounded-md bg-owed-50 p-3 text-sm font-medium text-owed-900">
           Resolve material shortages before starting.
         </p>
       )}
@@ -125,8 +125,8 @@ export function ProductionOrderActions({
       )}
 
       {canComplete && showCompleteForm && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 space-y-2">
-          <div className="text-xs font-bold uppercase tracking-wide text-emerald-700">
+        <div className="rounded-lg border border-success-200 bg-success-50 p-3 space-y-2">
+          <div className="text-xs font-bold uppercase tracking-wide text-success-700">
             Quality check
           </div>
           <label className="block text-xs font-semibold text-slate-700">
@@ -153,7 +153,7 @@ export function ProductionOrderActions({
           <div className="rounded-md bg-white p-2 text-xs text-slate-700">
             <div className="flex items-center justify-between">
               <span>Goes to finished-goods stock</span>
-              <span className="num font-bold text-emerald-700">{acceptedNum}</span>
+              <span className="num font-bold text-success-700">{acceptedNum}</span>
             </div>
             {damagedNum > 0 && (
               <div className="mt-0.5 text-[10px] text-slate-500">

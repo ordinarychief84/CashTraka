@@ -28,7 +28,7 @@ interface Props {
 }
 
 function Num({ v }: { v: number }) {
-  const color = v < 0 ? 'text-red-600' : v === 0 ? 'text-slate-400' : 'text-slate-800';
+  const color = v < 0 ? 'text-rose-600' : v === 0 ? 'text-slate-400' : 'text-slate-800';
   return <span className={`num ${color}`}>{v.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>;
 }
 
@@ -217,7 +217,7 @@ export function BOMsTable({ rows }: Props) {
                     ) : (
                       <div className={cn(
                         'flex h-7 w-7 items-center justify-center rounded',
-                        row.hasRecipe ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-500',
+                        row.hasRecipe ? 'bg-success-50 text-success-600' : 'bg-owed-50 text-owed-500',
                       )}>
                         {row.hasRecipe
                           ? <CheckCircle2 size={14} />
@@ -247,7 +247,7 @@ export function BOMsTable({ rows }: Props) {
                   <td className="px-3 py-2.5 text-right">
                     <span className="text-slate-500">
                       <Num v={row.costPrice / 100} />
-                      {!row.hasRecipe && <span className="ml-0.5 text-[10px] text-amber-400">*</span>}
+                      {!row.hasRecipe && <span className="ml-0.5 text-[10px] text-owed-400">*</span>}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-right">

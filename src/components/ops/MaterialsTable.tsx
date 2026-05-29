@@ -601,7 +601,7 @@ export function MaterialsTable({ rows }: { rows: MaterialRow[] }) {
                   <td className={cn(TD_CLS, 'w-12')}>
                     {isActive
                       ? (
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-500">
                           <Check size={12} className="text-white" strokeWidth={3} />
                         </span>
                       )

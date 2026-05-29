@@ -23,7 +23,7 @@ function statusBadge(status: string) {
   switch (status.toUpperCase()) {
     case 'ACCEPTED':
       return (
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
           Accepted
         </span>
       );

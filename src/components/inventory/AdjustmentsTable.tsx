@@ -206,7 +206,7 @@ export function AdjustmentsTable({ rows }: Props) {
                       <span
                         className={cn(
                           'font-mono font-semibold',
-                          row.delta > 0 ? 'text-emerald-600' : 'text-rose-600',
+                          row.delta > 0 ? 'text-success-600' : 'text-rose-600',
                         )}
                       >
                         {row.delta > 0 ? '+' : ''}
@@ -219,7 +219,7 @@ export function AdjustmentsTable({ rows }: Props) {
                         <button type="button" className="text-slate-400 hover:text-brand-600" title="Edit">
                           <Pencil size={14} />
                         </button>
-                        <button type="button" className="text-slate-400 hover:text-red-500" title="Delete">
+                        <button type="button" className="text-slate-400 hover:text-rose-500" title="Delete">
                           <Trash2 size={14} />
                         </button>
                       </div>

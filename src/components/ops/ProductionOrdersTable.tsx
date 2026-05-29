@@ -35,12 +35,12 @@ function fmtDate(iso: string | null) {
 function StatusDot({ status }: { status: string }) {
   const map: Record<string, string> = {
     PLANNED: 'bg-slate-400',
-    MATERIALS_NEEDED: 'bg-amber-500',
+    MATERIALS_NEEDED: 'bg-owed-500',
     READY_TO_PRODUCE: 'bg-blue-500',
     IN_PRODUCTION: 'bg-green-500',
-    COMPLETED: 'bg-emerald-600',
+    COMPLETED: 'bg-success-600',
     DELAYED: 'bg-orange-500',
-    CANCELLED: 'bg-red-500',
+    CANCELLED: 'bg-rose-500',
   };
   const label: Record<string, string> = {
     PLANNED: 'Not started',
@@ -333,7 +333,7 @@ export function ProductionOrdersTable({ rows, startedParam, finishedParam, cance
                   <td className="px-3 py-2.5 text-slate-600">
                     {row.completedAt ? (
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-emerald-600" />
+                        <span className="h-2 w-2 rounded-full bg-success-600" />
                         {fmtDate(row.completedAt)}
                       </span>
                     ) : (
@@ -342,8 +342,8 @@ export function ProductionOrdersTable({ rows, startedParam, finishedParam, cance
                   </td>
                   <td className="px-3 py-2.5">
                     {row.cancelled ? (
-                      <span className="inline-flex items-center gap-1.5 text-red-600">
-                        <span className="h-2 w-2 rounded-full bg-red-500" />
+                      <span className="inline-flex items-center gap-1.5 text-rose-600">
+                        <span className="h-2 w-2 rounded-full bg-rose-500" />
                         Active
                       </span>
                     ) : (
@@ -358,7 +358,7 @@ export function ProductionOrdersTable({ rows, startedParam, finishedParam, cance
                       <span className={cn(
                         'text-[12px]',
                         new Date(row.plannedEndAt) < new Date() && !row.completedAt
-                          ? 'font-semibold text-red-600'
+                          ? 'font-semibold text-rose-600'
                           : 'text-slate-600',
                       )}>
                         {fmtDate(row.plannedEndAt)}

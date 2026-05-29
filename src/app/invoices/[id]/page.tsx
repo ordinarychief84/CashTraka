@@ -182,7 +182,7 @@ export default async function InvoiceDetailPage({
                 </div>
               ) : null}
               {outstanding > 0 ? (
-                <div className="flex justify-between text-xs font-semibold text-red-700">
+                <div className="flex justify-between text-xs font-semibold text-rose-700">
                   <span>Outstanding</span>
                   <span className="num">{formatKobo(outstanding)}</span>
                 </div>

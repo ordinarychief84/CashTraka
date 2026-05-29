@@ -52,7 +52,7 @@ const COLUMNS: ColumnDef[] = [
   {
     key: 'MATERIALS_NEEDED',
     title: 'Materials needed',
-    accent: 'border-amber-300 text-amber-700',
+    accent: 'border-owed-300 text-owed-700',
   },
   {
     key: 'IN_PRODUCTION',
@@ -63,15 +63,15 @@ const COLUMNS: ColumnDef[] = [
   {
     key: 'COMPLETED',
     title: 'Completed',
-    accent: 'border-emerald-400 text-emerald-700',
+    accent: 'border-success-400 text-success-700',
   },
 ];
 
 const STATUS_DOT: Record<string, string> = {
   PLANNED: 'bg-slate-400',
-  MATERIALS_NEEDED: 'bg-amber-500',
+  MATERIALS_NEEDED: 'bg-owed-500',
   IN_PRODUCTION: 'bg-blue-500',
-  COMPLETED: 'bg-emerald-500',
+  COMPLETED: 'bg-success-500',
   DELAYED: 'bg-rose-500',
   CANCELLED: 'bg-slate-300',
 };
@@ -193,7 +193,7 @@ export function ProductionKanban({ cards }: { cards: KanbanCard[] }) {
                           type="button"
                           onClick={() => transition(c.id, 'complete')}
                           disabled={busyId === c.id}
-                          className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-emerald-700 disabled:opacity-50"
+                          className="inline-flex items-center gap-1 rounded-md bg-success-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white hover:bg-success-700 disabled:opacity-50"
                         >
                           <CheckCircle2 size={10} />
                           Done
@@ -206,7 +206,7 @@ export function ProductionKanban({ cards }: { cards: KanbanCard[] }) {
                           className={cn(
                             'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white disabled:opacity-50',
                             col.key === 'MATERIALS_NEEDED'
-                              ? 'bg-amber-600 hover:bg-amber-700'
+                              ? 'bg-owed-600 hover:bg-owed-700'
                               : 'bg-brand-600 hover:bg-brand-700',
                           )}
                         >

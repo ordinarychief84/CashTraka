@@ -32,7 +32,7 @@ function sentBadge(status: string) {
       </span>
     );
   return (
-    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+    <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
       Sent
     </span>
   );
@@ -42,13 +42,13 @@ function receivedBadge(status: string) {
   switch (status) {
     case 'RECEIVED':
       return (
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+        <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
           Received
         </span>
       );
     case 'PARTIALLY_RECEIVED':
       return (
-        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+        <span className="rounded-full bg-owed-100 px-2 py-0.5 text-[11px] font-semibold text-owed-700">
           Partly received
         </span>
       );

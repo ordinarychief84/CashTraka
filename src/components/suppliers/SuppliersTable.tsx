@@ -457,7 +457,7 @@ export function SuppliersTable({
                   {/* Active */}
                   <TD className="text-center">
                     {row.status === 'ACTIVE' ? (
-                      <CheckCircle2 size={16} className="mx-auto text-emerald-500" />
+                      <CheckCircle2 size={16} className="mx-auto text-success-500" />
                     ) : (
                       <XCircle size={16} className="mx-auto text-slate-300" />
                     )}

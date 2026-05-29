@@ -681,7 +681,7 @@ export function ProductsTable({ rows }: { rows: ProductRow[] }) {
                             {p.name}
                           </Link>
                           {p.nafdacNumber && (
-                            <span className="text-[10px] text-emerald-600">
+                            <span className="text-[10px] text-success-600">
                               NAFDAC {p.nafdacNumber}
                             </span>
                           )}
@@ -716,7 +716,7 @@ export function ProductsTable({ rows }: { rows: ProductRow[] }) {
                         <span
                           className={cn(
                             'text-[12px] font-medium',
-                            isOut ? 'text-rose-500' : isLow ? 'text-amber-600' : 'text-slate-700',
+                            isOut ? 'text-rose-500' : isLow ? 'text-owed-600' : 'text-slate-700',
                           )}
                         >
                           {fmtNum(p.stock)}

@@ -31,8 +31,8 @@ type RecipeInitial = {
 };
 
 const STATUS_TONE: Record<string, string> = {
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
-  DRAFT: 'bg-amber-100 text-amber-700',
+  ACTIVE: 'bg-success-100 text-success-700',
+  DRAFT: 'bg-owed-100 text-owed-700',
   ARCHIVED: 'bg-slate-100 text-slate-700',
 };
 
@@ -248,11 +248,11 @@ export function RecipeEditor({
           />
         </div>
         <div>
-          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-emerald-700">
+          <div className="rounded-lg border border-success-200 bg-success-50 p-3">
+            <p className="text-xs uppercase tracking-wide text-success-700">
               Estimated unit cost
             </p>
-            <p className="num mt-1 text-xl font-black text-emerald-900">
+            <p className="num mt-1 text-xl font-black text-success-900">
               ₦{unitCostNaira.toLocaleString('en-NG')}
             </p>
           </div>
@@ -267,7 +267,7 @@ export function RecipeEditor({
           <button
             type="button"
             onClick={addItem}
-            className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-600"
+            className="inline-flex items-center gap-1 rounded-md bg-owed-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-owed-600"
           >
             <Plus size={12} /> Add material
           </button>

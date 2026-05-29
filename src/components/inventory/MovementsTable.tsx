@@ -181,7 +181,7 @@ export function MovementsTable({ rows }: Props) {
                       <span
                         className={cn(
                           'font-mono font-semibold',
-                          row.delta > 0 ? 'text-emerald-600' : 'text-rose-600',
+                          row.delta > 0 ? 'text-success-600' : 'text-rose-600',
                         )}
                       >
                         {row.delta > 0 ? '+' : ''}

@@ -20,11 +20,11 @@ const BAND_STYLE: Record<CreditBand, { chip: string; advice: string }> = {
     advice: 'Likely yes. Keep your usual credit terms.',
   },
   'Mixed history': {
-    chip: 'bg-amber-50 text-amber-800 border-amber-200',
+    chip: 'bg-owed-50 text-owed-800 border-owed-200',
     advice: 'Maybe. Ask for a part payment up front.',
   },
   'High risk': {
-    chip: 'bg-red-50 text-red-700 border-red-200',
+    chip: 'bg-rose-50 text-rose-700 border-rose-200',
     advice: 'No. Ask for full payment before delivery.',
   },
   New: {

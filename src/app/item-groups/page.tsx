@@ -143,8 +143,8 @@ export default function ItemGroupsPage() {
                         <td className="px-3 py-2.5">
                           <span className={`inline-block rounded px-2 py-0.5 text-[11px] font-semibold ${
                             row.hasInventory
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-red-100 text-red-600'
+                              ? 'bg-success-100 text-success-700'
+                              : 'bg-rose-100 text-rose-600'
                           }`}>
                             {row.hasInventory ? 'Yes' : 'No'}
                           </span>
@@ -159,7 +159,7 @@ export default function ItemGroupsPage() {
                             </Link>
                             <button
                               type="button"
-                              className="text-slate-400 hover:text-red-500"
+                              className="text-slate-400 hover:text-rose-500"
                               title="Remove group (redirects to products)"
                             >
                               <Trash2 size={14} />

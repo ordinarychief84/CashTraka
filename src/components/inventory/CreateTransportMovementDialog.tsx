@@ -85,7 +85,7 @@ export function CreateTransportMovementDialog({ open, onClose }: Props) {
         {/* From */}
         <div className="mb-4">
           <label className="mb-1.5 block text-[12px] font-medium text-slate-600">
-            From <span className="text-red-500">*</span>
+            From <span className="text-rose-500">*</span>
           </label>
           <select
             value={from}
@@ -100,7 +100,7 @@ export function CreateTransportMovementDialog({ open, onClose }: Props) {
         {/* To */}
         <div className="mb-4">
           <label className="mb-1.5 block text-[12px] font-medium text-slate-600">
-            To <span className="text-red-500">*</span>
+            To <span className="text-rose-500">*</span>
           </label>
           <select
             value={to}
@@ -115,7 +115,7 @@ export function CreateTransportMovementDialog({ open, onClose }: Props) {
         {/* Transport location */}
         <div className="mb-4">
           <label className="mb-1.5 block text-[12px] font-medium text-slate-600">
-            Transport location <span className="text-red-500">*</span>
+            Transport location <span className="text-rose-500">*</span>
           </label>
           <select
             value={transportLoc}

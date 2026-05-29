@@ -184,7 +184,7 @@ export function WaCustomerNotifyButton({
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5 text-[11px] font-medium text-amber-700">
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-owed-700">
         <AlertCircle size={12} />
         Customer not yet notified
       </div>

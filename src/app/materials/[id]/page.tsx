@@ -81,7 +81,7 @@ export default async function MaterialDetailPage({ params }: { params: { id: str
                   <li key={m.id} className="py-2 text-sm">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-slate-700">{m.reason}</span>
-                      <span className={`font-mono font-bold ${m.delta > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      <span className={`font-mono font-bold ${m.delta > 0 ? 'text-success-600' : 'text-rose-600'}`}>
                         {m.delta > 0 ? '+' : ''}
                         {m.delta}
                       </span>

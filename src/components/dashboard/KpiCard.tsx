@@ -34,9 +34,9 @@ const TONE: Record<
   },
   danger: {
     value: 'text-ink',
-    iconBg: 'bg-red-50',
-    iconText: 'text-red-600',
-    accent: 'bg-red-500',
+    iconBg: 'bg-rose-50',
+    iconText: 'text-rose-600',
+    accent: 'bg-rose-500',
   },
   warning: {
     value: 'text-ink',
@@ -72,7 +72,7 @@ export function KpiCard({
       <span
         className={cn(
           'inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold',
-          isGood ? 'bg-success-100 text-success-700' : 'bg-red-50 text-red-700',
+          isGood ? 'bg-success-100 text-success-700' : 'bg-rose-50 text-rose-700',
         )}
       >
         {tinyIcon}

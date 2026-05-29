@@ -219,9 +219,9 @@ export function TransportMovementsTable({ rows, tab }: Props) {
                         className={cn(
                           'rounded-full px-2 py-0.5 text-[11px] font-semibold',
                           row.status === 'Received'
-                            ? 'bg-emerald-100 text-emerald-700'
+                            ? 'bg-success-100 text-success-700'
                             : row.status === 'Not received'
-                              ? 'bg-amber-100 text-amber-700'
+                              ? 'bg-owed-100 text-owed-700'
                               : 'bg-slate-100 text-slate-600',
                         )}
                       >

@@ -27,7 +27,7 @@ function invoiceStatusBadge(s: string) {
   const upper = s.toUpperCase();
   if (upper === 'PAID' || upper === 'BOOKED')
     return (
-      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+      <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
         Booked
       </span>
     );
@@ -46,7 +46,7 @@ function deliveredBadge(s: string) {
     );
   if (s === 'Shipped' || s === 'Delivered')
     return (
-      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+      <span className="rounded-full bg-success-100 px-2 py-0.5 text-[11px] font-semibold text-success-700">
         {s}
       </span>
     );

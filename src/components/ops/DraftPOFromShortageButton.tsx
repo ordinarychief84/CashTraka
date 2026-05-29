@@ -62,7 +62,7 @@ export function DraftPOFromShortageButton({
         {isPending ? 'Drafting…' : label}
       </button>
       {error ? (
-        <span className="max-w-[200px] text-[10px] text-red-700" role="alert">
+        <span className="max-w-[200px] text-[10px] text-rose-700" role="alert">
           {error}
         </span>
       ) : null}

@@ -45,7 +45,7 @@ export async function AwaitingPurchaseOrdersPanel({ userId }: Props) {
 
   const statusColor: Record<string, string> = {
     DRAFT: 'text-slate-400',
-    SENT: 'text-amber-600',
+    SENT: 'text-owed-600',
     ORDERED: 'text-blue-600',
     PARTIALLY_RECEIVED: 'text-orange-500',
   };

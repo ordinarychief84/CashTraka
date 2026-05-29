@@ -68,11 +68,11 @@ function StockIndicator({ stock, reorderLevel }: { stock: number; reorderLevel: 
   }
   return (
     <span className="flex items-center gap-1.5">
-      <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 text-emerald-500">
+      <svg width="12" height="12" viewBox="0 0 12 12" className="shrink-0 text-success-500">
         <circle cx="6" cy="6" r="5.5" stroke="currentColor" strokeWidth="1" fill="none" />
         <polyline points="3,6 5,8.5 9,4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
-      <span className="num text-emerald-700 font-semibold">{stock.toLocaleString()}</span>
+      <span className="num text-success-700 font-semibold">{stock.toLocaleString()}</span>
     </span>
   );
 }

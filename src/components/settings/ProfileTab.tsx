@@ -214,7 +214,7 @@ export function ProfileTab({ initial }: Props) {
 
         {/* Feedback */}
         {error && (
-          <div className="flex items-start gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="flex items-start gap-2 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">
             <AlertCircle size={15} className="mt-0.5 shrink-0" />
             {error}
           </div>

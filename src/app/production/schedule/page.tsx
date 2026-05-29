@@ -87,7 +87,7 @@ export default async function ProductionSchedulePage() {
 
       <div className="mb-3 flex flex-wrap items-center gap-2 text-[11px]">
         <Legend color="bg-slate-300" label="Planned" />
-        <Legend color="bg-amber-400" label="Materials needed" />
+        <Legend color="bg-owed-400" label="Materials needed" />
         <Legend color="bg-blue-500" label="In production" />
         <Legend color="bg-rose-500" label="Delayed" />
       </div>
@@ -153,7 +153,7 @@ export default async function ProductionSchedulePage() {
                   : o.status === 'IN_PRODUCTION'
                     ? 'bg-blue-500 text-white'
                     : o.status === 'MATERIALS_NEEDED'
-                      ? 'bg-amber-400 text-amber-900'
+                      ? 'bg-owed-400 text-owed-900'
                       : 'bg-slate-300 text-slate-800';
 
               return (

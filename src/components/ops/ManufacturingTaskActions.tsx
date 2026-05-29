@@ -51,8 +51,8 @@ const TRANSITIONS: Record<TaskStatus, { status: TaskStatus; label: string; icon:
 
 const TONE_CLASSES: Record<string, string> = {
   brand: 'border-brand-500 bg-brand-50 text-brand-700 hover:bg-brand-100',
-  emerald: 'border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
-  amber: 'border-amber-500 bg-amber-50 text-amber-700 hover:bg-amber-100',
+  emerald: 'border-success-500 bg-success-50 text-success-700 hover:bg-success-100',
+  amber: 'border-owed-500 bg-owed-50 text-owed-700 hover:bg-owed-100',
   rose: 'border-rose-500 bg-rose-50 text-rose-700 hover:bg-rose-100',
   neutral: 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
 };

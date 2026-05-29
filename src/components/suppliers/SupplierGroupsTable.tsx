@@ -52,7 +52,7 @@ export function SupplierGroupsTable({ rows }: Props) {
                       </button>
                       <button
                         type="button"
-                        className="text-slate-400 hover:text-red-500"
+                        className="text-slate-400 hover:text-rose-500"
                         title="Delete"
                       >
                         <Trash2 size={14} />

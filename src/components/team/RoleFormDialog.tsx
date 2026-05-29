@@ -216,7 +216,7 @@ export function RoleFormDialog({ open, onClose, onSaved, editingRole }: Props) {
           </div>
 
           {error && (
-            <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+            <div className="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>
           )}
 
           <div className="pt-1">

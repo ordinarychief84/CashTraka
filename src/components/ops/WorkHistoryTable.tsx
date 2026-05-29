@@ -302,7 +302,7 @@ export function WorkHistoryTable({ rows }: { rows: WorkHistoryRow[] }) {
             </tbody>
             {filtered.length > 0 && (
               <tfoot>
-                <tr className="border-t border-border bg-amber-50/70">
+                <tr className="border-t border-border bg-owed-50/70">
                   <td className="px-3 py-2" colSpan={5}>
                     <span className="text-xs font-bold uppercase text-slate-600">
                       Page summary

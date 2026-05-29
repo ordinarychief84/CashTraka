@@ -104,7 +104,7 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
       value: lowMaterialsCount,
       href: '/materials?lowStock=1',
       Icon: Boxes,
-      accent: lowMaterialsCount > 0 ? 'text-amber-700' : 'text-slate-700',
+      accent: lowMaterialsCount > 0 ? 'text-owed-700' : 'text-slate-700',
     },
     {
       label: 'Material shortages',
@@ -126,7 +126,7 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
       value: activeSubscriptions,
       href: '/customers',
       Icon: Repeat2,
-      accent: 'text-emerald-700',
+      accent: 'text-success-700',
       subtitle: activeSubscriptions > 0 ? 'Recurring customer orders' : undefined,
     },
     {
@@ -134,7 +134,7 @@ export async function OpsDashboardCards({ userId }: { userId: string }) {
       value: expiringCerts,
       href: '/settings/certificates',
       Icon: ShieldCheck,
-      accent: expiringCerts > 0 ? 'text-amber-700' : 'text-slate-700',
+      accent: expiringCerts > 0 ? 'text-owed-700' : 'text-slate-700',
       subtitle: expiringCerts > 0 ? `Within ${CERT_EXPIRY_WINDOW_DAYS} days` : undefined,
     },
   ];

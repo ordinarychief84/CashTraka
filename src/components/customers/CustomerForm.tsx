@@ -169,8 +169,8 @@ export function CustomerForm({ initial, redirectTo = '/customers' }: Props) {
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-full border-2 transition',
                     active
-                      ? 'border-emerald-500 bg-emerald-500 text-white'
-                      : 'border-slate-200 bg-white text-slate-300 hover:border-emerald-300',
+                      ? 'border-success-500 bg-success-500 text-white'
+                      : 'border-slate-200 bg-white text-slate-300 hover:border-success-300',
                   )}
                   title="Active"
                 >
@@ -250,7 +250,7 @@ export function CustomerForm({ initial, redirectTo = '/customers' }: Props) {
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-full bg-emerald-500 px-8 py-2.5 text-sm font-semibold text-white shadow hover:bg-emerald-600 disabled:opacity-60 transition"
+              className="rounded-full bg-success-500 px-8 py-2.5 text-sm font-semibold text-white shadow hover:bg-success-600 disabled:opacity-60 transition"
             >
               {submitting ? 'Saving…' : 'SAVE'}
             </button>

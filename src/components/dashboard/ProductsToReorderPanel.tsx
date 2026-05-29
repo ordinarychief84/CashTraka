@@ -60,7 +60,7 @@ export async function ProductsToReorderPanel({ userId }: Props) {
                 )}
               </div>
               <div className="shrink-0 text-right">
-                <span className="text-[12px] font-semibold text-red-600">{p.stock}</span>
+                <span className="text-[12px] font-semibold text-rose-600">{p.stock}</span>
                 <span className="ml-0.5 text-[11px] text-slate-400">/ {p.lowStockAt}</span>
               </div>
             </div>

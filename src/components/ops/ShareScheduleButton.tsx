@@ -47,13 +47,13 @@ export function ShareScheduleButton() {
         type="button"
         onClick={handleClick}
         disabled={isPending}
-        className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100 disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 rounded-md border border-success-300 bg-success-50 px-2.5 py-1.5 text-xs font-semibold text-success-800 transition hover:bg-success-100 disabled:opacity-60"
       >
         <Send size={13} />
         {isPending ? 'Building share…' : 'Share this week'}
       </button>
       {error ? (
-        <span className="text-[11px] text-red-700" role="alert">
+        <span className="text-[11px] text-rose-700" role="alert">
           {error}
         </span>
       ) : null}

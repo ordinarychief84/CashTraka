@@ -32,7 +32,7 @@ const CADENCES = [
 
 const STATUS_BADGE: Record<string, string> = {
   active: 'bg-success-100 text-success-800',
-  paused: 'bg-amber-50 text-amber-700',
+  paused: 'bg-owed-50 text-owed-700',
   cancelled: 'bg-slate-100 text-slate-600',
 };
 

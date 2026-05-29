@@ -135,7 +135,7 @@ export function PurchaseOrderActions({
         </a>
       )}
       {emailResult && (
-        <p className={emailResult.ok ? 'text-xs text-emerald-700' : 'text-xs text-amber-700'}>
+        <p className={emailResult.ok ? 'text-xs text-success-700' : 'text-xs text-owed-700'}>
           Email: {emailResult.ok ? 'sent' : emailResult.error ?? 'failed'}
         </p>
       )}

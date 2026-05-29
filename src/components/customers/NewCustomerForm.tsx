@@ -161,7 +161,7 @@ export function NewCustomerForm() {
                   </div>
                   <div>
                     <label className={labelCls}>
-                      Customer name <span className="text-red-500">*</span>
+                      Customer name <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -179,7 +179,7 @@ export function NewCustomerForm() {
                     <input type="text" value={lanNumber} onChange={e => setLanNumber(e.target.value)} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Group <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>Group <span className="text-rose-500">*</span></label>
                     <div className="relative">
                       <input type="text" value={group} onChange={e => setGroup(e.target.value)} className={inputCls + ' pr-8'} />
                       <ArrowUpDown size={12} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -206,7 +206,7 @@ export function NewCustomerForm() {
                 <p className={sectionHeadCls}>Settings</p>
                 <div className="space-y-3">
                   <div>
-                    <label className={labelCls}>Default currency <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>Default currency <span className="text-rose-500">*</span></label>
                     <select value={currency} onChange={e => setCurrency(e.target.value)} className={selectCls}>
                       <option>NGN</option>
                       <option>USD</option>
@@ -219,7 +219,7 @@ export function NewCustomerForm() {
                     <input type="number" min="0" step="0.01" value={maxCredit} onChange={e => setMaxCredit(e.target.value)} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Language <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>Language <span className="text-rose-500">*</span></label>
                     <select value={language} onChange={e => setLanguage(e.target.value)} className={selectCls}>
                       <option>English</option>
                       <option>French</option>
@@ -227,7 +227,7 @@ export function NewCustomerForm() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Payment term <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>Payment term <span className="text-rose-500">*</span></label>
                     <select value={paymentTerm} onChange={e => setPaymentTerm(e.target.value)} className={selectCls}>
                       <option value="" />
                       <option>Net 30</option>
@@ -246,7 +246,7 @@ export function NewCustomerForm() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>VAT zone <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>VAT zone <span className="text-rose-500">*</span></label>
                     <select value={vatZone} onChange={e => setVatZone(e.target.value)} className={selectCls}>
                       <option value="" />
                       <option>Domestic</option>

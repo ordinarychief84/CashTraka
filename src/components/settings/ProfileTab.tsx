@@ -109,7 +109,7 @@ export function ProfileTab({ initial }: Props) {
         <h2 className="text-base font-bold text-slate-900">Profile</h2>
         <p className="text-sm text-slate-500">
           How your business appears to{' '}
-          {initial.businessType === 'property_manager' ? 'tenants' : 'customers'} on receipts and invoices.
+          {false ? 'tenants' : 'customers'} on receipts and invoices.
         </p>
       </div>
 
@@ -164,8 +164,8 @@ export function ProfileTab({ initial }: Props) {
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">Account type</label>
           <span className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-            {form.businessType === 'property_manager' ? <Building2 size={16} /> : <Store size={16} />}
-            {form.businessType === 'property_manager' ? 'Landlord' : 'Small Business'}
+            {false ? <Building2 size={16} /> : <Store size={16} />}
+            {false ? 'Landlord' : 'Small Business'}
           </span>
         </div>
 
@@ -190,7 +190,7 @@ export function ProfileTab({ initial }: Props) {
             </p>
           )}
           <p className="mt-1 text-xs text-slate-500">
-            Shown on receipts so {form.businessType === 'property_manager' ? 'tenants' : 'customers'} can reach you.
+            Shown on receipts so {false ? 'tenants' : 'customers'} can reach you.
           </p>
         </div>
 

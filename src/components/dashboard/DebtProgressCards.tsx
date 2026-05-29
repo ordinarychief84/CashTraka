@@ -13,7 +13,8 @@ type DebtItem = {
 
 type Props = {
   debts: DebtItem[];
-  businessType: string;
+  /** Legacy prop — retained so existing call-sites still type-check. */
+  businessType?: string;
 };
 
 /**
@@ -22,8 +23,8 @@ type Props = {
  * which collections are closest to done.
  */
 export function DebtProgressCards({ debts, businessType }: Props) {
-  const isPm = businessType === 'property_manager';
-  const title = isPm ? 'Rent you are collecting' : 'Debts you are collecting';
+  void businessType;
+  const title = 'Debts you are collecting';
   if (debts.length === 0) return null;
 
   return (

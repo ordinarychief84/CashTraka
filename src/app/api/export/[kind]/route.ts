@@ -35,10 +35,6 @@ export async function GET(
   const { kind } = params;
   const url = new URL(req.url);
 
-  // Block seller-only exports for property managers — they don't use these.
-  if (user.businessType === 'property_manager' && (kind === 'customers' || kind === 'products')) {
-    return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
-  }
 
   if (kind === 'payments') {
     const rows = await prisma.payment.findMany({

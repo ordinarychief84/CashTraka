@@ -18,12 +18,6 @@ const createSchema = z.object({
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  if (user.businessType === 'property_manager') {
-    return NextResponse.json(
-      { error: 'Checklists are not available for property managers' },
-      { status: 403 },
-    );
-  }
   const feature = await requireFeature(user, 'checklists');
   if (feature) return feature;
 

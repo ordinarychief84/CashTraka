@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
-import { isPropertyManager } from '@/lib/business-type';
 import { handled } from '@/lib/api-response';
 
 export const runtime = 'nodejs';
@@ -133,7 +132,8 @@ export async function GET(req: Request) {
   const from = url.searchParams.get('from') || undefined;
   const to = url.searchParams.get('to') || undefined;
 
-  const isPm = isPropertyManager(user.businessType);
+  // Legacy landlord flag — always false post-pivot.
+  const isPm = false as const;
   const { start, end } = periodDates(period, from, to);
   const prev = prevPeriodDates(start, end);
 

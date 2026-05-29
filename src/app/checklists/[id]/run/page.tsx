@@ -13,10 +13,7 @@ type Props = {
 };
 
 export default async function ChecklistRunPage({ params, searchParams }: Props) {
-  const user = await guard();
-  if (user.businessType === 'property_manager') redirect('/dashboard');
-
-  const checklist = await prisma.checklist.findFirst({
+  const user = await guard();  const checklist = await prisma.checklist.findFirst({
     where: { id: params.id, userId: user.id },
   });
   if (!checklist) notFound();

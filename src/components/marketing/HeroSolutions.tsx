@@ -30,7 +30,7 @@ export function HeroSolutions() {
                   <Star size={12} fill="currentColor" />
                   <span className="ml-1">4.9</span>
                 </div>
-                <span className="text-slate-500">Built for Nigerian businesses and landlords</span>
+                <span className="text-slate-500">Built for Nigerian small batch businesses</span>
               </div>
             </Reveal>
             <Reveal from="up" delay={80}>

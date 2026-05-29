@@ -11,7 +11,6 @@ import {
   Wallet,
   Repeat,
   Store,
-  Home,
   Check,
   Lock,
 } from 'lucide-react';
@@ -87,17 +86,6 @@ const ADD_ONS: AddOn[] = [
       'Publish your product catalog on a public CashTraka URL. Customers browse, add to cart, and request a quote.',
     href: '/dashboard',
     status: 'INSTALLED',
-  },
-  {
-    slug: 'property',
-    name: 'Property management',
-    icon: Home,
-    iconBg: 'bg-slate-100',
-    iconColor: 'text-slate-700',
-    description:
-      'Switch the workspace into landlord mode — rent rolls, tenant invoices, lease renewals.',
-    href: '/tenants',
-    status: 'AVAILABLE',
   },
 
   // Rackbeat-style add-ons surfaced for parity with the screenshot

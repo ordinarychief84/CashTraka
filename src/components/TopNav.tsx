@@ -29,7 +29,6 @@ interface Props {
   showExpenses: boolean;
   showTeam: boolean;
   showSettings: boolean;
-  isPropManager: boolean;
 }
 
 export function TopNav({
@@ -40,7 +39,6 @@ export function TopNav({
   showExpenses,
   showTeam,
   showSettings,
-  isPropManager,
 }: Props) {
   const pathname = usePathname();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
@@ -77,7 +75,7 @@ export function TopNav({
     },
   ];
 
-  if (!isPropManager) {
+  {
     // Items tab (products, materials, inventory)
     const itemChildren: NavChild[] = [];
     if (showProducts) {
@@ -178,19 +176,6 @@ export function TopNav({
       ],
       children: salesChildren,
     });
-  }
-
-  // Property manager: simplified nav
-  if (isPropManager) {
-    if (showPayments) {
-      groups.push(
-        { label: 'Invoices', href: '/invoices', match: ['/invoices'] },
-        { label: 'Receipts', href: '/receipts', match: ['/receipts'] },
-      );
-    }
-    if (showCustomers) {
-      groups.push({ label: 'Tenants', href: '/customers', match: ['/customers'] });
-    }
   }
 
   // Reporting

@@ -67,14 +67,14 @@ export function NewActivityCards({
   latestInvoice,
   businessType,
 }: Props) {
-  const isPm = businessType === 'property_manager';
+  void businessType;
 
   const items: Item[] = [];
 
   if (latestPayment) {
     items.push({
       icon: Banknote,
-      label: isPm ? 'Latest rent payment' : 'Latest payment',
+      label: 'Latest payment',
       primary: latestPayment.customerNameSnapshot,
       meta1: { label: 'Amount', value: formatNaira(latestPayment.amount) },
       meta2: {
@@ -92,7 +92,7 @@ export function NewActivityCards({
     const remaining = Math.max(latestDebt.amountOwed - latestDebt.amountPaid, 0);
     items.push({
       icon: Clock3,
-      label: isPm ? 'Latest unpaid rent' : 'Latest debt',
+      label: 'Latest debt',
       primary: latestDebt.customerNameSnapshot,
       meta1: { label: 'Remaining', value: formatNaira(remaining) },
       meta2: {
@@ -130,7 +130,7 @@ export function NewActivityCards({
   }
 
   // Pad with empty-state cards if we have fewer than 3 real items
-  while (items.length < 3) items.push(emptyItem(items.length, isPm));
+  while (items.length < 3) items.push(emptyItem(items.length));
 
   return (
     <section>
@@ -194,11 +194,11 @@ export function NewActivityCards({
   );
 }
 
-function emptyItem(idx: number, isPm: boolean): Item {
+function emptyItem(idx: number): Item {
   const templates: Item[] = [
     {
       icon: Banknote,
-      label: isPm ? 'Latest rent payment' : 'Latest payment',
+      label: 'Latest payment',
       primary: 'No payments yet',
       sub: 'Tap to add your first',
       href: '/payments/new',
@@ -206,7 +206,7 @@ function emptyItem(idx: number, isPm: boolean): Item {
     },
     {
       icon: Clock3,
-      label: isPm ? 'Latest unpaid rent' : 'Latest debt',
+      label: 'Latest debt',
       primary: 'No debts yet',
       sub: 'Everyone is caught up',
       href: '/debts/new',

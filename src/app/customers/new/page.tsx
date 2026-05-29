@@ -8,8 +8,6 @@ export const dynamic = 'force-dynamic';
 
 export default async function NewCustomerPage() {
   const user = await guard();
-  if (user.businessType === 'property_manager') redirect('/tenants');
-
   return (
     <AppShell
       businessName={user.businessName}

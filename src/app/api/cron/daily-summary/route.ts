@@ -66,9 +66,7 @@ export async function GET(req: Request) {
 
     for (const user of users) {
       scanned++;
-      // Property managers don't run small-batch ops — skip.
-      if (user.businessType === 'property_manager') continue;
-      // Feature-gated to paid plans.
+      // Property managers don't run small-batch ops — skip.      // Feature-gated to paid plans.
       if (!hasFeature(user, 'dailySummary')) {
         skippedNoFeature++;
         continue;

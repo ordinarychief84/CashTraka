@@ -148,10 +148,10 @@ export function SettingsForm({ initial }: Props) {
     <div className="space-y-5">
       {/* ─────────── Business profile ─────────── */}
       <Section
-        icon={form.businessType === 'property_manager' ? Building2 : Store}
+        icon={false ? Building2 : Store}
         title="Business profile"
         description={
-          form.businessType === 'property_manager'
+          false
             ? 'How your business appears to tenants on rent receipts and invoices.'
             : 'How your business appears to customers on receipts, invoices and messages.'
         }
@@ -179,17 +179,17 @@ export function SettingsForm({ initial }: Props) {
               <span
                 className={
                   'inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold ' +
-                  (form.businessType === 'property_manager'
+                  (false
                     ? 'border-brand-200 bg-brand-50 text-brand-700'
                     : 'border-slate-200 bg-slate-50 text-slate-700')
                 }
               >
-                {form.businessType === 'property_manager' ? (
+                {false ? (
                   <Building2 size={16} />
                 ) : (
                   <Store size={16} />
                 )}
-                {form.businessType === 'property_manager' ? 'Landlord' : 'Small Business'}
+                {false ? 'Landlord' : 'Small Business'}
               </span>
             </div>
           </div>
@@ -198,7 +198,7 @@ export function SettingsForm({ initial }: Props) {
             id="whatsappNumber"
             label="WhatsApp number"
             hint={
-              form.businessType === 'property_manager'
+              false
                 ? 'Shown on rent receipts so tenants can reach you.'
                 : 'Shown on receipts so customers can reach you.'
             }
@@ -226,7 +226,7 @@ export function SettingsForm({ initial }: Props) {
             label="Receipt footer"
             optional
             hint={
-              form.businessType === 'property_manager'
+              false
                 ? 'Appears at the bottom of every rent receipt. Great for a note about payment terms.'
                 : 'Appears at the bottom of every receipt. Great for a thank-you note or return policy.'
             }
@@ -253,7 +253,7 @@ export function SettingsForm({ initial }: Props) {
               <div>
                 <h3 className="text-sm font-bold text-ink">Payment details</h3>
                 <p className="text-xs text-slate-600">
-                  {form.businessType === 'property_manager'
+                  {false
                     ? 'Shown on rent invoices so tenants can pay into your account.'
                     : 'Shown on your payment links and invoices so customers can pay into your account.'}
                 </p>
@@ -357,16 +357,16 @@ export function SettingsForm({ initial }: Props) {
           <ExportLink
             href="/api/export/payments"
             label={
-              form.businessType === 'property_manager' ? 'Rent payments' : 'Payments'
+              false ? 'Rent payments' : 'Payments'
             }
           />
           <ExportLink
             href="/api/export/debts"
             label={
-              form.businessType === 'property_manager' ? 'Unpaid rent' : 'Debts'
+              false ? 'Unpaid rent' : 'Debts'
             }
           />
-          {form.businessType === 'property_manager' ? (
+          {false ? (
             <>
               <ExportLink href="/api/export/tenants" label="Tenants" />
               <ExportLink href="/api/export/properties" label="Properties" />
@@ -383,7 +383,7 @@ export function SettingsForm({ initial }: Props) {
         icon={MessageSquare}
         title="Saved messages"
         description={
-          form.businessType === 'property_manager'
+          false
             ? 'Re-use templates when you remind tenants about rent on WhatsApp.'
             : 'Re-use templates when you follow up on WhatsApp, so you don\'t type the same message twice.'
         }

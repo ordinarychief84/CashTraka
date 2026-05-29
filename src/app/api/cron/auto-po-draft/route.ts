@@ -53,9 +53,7 @@ export async function GET(req: Request) {
     let skippedNothingToDraft = 0;
 
     for (const user of users) {
-      scanned++;
-      if (user.businessType === 'property_manager') continue;
-      if (!hasFeature(user, 'autoPurchaseOrders')) {
+      scanned++;      if (!hasFeature(user, 'autoPurchaseOrders')) {
         skippedNoFeature++;
         continue;
       }

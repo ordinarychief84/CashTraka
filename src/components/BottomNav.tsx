@@ -12,7 +12,6 @@ import type { AccessRole } from '@/lib/rbac';
 import { can } from '@/lib/rbac';
 
 type Props = {
-  isPropManager?: boolean;
   /** Role of the logged-in principal. Used to hide the Quick-Add FAB when
    *  the principal can't actually create anything. */
   accessRole?: AccessRole;
@@ -32,7 +31,6 @@ type Props = {
  * clears iOS home-indicator and Android gesture areas.
  */
 export function BottomNav({
-  isPropManager,
   accessRole = 'OWNER',
   businessName,
   planLabel,
@@ -69,7 +67,7 @@ export function BottomNav({
           <NavItem
             href="/payments"
             icon={Banknote}
-            label={isPropManager ? 'Rent' : 'Pay'}
+            label="Pay"
             active={isActive('/payments')}
           />
 
@@ -91,7 +89,7 @@ export function BottomNav({
           <NavItem
             href="/debts"
             icon={Clock3}
-            label={isPropManager ? 'Unpaid' : 'Owed'}
+            label="Owed"
             active={isActive('/debts')}
           />
 
@@ -116,7 +114,6 @@ export function BottomNav({
       <MoreSheet
         open={moreOpen}
         onClose={() => setMoreOpen(false)}
-        isPropManager={isPropManager}
         businessName={businessName}
         planLabel={planLabel}
       />

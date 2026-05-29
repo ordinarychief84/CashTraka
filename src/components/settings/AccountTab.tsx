@@ -306,7 +306,7 @@ export function AccountTab({ initial, businessType }: Props) {
             Payment Details
           </h2>
           <p className="text-sm text-slate-500">
-            {businessType === 'property_manager'
+            {false
               ? 'Shown on rent invoices so tenants can pay into your account.'
               : 'Shown on payment links and invoices so customers can pay.'}
           </p>

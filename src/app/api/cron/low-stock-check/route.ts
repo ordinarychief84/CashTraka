@@ -27,9 +27,7 @@ export async function GET(req: Request) {
     let notificationsCreated = 0;
     let scanned = 0;
     for (const user of users) {
-      // Property managers don't run small-batch ops.
-      if (user.businessType === 'property_manager') continue;
-      scanned++;
+      // Property managers don't run small-batch ops.      scanned++;
 
       const [materials, products] = await Promise.all([
         inventoryService.computeLowStockMaterials(user.id),

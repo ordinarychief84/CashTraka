@@ -7,13 +7,13 @@ import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { formatNaira, timeAgo } from '@/lib/format';
 import { displayPhone } from '@/lib/whatsapp';
-import { isPropertyManager } from '@/lib/business-type';
-
 export const dynamic = 'force-dynamic';
 
 export default async function SearchPage({ searchParams }: { searchParams: { q?: string } }) {
   const user = await guard();
-  const isPm = isPropertyManager(user.businessType);
+  // Legacy landlord flag — always false post-pivot. Kept so downstream
+  // copy branches dead-code-eliminate cleanly.
+  const isPm = false as const;
   const q = (searchParams.q || '').trim();
 
   if (!q) {

@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { Store, Home, Check, ArrowRight } from 'lucide-react';
+import { Store, Check, ArrowRight } from 'lucide-react';
 import { Reveal } from './Reveal';
 
 /**
- * "Pick your path", the ICP self-select, promoted from inside the hero
- * into its own breathing-room section. Two big cards. Each routes to the
- * dedicated solution landing (/for-business, /for-landlords).
+ * Solutions section — post-pivot CashTraka is a single-line "seller"
+ * product (small batch businesses). The landlord card was removed
+ * when the property-management vertical was retired.
  */
 export function SolutionsPath() {
   return (
@@ -16,51 +16,35 @@ export function SolutionsPath() {
         <Reveal from="up">
           <div className="mx-auto max-w-2xl text-center">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-brand-600">
-              Two paths · one app
+              One app · every Naira
             </span>
             <h2 className="mt-3 text-3xl font-black tracking-tight text-ink md:text-4xl">
-              Pick the side that fits your work
+              Built for small batch businesses
             </h2>
             <p className="mt-3 text-slate-600">
-              Selling products or collecting rent, the engine is the same. Pick your
-              path and see what comes built in.
+              From a single workshop to a small factory floor — plan production,
+              chase payments, and keep your customer book in one place.
             </p>
           </div>
         </Reveal>
 
-        <div className="mx-auto mt-10 grid max-w-5xl gap-5 md:grid-cols-2 md:gap-6">
+        <div className="mx-auto mt-10 grid max-w-3xl gap-5 md:gap-6">
           <Reveal from="up" delay={120}>
             <PathCard
               icon={Store}
               accent="brand"
               kicker="For Small Business"
               title="CashTraka for Business"
-              desc="For sellers, tailors, salons, vendors, and service providers. Make invoices, take Paystack payments, set up recurring billing, and chase debts on WhatsApp."
+              desc="For skincare brands, food processors, fashion workshops, furniture makers, printing shops, and small factories. Plan production, track materials, chase debts on WhatsApp."
               features={[
+                'Production orders driven by recipes / BOMs',
+                'Material shortage alerts before they bite',
                 'Invoice engine with public pay link via Paystack',
-                'Recurring invoices for retainer clients',
                 'FIRS-ready tax invoices with IRN and QR',
                 'Smart Collection Queue and WhatsApp reminders',
               ]}
               href="/for-business"
               cta="See for Business"
-            />
-          </Reveal>
-          <Reveal from="up" delay={200}>
-            <PathCard
-              icon={Home}
-              accent="success"
-              kicker="For Landlords"
-              title="CashTraka for Landlords"
-              desc="For landlords, property managers, and estate agents. Send rent invoices, take payments by link, set up monthly auto-debit, and see who is owing at a glance."
-              features={[
-                'Rent invoices and pay links via Paystack',
-                'Monthly auto-debit on stored cards',
-                'Rent tracker with collection rate per property',
-                'Auto WhatsApp reminders before and after due date',
-              ]}
-              href="/for-landlords"
-              cta="See for Landlords"
             />
           </Reveal>
         </div>

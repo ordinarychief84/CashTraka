@@ -48,12 +48,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid export kind' }, { status: 400 });
   }
 
-  // PM-only exports
-  if (['tenants', 'properties', 'rent-payments'].includes(kind) && user.businessType !== 'property_manager') {
-    return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
-  }
-  if (kind === 'customers' && user.businessType === 'property_manager') {
-    return NextResponse.json({ error: 'Not available for your business type' }, { status: 403 });
+  // Legacy property-manager exports (tenants/properties/rent-payments)
+  // are no longer offered — the workspace is single-line "seller" now.
+  if (['tenants', 'properties', 'rent-payments'].includes(kind)) {
+    return NextResponse.json({ error: 'Export kind no longer supported' }, { status: 410 });
   }
 
   try {

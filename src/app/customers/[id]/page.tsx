@@ -22,9 +22,7 @@ type Item =
   | { kind: 'debt'; id: string; amount: number; status: 'OPEN' | 'PAID'; at: Date };
 
 export default async function CustomerDetailPage({ params }: { params: { id: string } }) {
-  const user = await guard();
-  if (user.businessType === 'property_manager') redirect('/tenants');
-  const customer = await prisma.customer.findFirst({
+  const user = await guard();  const customer = await prisma.customer.findFirst({
     where: { id: params.id, userId: user.id },
   });
   if (!customer) notFound();

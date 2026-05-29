@@ -26,10 +26,6 @@ function deriveStatus(c: {
 export default async function CustomersPage() {
   const user = await guard();
 
-  if (user.businessType === 'property_manager') {
-    redirect('/tenants');
-  }
-
   const customers = await prisma.customer.findMany({
     where: { userId: user.id },
     orderBy: { lastActivityAt: 'desc' },

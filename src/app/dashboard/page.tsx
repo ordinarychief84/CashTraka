@@ -53,7 +53,7 @@ import { ProductsToReorderPanel } from '@/components/dashboard/ProductsToReorder
 import { AwaitingPurchaseOrdersPanel } from '@/components/dashboard/AwaitingPurchaseOrdersPanel';
 import { AwaitingOrdersPanel } from '@/components/dashboard/AwaitingOrdersPanel';
 import { formatKobo } from '@/lib/format';
-import { copyFor, isPropertyManager } from '@/lib/business-type';
+import { copyFor } from '@/lib/business-type';
 import { can } from '@/lib/rbac';
 import { limitsFor, effectivePlan } from '@/lib/plan-limits';
 
@@ -89,7 +89,9 @@ export default async function DashboardPage() {
 
   const now = new Date();
   const copy = copyFor(user.businessType);
-  const isPm = isPropertyManager(user.businessType);
+  // Legacy flag from the landlord vertical — always false post-pivot.
+  // Kept so downstream dead branches dead-code-eliminate cleanly.
+  const isPm = false as const;
   const firstName = (user.principalName ?? user.name).split(' ')[0];
   const isStaffPrincipal = !user.isOwner && Boolean(user.staffId);
 

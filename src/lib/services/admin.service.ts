@@ -21,7 +21,7 @@ const emptyAsUndefined = <T extends z.ZodTypeAny>(inner: T) =>
 const filterSchema = z.object({
   q: z.string().trim().optional(),
   role: emptyAsUndefined(z.enum(['USER', 'ADMIN'])),
-  businessType: emptyAsUndefined(z.enum(['seller', 'property_manager'])),
+  businessType: emptyAsUndefined(z.enum(['seller'])),
   isSuspended: emptyAsUndefined(z.enum(['yes', 'no'])),
   hasActivity: emptyAsUndefined(z.enum(['yes', 'no'])),
   // "no" (default) hides deactivated users; "yes" shows them; "only" shows

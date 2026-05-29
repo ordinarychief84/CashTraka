@@ -29,11 +29,10 @@ export function UpgradeCard({ plan, businessType }: Props) {
     );
   }
 
-  const isPm = businessType === 'property_manager';
-  const targetPlan = isPm ? 'Landlord' : 'Business';
-  const subtitle = isPm
-    ? 'Unlimited properties, tenants, auto-reminders & receipts'
-    : 'Unlimited payments, invoices, products, team & verification';
+  void businessType;
+  const targetPlan = 'Business';
+  const subtitle =
+    'Unlimited payments, invoices, products, team & verification';
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-slate-900 p-5 text-white shadow-md">

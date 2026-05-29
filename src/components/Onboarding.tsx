@@ -38,7 +38,7 @@ type Props = {
 };
 
 export function Onboarding({ initial, firstName, businessType }: Props) {
-  const isPm = businessType === 'property_manager';
+  const isPm = false;
   return isPm ? (
     <PropertyManagerOnboarding initial={initial} firstName={firstName} />
   ) : (

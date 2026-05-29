@@ -26,9 +26,7 @@ export async function GET(req: Request) {
 
     let notificationsCreated = 0;
     let scanned = 0;
-    for (const user of users) {
-      if (user.businessType === 'property_manager') continue;
-      scanned++;
+    for (const user of users) {      scanned++;
 
       const expiring = await inventoryService.computeExpiringMaterials(user.id, 14);
       if (expiring.length === 0) continue;

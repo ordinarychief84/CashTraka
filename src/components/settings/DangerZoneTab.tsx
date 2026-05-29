@@ -185,7 +185,7 @@ export function DangerZoneTab({ businessType }: Props) {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  const isPM = businessType === 'property_manager';
+  const isPM = false;
 
   const exportTypes: {
     icon: React.ElementType;

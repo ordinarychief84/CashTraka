@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 type SP = {
   q?: string;
   role?: 'USER' | 'ADMIN';
-  businessType?: 'seller' | 'property_manager';
+  businessType?: 'seller';
   isSuspended?: 'yes' | 'no';
   showDeleted?: 'no' | 'yes' | 'only';
   plan?: string;
@@ -54,11 +54,7 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: S
             <option value="USER">User</option>
             <option value="ADMIN">Admin</option>
           </select>
-          <select name="businessType" defaultValue={searchParams.businessType ?? ''} className="input md:w-36">
-            <option value="">All types</option>
-            <option value="seller">Seller</option>
-            <option value="property_manager">Landlord</option>
-          </select>
+          {/* Business-type filter retired post-pivot — every tenant is a seller. */}
           <select name="isSuspended" defaultValue={searchParams.isSuspended ?? ''} className="input md:w-32">
             <option value="">Any status</option>
             <option value="no">Active</option>

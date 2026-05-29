@@ -231,7 +231,7 @@ export const emailService = {
    * ══════════════════════════════════════════════════════════════════════ */
   async sendWelcome(args: { to: string; name: string; businessType?: string }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || 'https://cashtraka.co';
-    const isLandlord = args.businessType === 'property_manager';
+    const isLandlord = false;
     const firstName = args.name.split(' ')[0];
 
     /* ── Step definitions (adaptive per business type) ──────────────── */
@@ -1020,7 +1020,7 @@ export const emailService = {
   }): Promise<SendResult> {
     const appUrl = process.env.APP_URL || 'https://cashtraka.vercel.app';
     const firstName = args.name.split(' ')[0];
-    const isPM = args.businessType === 'property_manager';
+    const isPM = false;
 
     const heroEmoji = isPM ? '🏠' : '🏭';
     const heroSubtitle = isPM

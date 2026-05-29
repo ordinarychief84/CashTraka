@@ -27,8 +27,6 @@ import {
   CheckSquare,
   BarChart3,
   Settings as SettingsIcon,
-  Building2,
-  Key,
   Users2,
   Landmark,
 } from 'lucide-react';
@@ -38,7 +36,6 @@ import { cn } from '@/lib/utils';
 type Props = {
   open: boolean;
   onClose: () => void;
-  isPropManager?: boolean;
   businessName?: string | null;
   /// Human-readable plan, e.g. "Free", "Starter", "Business". When set,
   /// the account card shows a "Plan · See Plans" pill that links to
@@ -68,7 +65,6 @@ type MenuItem = {
 export function MoreSheet({
   open,
   onClose,
-  isPropManager,
   businessName,
   planLabel,
 }: Props) {
@@ -91,46 +87,25 @@ export function MoreSheet({
     };
   }, [open]);
 
-  const menu: MenuItem[] = useMemo(() => {
-    const seller: MenuItem[] = [
-      { href: '/dashboard', icon: Home, label: 'Home' },
-      { href: '/reports', icon: BarChart3, label: 'Reports' },
-      { href: '/payments', icon: Banknote, label: 'Payments' },
-      { href: '/debts', icon: Clock3, label: 'Money owed' },
-      { href: '/customers', icon: Users, label: 'Customers' },
-      { href: '/receipts', icon: Receipt, label: 'Receipts' },
-      { href: '/invoices', icon: FileText, label: 'Invoices' },
-      { href: '/banks', icon: Landmark, label: 'Bank sync' },
-      { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
-      {
-        href: '/recurring-invoices',
-        icon: Repeat,
-        label: 'Recurring invoices',
-      },
-      { href: '/paylinks', icon: Send, label: 'PayLinks' },
-      { href: '/collections', icon: Target, label: 'Collections' },
-      { href: '/expenses', icon: Receipt, label: 'Expenses' },
-      { href: '/team', icon: Users2, label: 'Team' },
-      { href: '/settings', icon: SettingsIcon, label: 'Settings' },
-    ];
-
-    const landlord: MenuItem[] = [
-      { href: '/dashboard', icon: Home, label: 'Home' },
-      { href: '/reports', icon: BarChart3, label: 'Reports' },
-      { href: '/payments', icon: Banknote, label: 'Rent payments' },
-      { href: '/debts', icon: Clock3, label: 'Unpaid rent' },
-      { href: '/properties', icon: Building2, label: 'Properties' },
-      { href: '/rent', icon: Key, label: 'Rent tracker' },
-      { href: '/tenants', icon: Users, label: 'Tenants' },
-      { href: '/receipts', icon: Receipt, label: 'Receipts' },
-      { href: '/invoices', icon: FileText, label: 'Invoices' },
-      { href: '/expenses', icon: Receipt, label: 'Expenses' },
-      { href: '/team', icon: Users2, label: 'Team' },
-      { href: '/settings', icon: SettingsIcon, label: 'Settings' },
-    ];
-
-    return isPropManager ? landlord : seller;
-  }, [isPropManager]);
+  // CashTraka is a single-line "seller" workspace now — the legacy
+  // landlord menu was removed when property management shipped out.
+  const menu: MenuItem[] = useMemo(() => [
+    { href: '/dashboard', icon: Home, label: 'Home' },
+    { href: '/reports', icon: BarChart3, label: 'Reports' },
+    { href: '/payments', icon: Banknote, label: 'Payments' },
+    { href: '/debts', icon: Clock3, label: 'Money owed' },
+    { href: '/customers', icon: Users, label: 'Customers' },
+    { href: '/receipts', icon: Receipt, label: 'Receipts' },
+    { href: '/invoices', icon: FileText, label: 'Invoices' },
+    { href: '/banks', icon: Landmark, label: 'Bank sync' },
+    { href: '/credit-notes', icon: FileMinus, label: 'Credit notes' },
+    { href: '/recurring-invoices', icon: Repeat, label: 'Recurring invoices' },
+    { href: '/paylinks', icon: Send, label: 'PayLinks' },
+    { href: '/collections', icon: Target, label: 'Collections' },
+    { href: '/expenses', icon: Receipt, label: 'Expenses' },
+    { href: '/team', icon: Users2, label: 'Team' },
+    { href: '/settings', icon: SettingsIcon, label: 'Settings' },
+  ], []);
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard';

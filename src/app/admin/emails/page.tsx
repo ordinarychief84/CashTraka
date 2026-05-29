@@ -137,7 +137,7 @@ export default async function AdminEmailsPage() {
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
-            { name: 'Welcome', trigger: 'On signup', status: 'active', desc: 'Personalized onboarding for sellers & landlords' },
+            { name: 'Welcome', trigger: 'On signup', status: 'active', desc: 'Personalized onboarding for new sellers' },
             { name: 'Subscription Receipt', trigger: 'On payment', status: 'active', desc: 'Branded receipt with plan details & reference' },
             { name: 'Trial Started', trigger: 'On trial activation', status: 'active', desc: '30-day trial confirmation with expiry date' },
             { name: 'Trial Ending Soon', trigger: '3 days before expiry', status: 'active', desc: 'Upgrade nudge before trial expires' },
@@ -311,7 +311,7 @@ export default async function AdminEmailsPage() {
                 </div>
                 <div className="text-right">
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
-                    {u.businessType === 'property_manager' ? 'landlord' : 'seller'}
+                    seller
                   </span>
                   <div className="text-[11px] text-slate-400">{timeAgo(u.createdAt)}</div>
                 </div>

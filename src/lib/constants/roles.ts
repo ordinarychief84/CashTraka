@@ -10,9 +10,10 @@ export const ROLES = {
 
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
+// Post-pivot the only business type is "seller" (small batch businesses).
+// The landlord/property_manager entry was retired with the vertical.
 export const BUSINESS_TYPES = {
   SELLER: 'seller',
-  PROPERTY_MANAGER: 'property_manager',
 } as const;
 
 export type BusinessType =

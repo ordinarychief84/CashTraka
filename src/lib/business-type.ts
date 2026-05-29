@@ -1,13 +1,9 @@
 /**
- * Business-type helpers — kept as thin shims after the landlord-vertical
- * removal. The product is now a single line: CashTraka — Operational
- * Planning System for Small Batch Businesses (sellers). The legacy
- * `BusinessType` type and `copyFor` helper remain so existing callers
- * across the codebase keep compiling; `isPropertyManager` always returns
- * false so any residual conditional branches no-op cleanly.
- *
- * Schedule for full removal: once every caller is rewritten to drop the
- * business-type indirection, delete this file.
+ * Business-type helpers — thin shim after the landlord-vertical removal.
+ * The product is now a single line: CashTraka — Operational Planning
+ * System for Small Batch Businesses (sellers). The legacy `BusinessType`
+ * type and `copyFor` helper remain so existing call-sites still
+ * type-check; `isPropertyManager` was removed in the audit pass.
  */
 
 export type BusinessType = 'seller';
@@ -75,15 +71,6 @@ export function canAccess(
   const allowed = FEATURES[feature];
   if (!allowed) return true;
   return allowed.includes('seller');
-}
-
-/**
- * Always false — the landlord vertical was removed during the small-batch
- * ops pivot. Kept so existing conditional branches in legacy code stop
- * rendering landlord-specific UI without each call-site needing edits.
- */
-export function isPropertyManager(_type?: string | null | undefined): boolean {
-  return false;
 }
 
 export function copyFor(_type?: string | null | undefined) {

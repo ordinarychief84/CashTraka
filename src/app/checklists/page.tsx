@@ -29,8 +29,6 @@ export default async function ChecklistsPage() {
   const user = await guard();
   // Checklists are for sellers only — property managers use inspection
   // workflows inside property detail instead.
-  if (user.businessType === 'property_manager') redirect('/dashboard');
-
   const [checklists, recentRuns] = await Promise.all([
     prisma.checklist.findMany({
       where: { userId: user.id },

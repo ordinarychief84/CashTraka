@@ -191,28 +191,13 @@ const sellerExpenseCategories = [
   'Miscellaneous',
 ] as const;
 
-const landlordExpenseCategories = [
-  'Property Maintenance',
-  'Plumbing / Electrical',
-  'Security / Gateman',
-  'Rent / Lease',
-  'Insurance',
-  'Property Tax / Levies',
-  'Legal Fees',
-  'Agent Commission',
-  'Renovations / Upgrades',
-  'Utilities (Common Areas)',
-  'Cleaning / Fumigation',
-  'Salaries / Wages',
-  'Miscellaneous',
-] as const;
-
 export const SELLER_EXPENSE_CATEGORIES = sellerExpenseCategories;
-export const LANDLORD_EXPENSE_CATEGORIES = landlordExpenseCategories;
 
-/** Get the right business expense list based on the user's business type */
-export function businessCategoriesFor(businessType: string): readonly string[] {
-  if (businessType === 'property_manager') return landlordExpenseCategories;
+/**
+ * Get the active business expense list. CashTraka is a single-line
+ * "seller" product post-pivot — there's only one list now.
+ */
+export function businessCategoriesFor(_businessType: string): readonly string[] {
   return sellerExpenseCategories;
 }
 

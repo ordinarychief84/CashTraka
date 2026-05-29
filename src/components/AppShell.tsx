@@ -32,16 +32,17 @@ export function AppShell({
   pendingTaskCount,
   planLabel,
 }: Props) {
-  const isPropManager = businessType === 'property_manager';
-
+  // Permission gates. `businessType` is retained as a prop for legacy
+  // call-sites; the value is always 'seller' now that the property-
+  // management vertical has been retired.
+  void businessType;
   const show = {
     payments: can(accessRole, 'payments.read'),
     debts: can(accessRole, 'debts.read'),
     customers: can(accessRole, 'customers.read'),
-    products: can(accessRole, 'products.read') && !isPropManager,
+    products: can(accessRole, 'products.read'),
     expenses: can(accessRole, 'expenses.read'),
     team: can(accessRole, 'team.read'),
-    properties: can(accessRole, 'products.read') && isPropManager,
     tasks: can(accessRole, 'tasks.read'),
     reports: can(accessRole, 'reports.read'),
     settings: can(accessRole, 'settings.read'),
@@ -91,7 +92,6 @@ export function AppShell({
           showExpenses={show.expenses}
           showTeam={show.team}
           showSettings={show.settings}
-          isPropManager={isPropManager}
         />
       </div>
 
@@ -135,7 +135,6 @@ export function AppShell({
 
       {/* ── Mobile bottom nav ────────────────────────────────────────────── */}
       <BottomNav
-        isPropManager={isPropManager}
         accessRole={accessRole}
         businessName={businessName}
         planLabel={planLabel}

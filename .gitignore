@@ -29,3 +29,4 @@ tsconfig.tsbuildinfo
 # `/cso` writes findings to .gstack/security-reports/{date}.json — those
 # files contain verbatim exploit scenarios and must NOT be committed.
 .gstack/
+.gstack/

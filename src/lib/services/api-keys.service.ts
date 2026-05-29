@@ -17,12 +17,18 @@ import { Err } from '@/lib/errors';
 
 const RAW_LENGTH_BYTES = 18; // → 24 base64url chars
 
-function generateRawToken(prefix: string): string {
+/**
+ * Mint a fresh raw API token of the form `${prefix}_<24 base64url>`.
+ * Exported for unit-testing the format invariant — the format is
+ * baked into the SettingsSubNav docs and the API auth middleware.
+ */
+export function generateRawToken(prefix: string): string {
   const raw = crypto.randomBytes(RAW_LENGTH_BYTES).toString('base64url');
   return `${prefix}_${raw}`;
 }
 
-function sha256(s: string): string {
+/** SHA-256 hex digest. Exported for tests to verify the hash matches `verifyToken`'s lookup key. */
+export function sha256(s: string): string {
   return crypto.createHash('sha256').update(s).digest('hex');
 }
 

@@ -24,6 +24,35 @@ export type EmailLogStatus =
   | 'failed';
 
 /**
+ * Status precedence ladder. Higher number = more terminal/severe.
+ * Used by `upsertEmailEvent` to ignore out-of-order webhook
+ * deliveries that would otherwise downgrade a `bounced` row back
+ * to `opened` etc. Exported for unit tests.
+ */
+export const EMAIL_STATUS_ORDER: Record<EmailLogStatus, number> = {
+  queued: 0,
+  sent: 1,
+  delivered: 2,
+  opened: 3,
+  clicked: 4,
+  complained: 5,
+  bounced: 6,
+  failed: 7,
+};
+
+/**
+ * True when an incoming `incoming` event is LESS terminal than the
+ * already-stored `existing` status — i.e. we should NOT overwrite
+ * the row's status with the incoming value.
+ */
+export function shouldDowngrade(
+  incoming: EmailLogStatus,
+  existing: EmailLogStatus,
+): boolean {
+  return EMAIL_STATUS_ORDER[incoming] <= EMAIL_STATUS_ORDER[existing];
+}
+
+/**
  * Record a fresh send. Called from email.service when Resend
  * returns its email_id but before we know whether it landed.
  */
@@ -76,17 +105,7 @@ export async function upsertEmailEvent(input: {
     if (existing) {
       // Status order: failed > bounced > complained > delivered > opened > clicked > sent > queued
       // Don't downgrade a "bounced" row to "opened" if events arrive out of order.
-      const ORDER: Record<EmailLogStatus, number> = {
-        queued: 0,
-        sent: 1,
-        delivered: 2,
-        opened: 3,
-        clicked: 4,
-        complained: 5,
-        bounced: 6,
-        failed: 7,
-      };
-      if (ORDER[input.status] <= ORDER[existing.status as EmailLogStatus]) {
+      if (shouldDowngrade(input.status, existing.status as EmailLogStatus)) {
         // The incoming event is "less terminal" than what we already
         // have. Update errorReason only.
         if (input.errorReason) {

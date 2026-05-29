@@ -2,6 +2,7 @@ import { requireAuth } from '@/lib/auth';
 import { handled } from '@/lib/api-response';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import { toCsvFromRecords } from '@/lib/csv';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -25,23 +26,10 @@ type ExportType =
   | 'inventory-movements'
   | 'defaults';
 
-function csvEscape(v: unknown): string {
-  if (v === null || v === undefined) return '';
-  let s = typeof v === 'string' ? v : String(v);
-  // Wrap in quotes if it contains a comma, quote, newline, or leading
-  // formula-injection chars.
-  if (/^[=+\-@]/.test(s)) s = `'${s}`;
-  if (/[",\r\n]/.test(s)) s = `"${s.replace(/"/g, '""')}"`;
-  return s;
-}
-
-function toCsv(rows: Record<string, unknown>[], columns: string[]): string {
-  const header = columns.map(csvEscape).join(',');
-  const body = rows
-    .map((r) => columns.map((c) => csvEscape(r[c])).join(','))
-    .join('\n');
-  return header + '\n' + body + (body ? '\n' : '');
-}
+// csvEscape + record-based toCsv now live in @/lib/csv so they can
+// be unit-tested in isolation. This route uses the record-oriented
+// `toCsvFromRecords` to keep the per-type query code below tidy.
+const toCsv = toCsvFromRecords;
 
 function attach(name: string, csv: string): NextResponse {
   const stamp = new Date().toISOString().slice(0, 10);

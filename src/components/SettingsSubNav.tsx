@@ -14,39 +14,32 @@ interface NavGroup {
   items: SubNavItem[];
 }
 
+// Trimmed sidebar — placeholder pages (Layouts, Integrations,
+// Integration issues, Tabs, Webhooks) plus the over-engineered API
+// keys page have all been removed per the council review. Settings
+// now surfaces only what a Nigerian SMB owner actually needs in v1.
 const GROUPS: NavGroup[] = [
   {
     label: 'Company',
     items: [
-      { label: 'General',              href: '/settings' },
-      { label: 'Currencies',           href: '/settings/currencies' },
-      { label: 'Employees',            href: '/team' },
-      { label: 'Layouts',              href: '/settings/layouts' },
-      { label: 'Payment terms',        href: '/settings/payment-terms' },
-      { label: 'Delivery terms',       href: '/settings/delivery-terms' },
-      { label: 'Adjustment categories',href: '/settings/adjustment-categories' },
-      { label: 'Languages',            href: '/settings/languages' },
-      { label: 'Projects',             href: '/settings/projects' },
+      { label: 'General',               href: '/settings' },
+      { label: 'Currencies',            href: '/settings/currencies' },
+      { label: 'Employees',             href: '/team' },
+      { label: 'Payment terms',         href: '/settings/payment-terms' },
+      { label: 'Delivery terms',        href: '/settings/delivery-terms' },
+      { label: 'Adjustment categories', href: '/settings/adjustment-categories' },
+      { label: 'Languages',             href: '/settings/languages' },
+      { label: 'Projects',              href: '/settings/projects' },
     ],
   },
   {
     label: 'System',
     items: [
-      { label: 'Users',              href: '/settings/users' },
-      { label: 'Billing',            href: '/billing' },
-      { label: 'Integrations',       href: '/settings/integrations' },
-      { label: 'Integration issues', href: '/settings/integration-issues' },
-      { label: 'E-mail log',         href: '/settings/email-log' },
-      { label: 'Add-ons',            href: '/settings/add-ons' },
-      { label: 'Data export',        href: '/settings/data-export' },
-    ],
-  },
-  {
-    label: 'Developer',
-    items: [
-      { label: 'API',      href: '/settings/api' },
-      { label: 'Tabs',     href: '/settings/tabs' },
-      { label: 'Webhooks', href: '/settings/webhooks' },
+      { label: 'Users',       href: '/settings/users' },
+      { label: 'Billing',     href: '/billing' },
+      { label: 'E-mail log',  href: '/settings/email-log' },
+      { label: 'Add-ons',     href: '/settings/add-ons' },
+      { label: 'Data export', href: '/settings/data-export' },
     ],
   },
 ];

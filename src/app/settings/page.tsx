@@ -8,15 +8,12 @@ import {
   type BankRow,
 } from '@/components/settings/GeneralSettingsTabs';
 import type { DefaultsProfile } from '@/components/settings/general-tabs/DefaultsTab';
-import type { CustomFieldRow } from '@/components/settings/general-tabs/FieldsTab';
 import type { AccountingProfile } from '@/components/settings/general-tabs/AccountingTab';
-import type { AdvancedProfile } from '@/components/settings/general-tabs/AdvancedTab';
 import { prisma } from '@/lib/prisma';
 import {
   addressesService,
   bankAccountsService,
 } from '@/lib/services/company-book.service';
-import { customFieldsService } from '@/lib/services/custom-fields.service';
 
 export const dynamic = 'force-dynamic';
 
@@ -53,8 +50,6 @@ export default async function SettingsGeneralPage() {
     addressesService.listForUser(user.id),
     bankAccountsService.listForUser(user.id),
   ]);
-
-  const customFields = await customFieldsService.listForUser(user.id);
 
   const anchor = (user as any).generalStartingNumber ?? 1001;
   const initialProfile: GeneralProfile = {
@@ -138,34 +133,10 @@ export default async function SettingsGeneralPage() {
     suggestNextNumberSupplier:    !!u.suggestNextNumberSupplier,
   };
 
-  const initialCustomFields: CustomFieldRow[] = customFields.map((cf) => ({
-    id: cf.id,
-    entityType: cf.entityType as CustomFieldRow['entityType'],
-    fieldType: cf.fieldType as CustomFieldRow['fieldType'],
-    name: cf.name,
-    availableInLayouts: cf.availableInLayouts,
-  }));
-
   const initialAccounting: AccountingProfile = {
     costPricePrinciple: (u.costPricePrinciple ?? 'AVERAGE') as AccountingProfile['costPricePrinciple'],
     valuationAssociatedWithInvoicing: !!u.valuationAssociatedWithInvoicing,
     negativeQtyValuation: (u.negativeQtyValuation ?? 'UNDECIDED') as AccountingProfile['negativeQtyValuation'],
-  };
-
-  const initialAdvanced: AdvancedProfile = {
-    priceDecimals:                  u.priceDecimals ?? 2,
-    quantityDecimals:               u.quantityDecimals ?? 2,
-    decimalSeparator:               (u.decimalSeparator ?? '.') as AdvancedProfile['decimalSeparator'],
-    thousandsSeparator:             (u.thousandsSeparator ?? ',') as AdvancedProfile['thousandsSeparator'],
-    dateFormat:                     (u.dateFormat ?? 'DD-MM-YYYY') as AdvancedProfile['dateFormat'],
-    showMondayFirst:                u.showMondayFirst ?? true,
-    updateSupplierPricesOnInvoice:  !!u.updateSupplierPricesOnInvoice,
-    allowEditBomsInProduction:      !!u.allowEditBomsInProduction,
-    includeDescriptionOnSalesLines: !!u.includeDescriptionOnSalesLines,
-    giveSupportAccess:              !!u.giveSupportAccess,
-    enableInventorySharing:         !!u.enableInventorySharing,
-    sendIntegrationErrorsByEmail:   !!u.sendIntegrationErrorsByEmail,
-    logoUrl:                        u.logoUrl ?? null,
   };
 
   return (
@@ -193,9 +164,7 @@ export default async function SettingsGeneralPage() {
             initialAddresses={initialAddresses}
             initialBanks={initialBanks}
             initialDefaults={initialDefaults}
-            initialCustomFields={initialCustomFields}
             initialAccounting={initialAccounting}
-            initialAdvanced={initialAdvanced}
           />
 
           <footer className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-4 text-[11px] text-slate-500">

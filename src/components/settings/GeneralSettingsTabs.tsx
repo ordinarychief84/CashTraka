@@ -4,9 +4,7 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, X, Trash2, Star, MoreHorizontal, Loader2 } from 'lucide-react';
 import { DefaultsTab, type DefaultsProfile } from './general-tabs/DefaultsTab';
-import { FieldsTab, type CustomFieldRow } from './general-tabs/FieldsTab';
 import { AccountingTab, type AccountingProfile } from './general-tabs/AccountingTab';
-import { AdvancedTab, type AdvancedProfile } from './general-tabs/AdvancedTab';
 
 // ── Types matching the server-side shapes ───────────────────────
 
@@ -65,20 +63,21 @@ interface Props {
   initialAddresses: AddressRow[];
   initialBanks: BankRow[];
   initialDefaults: DefaultsProfile;
-  initialCustomFields: CustomFieldRow[];
   initialAccounting: AccountingProfile;
-  initialAdvanced: AdvancedProfile;
 }
 
+// Fields tab (custom fields) and Advanced tab (decimal separators,
+// "Show monday first", Connection ID, etc.) were removed per the
+// council review — neither is what a small batch business needs on
+// day one. The User columns that powered the Advanced tab stay on
+// disk but no UI reads them.
 type Tab =
   | 'numbers'
   | 'information'
   | 'addresses'
   | 'banking'
   | 'defaults'
-  | 'fields'
-  | 'accounting'
-  | 'advanced';
+  | 'accounting';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'numbers',     label: 'Numbers' },
@@ -86,9 +85,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'addresses',   label: 'Addresses' },
   { id: 'banking',     label: 'Banking' },
   { id: 'defaults',    label: 'Defaults' },
-  { id: 'fields',      label: 'Fields' },
   { id: 'accounting',  label: 'Accounting' },
-  { id: 'advanced',    label: 'Advanced' },
 ];
 
 // Shared input class so every form field on every tab looks the same.
@@ -103,9 +100,7 @@ export function GeneralSettingsTabs({
   initialAddresses,
   initialBanks,
   initialDefaults,
-  initialCustomFields,
   initialAccounting,
-  initialAdvanced,
 }: Props) {
   const [tab, setTab] = useState<Tab>('numbers');
 
@@ -134,9 +129,7 @@ export function GeneralSettingsTabs({
       {tab === 'addresses'   && <AddressesTab initialRows={initialAddresses} />}
       {tab === 'banking'     && <BankingTab initialRows={initialBanks} />}
       {tab === 'defaults'    && <DefaultsTab initialProfile={initialDefaults} />}
-      {tab === 'fields'      && <FieldsTab initialRows={initialCustomFields} />}
       {tab === 'accounting'  && <AccountingTab initialProfile={initialAccounting} />}
-      {tab === 'advanced'    && <AdvancedTab initialProfile={initialAdvanced} />}
     </div>
   );
 }

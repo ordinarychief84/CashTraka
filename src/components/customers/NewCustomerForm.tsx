@@ -23,7 +23,10 @@ export function NewCustomerForm() {
   const [status, setStatus] = useState<'Open' | 'Barred'>('Open');
 
   // Settings
-  const [currency, setCurrency] = useState('NGN');
+  // Currency is always NGN at create-time; see the comment in the
+  // Settings card below.
+  const currency = 'NGN';
+  void currency;
   const [maxCredit, setMaxCredit] = useState('');
   const [language, setLanguage] = useState('English');
   const [paymentTerm, setPaymentTerm] = useState('');
@@ -205,15 +208,10 @@ export function NewCustomerForm() {
               <div>
                 <p className={sectionHeadCls}>Settings</p>
                 <div className="space-y-3">
-                  <div>
-                    <label className={labelCls}>Default currency <span className="text-rose-500">*</span></label>
-                    <select value={currency} onChange={e => setCurrency(e.target.value)} className={selectCls}>
-                      <option>NGN</option>
-                      <option>USD</option>
-                      <option>EUR</option>
-                      <option>GBP</option>
-                    </select>
-                  </div>
+                  {/* Currency picker removed — 95% of Nigerian SMBs invoice
+                       in Naira only. To bill a customer in a different
+                       currency, enable that currency under Settings >
+                       Currencies first, then pick it on the invoice. */}
                   <div>
                     <label className={labelCls}>Max credit</label>
                     <input type="number" min="0" step="0.01" value={maxCredit} onChange={e => setMaxCredit(e.target.value)} className={inputCls} />

@@ -27,7 +27,9 @@ export function NewSupplierForm() {
   const [language, setLanguage] = useState('English');
   const [paymentForm, setPaymentForm] = useState('');
   const [deliveryTerms, setDeliveryTerms] = useState('');
-  const [currency, setCurrency] = useState('NGN');
+  // Currency is always NGN at create-time; see comment in Settings card.
+  const currency = 'NGN';
+  void currency;
   const [deliveryDays, setDeliveryDays] = useState('0');
 
   // Address
@@ -229,15 +231,9 @@ export function NewSupplierForm() {
                       <option>DDP</option>
                     </select>
                   </div>
-                  <div>
-                    <label className={labelCls}>Default currency <span className="text-rose-500">*</span></label>
-                    <select value={currency} onChange={e => setCurrency(e.target.value)} className={selectCls}>
-                      <option>NGN</option>
-                      <option>USD</option>
-                      <option>EUR</option>
-                      <option>GBP</option>
-                    </select>
-                  </div>
+                  {/* Currency picker removed — Naira-default per
+                       council review. Enable other currencies under
+                       Settings > Currencies and pick at PO time. */}
                   <div>
                     <label className={labelCls}>Expected delivery time (in days)</label>
                     <input
